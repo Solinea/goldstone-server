@@ -1,0 +1,259 @@
+{
+    "took": 150,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "failed": 0
+    },
+    "hits": {
+        "total": 66,
+        "max_score": null,
+        "hits": [{
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.create.end",
+            "_id": "d9025bd9-212a-495b-9153-b5c35bd696a1",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:31:15.997304",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "active",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info",
+                    "launched_at": "2015-06-04T23:31:15.438041"
+                }
+            },
+            "sort": [1433460675997]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "2d2fe9a9-ebd3-40f8-8998-da7010d0a103",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:31:15.869693",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "active",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info",
+                    "launched_at": "2015-06-04T23:31:15"
+                }
+            },
+            "sort": [1433460675869]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "6c18d41c-82ad-42ad-ac4a-00ba7ac98869",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:30:34.527675",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "conductor",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460634527]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "port.create.end",
+            "_id": "f640f053-b1f3-41cc-9b2b-be1eee1be907",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:58.923891",
+                "traits": {
+                    "user_id": "c057a8b573784810a5427ccd579895c5",
+                    "service": "network.base.pepple.info",
+                    "resource_id": "1564a1d9-e18e-45f5-af12-11b6c07f40f5",
+                    "tenant_id": "31ebe76d822a4c709772ee7f15c14c1d",
+                    "request_id": "req-8115b5ee-90f1-4591-924a-6a0cb6fa3ac4",
+                    "project_id": "31ebe76d822a4c709772ee7f15c14c1d"
+                }
+            },
+            "sort": [1433460598923]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "d2141bfc-16b5-4856-99ec-68c7d80873a0",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:58.146588",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460598146]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "port.create.start",
+            "_id": "f531af79-72d4-4df5-b872-fd920599a27b",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:58.056658",
+                "traits": {
+                    "tenant_id": "31ebe76d822a4c709772ee7f15c14c1d",
+                    "project_id": "31ebe76d822a4c709772ee7f15c14c1d",
+                    "user_id": "c057a8b573784810a5427ccd579895c5",
+                    "service": "network.base.pepple.info",
+                    "request_id": "req-8115b5ee-90f1-4591-924a-6a0cb6fa3ac4"
+                }
+            },
+            "sort": [1433460598056]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "18a6a848-9e88-48fd-89fe-2702ab6c6f27",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:57.825606",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460597825]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "33f144a6-a74e-4615-9c75-46313cf0d542",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:57.020321",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460597020]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.update",
+            "_id": "3f2f3b21-e2d8-4633-bbb0-5a085dcb46e8",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:56.640327",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "conductor",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460596640]
+        }, {
+            "_index": "events_2015-06-04",
+            "_type": "compute.instance.create.start",
+            "_id": "48c7d5af-a67e-43d7-be83-8dea141b79a2",
+            "_score": null,
+            "_source": {
+                "raw": {},
+                "timestamp": "2015-06-04T23:29:56.195156",
+                "traits": {
+                    "instance_id": "ebf0f732-c8cb-4f99-9d84-c80f6c22d37e",
+                    "root_gb": 1,
+                    "user_id": "e70fcebd828349ca8f1393e62ac87756",
+                    "service": "compute",
+                    "disk_gb": 1,
+                    "tenant_id": "970f2364df174040862210c9185c80ce",
+                    "ephemeral_gb": 0,
+                    "instance_type_id": 2,
+                    "vcpus": 1,
+                    "memory_mb": 512,
+                    "instance_type": "m1.tiny",
+                    "state": "building",
+                    "request_id": "req-e9e20524-060e-460c-9653-5badd557151e",
+                    "host": "base.pepple.info"
+                }
+            },
+            "sort": [1433460596195]
+        }]
+    }
+}

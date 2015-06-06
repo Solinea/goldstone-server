@@ -522,6 +522,255 @@ var GoldstoneBaseView = Backbone.View.extend({
  * limitations under the License.
  */
 
+// this chart provides the base methods that
+// are extended into almost all other Views
+
+var GoldstoneBaseView2 = Backbone.View.extend({
+
+    initialize: function(options) {
+
+        options = options || {};
+
+        // essential for a unique options object,
+        // as objects/arrays are pass by reference
+        this.options = _.clone(options);
+        this.instanceSpecificInit();
+    },
+
+    instanceSpecificInit: function() {
+        // processes the hash of options passed in when object is instantiated
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        this.render();
+        this.appendChartHeading();
+        this.setSpinner();
+    },
+
+    appendChartHeading: function() {
+        this.$el.prepend(new ChartHeaderView({
+            chartTitle: this.chartTitle,
+            infoText: this.infoText,
+            infoIcon: this.infoIcon,
+        }).el);
+    },
+
+    processOptions: function() {
+        this.chartTitle = this.options.chartTitle || null;
+        this.height = this.options.height || 400;
+        this.infoText = this.options.infoText;
+        if (this.options.el) {
+            this.el = this.options.el;
+        }
+        this.width = this.options.width || 300;
+        this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
+        this.collection = this.options.collection || undefined;
+        this.infoIcon = this.options.infoIcon;
+
+    },
+
+    processListeners: function() {
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            if (this.collection) {
+                this.showSpinner();
+                // this.collection.globalLookback = this.globalLookback;
+                this.collection.urlGenerator();
+                // this.collection.fetch();
+            }
+        });
+    },
+
+    getGlobalLookbackRefresh: function() {
+        this.globalLookback = $('#global-lookback-range').val();
+        this.globalRefresh = $('#global-refresh-range').val();
+    },
+
+    setSpinner: function() {
+
+        // appends spinner with sensitivity to the fact that the View object
+        // may render before the .gif is served by django. If that happens,
+        // the hideSpinner method will set the 'display' css property to
+        // 'none' which will prevent it from appearing on the page
+
+        var self = this;
+        this.spinnerDisplay = 'inline';
+
+        var appendSpinnerLocation;
+        if (this.spinnerPlace) {
+            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
+        } else {
+            appendSpinnerLocation = this.el;
+        }
+
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
+            $(this).appendTo(appendSpinnerLocation).css({
+                'position': 'relative',
+                'margin-left': (self.width / 2),
+                'margin-top': -(self.height / 2),
+                'display': self.spinnerDisplay
+            });
+        });
+    },
+
+    hideSpinner: function() {
+
+        // the setting of spinnerDisplay to 'none' will prevent the spinner
+        // from being appended in the case that django serves the image
+        // AFTER the collection fetch returns and the chart is rendered
+
+        this.spinnerDisplay = 'none';
+        $(this.el).find('#spinner').hide();
+    },
+
+    showSpinner: function() {
+        this.spinnerDisplay = 'inline';
+        $(this.el).find('#spinner').show();
+    },
+
+    dblclicked: function(coordinates) {
+
+        // a method to be overwritten in the descendent Views. It is invoked
+        // by the user double clicking on a viz, and it receives the
+        // x,y coordinates of the click
+    },
+
+    standardInit: function() {},
+
+    clearDataErrorMessage: function(location) {
+        // remove error messages in div with '.popup-message' class, if any.
+        // $(location) may be specified, or defaults to 'this.el'
+        if (location) {
+            if ($(location).find('.popup-message').length) {
+                $(location).find('.popup-message').fadeOut("slow");
+            }
+        } else {
+            if ($(this.el).find('.popup-message').length) {
+                $(this.el).find('.popup-message').fadeOut("slow");
+            }
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+
+            if (errorMessage.responseJSON) {
+                message = '';
+                if (errorMessage.responseJSON.status_code) {
+                    message += errorMessage.responseJSON.status_code + ' error: ';
+                }
+                if (errorMessage.responseJSON.message) {
+                    message += errorMessage.responseJSON.message + ' ';
+                }
+                if (errorMessage.responseJSON.detail) {
+                    message += errorMessage.responseJSON.detail;
+                }
+
+            } else {
+                message = '';
+                if (errorMessage.status) {
+                    message += errorMessage.status + ' error:';
+                }
+                if (errorMessage.statusText) {
+                    message += ' ' + errorMessage.statusText + '.';
+                }
+                if (errorMessage.responseText) {
+                    message += ' ' + errorMessage.responseText + '.';
+                }
+            }
+        }
+
+        // calling raiseAlert with the 3rd param of "true" will supress the
+        // auto-hiding of the element as defined in goldstone.raiseAlert
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message);
+
+        // hide spinner, as appending errorMessage is usually the end of
+        // the data fetch process
+        this.hideSpinner();
+    },
+
+    dataPrep: function(data) {
+        // to be overwritten based on the needs of the chart in question
+        var result = data;
+        return result;
+    },
+
+    checkReturnedDataSet: function(data) {
+        // a method to insert in the callback that is invoked
+        // when the collection is done fetching api data. If an empty set
+        // is returned, creates an error message, otherwise clears
+        // any existing alert or error messages.
+
+        if (data.length === 0) {
+            this.dataErrorMessage('No Data Returned');
+            return false;
+        } else {
+            this.clearDataErrorMessage();
+        }
+    },
+
+    template: _.template(''),
+
+    render: function() {
+        this.$el.html(this.template());
+        return this;
+    },
+
+    flattenObj: function(obj) {
+
+        // recursively un-nest object
+        // (will append '_' to nested keys that share a name
+        // with existing keys
+        var result = {};
+
+        var flattenator = function(obj) {
+            for (var k in obj) {
+                // won't unpack nested arrays
+                if (typeof obj[k] === 'object' && !Array.isArray(obj[k]) && obj[k] !== null) {
+                    flattenator(obj[k]);
+                } else {
+                    // set another variable equal to k in case key exists
+                    var x = k;
+                    if (result[k] !== undefined) {
+                        x = x + '_';
+                    }
+                    result[x] = obj[k];
+                }
+            }
+        };
+
+        flattenator(obj);
+        return result;
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
 The GoldstoneBasePageView is a 'superclass' page view that can be instantiated
 via the $(document).ready() on a django HTML tempate.
@@ -538,7 +787,8 @@ by modifying the parameters of the globalLookbackRefreshButtonsView
 
 var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
-    defaults: {},
+    // found on GoldstoneBaseView:
+    // defaults: {},
 
     initialize: function(options) {
         this.options = options || {};
@@ -698,39 +948,256 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-// define collection and link to model
+/*
+The GoldstoneBasePageView is a 'superclass' page view that can be instantiated
+via the $(document).ready() on a django HTML tempate.
 
-var model = GoldstoneBaseModel.extend({});
+It sets up listeners that are triggered by changes to the global lookback and
+refresh selectors at the top of the page. And a timing loop that
+responds to changes to the 'refresh' selector, or can be cancelled by
+selecting "refresh off"
+
+Note: the values and default settings of the global lookback and refresh
+selectors can be customized on the page's correspoinding django HTML template,
+by modifying the parameters of the globalLookbackRefreshButtonsView
+*/
+
+var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
+
+    instanceSpecificInit: function() {
+        this.render();
+        this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView2
+        this.renderCharts();
+        this.setGlobalLookbackRefreshTriggers();
+        this.scheduleInterval();
+    },
+
+    clearScheduledInterval: function() {
+        clearInterval(this.currentInterval);
+    },
+
+    onClose: function() {
+        if (this.currentInterval) {
+            clearInterval(this.currentInterval);
+        }
+        _.each(this.viewsToStopListening, function(view) {
+            view.stopListening();
+            view.off();
+        });
+    },
+
+    scheduleInterval: function() {
+        var self = this;
+        var intervalDelay = this.globalRefresh * 1000;
+
+        // the value of the global refresh selector "refresh off" = -1
+        if (intervalDelay < 0) {
+            return true;
+        }
+
+        this.currentInterval = setInterval(function() {
+            self.triggerChange('lookbackIntervalReached');
+        }, intervalDelay);
+    },
+
+    triggerChange: function(change) {
+
+        /*
+        to be customized per each view that is extended from this view.
+
+        Example usage:
+
+        'lookbackSelectorChanged' will be triggered by a change to
+        the global lookback selector at the top of the page as
+        self.triggerChange('lookbackSelectorChanged');
+
+        'lookbackIntervalReached' will be triggered by the firing
+        of the setInterval that is created in this.scheduleInterval as
+        self.triggerChange('lookbackIntervalReached');
+
+        The other trigger that is generated by the listeners that are
+        set up in this.setGlobalLookbackRefreshTriggers is
+        'refreshSelectorChanged' which is fired when the global
+        refresh selector at the top of the page is changed.
+
+        A common pattern to use here is to create a conditional that
+        will respond to the changes needed. There are listeners in
+        the individual charts that handle the desired action upon
+        receiving the triggers defined below:
+
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
+        }
+
+        if (change === 'lookbackIntervalReached') {
+            this.novaApiPerfChartView.trigger('lookbackIntervalReached');
+        }
+        */
+
+    },
+
+    setGlobalLookbackRefreshTriggers: function() {
+        var self = this;
+        // wire up listenTo on global selectors
+        // important: use obj.listenTo(obj, change, callback);
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+            self.getGlobalLookbackRefresh();
+            self.clearScheduledInterval();
+            self.scheduleInterval();
+            self.triggerChange('lookbackSelectorChanged');
+        });
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+            self.getGlobalLookbackRefresh();
+            self.clearScheduledInterval();
+            self.scheduleInterval();
+            self.triggerChange('refreshSelectorChanged');
+        });
+    },
+
+    renderCharts: function() {
+
+        /*
+        To be customized per each view that is extended from this view.
+
+        Example usage:
+
+        var ns = this.defaults;
+
+        //---------------------------
+        // instantiate nova api chart
+
+        this.novaApiPerfChart = new ApiPerfCollection({
+            componentParam: 'nova',
+        });
+
+        this.novaApiPerfChartView = new ApiPerfView({
+            chartTitle: "Nova API Performance",
+            collection: this.novaApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Hypervisor Show"
+            }],
+            el: '#api-perf-report-r1-c1',
+            width: $('#api-perf-report-r1-c1').width()
+        });
+        */
+
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
 
 var GoldstoneBaseCollection = Backbone.Collection.extend({
 
+    model: GoldstoneBaseModel.extend(),
+
+
+    initialize: function(options) {
+        options = options || {};
+        this.options = _.clone(options); 
+        this.url = this.options.url || null;
+        this.instanceSpecificInit();
+    },
+
+    instanceSpecificInit: function() {},
+
     parse: function(data) {
+        this.checkForAdditionalPages(data);
+        var result = this.preProcessData(data);
+        return result;
+    },
+
+    checkForAdditionalPages: function(data) {
+        var nextUrl;
+
+        // in the case that there are additional paged server responses
+        if (data.next && data.next !== null) {
+            var dN = data.next;
+
+            // if url params change, be sure to update this:
+            nextUrl = dN.slice(dN.indexOf(this.urlBase));
+            // fetch and add to collection without deleting existing data
+            this.fetch({
+                url: nextUrl,
+                remove: false
+            });
+        }
+    },
+
+    preProcessData: function(data) {
         return data;
     },
 
-    defaults: {},
+    // set per instance
+    urlBase: 'instanceSpecific',
 
-    initialize: function(options) {
-
-        this.defaults = _.clone(this.defaults); 
-        this.options = options || {};
-        this.url = this.options.url || null;
-        this.fetchWithReset();
-        this.defaults.reportParams = {};
+    urlGenerator: function() {
+        this.computeLookbackAndInterval();
+        this.url = this.urlBase;
+        if (this.addRange) {
+            this.url += this.addRange();
+        }
+        if (this.addInterval) {
+            this.url += this.addInterval(this.interval);
+        }
+        if (this.addPageNumber) {
+            this.url += this.addPageNumber(this.pageNumber);
+        }
+        if (this.addPageSize) {
+            this.url += this.addPageSize(this.pageSize);
+        }
+        this.fetch();
     },
 
-    model: model,
+    // add the following to instances to add to url genration scheme
+    // addRange: function() {
+    //     return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    // },
 
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-        return lookbackMinutes;
+    // addInterval: function(n) {
+    //     n = n || this.interval;
+    //     return '&interval=' + n + 's';
+    // },
+
+    // addPageNumber: function(n) {
+    //     n = n || 1;
+    //     return '&page=' + n;
+    // },
+
+    // addPageSize: function(n) {
+    //     n = n || 1000;
+    //     return '&page_size=' + n;
+    // },
+
+    computeLookbackAndInterval: function() {
+        this.getGlobalLookbackRefresh();
+        this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
+
+        // set interval equal to 1/24th of time range
+        this.interval = ((this.epochNow - this.gte) / 1000) / 24;
+    },
+
+    getGlobalLookbackRefresh: function() {
+        this.epochNow = +new Date();
+        this.globalLookback = parseInt($('#global-lookback-range').val(), 10);
+        this.globalRefresh = parseInt($('#global-refresh-range').val(), 10);
     },
 
     fetchWithReset: function() {
@@ -749,6 +1216,216 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
             remove: false
         });
     }
+});
+
+GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView2.prototype.flattenObj;
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+This view makes up the "Events" tab of nodeReportView.js
+It is sub-classed from GoldstoneBaseView.
+
+Much of the functionality is encompassed by the jQuery
+dataTables plugin which is documented at
+http://datatables.net/reference/api/
+*/
+
+var DataTableBaseView = GoldstoneBaseView2.extend({
+
+    render: function() {
+        this.$el.html(this.template());
+        $(this.el).find('.refreshed-report-container').append(this.dataTableTemplate());
+        return this;
+    },
+
+    preprocess: function(data) {
+        return data;
+    },
+
+    headingsToPin: ['name'],
+
+    // search for headingsToPin anywhere in column heading
+    // will match 'name' or 'feature_name'
+    isPinnedHeading: function(item) {
+        for (var i = 0; i < this.headingsToPin.length; i++) {
+            var comparitor = this.headingsToPin[i];
+            if (item.indexOf(comparitor) > -1) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    sortRemainingKeys: function(arr) {
+        arr = arr.sort(function(a, b) {
+            if (a < b) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
+        return arr;
+    },
+
+    dataPrep: function(tableData) {
+        var self = this;
+
+        // add a preprocessing step, if needed
+        tableData = this.preprocess(tableData);
+
+        // initialize array that will be returned after processing
+        var finalResults = [];
+
+        if (typeof(tableData[0]) === "object") {
+
+            // chained underscore function that will scan for the existing
+            // object keys, and return a list of the unique keys
+            // as not every object contains every key
+
+            var uniqueObjectKeys = _.uniq(_.flatten(_.map(tableData, function(item) {
+                return Object.keys(item);
+            })));
+
+            // if there is a unique key with "name" somewhere in it,
+            // reorder the keys so that it is first
+
+            var keysWithName = [];
+            for (var i = 0; i < uniqueObjectKeys.length; i++) {
+                var item = uniqueObjectKeys[i];
+                if (this.isPinnedHeading(item)) {
+                    var spliced = uniqueObjectKeys.splice(i, 1);
+                    keysWithName.push(spliced);
+                    i--;
+                } else {
+                    continue;
+                }
+            }
+
+            uniqueObjectKeys = this.sortRemainingKeys(uniqueObjectKeys);
+
+            _.each(keysWithName, function(item) {
+                uniqueObjectKeys.unshift(item[0]);
+            });
+
+            // append data table headers that match the unique keys
+            _.each(uniqueObjectKeys, function(item) {
+                $('.data-table-header-container').append('<th>' + item + '</th>');
+            });
+
+            // iterate through tableData, and push object values to results
+            // array, inserting '' where there is no existing value
+
+            _.each(tableData, function(value) {
+                var subresult = [];
+                _.each(uniqueObjectKeys, function(item) {
+                    if (value[item] === undefined) {
+                        subresult.push('');
+                    } else {
+                        subresult.push(value[item]);
+                    }
+                });
+                finalResults.push(subresult);
+            });
+
+        } else {
+
+            $('.data-table-header-container').append('<th>Result</th>');
+            _.each(tableData, function(item) {
+                finalResults.push([item]);
+            });
+        }
+        return finalResults;
+    },
+
+    oTableParamGenerator: function(data) {
+        return {
+            // false = show scroll bars rather than take up extra width
+            "scrollX": "100%",
+            "info": true,
+            "processing": false,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "order": [
+                [0, 'asc']
+            ],
+            "ordering": true,
+            "data": data,
+            "serverSide": false,
+        };
+    },
+
+    drawSearchTable: function(location, data) {
+
+        this.hideSpinner();
+
+        if (data === null) {
+            data = ['No results within selected time range'];
+        }
+
+        var self = this;
+        var oTable;
+
+        // removes initial placeholder message
+        $(this.el).find('.reports-info-container').remove();
+
+        if ($.fn.dataTable.isDataTable(location)) {
+
+            // if dataTable already exists:
+            oTable = $(location).DataTable();
+
+            // complete remove it from memory and the dom
+            oTable.destroy({
+                remove: true
+            });
+
+            // and re-append the table structure that will be repopulated
+            // with the new data
+            $(this.el).find('.refreshed-report-container')
+                .html(this.dataTableTemplate());
+        }
+
+        data = this.dataPrep(data);
+        var oTableParams = this.oTableParamGenerator(data);
+        oTable = $(location).DataTable(oTableParams);
+
+    },
+
+    template: _.template(
+
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="reports-info-container">' +
+        '<br>Loading...' +
+        '</div>' +
+        '<div class="refreshed-report-container"></div>'
+    ),
+
+    dataTableTemplate: _.template(
+        '<table id="reports-result-table" class="table table-hover">' +
+        '<thead>' +
+        '<tr class="header data-table-header-container">' +
+
+        // necessary <th> is appended here by jQuery in this.dataPrep()
+        '</tr>' +
+        '</thead>' +
+        '<tbody></tbody>' +
+        '</table>'
+    )
 });
 ;
 /**
@@ -797,6 +1474,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         "glance/report": "glanceReport",
         "help": "help",
         "intelligence/search": "logSearch",
+        "intelligence/events": "eventsBrowser",
         "keystone/report": "keystoneReport",
         "login": "login",
         "metric": "metricViewer",
@@ -843,6 +1521,7 @@ var GoldstoneRouter = Backbone.Router.extend({
             // Backbone's remove() calls this.$el.remove() and
             // this.stopListening() which removes any events that
             // are subscribed to with listenTo()
+            app.currentView.off();
             app.currentView.remove();
             app.currentLauncherView.remove();
         }
@@ -900,6 +1579,9 @@ var GoldstoneRouter = Backbone.Router.extend({
     discover: function() {
         this.switchView(DiscoverView);
     },
+    eventsBrowser: function() {
+        this.switchView(EventsBrowserPageView);
+    },
     glanceReport: function() {
         this.switchView(GlanceReportView);
     },
@@ -954,6 +1636,331 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     tenant: function() {
         this.switchView(TenantSettingsPageView);
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var ChartSet = GoldstoneBaseView2.extend({
+
+    instanceSpecificInit: function() {
+        this.data = [];
+        this.processOptions();
+
+        this.renderChartBorders();
+        this.makeChart();
+    },
+
+    processOptions: function() {
+
+        this.collection = this.options.collection ? this.options.collection : undefined;
+        this.chartTitle = this.options.chartTitle || null;
+        if(this.options.el) {
+            this.el = this.options.el;
+        }
+        this.width = this.options.width || 300;
+        this.height = this.options.height || 400;
+        this.infoIcon = this.options.infoIcon;
+        this.infoText = this.options.infoText;
+        this.marginLeft = this.options.marginLeft || 50;
+        this.marginRight = this.options.marginRight || 120;
+        this.marginTop = this.options.marginTop || 20;
+        this.marginBottom = this.options.marginBottom || 80;
+        this.yAxisLabel = this.options.yAxisLabel;
+        this.colorArray = new GoldstoneColors().get('colorSets');
+        this.shapeArray = ['rect', 'circle'];
+        this.shapeCounter = 0;
+        this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
+        this.xParam = this.options.xParam;
+        this.yParam = this.options.yParam;
+    },
+
+    resetXParam: function(param) {
+        param = param || 'time';
+        this.xParam = param;
+    },
+
+    resetYParam: function(param) {
+        param = param || 'count';
+        this.yParam = param;
+    },
+
+    renderChartBorders: function() {
+        this.$el.append(new ChartHeaderView({
+            chartTitle: this.chartTitle,
+            infoText: this.infoText,
+            infoIcon: this.infoIcon,
+        }).el);
+    },
+
+    makeChart: function() {
+        this.processListeners();
+        this.svgAdder(this.width, this.height);
+        this.chartAdder();
+
+        this.setXDomain();
+        this.setYDomain();
+
+        this.setXAxis();
+        this.setYAxis();
+        this.callXAxis();
+        this.callYAxis();
+
+        this.setYAxisLabel();
+        this.setSpinner();
+    },
+
+    update: function() {
+        this.setData(this.collection.toJSON());
+        this.updateWithNewData();
+    },
+
+    updateWithNewData: function() {
+        this.setXDomain();
+        this.setYDomain();
+        this.resetAxes();
+        this.bindShapeToData(this.shape);
+        this.shapeUpdate(this.shape);
+        this.shapeEnter(this.shape);
+        this.shapeExit(this.shape);
+        this.hideSpinner();
+    },
+
+    setData: function(newData) {
+        this.data = newData;
+    },
+
+    svgAdder: function() {
+        this.svg = d3.select(this.el).append('svg')
+            .attr('width', this.width)
+            .attr('height', this.height);
+    },
+
+    chartAdder: function() {
+        this.chart = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+    },
+
+    setXDomain: function() {
+        var param = this.xParam || 'time';
+        var self = this;
+        this.x = d3.time.scale()
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        .domain(self.data.length ? d3.extent(this.data, function(d) {
+            return d[param];
+        }) : [1, 1])
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+    },
+
+    setYDomain: function() {
+        var param = this.yParam || 'count';
+        var self = this;
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        this.y = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(this.data, function(d) {
+                return d[param];
+            }) : 0])
+            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+    },
+
+    setYAxisLabel: function() {
+        this.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (this.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(this.yAxisLabel)
+            .style("text-anchor", "middle");
+    },
+
+    bindShapeToData: function(shape, binding) {
+        this[shape] = this.chart.selectAll(shape)
+            .data(this.data, function(d) {
+                return binding ? d[binding] : d.time;
+            });
+    },
+
+    shapeUpdate: function(shape) {
+        var xParam = this.xParam || 'time';
+        var yParam = this.yParam || 'count';
+        var self = this;
+        this[shape]
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d[xParam]);
+            })
+            .attr('cy', function(d) {
+                return self.y(d[yParam]);
+            })
+            .attr('r', 10)
+            .attr('x', function(d) {
+                return self.x(d[xParam]);
+            })
+            .attr('y', function(d) {
+                return self.y(d[yParam]);
+            })
+            .attr('height', function(d) {
+                return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
+            })
+            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length);
+    },
+
+    shapeEnter: function(shape) {
+        var xParam = this.xParam || 'time';
+        var yParam = this.yParam || 'count';
+        var self = this;
+        this[shape]
+            .enter()
+            .append(shape)
+            .attr("fill", this.colorArray.distinct[3][1])
+            .style('fill-opacity', 1e-6)
+            .attr('x', function(d) {
+                return self.x(d[xParam]);
+            })
+            .attr('y', function(d) {
+                return (self.y(d[yParam]));
+            })
+            .attr('height', function(d) {
+                return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
+            })
+            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length)
+            .attr('cx', function(d) {
+                return self.x(d[xParam]);
+            })
+            .attr('cy', function(d) {
+                return (self.y(d[yParam]));
+            })
+            .attr('r', 10)
+            .transition()
+            .style('fill-opacity', 1);
+    },
+
+    shapeExit: function(shape) {
+        this[shape]
+            .exit()
+            .transition()
+            .style('fill-opacity', 1e-6)
+            .remove();
+    },
+
+    switchShape: function() {
+        this.svgClearer(this.shape);
+        this.shape = this.shapeArray[this.shapeCounter++ % 2];
+        this.bindShapeToData(this.shape);
+        this.shapeUpdate(this.shape);
+        this.shapeEnter(this.shape);
+        this.shapeExit(this.shape);
+    },
+
+    areaSetter: function() {
+        var self = this;
+        this.area = d3.svg.area()
+            .interpolate("basis")
+            .tension(0.85)
+            .x(function(d) {
+                return self.x(d.time);
+            })
+            .y0(function(d) {
+                return self.y(0);
+            })
+            .y1(function(d) {
+                return self.y(d.count);
+            });
+    },
+
+    pathAdder: function(datum) {
+        var self = this;
+        this.chart.append("path")
+            .datum(datum)
+            .attr("class", "area")
+            .attr("id", "minMaxArea")
+            .attr("d", this.area)
+            .attr("fill", this.colorArray.distinct[3][1])
+            .style("opacity", 0.8);
+    },
+
+    svgClearer: function(attribute) {
+        var selector = this.chart;
+        selector.selectAll(attribute)
+            .data([])
+            .exit()
+            .transition()
+            .style("fill-opacity", 1e-6)
+            .remove();
+    },
+
+    setXAxis: function() {
+        this.xAxis = d3.svg.axis()
+            .scale(this.x)
+            .ticks(4)
+            // format: day month H:M:S
+            .tickFormat(d3.time.format("%e %b %X"))
+            .orient("bottom");
+    },
+
+    setYAxis: function() {
+        this.yAxis = d3.svg.axis()
+            .scale(this.y)
+            .ticks(5)
+            .orient("left");
+    },
+
+    callXAxis: function() {
+        this.svg
+            .append('g')
+            .attr("class", "x axis")
+            .attr('transform', 'translate(' + (this.marginLeft) + ',' + (this.height - this.marginBottom) + ')')
+            .call(this.xAxis);
+    },
+
+    callYAxis: function() {
+        this.svg
+            .append('g')
+            .attr("class", "y axis")
+            .attr('transform', 'translate(' + (this.marginLeft) + ',' + this.marginTop + ')')
+            .call(this.yAxis);
+    },
+
+    resetAxes: function() {
+        var self = this;
+        d3.select(this.el).select('.axis.x')
+            .transition()
+            .call(this.xAxis.scale(self.x));
+
+        self.svg.select('.axis.y')
+            .transition()
+            .call(this.yAxis.scale(self.y));
+    },
+
+    addToLegend: function(selector, legendText) {
+        d3.select(this.el).select(selector)
+            .attr('data-legend', legendText);
+    },
+
+    appendLegend: function() {
+        this.svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", "translate(" + this.marginLeft + ",10)")
+            .call(d3.legend);
     }
 });
 ;
@@ -1754,10 +2761,1719 @@ var ApiPerfCollection = Backbone.Collection.extend({
 
 // define collection and link to model
 
+var apiRedoCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        var self = this;
+        setTimeout(function() {
+            self.reset();
+            // self.add(self.setRandomData());
+            self.parse(self.testData);
+        }, 1000);
+    },
+
+    preProcessData: function(data) {
+        var self = this;
+        _.each(self.testData.per_interval, function(item) {
+            item.time = parseInt(_.keys(item)[0], 10);
+            item = self.flattenObj(item);
+            self.add(item);
+        });
+        self.trigger('sync');
+    },
+
+    // setRandomData: function() {
+    //     var result = [];
+    //     var baseTime = 1429488000000;
+    //     for (var i = 0; i < (Math.floor(Math.random() * 20) + 10); i++) {
+    //         result.push({
+    //             time: baseTime,
+    //             "count": Math.floor(Math.random() * 100)
+    //         });
+    //         baseTime += 10000;
+    //     }
+    //     return result;
+    // },
+
+    fetch: function() {
+        this.reset();
+        this.add(this.setRandomData());
+        this.trigger('sync');
+    },
+
+    testData: {
+        "per_interval": [{
+            "1433976525000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976540000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.103232,
+                    "sum_of_squares": 0.038355125008,
+                    "max": 0.166428,
+                    "sum": 0.26966,
+                    "std_deviation": 0.03159799999999999,
+                    "std_deviation_bounds": {
+                        "upper": 0.19802599999999998,
+                        "lower": 0.07163400000000003
+                    },
+                    "variance": 0.0009984336039999993,
+                    "avg": 0.13483
+                }
+            }
+        }, {
+            "1433976555000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976570000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976585000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976600000": {
+                "count": 6,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 6
+                }],
+                "stats": {
+                    "count": 6,
+                    "min": 0.033241,
+                    "sum_of_squares": 0.037151859424,
+                    "max": 0.142279,
+                    "sum": 0.41316400000000003,
+                    "std_deviation": 0.03808129668077083,
+                    "std_deviation_bounds": {
+                        "upper": 0.1450232600282083,
+                        "lower": -0.007301926694874991
+                    },
+                    "variance": 0.0014501851568888876,
+                    "avg": 0.06886066666666667
+                }
+            }
+        }, {
+            "1433976615000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976630000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976645000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976660000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.066502,
+                    "sum_of_squares": 0.020860576524999997,
+                    "max": 0.128211,
+                    "sum": 0.194713,
+                    "std_deviation": 0.030854499999999993,
+                    "std_deviation_bounds": {
+                        "upper": 0.15906549999999997,
+                        "lower": 0.03564750000000001
+                    },
+                    "variance": 0.0009520001702499996,
+                    "avg": 0.0973565
+                }
+            }
+        }, {
+            "1433976675000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.072004,
+                    "sum_of_squares": 0.021040926100000003,
+                    "max": 0.125922,
+                    "sum": 0.197926,
+                    "std_deviation": 0.026959000000000045,
+                    "std_deviation_bounds": {
+                        "upper": 0.1528810000000001,
+                        "lower": 0.045044999999999905
+                    },
+                    "variance": 0.0007267876810000025,
+                    "avg": 0.098963
+                }
+            }
+        }, {
+            "1433976690000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976705000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976720000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.068806,
+                    "sum_of_squares": 0.023357234792,
+                    "max": 0.136466,
+                    "sum": 0.205272,
+                    "std_deviation": 0.033829999999999985,
+                    "std_deviation_bounds": {
+                        "upper": 0.17029599999999998,
+                        "lower": 0.034976000000000035
+                    },
+                    "variance": 0.001144468899999999,
+                    "avg": 0.102636
+                }
+            }
+        }, {
+            "1433976735000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976750000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976765000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976780000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.07278,
+                    "sum_of_squares": 0.022419174304,
+                    "max": 0.130852,
+                    "sum": 0.20363199999999998,
+                    "std_deviation": 0.02903600000000004,
+                    "std_deviation_bounds": {
+                        "upper": 0.15988800000000009,
+                        "lower": 0.04374399999999991
+                    },
+                    "variance": 0.0008430892960000023,
+                    "avg": 0.10181599999999999
+                }
+            }
+        }, {
+            "1433976795000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976810000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976825000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976840000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.069012,
+                    "sum_of_squares": 0.023047915873000004,
+                    "max": 0.135223,
+                    "sum": 0.204235,
+                    "std_deviation": 0.03310550000000002,
+                    "std_deviation_bounds": {
+                        "upper": 0.16832850000000005,
+                        "lower": 0.035906499999999966
+                    },
+                    "variance": 0.0010959741302500013,
+                    "avg": 0.1021175
+                }
+            }
+        }, {
+            "1433976855000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976870000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976885000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976900000": {
+                "count": 6,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 6
+                }],
+                "stats": {
+                    "count": 6,
+                    "min": 0.023924,
+                    "sum_of_squares": 0.035347273545,
+                    "max": 0.157422,
+                    "sum": 0.37616900000000003,
+                    "std_deviation": 0.04427832574528485,
+                    "std_deviation_bounds": {
+                        "upper": 0.15125148482390305,
+                        "lower": -0.025861818157236358
+                    },
+                    "variance": 0.001960570130805555,
+                    "avg": 0.06269483333333334
+                }
+            }
+        }, {
+            "1433976915000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976930000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976945000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433976960000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.080136,
+                    "sum_of_squares": 0.026618167491999998,
+                    "max": 0.142114,
+                    "sum": 0.22225,
+                    "std_deviation": 0.03098899999999997,
+                    "std_deviation_bounds": {
+                        "upper": 0.17310299999999995,
+                        "lower": 0.04914700000000006
+                    },
+                    "variance": 0.0009603181209999982,
+                    "avg": 0.111125
+                }
+            }
+        }, {
+            "1433976975000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.065863,
+                    "sum_of_squares": 0.01949425309,
+                    "max": 0.123111,
+                    "sum": 0.188974,
+                    "std_deviation": 0.028624000000000007,
+                    "std_deviation_bounds": {
+                        "upper": 0.151735,
+                        "lower": 0.03723899999999999
+                    },
+                    "variance": 0.0008193333760000004,
+                    "avg": 0.094487
+                }
+            }
+        }, {
+            "1433976990000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977005000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977020000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.068267,
+                    "sum_of_squares": 0.021916621058,
+                    "max": 0.131363,
+                    "sum": 0.19963,
+                    "std_deviation": 0.03154800000000001,
+                    "std_deviation_bounds": {
+                        "upper": 0.16291100000000003,
+                        "lower": 0.03671899999999999
+                    },
+                    "variance": 0.0009952763040000003,
+                    "avg": 0.099815
+                }
+            }
+        }, {
+            "1433977035000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977050000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977065000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977080000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.069013,
+                    "sum_of_squares": 0.02291469761,
+                    "max": 0.134729,
+                    "sum": 0.20374199999999998,
+                    "std_deviation": 0.032858000000000026,
+                    "std_deviation_bounds": {
+                        "upper": 0.16758700000000004,
+                        "lower": 0.03615499999999994
+                    },
+                    "variance": 0.0010796481640000018,
+                    "avg": 0.10187099999999999
+                }
+            }
+        }, {
+            "1433977095000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977110000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977125000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977140000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.0669,
+                    "sum_of_squares": 0.022147324225,
+                    "max": 0.132935,
+                    "sum": 0.19983499999999998,
+                    "std_deviation": 0.033017500000000026,
+                    "std_deviation_bounds": {
+                        "upper": 0.16595250000000006,
+                        "lower": 0.03388249999999994
+                    },
+                    "variance": 0.0010901553062500017,
+                    "avg": 0.09991749999999999
+                }
+            }
+        }, {
+            "1433977155000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977170000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977185000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977200000": {
+                "count": 6,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 6
+                }],
+                "stats": {
+                    "count": 6,
+                    "min": 0.015975,
+                    "sum_of_squares": 0.024633215142,
+                    "max": 0.130376,
+                    "sum": 0.303682,
+                    "std_deviation": 0.03929112626987874,
+                    "std_deviation_bounds": {
+                        "upper": 0.12919591920642415,
+                        "lower": -0.027968585873090812
+                    },
+                    "variance": 0.0015437926035555551,
+                    "avg": 0.05061366666666667
+                }
+            }
+        }, {
+            "1433977215000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977230000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977245000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977260000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.067994,
+                    "sum_of_squares": 0.031765417037000004,
+                    "max": 0.164749,
+                    "sum": 0.232743,
+                    "std_deviation": 0.048377500000000025,
+                    "std_deviation_bounds": {
+                        "upper": 0.21312650000000005,
+                        "lower": 0.019616499999999953
+                    },
+                    "variance": 0.002340382506250002,
+                    "avg": 0.1163715
+                }
+            }
+        }, {
+            "1433977275000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.069073,
+                    "sum_of_squares": 0.019970023985,
+                    "max": 0.123284,
+                    "sum": 0.192357,
+                    "std_deviation": 0.02710550000000001,
+                    "std_deviation_bounds": {
+                        "upper": 0.1503895,
+                        "lower": 0.04196749999999998
+                    },
+                    "variance": 0.0007347081302500006,
+                    "avg": 0.0961785
+                }
+            }
+        }, {
+            "1433977290000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977305000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977320000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.066277,
+                    "sum_of_squares": 0.020530023818000002,
+                    "max": 0.127033,
+                    "sum": 0.19331,
+                    "std_deviation": 0.030378000000000002,
+                    "std_deviation_bounds": {
+                        "upper": 0.15741100000000002,
+                        "lower": 0.035899
+                    },
+                    "variance": 0.0009228228840000002,
+                    "avg": 0.096655
+                }
+            }
+        }, {
+            "1433977335000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977350000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977365000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977380000": {
+                "count": 2,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 2
+                }],
+                "stats": {
+                    "count": 2,
+                    "min": 0.069426,
+                    "sum_of_squares": 0.02324748898,
+                    "max": 0.135748,
+                    "sum": 0.20517400000000002,
+                    "std_deviation": 0.03316099999999998,
+                    "std_deviation_bounds": {
+                        "upper": 0.16890899999999998,
+                        "lower": 0.03626500000000005
+                    },
+                    "variance": 0.0010996519209999986,
+                    "avg": 0.10258700000000001
+                }
+            }
+        }, {
+            "1433977395000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977410000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }, {
+            "1433977425000": {
+                "count": 0,
+                "response_status": [{
+                    "500.0-599.0": 0
+                }, {
+                    "400.0-499.0": 0
+                }, {
+                    "300.0-399.0": 0
+                }, {
+                    "200.0-299.0": 0
+                }],
+                "stats": {
+                    "count": 0,
+                    "min": null,
+                    "sum_of_squares": null,
+                    "max": null,
+                    "sum": null,
+                    "std_deviation": null,
+                    "std_deviation_bounds": {
+                        "upper": null,
+                        "lower": null
+                    },
+                    "variance": null,
+                    "avg": null
+                }
+            }
+        }]
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
 var EventTimelineModel = GoldstoneBaseModel.extend({
     // sort by @timestamp. Used to be id, but that has been
     // removed as of v3 api.
-    idAttribute: '@timestamp'
+    idAttribute: 'timestamp'
 });
 
 var EventTimelineCollection = Backbone.Collection.extend({
@@ -1770,7 +4486,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
             var dN = data.next;
 
             // if url params change, be sure to update this:
-            nextUrl = dN.slice(dN.indexOf('/logging'));
+            nextUrl = dN.slice(dN.indexOf(this.urlBase));
 
             // fetch and add to collection without deleting existing data
             this.fetch({
@@ -1784,6 +4500,8 @@ var EventTimelineCollection = Backbone.Collection.extend({
     },
 
     defaults: {},
+
+    urlBase: '/core/events/search/',
 
     initialize: function(options) {
 
@@ -1833,9 +4551,128 @@ var EventTimelineCollection = Backbone.Collection.extend({
         // /logging/events/search/?@timestamp__range={"gte":1426698303974}&page_size=1000"
 
         var lookback = +new Date() - (val * 60 * 1000);
-        this.url = '/logging/events/search/?@timestamp__range={"gte":' +
-            lookback + '}&page_size=1000';
+        this.url = this.urlBase + '?timestamp__range={"gte":' +
+            lookback + ',"lte":' + (+new Date()) + '}&page_size=100';
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// define collection and link to model
+
+var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/events/search/',
+
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '&page_size=' + n;
+    },
+
+    preProcessData: function(data) {
+        if(data && data.results) {
+            return data.results;
+        }
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+var EventsHistogramCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/events/summarize/',
+
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ', "lte":' + this.epochNow + '}';
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 's';
+    },
+
+    preProcessData: function(data) {
+        var self = this;
+
+        // initialize container for formatted results
+        finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.data, function(item) {
+            var tempObj = {};
+
+            // adds the 'time' param based on the
+            // object keyed by timestamp
+            tempObj.time = parseInt(_.keys(item)[0], 10);
+
+            // iterate through each item in the array
+            _.each(item[tempObj.time], function(obj){
+                var key = _.keys(obj);
+                var value = _.values(obj)[0];
+
+                // copy key/value pairs to tempObj
+                tempObj[key] = value;
+            });
+
+            // initialize counter
+            var count = 0;
+            _.each(tempObj, function(val, key) {
+                // add up the values of each nested object
+                if(key !== 'time') {
+                    count += val;
+                }
+            });
+
+            // set 'count' equal to the counter
+            tempObj.count = count;
+
+            // add the tempObj to the final results array
+            finalResult.push(tempObj);
+        });
+
+        // returning inside the 'parse' function adds to collection
+        // and triggers 'sync'
+        return finalResult;
     }
 });
 ;
@@ -2181,11 +5018,13 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 var model = GoldstoneBaseModel.extend({});
 
 var MetricViewCollection = GoldstoneBaseCollection.extend({
-    initialize: function(options) {
-        MetricViewCollection.__super__.initialize.apply(this, arguments);
-        this.defaults.statistic = options.statistic;
-        this.defaults.standardDev = options.standardDev;
-    }
+
+    instanceSpecificInit: function() {
+        this.reportParams = {};
+        this.statistic = this.options.statistic;
+        this.standardDev = this.options.standardDev;
+        this.fetchWithReset();
+    },
 });
 ;
 /**
@@ -2909,7 +5748,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
     processOptions: function() {
         ApiPerfView.__super__.processOptions.call(this);
-
         this.defaults.start = this.collection.defaults.reportParams.start || null;
         this.defaults.end = this.collection.defaults.reportParams.end || null;
         this.defaults.interval = this.collection.defaults.reportParams.interval || null;
@@ -3290,39 +6128,29 @@ var LogoutIcon = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var ChartHeaderView = Backbone.View.extend({
+var ChartHeaderView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.columns = options.columns || 12;
-        this.defaults.chartTitle = options.chartTitle;
-        this.defaults.infoText = options.infoText;
-        this.defaults.infoIcon = options.infoIcon || 'fa-tasks';
-
-        var ns = this.defaults;
-        var self = this;
-
+    instanceSpecificInit: function() {
+        this.columns = this.options.columns || 12;
+        this.infoText = this.options.infoText;
+        this.infoIcon = this.options.infoIcon || 'fa-dashboard';
+        this.chartTitle = this.options.chartTitle || 'Set Chart Title';
         this.render();
-
     },
 
     render: function() {
-        this.$el.append(this.template());
+        this.$el.html(this.template());
         this.populateInfoButton();
         return this;
     },
 
     populateInfoButton: function() {
-        var ns = this.defaults;
         var self = this;
         // chart info button popover generator
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
-            var result = infoButtonText[ns.infoText];
+            var result = infoButtonText[this.infoText];
+            result = result ? result : 'Set in InfoButtonText.js';
             return result;
         };
 
@@ -3341,9 +6169,10 @@ var ChartHeaderView = Backbone.View.extend({
             });
     },
 
-    template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +
+    template: _.template('' +
+        '<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.columns %>">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa <%= this.defaults.infoIcon %>"></i> <%= this.defaults.chartTitle %>' +
+        '<h3 class="panel-title"><i class="fa <%= this.infoIcon %>"></i> <%= this.chartTitle %>' +
         '<span class="pull-right special-icon-post"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
@@ -3619,6 +6448,9 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r2" class="row">' +
         '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="goldstone-discover-r3" class="row">' +
+        '<br><br>' +
         '</div>'
     )
 
@@ -3741,7 +6573,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // you can change the value in colorArray to select
         // a particular number of different colors
         var colorArray = new GoldstoneColors().get('colorSets');
-        ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[1]);
 
         /*
          * The graph and axes
@@ -3780,22 +6612,21 @@ var EventTimelineView = GoldstoneBaseView.extend({
             })
             .html(function(d) {
 
-                d.host = d.host || '';
+                d.host = d.traits.host || 'No host logged';
                 d.log_message = d.log_message || 'No message logged';
 
                 if (d.log_message.length > 280) {
                     d.log_message = d.log_message.slice(0, 300) + "...";
                 }
-
-                d.event_type = d.event_type || 'No event type logged';
-                d['@timestamp'] = d['@timestamp'] || 'No date logged';
+                d.doc_type = d.doc_type || 'No event type logged';
+                d.timestamp = d.timestamp || 'No date logged';
 
                 return "" +
                     "Host: " + d.host + "<br>" +
-                    d.event_type + " (click event line to persist popup info)<br>" +
+                    d.doc_type + " (click event line to persist popup info)<br>" +
                     // "uuid: " + d.id + "<br>" +
-                    "Created: " + d['@timestamp'] + "<br>" +
-                    "Message: " + d.log_message + "<br>";
+                    "Created: " + d.timestamp + "<br>";
+                    // "Message: " + d.log_message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -3830,7 +6661,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
     opacityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (filterType === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.doc_type && !ns.filter[filterType].active) {
                 return 0;
             }
         }
@@ -3840,7 +6671,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
     visibilityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (filterType === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.doc_type && !ns.filter[filterType].active) {
                 return "hidden";
             }
         }
@@ -3856,11 +6687,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var allthelogs = (this.collection.toJSON());
 
         var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
-            return evt['@timestamp'];
+            return evt.timestamp;
         })));
 
         var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
-            return evt['@timestamp'];
+            return evt.timestamp;
         })));
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
@@ -3875,14 +6706,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
         ns.dataset = allthelogs
             .map(function(d) {
-                d['@timestamp'] = moment(d['@timestamp'])._d;
+                d.timestamp = moment(d.timestamp)._d;
                 return d;
             });
 
 
         // compile an array of the unique event types
         ns.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
-            return item.event_type;
+            return item.doc_type;
         }));
 
         // populate ns.filter based on the array of unique event types
@@ -3967,11 +6798,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var rectangle = ns.graph.selectAll("rect")
 
             // bind data to d3 nodes and create uniqueness based on
-            // the @timestamp param. This could possibly create some
+            // th.timestamparam. This could possibly create some
             // issues due to duplication of a supposedly unique
             // param, but has not yet been a problem in practice.
             .data(ns.dataset, function(d) {
-                return d['@timestamp'];
+                return d.timestamp;
             });
 
         // enters at wider width and transitions to lesser width for a
@@ -3991,7 +6822,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 return self.visibilityByFilter(d);
             })
             .attr("fill", function(d) {
-                return ns.color(ns.uniqueEventTypes.indexOf(d.event_type) % ns.color.range().length);
+                return ns.color(ns.uniqueEventTypes.indexOf(d.doc_type) % ns.color.range().length);
             })
             .on("mouseover", ns.tooltip.show)
             .on("click", function() {
@@ -4015,7 +6846,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
             .transition()
             .attr("width", 2)
             .attr("x", function(d) {
-                return ns.xScale(d['@timestamp']);
+                return ns.xScale(d.timestamp);
             });
 
         rectangle.exit().remove();
@@ -4030,7 +6861,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         ns.graph.selectAll("rect")
             .transition().duration(500)
             .attr("x", function(d) {
-                return ns.xScale(d['@timestamp']);
+                return ns.xScale(d.timestamp);
             })
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
@@ -4211,6 +7042,175 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '</div>' +
         '</div>'
     )
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+the jQuery dataTables plugin is documented at
+http://datatables.net/reference/api/
+
+instantiated on eventsBrowserPageView as:
+
+    this.eventsBrowserTable = new EventsBrowserDataTableView({
+        el: '.events-browser-table',
+        chartTitle: 'Events Browser',
+        infoIcon: 'fa-table',
+        width: $('.events-browser-table').width()
+    });
+
+*/
+
+var EventsBrowserDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+    },
+
+    update: function() {
+        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+    },
+
+    preprocess: function(data) {
+
+        /*
+        strip object down to _id, _type, timestamp, and things in 'traits'
+        and then flatten object before returning it to the dataPrep function
+        */
+
+        var self = this;
+        var result = [];
+
+        // strip away all but _id, _type, timestamp, and things in traits
+        _.each(data, function(item) {
+            var tempObj = {};
+            tempObj.id = item.id;
+            tempObj.type = item.doc_type;
+            tempObj.timestamp = item.timestamp;
+            tempObj.traits = item.traits;
+            result.push(tempObj);
+        });
+
+        // replace original data with stripped down dataset
+        data = result;
+
+        // reset result array
+        result = [];
+
+        // un-nest (flatten) objects
+        _.each(data, function(item) {
+            result.push(self.flattenObj(item));
+        });
+
+        // return flattened/stripped array of objects
+        return result;
+    },
+
+    headingsToPin: ['id', 'type', 'timestamp'],
+
+    // overwrite original method to search for exact equality
+    // within array of headingsToPin
+    isPinnedHeading: function(item) {
+        for (var i = 0; i < this.headingsToPin.length; i++) {
+            var comparitor = this.headingsToPin[i];
+            if (item === comparitor) {
+                return true;
+            }
+        }
+        return false;
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+The intelligence/search page is composed of a LogAnalysisView on top, contained
+within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+from this view, and with the triggerChange function, kick off responding
+processes in the LogAnalysisView that is instantiated from within this view.
+
+instantiated in goldstoneRouter as
+    new LogSearchView({
+        el: ".launcher-container"
+    });
+*/
+
+var EventsBrowserPageView = GoldstoneBasePageView2.extend({
+
+    renderCharts: function() {
+
+        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+        this.eventsBrowserView = new ChartSet({
+            chartTitle: 'Events Histogram',
+            collection: this.eventsBrowserVizCollection,
+            el: '#events-histogram-visualization',
+            infoIcon: 'fa-tasks',
+            width: $('#events-histogram-visualization').width(),
+            yAxisLabel: 'Number of Events'
+        });
+
+        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+        this.eventsBrowserTable = new EventsBrowserDataTableView({
+            chartTitle: 'Events Browser',
+            collection: this.eventsBrowserTableCollection,
+            el: '#events-browser-table',
+            infoIcon: 'fa-table',
+            width: $('#events-browser-table').width()
+        });
+
+        // triggered on GoldstoneBasePageView2, itereates through array
+        // and calls stopListening() and off() for memory management
+        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.eventsBrowserView.trigger('lookbackSelectorChanged');
+            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    template: _.template('' +
+
+        '<div class="row">' +
+        '<div id="events-histogram-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="events-browser-table" class="col-md-12"></div>' +
+        '</div>'
+    )
+
 });
 ;
 /**
@@ -4648,7 +7648,9 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             return '<option value="15">lookback 15m</option>' +
                 '<option value="60" selected>lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>';
+                '<option value="1440">lookback 1d</option>' +
+                '<option value="4320">lookback 3d</option>' +
+                '<option value="10080">lookback 7d</option>';
         }
     },
 
@@ -5335,13 +8337,19 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
             el: '#keystone-report-r1-c1',
             width: $('#keystone-report-r1-c1').width()
         });
+
     },
 
     template: _.template('' +
         '<div id="keystone-report-r1" class="row">' +
         '<div id="keystone-report-r1-c1" class="col-md-6"></div>' +
+        '<div id="keystone-report-r1-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="keystone-report-r2" class="row">' +
+        '<div id="keystone-report-r2-c1" class="col-md-6"></div>' +
         '</div>'
     )
+
 });
 ;
 /**
@@ -6173,13 +9181,11 @@ var LogSearchView = GoldstoneBasePageView.extend({
     render: function() {
         this.$el.html(this.template());
 
-        new ChartHeaderView({
-            el: '.log-analysis-container',
+        $('.log-analysis-container').append(new ChartHeaderView({
             chartTitle: 'Log Analysis',
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
-            columns: 13
-        });
+        }).el);
 
         return this;
     },
@@ -6404,6 +9410,22 @@ var MetricView = ApiPerfView.extend({
         }
     },
 
+    processOptions: function() {
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = "Response Time (s)";
+        }
+        this.defaults.start = this.collection.reportParams.start || null;
+        this.defaults.end = this.collection.reportParams.end || null;
+        this.defaults.interval = this.collection.reportParams.interval || null;
+    },
+
     standardInit: function() {
 
         /*
@@ -6454,8 +9476,8 @@ var MetricView = ApiPerfView.extend({
         var self = this;
         var data = this.collection.toJSON()[0];
         json = this.dataPrep(data.per_interval);
-        ns.statToChart = this.collection.defaults.statistic || 'band';
-        ns.standardDev = this.collection.defaults.standardDev || 0;
+        ns.statToChart = this.collection.statistic || 'band';
+        ns.standardDev = this.collection.standardDev || 0;
         var mw = ns.mw;
         var mh = ns.mh;
 
@@ -7073,8 +10095,8 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // if there is already a chart populating this div:
         if (this.metricChart) {
             this.metricChart.url = url;
-            this.metricChart.defaults.statistic = this.chartOptions.get('statistic');
-            this.metricChart.defaults.standardDev = this.chartOptions.get('standardDev');
+            this.metricChart.statistic = this.chartOptions.get('statistic');
+            this.metricChart.standardDev = this.chartOptions.get('standardDev');
             $(this.metricChartView.el).find('#spinner').show();
             this.metricChart.fetchWithReset();
         } else {
@@ -7909,22 +10931,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)
             .call(d3.legend);
-    },
-
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-
-        new ChartHeaderView({
-            el: this.el,
-            columns: 12,
-            chartTitle: this.defaults.chartTitle,
-            infoText: this.defaults.infoCustom
-        });
-
-        $(this.el).find('.mainContainer').append(this.template());
-        return this;
     }
 
 });
@@ -9300,26 +12306,21 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         // ChartHeaderViews frame out chart header bars and populate info buttons
 
-        new ChartHeaderView({
-            el: '#service-status-title-bar',
+        $('#service-status-title-bar').append(new ChartHeaderView({
             chartTitle: 'Service Status Report',
             infoText: 'serviceStatus',
-            columns: 12
-        });
-        new ChartHeaderView({
-            el: '#utilization-title-bar',
+        }).el);
+
+        $('#utilization-title-bar').append(new ChartHeaderView({
             chartTitle: 'Utilization',
             infoText: 'utilization',
-            columns: 12
-        });
+        }).el);
 
         // PENDING
-        // new ChartHeaderView({
-        //     el: '#hypervisor-title-bar',
+        // $('#hypervisor-title-bar').append(new ChartHeaderView({
         //     chartTitle: 'Hypervisor',
         //     infoText: 'hypervisor',
-        //     columns: 12
-        // });
+        // }).el);
 
         // construct api calls from url component
         // between the last '/' and the following '.'
@@ -10972,12 +13973,10 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     render: function() {
 
-        new ChartHeaderView({
-            el: this.el,
-            columns: 12,
+        this.$el.append(new ChartHeaderView({
             chartTitle: this.defaults.chartTitle,
             infoText: this.defaults.infoCustom
-        });
+        }).el);
 
         $(this.el).find('.mainContainer').append(this.template());
         return this;
@@ -11835,12 +14834,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         // appends chart header to el with params passed in as array
         if (ns.chartHeader !== null) {
-            new ChartHeaderView({
+
+            $(ns.chartHeader[0]).append(new ChartHeaderView({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
-                columns: 13
-            });
+            }).el);
         }
 
         // appends Resource List dataTable View if applicable

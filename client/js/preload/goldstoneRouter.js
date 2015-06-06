@@ -44,6 +44,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         "glance/report": "glanceReport",
         "help": "help",
         "intelligence/search": "logSearch",
+        "intelligence/events": "eventsBrowser",
         "keystone/report": "keystoneReport",
         "login": "login",
         "metric": "metricViewer",
@@ -90,6 +91,7 @@ var GoldstoneRouter = Backbone.Router.extend({
             // Backbone's remove() calls this.$el.remove() and
             // this.stopListening() which removes any events that
             // are subscribed to with listenTo()
+            app.currentView.off();
             app.currentView.remove();
             app.currentLauncherView.remove();
         }
@@ -146,6 +148,9 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     discover: function() {
         this.switchView(DiscoverView);
+    },
+    eventsBrowser: function() {
+        this.switchView(EventsBrowserPageView);
     },
     glanceReport: function() {
         this.switchView(GlanceReportView);

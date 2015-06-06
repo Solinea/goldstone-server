@@ -84,7 +84,9 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             return '<option value="15">lookback 15m</option>' +
                 '<option value="60" selected>lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>';
+                '<option value="1440">lookback 1d</option>' +
+                '<option value="4320">lookback 3d</option>' +
+                '<option value="10080">lookback 7d</option>';
         }
     },
 

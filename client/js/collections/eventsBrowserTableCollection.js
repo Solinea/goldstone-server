@@ -16,14 +16,25 @@
 
 // define collection and link to model
 
-var model = GoldstoneBaseModel.extend({});
-
-var MetricViewCollection = GoldstoneBaseCollection.extend({
-
+var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
     instanceSpecificInit: function() {
-        this.reportParams = {};
-        this.statistic = this.options.statistic;
-        this.standardDev = this.options.standardDev;
-        this.fetchWithReset();
+        this.urlGenerator();
     },
+
+    urlBase: '/core/events/search/',
+
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '&page_size=' + n;
+    },
+
+    preProcessData: function(data) {
+        if(data && data.results) {
+            return data.results;
+        }
+    }
 });

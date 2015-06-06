@@ -639,12 +639,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         // appends chart header to el with params passed in as array
         if (ns.chartHeader !== null) {
-            new ChartHeaderView({
+
+            $(ns.chartHeader[0]).append(new ChartHeaderView({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
-                columns: 13
-            });
+            }).el);
         }
 
         // appends Resource List dataTable View if applicable
