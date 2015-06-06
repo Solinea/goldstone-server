@@ -1,288 +1,169 @@
-# Goldstone Hacking Guide
-
-This explains how to install and run Goldstone locally, so you can do code development on it.
-
-The recommended steps are:
-
-1. Fork this repository on GitHub.
-2. Follow the "Installation" instructions to set up your development environment.
-3. Verify that you can build a working Goldstone application before you make any edits!
-4. Make your improvements in your fork. Remember to include unit tests, and use tox (with the supplied `tox.ini`) to verify that the codebase still passes pep8, pylint, and all unit tests.
-5. Submit a pull request to us. Be sure to include a problem description and an overview of your solution.
-
-Remember that an instance of Goldstone running locally can be used to monitor a
-local *or remote* OpenStack installation. The server on which Goldstone runs is
-independent from the OpenStack cloud's location.
+Goldstone Server Hacking Guide
+================
 
 
-## Installation
+This document explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a MacOS X development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.  The setup process for other environments will be similar, but inevitably be different.
 
-### Preliminaries
+[TOC]
 
-If you're doing this on OS X, you need to install these packages:
+Prerequisites
+----------------
 
-```bash
-# First install Homebrew, per the instructions at http://brew.sh. Then...
-$ brew upgrade
-$ brew doctor            # Resolve any any errors or warnings before continuing!
-$ brew install caskroom/cask/brew-cask
-$ brew cask install java
-$ brew install python    # This puts a Python interpreter where mkvirtualenv expects it.
-```    
+Install various prerequisite packages:
 
-### Postfix
+    $ brew upgrade
+    $ brew doctor # (Resolve any any errors or warnings)
+    $ brew install python
+    $ brew install git
+    $ brew install boot2docker
+    $ brew install docker-compose
+    $ brew install pyenv-virtualenvwrapper
+    $ boot2docker init
 
-If you're not working on or testing the password-reset sequence, you can skip
-to the next section.
+Fork and Clone Goldstone Repos
+---------------------------------------
+Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
 
-To test Goldstone's password-reset sequence, you'll need an
-[SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server
-running on your development machine.
+If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/).    You will also substitute your own github user id for "solinea" in the following clone commands.
 
-Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
-configure it to relay outgoing mail to a Gmail account, on OS X.
-
-First, if you're in a virtual ("workon") environment, deactivate it. Then:
-
-```bash
-    $ sudo bash
-    root# cd /etc/postfix
-```
-
-Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
-```
-myhostname = localhost
-relayhost = [smtp.gmail.com]:587
-smtp_sasl_auth_enable = yes
-smtp_sasl_mechanism_filter = plain
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-smtp_sasl_security_options = noanonymous
-smtp_tls_CAfile = /etc/postfix/systemdefault.pem
-smtp_use_tls = yes
-```
-
-Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
-and password:
-```
-[smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
-```
-
-(For example, your line might read, `[smtp.gmail.com]:587
-dirk_diggler@mycompany.com:12344321`.
-
-Then:
-
-```bash
-    root# postmap /etc/postfix/sasl_passwd
-```
-
-Now put a valid certificate into
-`/etc/postfix/systemdefault.pem`. Here's one way to do it:
-
-1. Launch the KeyChain Access application
-2. In the sidebar, select "System" and "Certificates"
-3. In the main window, select `com.apple.systemdefault`
-4. `File | Export Items...`
-5. Select "Privacy Enhanced Mail (.pem)" and save it to your Desktop.
-
-Move the file you just saved to `/etc/postfix/systemdefault.pem`.
-
-Then, chown the file so that root owns it:
-```bash
-    root# chown root /etc/postfix/systemdefault.pem
-```
-
-Now start postfix and test it:
-
-```bash
-    root# postfix start
-    root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
-```
-
-If you receive the test email, Postfix is running correctly!
-
-If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
-
-#### Starting on a boot
-
-If you want Postfix to always start when you boot your machine, edit
-`/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
-
-```
-<key>KeepAlive</key>
-<dict>
-   <key>SuccessfulExit</key>
-   <false/>
-</dict>
-```
-
-Insert this text before the `</dict>`:
-
-```
-<key>RunAtLoad</key>
-<true/>
-```
+    $ mkdir ~/devel
+    $ cd ~/devel
+    $ git clone git@github.com:Solinea/goldstone-docker.git
+    $ git clone git@github.com:Solinea/goldstone-server.git
 
 
 
+Configure a Goldstone virtualenv
+---------------------------------------
+Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
 
-### Upgrade or install Pip
+    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/devel
+    source /usr/local/bin/virtualenvwrapper.sh
 
-If your system already has Pip, upgrade it to the latest version.
+   Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
-If your system doesn't have pip installed, install it:
-
-```bash
-$ curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
-$ python get-pip.py
-```
-
-### Virtualenvwrapper, tox
-
-Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/) makes this easy:
-
-```bash
-$ pip install virtualenvwrapper
-$ pip install tox
-```
-
-Add the following or similar to your .bash_profile:
-
-```bash
-export JAVA_HOME="$(/usr/libexec/java_home)"
-export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-export WORKON_HOME=$HOME/.virtualenvs
-export PROJECT_HOME=$HOME/devel
-source /usr/local/bin/virtualenvwrapper.sh
-```
-
-Create the virtual environment (this will also install virtualenv):
-
-```bash
-$ mkvirtualenv goldstone-server
-```
-
-Customize your virtualenv postactivate script to make it yours. This is a suggested virtualenv/postactivate:
-
-```bash
-#!/bin/bash
-cd ~/devel/goldstone-server
-export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
+    $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
     
+   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/eb8b830f1ecbff9e67f1eb21ad1002a0b0285bbb/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/a6f19ca54f2c978f003831491dee41d32cfadf62/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`. 
 
-# For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_ny_cloud2
-export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
-    
+Configure VirtualBox Networking
+---------------------------------------
 
-redis-server > /dev/null 2>&1 &
-elasticsearch > /dev/null 2>&1 &
-postgres -D /usr/local/var/postgres &
-```
+This section assumes that you will be using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition. 
 
-This is a suggested virtualenv/deactivate:
+In order to operate with the downloaded RDO image, you may need to make a change to the definition of the vboxnet0 host-only network.  Open the VirtualBox app and navigate to the  "Host-only Networks" panel of the "Network" section of the "Preferences" menu item.
 
-```bash
-#!/bin/bash
+![enter image description here](https://lh3.googleusercontent.com/gV6Kh5tnOw1LKFReNVfyxkDp7uwvuG3RgFWn9fqLey8=w934-h634-no)
+
+Edit the vboxnet0 entry and set the IP address to 172.24.4.1 and the netmask to 255.255.255.0.
+
+![enter image description here](https://lh3.googleusercontent.com/fDkZKCZbOS4XIfB2UHktErbpVRjPRf55Li-UmLj5WP4=w973-h634-no)
+
+Set Up an OpenStack VM
+--------------------------------
+For convenience, you can download a VM image **[TODO add link when available]** with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page), preconfigured for use with Goldstone Server.  Once downloaded, import the VM into VirtualBox.
+
+If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
+
+Configure boot2docker VM Port Forwarding
+----------------------------------------------------
+This section assumes that you are using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the source IP address to match your VM.  
+
+Expand the "Advanced" section of the Network settings for the boot2docker-vm, and click on the "Port Forwarding" button.  Then configure forwarders as described in the table below.
+|Name|Protocol|Host IP|Host Port|Guest IP|Guest Port|
+|----|--------|-------|---------|--------|----------|
+|es_9200_RDO|TCP|172.24.4.1|9200||9200|
+|es_9200_local|TCP|127.0.0.1|9200||9200|
+|es_9300_RDO|TCP|172.24.4.1|9300||9300|
+|es_9300_local|TCP|127.0.0.1|9300||9300|
+|logstash_syslog_RDO|TCP|172.24.4.1|5514||5514|
+|logstash_syslog_local|TCP|127.0.0.1|5514||5514|
+|logstash_metrics_RDO|UDP|172.24.4.1|5516||5516|
+|logstash_metrics_local|UDP|127.0.0.1|5516||5516|
+|postgres_RDO|TCP|172.24.4.1|5432||5432|
+|postgres_local|TCP|127.0.0.1|5432||5432|
+|redis_local|TCP|127.0.0.1|6379||6379|
+|ssh|TCP|127.0.0.1|2022||22|
 
 
-echo "shutting down redis"
-pkill -f redis
+![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
+Activate the Virtualenv 
+----------------------------------------------------
+Once all of the initial setup has been completed, you can activate the virtualenv by running the workon command. 
 
-echo "shutting down elasticsearch"
-pkill -f elasticsearch
+> $ workon goldstone-server
 
+This command will start the required VMs, docker containers, and celery processes.  Running `deactivate` will stop everything.  
 
-echo "shutting down postgres"
-pkill -f postgres
-```
+The first time you enter the virtualenv, you should also install the project requirements, and some additional utilities.
 
-Activating and deactivating the environment can be done with the following commands:
-
-```bash
-$ workon goldstone-server
-$ deactivate
-```
-
-### Install some packages
-
-Install these packages in your Goldstone virtualenv:
-
-```bash
-$ workon goldstone-server
-$ brew install elasticsearch phantomjs redis postgresql
-```
-
-### Set up your databases
-Create your development and test databases, and create a "goldstone" database user:
-    
-```bash
-$ createdb goldstone_dev
-$ createdb goldstone_test
-$ createuser goldstone -d
-```
-
-Edit your `pg_hba.conf` file.  If you installed with brew, this should be in `/usr/local/var/postgres/`.  See the [INSTALL file](INSTALL.md) for the modifications.
-
-After you've edited pg_hba.conf, reload postgres:
-
-```bash
-$ pg_ctl reload
-```
-
-If you want remote access to postgres, you will also need to add an entry to
-`/etc/sysconfig/iptables` like:
-
-    -A INPUT -p tcp -m state --state NEW -m tcp --dport 5432 -m comment --comment "postgres incoming" -j ACCEPT 
-
-And edit `/usr/local/var/postgres/postgresql.conf` to configure it to listen on 
-external addresses::
-
-    listen_address='*'
-
-Then restart iptables:
-
-```bash
-$ service iptables restart
-```
-
-### Get the code
-
-1. On GitHub, fork the goldstone-server repository.
-2. Clone your fork to your local machine:
-   
-```bash
-    $ cd $PROJECT_HOME
-    $ git clone <your clone URL>
-```
-
-Then pip-install the Python prerequisites:
-
-```bash
-    $ workon goldstone-server
-    $ cd goldstone-server          # If your postactivate script doesn't have a cd
+    $ pip install --upgrade pip
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
-```
+    $ pip install flower
 
+If the requirements files change, you should rerun the `pip install` commands.
 
-### Initialize Goldstone and login!
+*Note that the goldstone-server virtualenv is only meant to be run in a single terminal window. *
 
-Sync and initialize the database, and initialize Elasticsearch's templates. You'll have to answer some account questions.  After that, run Django's development server:
+Initialize Goldstone Server
+-------------------------------
+This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch. 
 
-```bash
-$ fab goldstone_init
-$ fab runserver
-```
+To initialize Goldstone Server, use the goldstone_init fabric task:
 
-You should now see the application running at [http://localhost:8000](http://localhost:8000). Django's admin interface will be at [http://localhost:8000/admin](http://localhost:8000/admin). You can login with your "superuser" account.
+    $ cd $PROJECT_HOME/goldstone-server
+    $ fab goldstone_init
 
-***Congratulations!***
+You will be prompted for the settings to use (select local_docker), passwords for the Django admin and goldstone user, and your OpenStack cloud settings. 
 
+Verify the Development Environment
+---------------------------------------------
+To ensure that the installation is working properly, you can run the test suite.  If all goes will complete with a congratulatory message (though you may see some exceptions in the output from individual tests):
 
+    $ cd $PROJECT_HOME/goldstone-server
+    $ tox -e py27
+    <-- snip -->
+    -------------------------------------
+    Ran 215 tests in 42.295s
+    OK (skipped=11)
+    Destroying test database for alias 'default'...
+    _____________ summary _______________
+    py27: commands succeeded
+    congratulations :)
 
-## Testing
+Assuming the testing went well, you're ready to start the application:
 
+    $ cd $PROJECT_HOME/goldstone-server
+    $ fab runserver
+    [localhost] local: ls goldstone/settings | egrep "production|local_|dev_|test_" | egrep -v "pyc|~"
+
+	choose a settings file to use:
+	[0] local_docker.py
+	[1] production.py
+	Choice (0-1): 1
+	[localhost] local: ./manage.py runserver --settings=goldstone.settings.local_docker
+	Validating models...
+
+	0 errors found
+	June 05, 2015 - 19:01:29
+	Django version 1.6.11, using settings 'goldstone.settings.local_docker'
+	Starting development server at http://127.0.0.1:8000/
+	Quit the server with CONTROL-C.
+
+When startup is complete, you should be able to see the Goldstone application at http://127.0.0.1:8000.  Log in with the credentials you created during initialization.
+
+![enter image description here](https://lh3.googleusercontent.com/p75_NPl7u54OxhqHYhDujVVqzRy7y0k-ZZtsjCYQV3o=w1057-h633-no)
+  
+  
+Testing
+---------
+
+###Backend Testing
 Goldstone uses the standard Django testing tools:
 
 * [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.6, Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
@@ -359,8 +240,8 @@ At the time of this documentation, the Gruntfile.js is configured with the follo
     grunt lintAndTest: lint and test only (no watch).
     grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
-
-## Coding guidelines
+Coding Guidelines
+----------------------
 
 ### Python code
 
@@ -379,9 +260,100 @@ $ tox -e checkin
 $ fab test
 ```
 
-### JavaScript code
+Configuring Postfix
+------------------------
 
-TBD
+If you're not working on or testing the password-reset sequence, you can skip
+to the next section.
+
+To test Goldstone's password-reset sequence, you'll need an
+[SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server
+running on your development machine.
+
+Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
+configure it to relay outgoing mail to a Gmail account, on OS X.
+
+First, if you're in a virtual ("workon") environment, deactivate it. Then:
+
+```bash
+    $ sudo bash
+    root# cd /etc/postfix
+```
+
+Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
+```
+myhostname = localhost
+relayhost = [smtp.gmail.com]:587
+smtp_sasl_auth_enable = yes
+smtp_sasl_mechanism_filter = plain
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_tls_CAfile = /etc/postfix/systemdefault.pem
+smtp_use_tls = yes
+```
+
+Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
+and password:
+```
+[smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
+```
+
+(For example, your line might read, `[smtp.gmail.com]:587
+dirk_diggler@mycompany.com:12344321`.
+
+Then:
+
+```bash
+    root# postmap /etc/postfix/sasl_passwd
+```
+
+Now put a valid certificate into
+`/etc/postfix/systemdefault.pem`. Here's one way to do it:
+
+1. Launch the KeyChain Access application
+2. In the sidebar, select "System" and "Certificates"
+3. In the main window, select `com.apple.systemdefault`
+4. `File | Export Items...`
+5. Select "Privacy Enhanced Mail (.pem)" and save it to your Desktop.
+
+Move the file you just saved to `/etc/postfix/systemdefault.pem`.
+
+Then, chown the file so that root owns it:
+```bash
+    root# chown root /etc/postfix/systemdefault.pem
+```
+
+Now start postfix and test it:
+
+```bash
+    root# postfix start
+    root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
+```
+
+If you receive the test email, Postfix is running correctly!
+
+If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
+
+###Starting on a boot
+
+If you want Postfix to always start when you boot your machine, edit
+`/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
+
+```
+<key>KeepAlive</key>
+<dict>
+   <key>SuccessfulExit</key>
+   <false/>
+</dict>
+```
+
+Insert this text before the `</dict>`:
+
+```
+<key>RunAtLoad</key>
+<true/>
+```
+
 
 ## Major Design Decisions
 
