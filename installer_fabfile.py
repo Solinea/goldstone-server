@@ -711,9 +711,9 @@ def install(django_admin_password,
     This requires no interaction with the user.
 
     This does what full_install() does, except for creating the Goldstone
-    tenant and OpenStack cloud rows in the Tenant and Cloud tables. After this
-    runs, the user must log in to Goldstone as the Django admin, create a
-    Goldstone tenant, and create a cloud under that tenant.
+    tenant and storing the OpenStack connection details. After this runs, the
+    user must log in to Goldstone as the Django admin, create a Goldstone
+    tenant, and create a cloud under that tenant.
 
     :param django_admin_password: Password for Django admin user
     :type django_admin_password: str
