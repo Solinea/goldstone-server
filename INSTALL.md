@@ -36,7 +36,7 @@ root# fab full_install
 
 ### 2. Partial (requires no terminal interaction)
 
-**N.B.: This section is a work in progress. It is not yet complete.**
+**This section is a work in progress.**
 
 This installation requires no terminal interaction. But, you will have to perform additional installation steps (described below) after it completes.
 
