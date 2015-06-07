@@ -1,17 +1,15 @@
-Goldstone Server Hacking Guide
-================
+# Goldstone Server Hacking Guide
 
 
-This document explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a MacOS X development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.  The setup process for other environments will be similar, but inevitably be different.
+This document explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
 
 [TOC]
 
-Prerequisites
-----------------
+## Prerequisites
 
 Install various prerequisite packages:
 
-    $ brew upgrade
+    $ brew update
     $ brew doctor # (Resolve any any errors or warnings)
     $ brew install python
     $ brew install git
@@ -20,8 +18,8 @@ Install various prerequisite packages:
     $ brew install pyenv-virtualenvwrapper
     $ boot2docker init
 
-Fork and Clone Goldstone Repos
----------------------------------------
+## Fork and Clone Goldstone Repos
+
 Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
 
 If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/).    You will also substitute your own github user id for "solinea" in the following clone commands.
@@ -33,8 +31,8 @@ If you are a community contributor, your first step will be to [fork the reposit
 
 
 
-Configure a Goldstone virtualenv
----------------------------------------
+## Configure a Goldstone virtualenv
+
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
 
     export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
@@ -49,10 +47,9 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     
    Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/eb8b830f1ecbff9e67f1eb21ad1002a0b0285bbb/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/a6f19ca54f2c978f003831491dee41d32cfadf62/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`. 
 
-Configure VirtualBox Networking
----------------------------------------
+## Configure VirtualBox Networking
 
-This section assumes that you will be using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition. 
+This section assumes that you will be using the pre-built RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition. 
 
 In order to operate with the downloaded RDO image, you may need to make a change to the definition of the vboxnet0 host-only network.  Open the VirtualBox app and navigate to the  "Host-only Networks" panel of the "Network" section of the "Preferences" menu item.
 
@@ -62,17 +59,18 @@ Edit the vboxnet0 entry and set the IP address to 172.24.4.1 and the netmask to 
 
 ![enter image description here](https://lh3.googleusercontent.com/fDkZKCZbOS4XIfB2UHktErbpVRjPRf55Li-UmLj5WP4=w973-h634-no)
 
-Set Up an OpenStack VM
---------------------------------
+## Set Up an OpenStack VM
+
 For convenience, you can download a VM image **[TODO add link when available]** with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page), preconfigured for use with Goldstone Server.  Once downloaded, import the VM into VirtualBox.
 
 If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
 
-Configure boot2docker VM Port Forwarding
-----------------------------------------------------
+## Configure boot2docker VM Port Forwarding
+
 This section assumes that you are using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the source IP address to match your VM.  
 
 Expand the "Advanced" section of the Network settings for the boot2docker-vm, and click on the "Port Forwarding" button.  Then configure forwarders as described in the table below.
+
 |Name|Protocol|Host IP|Host Port|Guest IP|Guest Port|
 |----|--------|-------|---------|--------|----------|
 |es_9200_RDO|TCP|172.24.4.1|9200||9200|
@@ -91,11 +89,11 @@ Expand the "Advanced" section of the Network settings for the boot2docker-vm, an
 
 ![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
-Activate the Virtualenv 
-----------------------------------------------------
+## Activate the Virtualenv 
+
 Once all of the initial setup has been completed, you can activate the virtualenv by running the workon command. 
 
-> $ workon goldstone-server
+    $ workon goldstone-server
 
 This command will start the required VMs, docker containers, and celery processes.  Running `deactivate` will stop everything.  
 
@@ -108,10 +106,10 @@ The first time you enter the virtualenv, you should also install the project req
 
 If the requirements files change, you should rerun the `pip install` commands.
 
-*Note that the goldstone-server virtualenv is only meant to be run in a single terminal window. *
+**_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
-Initialize Goldstone Server
--------------------------------
+## Initialize Goldstone Server
+
 This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch. 
 
 To initialize Goldstone Server, use the goldstone_init fabric task:
@@ -121,8 +119,8 @@ To initialize Goldstone Server, use the goldstone_init fabric task:
 
 You will be prompted for the settings to use (select local_docker), passwords for the Django admin and goldstone user, and your OpenStack cloud settings. 
 
-Verify the Development Environment
----------------------------------------------
+## Verify the Development Environment
+
 To ensure that the installation is working properly, you can run the test suite.  If all goes will complete with a congratulatory message (though you may see some exceptions in the output from individual tests):
 
     $ cd $PROJECT_HOME/goldstone-server
@@ -160,10 +158,10 @@ When startup is complete, you should be able to see the Goldstone application at
 ![enter image description here](https://lh3.googleusercontent.com/p75_NPl7u54OxhqHYhDujVVqzRy7y0k-ZZtsjCYQV3o=w1057-h633-no)
   
   
-Testing
----------
+## Testing
 
-###Backend Testing
+### Backend Testing
+
 Goldstone uses the standard Django testing tools:
 
 * [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.6, Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
@@ -240,8 +238,7 @@ At the time of this documentation, the Gruntfile.js is configured with the follo
     grunt lintAndTest: lint and test only (no watch).
     grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
-Coding Guidelines
-----------------------
+## Coding Guidelines
 
 ### Python code
 
@@ -260,8 +257,7 @@ $ tox -e checkin
 $ fab test
 ```
 
-Configuring Postfix
-------------------------
+## Configuring Postfix
 
 If you're not working on or testing the password-reset sequence, you can skip
 to the next section.
@@ -334,7 +330,7 @@ If you receive the test email, Postfix is running correctly!
 
 If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
 
-###Starting on a boot
+### Starting on a boot
 
 If you want Postfix to always start when you boot your machine, edit
 `/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
