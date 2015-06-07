@@ -45,7 +45,7 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
     
-   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/eb8b830f1ecbff9e67f1eb21ad1002a0b0285bbb/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/a6f19ca54f2c978f003831491dee41d32cfadf62/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`. 
+   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/3a8a3a8d4068057246c36bdd00bbd2977cb1c0ec/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/62c5c5c5e16a8402682e70bb327f627775cb819b/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`. 
 
 ## Configure VirtualBox Networking
 
