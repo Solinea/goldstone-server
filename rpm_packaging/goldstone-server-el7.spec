@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
+Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.8.0-openjdk, postgresql-server, postgresql-devel, git
 
 %pre
 
@@ -56,7 +56,8 @@ echo "**************************************************************************
 echo ""
 echo "  To complete installation, do one of the following as root:"
 echo ""
-echo "  1. A full installation."
+echo "  1. An interactive installation resulting in a deployment configured with a 
+echo "     connection to an OpenStack cloud."
 echo ""
 echo "      cd /opt/goldstone"
 echo "      . bin/activate"
@@ -70,7 +71,9 @@ echo "      - the OpenStack admin user (from your adminrc)"
 echo "      - the OpenStack admin password (from your adminrc)"
 echo "      - the OpenStack auth URL (from your adminrc)"
 echo ""
-echo "  2. A partial installation."
+echo "  2. A non-interactive installation resulting in a deployment that does not
+echo "     have a connection to an OpenStack cloud configured. You will need to 
+echo "     complete the configuration via the client or API."
 echo ""
 echo "      cd /opt/goldstone"
 echo "      . bin/activate"

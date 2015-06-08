@@ -28,22 +28,22 @@ from fabric.operations import prompt
 from fabric.context_managers import lcd
 
 
-ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
+ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.5.repo"
 
-ES_REPO_TEXT = "[elasticsearch-1.4]\n" + \
-    "name=Elasticsearch repository for 1.4.x packages\n" + \
+ES_REPO_TEXT = "[elasticsearch-1.5]\n" + \
+    "name=Elasticsearch repository for 1.5.x packages\n" + \
     "baseurl=http://packages.elasticsearch.org/" + \
-    "elasticsearch/1.4/centos\n" + \
+    "elasticsearch/1.5/centos\n" + \
     "gpgcheck=1\n" + \
     "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
     "enabled=1\n"
 
-LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.4.repo"
+LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.5.repo"
 
-LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
-    "name=Logstash repository for 1.4.x packages\n" + \
+LOGSTASH_REPO_TEXT = "[logstash-1.5]\n" + \
+    "name=Logstash repository for 1.5.x packages\n" + \
     "baseurl=http://packages.elasticsearch.org/" + \
-    "logstash/1.4/centos\n" + \
+    "logstash/1.5/centos\n" + \
     "gpgcheck=1\n" + \
     "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
     "enabled=1\n"
