@@ -98,3 +98,14 @@ class PassthruSerializer(serializers.Serializer):
         """Return an already-serialized object."""
 
         return instance
+
+
+class EventSerializer(ReadOnlyElasticSerializer):
+    """Serializer for event data stored in ElasticSearch."""
+
+    class Meta:        # pylint: disable=C1001,W0232
+        """Exclude several uninteresting fields."""
+
+        exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
+                   'tags', 'syslog_facility_code', 'syslog_severity_code',
+                   'syslog_pri', 'syslog5424_pri', 'syslog5424_host')

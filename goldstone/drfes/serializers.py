@@ -16,22 +16,20 @@ from rest_framework.serializers import Serializer
 
 
 class ReadOnlyElasticSerializer(Serializer):
-    """Basic serializer for an ES object.
-
-    Uses the to_dict() method and removed fields listed in the exclude Meta
-    field.
-    """
+    """Basic serializer for an ES object."""
 
     class Meta:
         exclude = ()
 
     def create(self, validated_data):
-        """Don't call create.  Here to satisfy abstract definition."""
-        raise NotImplementedError('Not used.')
+        """We do not implement create()."""
+
+        raise NotImplementedError('Not supported.')
 
     def update(self, instance, validated_data):
-        """Don't call update.  Here to satisfy abstract definition."""
-        raise NotImplementedError('Not used.')
+        """We do not implement update()."""
+
+        raise NotImplementedError('Not supported.')
 
     def to_representation(self, instance):
         """Convert a record to a representation suitable for rendering.
@@ -40,6 +38,7 @@ class ReadOnlyElasticSerializer(Serializer):
         :param instance: An instance from an ES search response
         :rtype: dict
         :return: the response minus exclusions as a dict
+
         """
 
         obj = instance.to_dict()
@@ -83,16 +82,17 @@ class SimpleAggSerializer(ReadOnlyElasticSerializer):
 
 
 class DateHistogramAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     AGG_NAME = 'per_interval'
 
     def to_representation(self, instance):
-        """Create serialized representation of a single top-level aggregation.
+        """Return a serialized representation of a single top-level
+        aggregation.
 
         :param instance: the result from the Model.simple_agg call
-        :return:
+
         """
         assert self.AGG_NAME is not None, (
             "'%s' should set the `AGG_NAME` attribute."

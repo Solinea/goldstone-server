@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticsearch_dsl import query
+from elasticsearch_dsl.query import Q
 from goldstone.drfes.models import DailyIndexDocType
 
 
@@ -24,12 +25,11 @@ class LogData(DailyIndexDocType):
 
     @classmethod
     def search(cls):
-        """Gets a generic Log search object.
+        """Return a generic Log search object.
 
         See elasticsearch-dsl for parameter information.
 
         """
-        from elasticsearch_dsl.query import Q
 
         search = super(LogData, cls).search()
 
@@ -39,7 +39,7 @@ class LogData(DailyIndexDocType):
 
     @classmethod
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
-        """ Returns a search with time range and hosts list terms"""
+        """Return a search with time range and hosts list terms."""
 
         search = cls.bounded_search(start, end)
 
@@ -51,7 +51,7 @@ class LogData(DailyIndexDocType):
 
     @classmethod
     def ranged_log_agg(cls, base_queryset, interval='1d', per_host=True):
-        """ Returns an aggregations by date histogram and maybe log level.
+        """Return an aggregations by date histogram and maybe log level.
 
         :type base_queryset: Search
         :param base_queryset: search to use as basis for aggregation
@@ -104,8 +104,7 @@ class LogData(DailyIndexDocType):
                 field='syslog_severity',
                 min_doc_count=0)
 
-        response = search.execute().aggregations
-        return response
+        return search.execute().aggregations
 
 
 class LogEvent(LogData):
@@ -118,9 +117,7 @@ class LogEvent(LogData):
 
     @classmethod
     def search(cls):
-        """Return a search object with a log event query clause. """
-
-        from elasticsearch_dsl import Q
+        """Return a search object with a log event query clause."""
         from elasticsearch_dsl.query import Terms
 
         search = super(LogEvent, cls).search()
@@ -130,16 +127,17 @@ class LogEvent(LogData):
 
     @classmethod
     def ranged_event_agg(cls, base_queryset, interval='1d', per_host=True):
-        """ Returns an aggregations by date histogram and maybe event type.
+        """Return an aggregations by date histogram and maybe event type.
 
-        :type base_queryset: Search
         :param base_queryset: search to use as basis for aggregation
-        :type interval: str
+        :type base_queryset: Search
         :param interval: valid ES time interval such as 1m, 1h, 30s
-        :type per_host: bool
+        :type interval: str
         :param per_host: aggregate by host inside the time aggregation?
+        :type per_host: bool
         :rtype: object
         :return: the (possibly nested) aggregation
+
         """
 
         assert isinstance(interval, basestring), 'interval must be a string'
@@ -182,5 +180,4 @@ class LogEvent(LogData):
                 field='event_type',
                 min_doc_count=0)
 
-        response = search.execute().aggregations
-        return response
+        return search.execute().aggregations

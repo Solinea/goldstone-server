@@ -16,16 +16,19 @@ from django.conf.urls import url, patterns
 
 from .views import MetricDataListView, ReportDataListView, \
     MetricNamesAggView, ReportNamesAggView, MetricAggView, NavTreeView, \
-    ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve
+    ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve, \
+    EventSummarizeView, EventSearchView
 
 urlpatterns = patterns(
     '',
-    url(r'^reports/', ReportDataListView.as_view()),
-    url(r'^report_names/', ReportNamesAggView.as_view()),
+    url(r'^events/summarize/', EventSummarizeView.as_view()),
+    url(r'^events/search/', EventSearchView.as_view()),
     url(r'^metrics/$', MetricDataListView.as_view()),
     url(r'^metrics/summarize/', MetricAggView.as_view()),
     url(r'^metric_names/', MetricNamesAggView.as_view()),
     url(r'^nav_tree/', NavTreeView.as_view()),
+    url(r'^reports/', ReportDataListView.as_view()),
+    url(r'^report_names/', ReportNamesAggView.as_view()),
     url(r'^resource_types/$', ResourceTypeList.as_view()),
     url(r'^resource_types/(?P<unique_id>.+)/$',
         ResourceTypeRetrieve.as_view()),

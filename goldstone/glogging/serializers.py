@@ -26,8 +26,8 @@ class LogDataSerializer(ReadOnlyElasticSerializer):
 
 
 class LogAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     def to_representation(self, instance):
         """Create serialized representation of aggregate log data.
@@ -36,6 +36,7 @@ class LogAggSerializer(ReadOnlyElasticSerializer):
         etc., then the detailed aggregation data which will be a nested
         structure.  The number of layers will depend on whether the host
         aggregation was done.
+
         """
 
         timestamps = [i['key'] for i in instance.per_interval['buckets']]
@@ -63,24 +64,24 @@ class LogAggSerializer(ReadOnlyElasticSerializer):
                     interval_values.append({key: values})
                 data.append({interval_key: interval_values})
 
-        if hosts is not None:
+        if hosts is None:
             return {
                 'timestamps': timestamps,
-                'hosts': hosts,
                 'levels': levels,
                 'data': data
             }
         else:
             return {
                 'timestamps': timestamps,
+                'hosts': hosts,
                 'levels': levels,
                 'data': data
             }
 
 
 class LogEventAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     def to_representation(self, instance):
         """Create serialized representation of aggregate log data.
@@ -89,6 +90,7 @@ class LogEventAggSerializer(ReadOnlyElasticSerializer):
         etc., then the detailed aggregation data which will be a nested
         structure.  The number of layers will depend on whether the host
         aggregation was done.
+
         """
 
         timestamps = [i['key'] for i in instance.per_interval['buckets']]
@@ -116,16 +118,16 @@ class LogEventAggSerializer(ReadOnlyElasticSerializer):
                     interval_values.append({key: values})
                 data.append({interval_key: interval_values})
 
-        if hosts is not None:
+        if hosts is None:
             return {
                 'timestamps': timestamps,
-                'hosts': hosts,
                 'types': event_types,
                 'data': data
             }
         else:
             return {
                 'timestamps': timestamps,
+                'hosts': hosts,
                 'types': event_types,
                 'data': data
             }

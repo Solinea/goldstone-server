@@ -74,6 +74,10 @@ class LogAggView(ElasticListAPIView):
         return Response(serializer.data)
 
 
+##########################################
+# These two classes are pending removal. #
+##########################################
+
 class LogEventView(ElasticListAPIView):
     """Return events from Logstash data.
 
