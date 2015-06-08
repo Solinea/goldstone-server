@@ -22,7 +22,7 @@ Install various prerequisite packages:
 
 Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
 
-If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/).    You will also substitute your own github user id for "solinea" in the following clone commands.
+The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.   
 
     $ mkdir ~/devel
     $ cd ~/devel
@@ -86,6 +86,7 @@ Expand the "Advanced" section of the Network settings for the boot2docker-vm, an
 |redis_local|TCP|127.0.0.1|6379||6379|
 |ssh|TCP|127.0.0.1|2022||22|
 
+Here is a snapshot of the final result.
 
 ![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
