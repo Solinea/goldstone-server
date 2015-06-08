@@ -20,6 +20,7 @@ import platform
 import subprocess
 from time import sleep
 
+from django.core.exceptions import ObjectDoesNotExist
 from fabric.api import task, local, settings as fab_settings
 from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
@@ -65,10 +66,10 @@ PROD_SETTINGS = "goldstone.settings.production"
 # used to collect configuration data, then presented at completion
 # of install.
 final_report = {    # pylint: disable=C0103
-    'django_admin_user': None,
-    'django_admin_pass': None,
-    'goldstone_admin_user': None,
-    'goldstone_admin_pass': None,
+    'django_admin_user': "None",
+    'django_admin_pass': "None",
+    'goldstone_admin_user': "None",
+    'goldstone_admin_pass': "None",
     'port': 80
 }
 
@@ -268,22 +269,26 @@ def cloud_init(gs_tenant,
     :type install_dir: str
 
     """
-
-    # The OpenStack identity authorization URL has a version number segment.
-    # This is the authorization version we use. It should end with a slash, but
-    # maybe that's not necessary.
     import re
-    CLOUD_AUTH_URL_VERSION = "/v3/"
+
+    # The OpenStack identity authorization URL has a version number segment. We
+    # use this version. It should not start with a slash.
+    AUTH_URL_VERSION = "v3/"
+
+    # This is used to detect a version segment at an authorization URL's end.
+    AUTH_URL_VERSION_LIKELY = r'\/[vV]\d'
 
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
-        from django.core.exceptions import ObjectDoesNotExist
 
         try:
             # unique constraint on (tenant, tenant_name, and username)
-            Cloud.objects.get(tenant=gs_tenant, tenant_name=stack_tenant,
+            Cloud.objects.get(tenant=gs_tenant,
+                              tenant_name=stack_tenant,
                               username=stack_user)
         except ObjectDoesNotExist:
+            # Since the row doesn't exist, we have to create it. Ask for user
+            # for each of the necessary attributes if they're not defined.
             if stack_tenant is None:
                 stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
                                       default='admin')
@@ -293,16 +298,21 @@ def cloud_init(gs_tenant,
             if stack_password is None:
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
+
             if stack_auth_url is None:
-                while stack_auth_url is None or \
-                        not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                    stack_auth_url = prompt(
-                        cyan("Enter OpenStack auth URL base "
-                             "(ex: http://10.10.10.10:5000/v2.0): "))
-                    if not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                        stack_auth_url = re.sub('/v2.0[/]?$|/v3[/]?$',
-                                                CLOUD_AUTH_URL_VERSION,
-                                                stack_auth_url)
+                stack_auth_url = \
+                    prompt(cyan("Enter OpenStack auth URL "
+                                "(eg: http://10.10.10.10:5000/): "))
+
+                if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
+                    # The user shouldn't have included the version segment, but
+                    # did anyway. Remove it.
+                    version_index = re.search(AUTH_URL_VERSION_LIKELY,
+                                              stack_auth_url)
+                    stack_auth_url = stack_auth_url[:version_index.start()]
+
+                # Append our version number to the base URL.
+                stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
@@ -383,7 +393,7 @@ def django_admin_init(username='admin',
                       email='root@localhost',
                       settings=PROD_SETTINGS,
                       install_dir=INSTALL_DIR):
-    """Create the Django admin user in a non-interactive way.
+    """Create the Django admin user.
 
     :keyword username: the django admin user name
     :type username: str
@@ -400,7 +410,6 @@ def django_admin_init(username='admin',
 
     with _django_env(settings, install_dir):
         from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
 
         try:
             get_user_model().objects.get(username=username)
@@ -409,8 +418,9 @@ def django_admin_init(username='admin',
             if password is None:
                 password = prompt(cyan("Enter Django admin password: "))
 
-            get_user_model().objects.create_superuser(
-                username, email, password)
+            get_user_model().objects.create_superuser(username,
+                                                      email,
+                                                      password)
             final_report['django_admin_user'] = username
             final_report['django_admin_pass'] = password
             fastprint("done.\n")
@@ -447,8 +457,7 @@ def tenant_init(gs_tenant='default',
                 gs_tenant_admin_password=None,
                 settings=PROD_SETTINGS,
                 install_dir=INSTALL_DIR):
-    """Create a tenant and default_tenant_admin, or use existing ones; and
-    create a cloud under the tenant.
+    """Create a tenant and default_tenant_admin, or use existing ones.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
     create it as the default_tenant_admin, and the tenant's tenant_admin.
@@ -486,7 +495,6 @@ def tenant_init(gs_tenant='default',
         # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
         # has been changed!
         from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
         from goldstone.tenants.models import Tenant
 
         # Process the tenant.
@@ -549,10 +557,7 @@ def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 
 @task
-def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
-                   django_admin_password=None,
-                   django_admin_email='root@localhost',
-                   gs_tenant='default',
+def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
                    gs_tenant_owner='None',
                    gs_tenant_admin='gsadmin',
                    gs_tenant_admin_password=None,
@@ -562,14 +567,9 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
                    stack_auth_url=None,
                    settings=PROD_SETTINGS,
                    install_dir=INSTALL_DIR):
-    """Configure goldstone after the RPM has been installed.
+    """Configure the Goldstone tenant, cloud, miscellaneous services, and
+    templates.
 
-    :keyword django_admin_user: username for django admin
-    :type django_admin_user: str
-    :keyword django_admin_password: password for django admin user
-    :type django_admin_password: str
-    :keyword django_admin_email: email for django admin user
-    :type django_admin_email: str
     :keyword gs_tenant: goldstone default tenant name
     :type gs_tenant: str
     :keyword gs_tenant_owner: goldstone default tenant owner (don't change)
@@ -597,14 +597,6 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     """
 
-    syncmigrate(settings=settings, install_dir=install_dir)
-
-    django_admin_init(username=django_admin_user,
-                      password=django_admin_password,
-                      email=django_admin_email,
-                      settings=settings,
-                      install_dir=install_dir)
-
     tenant = tenant_init(gs_tenant,
                          gs_tenant_owner,
                          gs_tenant_admin,
@@ -626,21 +618,25 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
 
 @task
-def install(pg_passwd='goldstone',  # pylint: disable=R0913
-            django_admin_user='admin',
-            django_admin_password=None,
-            django_admin_email='root@localhost',
-            gs_tenant='default',
-            gs_tenant_owner='None', gs_tenant_admin='gsadmin',
-            gs_tenant_admin_password=None, stack_tenant=None,
-            stack_user=None, stack_password=None,
-            stack_auth_url=None):
-    """Check prerequisites, and install Goldstone server.
+def full_install(pg_passwd='goldstone',       # pylint: disable=R0913
+                 django_admin_user='admin',
+                 django_admin_password=None,
+                 django_admin_email='root@localhost',
+                 gs_tenant='default',
+                 gs_tenant_owner='None',
+                 gs_tenant_admin='gsadmin',
+                 gs_tenant_admin_password=None,
+                 stack_tenant=None,
+                 stack_user=None,
+                 stack_password=None,
+                 stack_auth_url=None):
+    """Do a full installation of Goldstone, including prompting the user for
+    various credentials.
 
-    For non-interactive installation, the following parameters must be supplied
-    on the command line: rpm_file, django_admin_password,
-    gs_tenant_admin_password, stack_tenant, stack_user, stack_password,
-    stack_auth_url.  Other parameters can be supplied to override defaults.
+    To do a non-interactive installation, supply these parameters on the
+    command line: rpm_file, django_admin_password, gs_tenant_admin_password,
+    stack_tenant, stack_user, stack_password, stack_auth_url. Other parameters
+    can be supplied to override defaults.
 
     Example:
 
@@ -684,16 +680,70 @@ def install(pg_passwd='goldstone',  # pylint: disable=R0913
         install_repos()
         setup_postgres(pg_passwd)
         install_extra_rpms()
-        goldstone_init(
-            django_admin_user=django_admin_user,
-            django_admin_password=django_admin_password,
-            django_admin_email=django_admin_email,
-            gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
-            gs_tenant_admin=gs_tenant_admin,
-            gs_tenant_admin_password=gs_tenant_admin_password,
-            stack_tenant=stack_tenant, stack_user=stack_user,
-            stack_password=stack_password,
-            stack_auth_url=stack_auth_url)
+
+        syncmigrate()
+
+        django_admin_init(username=django_admin_user,
+                          password=django_admin_password,
+                          email=django_admin_email)
+
+        goldstone_init(gs_tenant=gs_tenant,
+                       gs_tenant_owner=gs_tenant_owner,
+                       gs_tenant_admin=gs_tenant_admin,
+                       gs_tenant_admin_password=gs_tenant_admin_password,
+                       stack_tenant=stack_tenant,
+                       stack_user=stack_user,
+                       stack_password=stack_password,
+                       stack_auth_url=stack_auth_url)
+
+    else:
+        print()
+        abort('This appears to be an unsupported platform. Exiting.')
+
+
+@task
+def install(django_admin_password,
+            pg_passwd='goldstone',
+            django_admin_user='admin',
+            django_admin_email='root@localhost'):
+    """Do a partial installation of Goldstone.
+
+    This requires no interaction with the user.
+
+    This does what full_install() does, except for creating the Goldstone
+    tenant and storing the OpenStack connection details. After this runs, the
+    user must log in to Goldstone as the Django admin, create a Goldstone
+    tenant, and create a cloud under that tenant.
+
+    :param django_admin_password: Password for Django admin user
+    :type django_admin_password: str
+    :keyword pg_passwd: Postgres password for the Goldstone account.  This must
+                        match what's in the Goldstone settings file.
+    :type django_admin_user: str
+    :keyword django_admin_user: Username for the Django admin user
+    :type django_admin_user: str
+    :keyword django_admin_email: Email for the Django admin user
+    :type django_admin_email: str
+
+    """
+
+    if _is_supported_centos7():
+        install_repos()
+        setup_postgres(pg_passwd)
+        install_extra_rpms()
+
+        syncmigrate()
+
+        django_admin_init(username=django_admin_user,
+                          password=django_admin_password,
+                          email=django_admin_email)
+
+        _collect_static(PROD_SETTINGS, INSTALL_DIR)
+        _configure_services()
+        load_es_templates()
+
+        _final_report()
+
     else:
         print()
         abort('This appears to be an unsupported platform. Exiting.')

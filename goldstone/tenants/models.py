@@ -18,7 +18,7 @@ from django_extensions.db.fields import UUIDField
 
 
 class Tenant(models.Model):
-    """Information about the tenants in the OpenStack cloud.
+    """Information about the tenants in Goldstone.
 
     If storing tenant settings here becomes unwieldy, we'll normalize them into
     a separate table.
@@ -43,8 +43,8 @@ class Tenant(models.Model):
 
 
 class Cloud(models.Model):
-    """Information about clouds, e.g., OpenStack, which are contained within a
-    Goldstone tenant."""
+    """Information about the clouds, e.g., OpenStack, which are owned by
+    Goldstone tenants."""
 
     # This is the cloud's name, not the name of the owning Goldstone tenant!
     tenant_name = models.CharField(max_length=settings.OS_NAME_MAX_LENGTH)
@@ -52,6 +52,7 @@ class Cloud(models.Model):
     password = models.CharField(max_length=settings.OS_PASSWORD_MAX_LENGTH)
     auth_url = models.CharField(max_length=settings.OS_AUTH_URL_MAX_LENGTH)
 
+    # A Goldstone tenant may have multiple clouds.
     tenant = models.ForeignKey(Tenant)
 
     # This allows URLs to identify a row using a UUID value.

@@ -24,7 +24,7 @@ class SpawnsData(DailyIndexDocType):
     INDEX_PREFIX = 'goldstone-'
     SORT = '-@timestamp'
 
-    class Meta:
+    class Meta:             # pylint: disable=C1001,W0232,C0111
         doc_type = 'nova_spawns'
 
     @classmethod
@@ -34,8 +34,8 @@ class SpawnsData(DailyIndexDocType):
 
     @classmethod
     def _spawn_finish_query(cls, start, end, interval):
-        """Build the query for spawn finish events with term and
-        date hist agg."""
+        """Return the query for spawn finish events with term and date hist
+        agg."""
 
         search = cls.bounded_search(start, end).query('term', event='finish')
         search.aggs. \
@@ -47,7 +47,7 @@ class SpawnsData(DailyIndexDocType):
         return search
 
     def get_spawn_finish(self, start, end, interval):
-        """Get the aggregated spawn finish results.
+        """Return the aggregated spawn finish results.
 
         :type start: Arrow
         :param start: start time
@@ -56,7 +56,9 @@ class SpawnsData(DailyIndexDocType):
         :type interval: str
         :param interval: ES interval specification
         :return: A dict of results
+
         """
+
         return self._spawn_finish_query(start, end, interval). \
             execute().aggregations
 
