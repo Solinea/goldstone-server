@@ -96,9 +96,9 @@ If the links in the password-reset e-mail do not work, you'll need to adjust the
 
 ## Direct Logs and Events to the Goldstone Server
 
-With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration:
+With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting IP addresses or hostnames for the openstack_host_addr value(s):
 
-    root# fab configure_stack
+    root# fab -H openstack_host_addr[, openstack_addr] configure_stack
 
 
 ## Finished!
