@@ -21,7 +21,7 @@ import subprocess
 from time import sleep
 
 from django.core.exceptions import ObjectDoesNotExist
-from fabric.api import task, local, settings as fab_settings
+from fabric.api import task, local, run, settings as fab_settings
 from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
@@ -385,6 +385,9 @@ def _final_report():
                 final_report['goldstone_admin_pass'] +
                 "\n\tURL: http://" + socket.gethostname() + ":" +
                 str(final_report['port'])))
+
+    print(green("\nRun 'fab -H {openstack_ip, ...} configure_stack' to set " +
+                "up OpenStack nodes."))
 
 
 @task
@@ -780,3 +783,176 @@ def uninstall(dropdb=True, dropuser=True):
 
     with fab_settings(warn_only=True):
         local('yum remove -y goldstone-server')
+
+
+def get_ip():
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 0))
+        ip = s.getsockname()[0]
+    except:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
+
+
+def configure_notification_driver(filename):
+    """Configure a notification_driver setting for ceilometer."""
+    from fabric.contrib.files import contains, sed
+
+    with fab_settings(warn_only=True, user="root"):
+        # Set up syslog shipping
+        print(green("\nConfiguring notification_driver settings for " +
+                    filename))
+
+        has_messagingv2 = contains(
+            filename,
+            '^notification_driver[\s]*=.*messagingv2', escape=False)
+
+        has_empty_driver = contains(
+            filename, '^notification_driver[ ]*=[ ]*$', escape=False)
+
+        if not has_messagingv2:
+            if has_empty_driver:
+                print(green("\nReplacing empty notification_driver entry"))
+                sed(filename, '^notification_driver[ ]*=[ ]*$',
+                    'notification_driver=messagingv2')
+            else:
+                print(green("\nAdding a new notification_driver entry in "
+                            "DEFAULT section"))
+                sed(filename, '^\[DEFAULT\][\s]*$',
+                    '\[DEFAULT\]\\nnotification_driver=messagingv2')
+        else:
+            print(green("\nnotification_driver already configured"))
+
+
+@task
+def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
+    """Configures syslog and ceilometer parameters on OpenStack hosts.
+
+    :param goldstone_addr: Goldstone server's hostname or IP accessible to
+                         OpenStack hosts
+    :type goldstone_addr: str
+    """
+
+    from fabric.contrib.files import upload_template
+
+    if not accept:
+        accepted = prompt(cyan("This utility will modify configuration files "
+                               "on the hosts supplied via the -H parameter, "
+                               "and optionally restart OpenStack and syslog "
+                               "services.  Do you want to continue (yes/no)?"),
+                          default='no', validate='yes|no')
+    if accepted != 'yes':
+        return 0
+
+    if goldstone_addr is None:
+        goldstone_addr = prompt(cyan("Goldstone server's hostname or IP "
+                                     "accessible to OpenStack hosts?"),
+                                default=get_ip())
+
+    if restart_services is None:
+        restart_services = prompt(cyan("Restart OpenStack and syslog services "
+                                       "after configuration changes(yes/no)?"),
+                                  default='no', validate='yes|no')
+
+    loglevel_mapping = {
+        "nova": "LOG_LOCAL0",
+        "keystone": "LOG_LOCAL6",
+        "ceilometer": "LOG_LOCAL3",
+        "neutron": "LOG_LOCAL2",
+        "cinder": "LOG_LOCAL5",
+        "glance": "LOG_LOCAL1",
+    }
+
+    openstack_config_map = [
+        ("/etc/nova/nova.conf", loglevel_mapping['nova']),
+        ("/etc/keystone/keystone.conf", loglevel_mapping['keystone']),
+        ("/etc/ceilometer/ceilometer.conf", loglevel_mapping['ceilometer']),
+        ("/etc/neutron/neutron.conf", loglevel_mapping['neutron']),
+        ("/etc/cinder/cinder.conf", loglevel_mapping['cinder']),
+        ("/etc/glance/glance-cache.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-api.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-registry.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-scrubber.conf", loglevel_mapping['glance'])]
+
+    ceilometer_template_dir = os.path.join(os.getcwd(), "external/ceilometer")
+    syslog_template_dir = os.path.join(os.getcwd(), "external/rsyslog")
+
+    with fab_settings(warn_only=True, user="root"):
+        # Set up syslog shipping
+        print(green("\nConfiguring syslog settings."))
+        for entry in openstack_config_map:
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT use_syslog True")
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT verbose True")
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT syslog_log_facility " + entry[1])
+
+        # Set up ceilometer event shipping
+        print(green("\nConfiguring services to ship ceilometer events to "
+                    "Goldstone."))
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "event definitions_cfg_file event_definitions.yaml")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "event drop_unmatched_notifications False")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "notification store_events True")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "database event_connection es://" + goldstone_addr + ":9200")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT instance_usage_audit True")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT instance_usage_audit_period hour")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT notify_on_state_change vm_and_task_state")
+        run("crudini --set /etc/cinder/cinder.conf "
+            "DEFAULT control_exchange cinder")
+
+        try:
+            print(green("\nInstalling ceilometer and rsyslog config files."))
+            upload_template('pipeline.yaml.template',
+                            '/etc/ceilometer/pipeline.yaml',
+                            context={'goldstone_addr': goldstone_addr},
+                            template_dir=ceilometer_template_dir)
+            upload_template('event_definitions.yaml',
+                            '/etc/ceilometer/event_definitions.yaml',
+                            template_dir=ceilometer_template_dir)
+            upload_template('event_pipeline.yaml',
+                            '/etc/ceilometer/event_pipeline.yaml',
+                            template_dir=ceilometer_template_dir)
+            upload_template('rsyslog.conf',
+                            '/etc/rsyslog.conf',
+                            template_dir=syslog_template_dir)
+            upload_template('10-goldstone.conf.template',
+                            '/etc/rsyslog.d/10-goldstone.conf',
+                            context={'goldstone_addr': goldstone_addr},
+                            backup=False,
+                            template_dir=syslog_template_dir)
+        except (AttributeError, TypeError):
+            raise AssertionError('The goldstone_addr parameter should be a '
+                                 'string representing a hostname or IP '
+                                 'address')
+
+        # this is a little messy business to deal with params that can have
+        # multiple lines in the file.
+
+        configure_notification_driver('/etc/nova/nova.conf')
+        configure_notification_driver('/etc/cinder/cinder.conf')
+
+        if restart_services == 'yes':
+            print(green("\nRestarting OpenStack and rsyslog services."))
+            run("openstack-service restart nova")
+            run("openstack-service restart glance")
+            run("openstack-service restart cinder")
+            run("openstack-service restart neutron")
+            run("openstack-service restart ceilometer")
+            run("openstack-service restart keystone")
+            run("service rsyslog restart")
+        else:
+            print(green("\nRestart OpenStack and rsyslog services on remote"
+                        "hosts to complete configuration."))
