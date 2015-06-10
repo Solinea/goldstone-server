@@ -18,10 +18,10 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
-    DateHistogramAggView
+    DateHistogramAggView, ElasticListHACK
 from goldstone.utils import TopologyMixin
 
-from .models import MetricData, ReportData, PolyResource
+from .models import MetricData, ReportData, PolyResource, EventData
 from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
@@ -524,44 +524,44 @@ class ResourcesRetrieve(RetrieveAPIView):
 # Event views #
 ###############
 
+# # Our API documentation extracts this docstring, hence the use of markup.
+# class EventSummarizeView(ElasticListAPIView):
+#     """Return a summary of events.
+
+#     \n\nQuery string parameters:\n
+
+#     <b>name__prefix</b>: The desired service name prefix. E.g.,
+#                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+#     <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+#                               gte, gt, lte, or lt.  Nnn is an epoch number.
+#                               E.g., gte:1430164651890.\n\n
+
+#     """
+
+#     # serializer_class = LogEventAggSerializer
+#     reserved_params = ['interval', 'per_host']
+
+#     class Meta:     # pylint: disable=C1001,W0232
+#         """Meta"""
+#         # model = LogEvent
+
+#     def get(self, request, *args, **kwargs):
+#         """Return a response to a GET request."""
+#         import ast
+
+#         base_queryset = self.filter_queryset(self.get_queryset())
+#         interval = self.request.query_params.get('interval', '1d')
+#         per_host = ast.literal_eval(
+#             self.request.query_params.get('per_host', 'True'))
+
+#         data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
+#         serializer = self.serializer_class(data)
+
+#         return Response(serializer.data)
+
+
 # Our API documentation extracts this docstring, hence the use of markup.
-class EventSummarizeView(ElasticListAPIView):
-    """Return a summary of events.
-
-    \n\nQuery string parameters:\n
-
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
-
-    """
-
-    # serializer_class = LogEventAggSerializer
-    reserved_params = ['interval', 'per_host']
-
-    class Meta:     # pylint: disable=C1001,W0232
-        """Meta"""
-        # model = LogEvent
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-        import ast
-
-        base_queryset = self.filter_queryset(self.get_queryset())
-        interval = self.request.query_params.get('interval', '1d')
-        per_host = ast.literal_eval(
-            self.request.query_params.get('per_host', 'True'))
-
-        data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
-        serializer = self.serializer_class(data)
-
-        return Response(serializer.data)
-
-
-# Our API documentation extracts this docstring, hence the use of markup.
-class EventSearchView(ElasticListAPIView):
+class EventSearchView(ElasticListHACK):
     """Return events from Logstash data.
 
     \n\nQuery string parameters:\n
@@ -577,4 +577,4 @@ class EventSearchView(ElasticListAPIView):
     serializer_class = EventSerializer
 
     class Meta:     # pylint: disable=C1001,W0232
-        model = LogEvent
+        model = EventData

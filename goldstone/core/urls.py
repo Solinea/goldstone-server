@@ -17,11 +17,12 @@ from django.conf.urls import url, patterns
 from .views import MetricDataListView, ReportDataListView, \
     MetricNamesAggView, ReportNamesAggView, MetricAggView, NavTreeView, \
     ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve, \
-    EventSummarizeView, EventSearchView
+    EventSearchView
+    # EventSummarizeView, 
 
 urlpatterns = patterns(
     '',
-    url(r'^events/summarize/', EventSummarizeView.as_view()),
+    # url(r'^events/summarize/', EventSummarizeView.as_view()),
     url(r'^events/search/', EventSearchView.as_view()),
     url(r'^metrics/$', MetricDataListView.as_view()),
     url(r'^metrics/summarize/', MetricAggView.as_view()),

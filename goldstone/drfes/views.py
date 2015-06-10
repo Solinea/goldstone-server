@@ -58,6 +58,43 @@ class ElasticListAPIView(ListAPIView):
         return Response(serializer.data)
 
 
+class ElasticListHACK(ListAPIView):
+    """A view that handles requests for ES search results."""
+
+    serializer_class = ReadOnlyElasticSerializer
+    pagination_class = ElasticPageNumberPagination
+    filter_backends = (ElasticFilter, )
+    reserved_params = ['page_size', 'page']
+
+    class Meta:
+        model = None
+
+    def get_queryset(self):
+        """Return a search object from the model."""
+
+        assert self.Meta.model is not None, (
+            "'%s' should set the `Meta.model` attribute, "
+            "or override the `get_queryset()` method."
+            % self.__class__.__name__
+        )
+
+        return self.Meta.model.search()
+
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+
+        import pdb; pdb.set_trace()
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 class SimpleAggView(ElasticListAPIView):
     """A view that handles requests for terms aggregations.
 

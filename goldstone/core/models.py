@@ -82,6 +82,89 @@ class ReportData(DailyIndexDocType):
         doc_type = 'core_report'
 
 
+class EventData(DailyIndexDocType):
+    """The model for logstash events data."""
+
+    # The indexes we look for start with this string.
+    INDEX_PREFIX = 'events'
+
+    # Time sorting is on this key in the log.
+    SORT = '-timestamp'
+
+    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
+
+    class Meta:
+        # TODO: What to set this so we get all events?
+        doc_type = None
+
+    # @classmethod
+    # def search(cls):
+    #     """Return a search object with a log event query clause."""
+    #     from elasticsearch_dsl.query import Terms
+
+    #     search = super(EventData, cls).search()
+    #     event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
+
+    #     return search.query(event_type_query)
+
+    @classmethod
+    def ranged_event_agg(cls, base_queryset, interval='1d', per_host=True):
+        """Return an aggregations by date histogram and maybe event type.
+
+        :param base_queryset: search to use as basis for aggregation
+        :type base_queryset: Search
+        :param interval: valid ES time interval such as 1m, 1h, 30s
+        :type interval: str
+        :param per_host: aggregate by host inside the time aggregation?
+        :type per_host: bool
+        :rtype: object
+        :return: the (possibly nested) aggregation
+
+        """
+
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = base_queryset.params(search_type="count")
+
+        # add an aggregation for time intervals
+        search.aggs.bucket('per_interval', "date_histogram",
+                           field="@timestamp",
+                           interval=interval,
+                           min_doc_count=0)
+
+        # add a top-level aggregation for types
+        search.aggs.bucket('per_type', "terms",
+                           field="event_type",
+                           min_doc_count=0)
+
+        if per_host:
+            # add a top-level aggregation for hosts
+            search.aggs.bucket(
+                'per_host', "terms",
+                field="host.raw",
+                min_doc_count=0)
+
+            # nested aggregation per interval, per host
+            search.aggs['per_interval'].bucket(
+                'per_host', 'terms',
+                field='host.raw',
+                min_doc_count=0)
+
+            search.aggs['per_interval']['per_host'].bucket(
+                'per_type', 'terms',
+                field='event_type',
+                min_doc_count=0)
+        else:
+            search.aggs['per_interval'].bucket(
+                'per_type', 'terms',
+                field='event_type',
+                min_doc_count=0)
+
+        return search.execute().aggregations
+
+
 class PolyResource(PolymorphicModel):
     """The base type for resources.
 
