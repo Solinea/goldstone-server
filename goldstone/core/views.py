@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
-    DateHistogramAggView, ElasticListHACK
+    DateHistogramAggView
 from goldstone.utils import TopologyMixin
 
 from .models import MetricData, ReportData, PolyResource, EventData
@@ -561,16 +561,18 @@ class ResourcesRetrieve(RetrieveAPIView):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class EventSearchView(ElasticListHACK):
+class EventSearchView(ElasticListAPIView):
     """Return events from Logstash data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    GET:
+        parameters:
+           - name: timestamp__range
+             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
+                          lt.  Nnn is an epoch number.  E.g.,
+                          gte:1430164651890.
+             paramType: query
 
     """
 

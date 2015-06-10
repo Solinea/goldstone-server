@@ -101,7 +101,7 @@ class PassthruSerializer(serializers.Serializer):
 
 
 class EventSerializer(ReadOnlyElasticSerializer):
-    """Serializer for event data stored in ElasticSearch."""
+    """Serializer for event data that's stored in ElasticSearch."""
 
     class Meta:        # pylint: disable=C1001,W0232
         """Exclude several uninteresting fields."""
@@ -109,3 +109,34 @@ class EventSerializer(ReadOnlyElasticSerializer):
         exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
                    'tags', 'syslog_facility_code', 'syslog_severity_code',
                    'syslog_pri', 'syslog5424_pri', 'syslog5424_host')
+
+    def to_representation(self, instance):
+        """Return instance's values suitable for rendering.
+
+        The returned value includes fields that are in the instance's metadata.
+
+        The instance.to_dict() return value doesn't include instance metadata.
+        We could subclass the to_dict() method in the EventData() class, which
+        would require that we track updates to the elasticsearch_dsl.utils
+        module where it's defined. Or, we could override to_representation()
+        and add the metadata to the return result. We chose the latter.
+
+        :type instance: Result
+        :param instance: One instance from an Elasticsearch search response
+        :rtype: dict
+        :return: The response minus exclusions, plus some metadata values
+
+        """
+
+        # These metadata fields will be added to the return value.
+        METADATA = ["doc_type", "id", "index"]
+
+        # Get the standard to_dict() result...
+        result = super(EventSerializer, self).to_representation(instance)
+
+        # ...now add non-None/bank metadata fields and values to it.
+        for field in METADATA:
+            if instance.meta.get(field):
+                result[field] = instance.meta[field]
+
+        return result

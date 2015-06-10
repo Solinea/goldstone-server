@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import ast
 from rest_framework.exceptions import ValidationError
+
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from goldstone.drfes.filters import ElasticFilter
@@ -27,63 +27,25 @@ class ElasticListAPIView(ListAPIView):
 
     serializer_class = ReadOnlyElasticSerializer
     pagination_class = ElasticPageNumberPagination
-    filter_backends = (ElasticFilter, )
+    filter_backends = (ElasticFilter,)
     reserved_params = ['page_size', 'page']
 
     class Meta:
         model = None
 
     def get_queryset(self):
-        """Return a search object from the model."""
+        """Gets a search object from the model."""
 
         assert self.Meta.model is not None, (
             "'%s' should set the `Meta.model` attribute, "
             "or override the `get_queryset()` method."
             % self.__class__.__name__
         )
-
         return self.Meta.model.search()
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
 
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class ElasticListHACK(ListAPIView):
-    """A view that handles requests for ES search results."""
-
-    serializer_class = ReadOnlyElasticSerializer
-    pagination_class = ElasticPageNumberPagination
-    filter_backends = (ElasticFilter, )
-    reserved_params = ['page_size', 'page']
-
-    class Meta:
-        model = None
-
-    def get_queryset(self):
-        """Return a search object from the model."""
-
-        assert self.Meta.model is not None, (
-            "'%s' should set the `Meta.model` attribute, "
-            "or override the `get_queryset()` method."
-            % self.__class__.__name__
-        )
-
-        return self.Meta.model.search()
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-
-        import pdb; pdb.set_trace()
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
 
@@ -100,9 +62,7 @@ class SimpleAggView(ElasticListAPIView):
 
     Currently it support a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
-    query params such has host=xyz or @timestamp__range={'gt': 0}.
-
-    """
+    query params such has host=xyz or @timestamp__range={'gt': 0}"""
 
     serializer_class = SimpleAggSerializer
     AGG_FIELD = None
@@ -150,7 +110,7 @@ class DateHistogramAggView(ElasticListAPIView):
         model = None
 
     def get(self, request):
-        """Handle a GET request."""
+        """Handle get request."""
 
         search = self._get_search(request)
         serializer = self.serializer_class(search.execute().aggregations)
@@ -184,6 +144,7 @@ class DateHistogramAggView(ElasticListAPIView):
             bounds_max=bounds_max)
 
     def _validate_params(self, request):
+        import ast
 
         self.interval = request.query_params.get('interval')
 
@@ -206,6 +167,7 @@ class DateHistogramAggView(ElasticListAPIView):
 
     def _extract_time_range(self, range_spec):
         """Return the time range from the query parameter."""
+        import ast
 
         try:
             range_spec = ast.literal_eval(range_spec)

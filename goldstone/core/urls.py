@@ -18,7 +18,6 @@ from .views import MetricDataListView, ReportDataListView, \
     MetricNamesAggView, ReportNamesAggView, MetricAggView, NavTreeView, \
     ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve, \
     EventSearchView
-    # EventSummarizeView, 
 
 urlpatterns = patterns(
     '',

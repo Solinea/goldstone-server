@@ -91,21 +91,9 @@ class EventData(DailyIndexDocType):
     # Time sorting is on this key in the log.
     SORT = '-timestamp'
 
-    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
-
     class Meta:
-        # TODO: What to set this so we get all events?
-        doc_type = None
-
-    # @classmethod
-    # def search(cls):
-    #     """Return a search object with a log event query clause."""
-    #     from elasticsearch_dsl.query import Terms
-
-    #     search = super(EventData, cls).search()
-    #     event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
-
-    #     return search.query(event_type_query)
+        # Return all document types.
+        doc_type = ''
 
     @classmethod
     def ranged_event_agg(cls, base_queryset, interval='1d', per_host=True):
