@@ -528,13 +528,15 @@ class ResourcesRetrieve(RetrieveAPIView):
 # class EventSummarizeView(ElasticListAPIView):
 #     """Return a summary of events.
 
-#     \n\nQuery string parameters:\n
+#     ---
 
-#     <b>name__prefix</b>: The desired service name prefix. E.g.,
-#                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-#     <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-#                               gte, gt, lte, or lt.  Nnn is an epoch number.
-#                               E.g., gte:1430164651890.\n\n
+#     GET:
+#        parameters:
+#           - name: timestamp__range
+#             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
+#                          lt.  Nnn is an epoch number.  E.g.,
+#                          gte:1430164651890.
+#             paramType: query
 
 #     """
 
