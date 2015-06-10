@@ -56,28 +56,20 @@ echo "**************************************************************************
 echo ""
 echo "  To continue installation, do one of the following as root:"
 echo ""
-echo "  1. An interactive installation resulting in a deployment configured with a 
+echo "  1. An interactive installation resulting in a deployment configured with a "
 echo "     connection to an OpenStack cloud."
 echo ""
 echo "      cd /opt/goldstone"
 echo "      . bin/activate"
-echo "      fab full_install"
+echo "      fab install"
 echo ""
 echo "  You will be prompted for:"
-echo '      - the Django admin (admin) password'
-echo '      - the Goldstone admin (gsadmin) password'
-echo '      - the OpenStack admin tenant (from your adminrc)'
-echo '      - the OpenStack admin user (from your adminrc)'
-echo '      - the OpenStack admin password (from your adminrc)'
-echo '      - the OpenStack auth URL (from your adminrc)'
-echo ""
-echo "  2. A non-interactive installation resulting in a deployment that does not
-echo "     have a connection to an OpenStack cloud configured. You will need to 
-echo "     complete the configuration via the client or API."
-echo ""
-echo "      cd /opt/goldstone"
-echo "      . bin/activate"
-echo "      fab install:django_admin_password=ADMIN_PASSWORD"
+echo "      - the Django admin (admin) password"
+echo "      - the Goldstone admin (gsadmin) password"
+echo "      - the OpenStack admin tenant (from your adminrc)"
+echo "      - the OpenStack admin user (from your adminrc)"
+echo "      - the OpenStack admin password (from your adminrc)"
+echo "      - the OpenStack auth URL (from your adminrc)"
 echo ""
 echo "*****************************************************************************"
 

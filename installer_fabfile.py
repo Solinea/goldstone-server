@@ -239,7 +239,8 @@ def install_extra_rpms():
 
     print()
     print(green("Installing redis, logstash, and ES."))
-    local('yum -y install redis elasticsearch logstash logstash-contrib')
+    local('yum -y install redis elasticsearch logstash')
+    local('/opt/logstash/bin/plugin install logstash-filter-translate')
 
 
 @task
@@ -302,7 +303,7 @@ def cloud_init(gs_tenant,
             if stack_auth_url is None:
                 stack_auth_url = \
                     prompt(cyan("Enter OpenStack auth URL "
-                                "(eg: http://10.10.10.10:5000/): "))
+                                "(eg: http://10.10.10.10:5000/v2.0/): "))
 
                 if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
                     # The user shouldn't have included the version segment, but
@@ -618,18 +619,18 @@ def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
 
 
 @task
-def full_install(pg_passwd='goldstone',       # pylint: disable=R0913
-                 django_admin_user='admin',
-                 django_admin_password=None,
-                 django_admin_email='root@localhost',
-                 gs_tenant='default',
-                 gs_tenant_owner='None',
-                 gs_tenant_admin='gsadmin',
-                 gs_tenant_admin_password=None,
-                 stack_tenant=None,
-                 stack_user=None,
-                 stack_password=None,
-                 stack_auth_url=None):
+def install(pg_passwd='goldstone',       # pylint: disable=R0913
+            django_admin_user='admin',
+            django_admin_password=None,
+            django_admin_email='root@localhost',
+            gs_tenant='default',
+            gs_tenant_owner='None',
+            gs_tenant_admin='gsadmin',
+            gs_tenant_admin_password=None,
+            stack_tenant=None,
+            stack_user=None,
+            stack_password=None,
+            stack_auth_url=None):
     """Do a full installation of Goldstone, including prompting the user for
     various credentials.
 
@@ -702,10 +703,10 @@ def full_install(pg_passwd='goldstone',       # pylint: disable=R0913
 
 
 @task
-def install(django_admin_password,
-            pg_passwd='goldstone',
-            django_admin_user='admin',
-            django_admin_email='root@localhost'):
+def partial_install(django_admin_password,
+                    pg_passwd='goldstone',
+                    django_admin_user='admin',
+                    django_admin_email='root@localhost'):
     """Do a partial installation of Goldstone.
 
     This requires no interaction with the user.

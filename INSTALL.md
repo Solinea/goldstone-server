@@ -31,21 +31,7 @@ The installation script will check the Goldstone prerequisites. If all checks pa
 ```bash
 root# cd /opt/goldstone
 root# . bin/activate
-root# fab full_install
-```
-
-### 2. Partial (requires no terminal interaction)
-
-**This section is a work in progress.**
-
-This installation requires no terminal interaction. But, you will have to perform additional installation steps (described below) after it completes.
-
-The installation script will check the Goldstone prerequisites. If all checks pass, it will then do a partial installation of Goldstone. Execute these commands, replacing "PASSWORD" with the password you want the Django administrative account to have:
-
-```bash
-root# cd /opt/goldstone
-root# . bin/activate
-root# fab install:django_admin_password=PASSWORD
+root# fab install
 ```
 
 #### Completing the installation
