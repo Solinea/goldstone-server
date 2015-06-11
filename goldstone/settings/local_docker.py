@@ -1,8 +1,8 @@
 """Development settings, with Elasticsearch remote and PostgreSQL local."""
 from .development import *           # pylint: disable=W0614,W0401
 
-# 
-# override database settings 
+#
+# override database settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

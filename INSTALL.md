@@ -94,73 +94,11 @@ Goldstone's login page includes a password-reset link. Please test it.
 If the links in the password-reset e-mail do not work, you'll need to adjust the settings in `/opt/goldstone/goldstone/settings/production.py`. Look for the `DJOSER` dictionary.
 
 
-## Direct logs to the Goldstone server
+## Direct Logs and Events to the Goldstone Server
 
-With Goldstone installed, the only task left is to point the OpenStack server logs to it so that it can begin processing them. There are two tasks in this step:
+With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting IP addresses or hostnames for the openstack_host_addr value(s):
 
-    1. Configure OpenStack services to use syslog
-    2. Configure syslog to forward to your Goldstone server
-
-
-### OpenStack service logging
-
-Each OpenStack service uses one of the local syslog facilities to help with categorization of logs.  There are generally three fields to set in the configuration file for a service (i.e. `/etc/nova/nova.conf`).  They are:
-
-    verbose = True
-    use_syslog = True
-    syslog_log_facility = LOG_LOCAL{X}
-
-Swift has a different configuration mechanism, so inserting the following entries in swift.conf will configure the logging properly:
-
-    [object-server]
-    set log_facility = LOG_LOCAL4
-    set log_level = INFO
-
-    [object-replicator]
-    set log_facility = LOG_LOCAL4
-    set log_level = INFO
-
-    [object-updater]
-    set log_facility = LOG_LOCAL4
-    set log_level = INFO
-
-    [object-auditor]
-    set log_facility = LOG_LOCAL4
-    set log_level = INFO
-
-This service mapping is used for syslog_log_facility:
-
-* nova => LOG_LOCAL0
-* glance => LOG_LOCAL1
-* neutron => LOG_LOCAL2
-* ceilometer => LOG_LOCAL3
-* swift => LOG_LOCAL4
-* cinder => LOG_LOCAL5
-* keystone => LOG_LOCAL6
-
-
-### OpenStack Ceilometer integration
-
-TBS
-
-### Rsyslog forwarding
-
-In the `/opt/goldstone/external` folder, there are example configuration files for rsyslog:
-
-* `/opt/goldstone/external/rsyslog/rsyslog.conf` is an example main rsyslog configuration file. It references the Goldstone specific file below.
-* `/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf` provides specific mapping. **This file must be modified** to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name.
-
-    For example, if your Goldstone server's IP address is 10.10.10.1, your file should be edited to read:
-
-        *.*    @@10.10.10.1:5514    
-
-If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port:
-
-```bash
-root# semanage port -a -t syslogd_port_t -p tcp 5514
-```
-
-Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
+    root# fab -H openstack_host_addr[, openstack_host_addr] configure_stack
 
 
 ## Finished!
@@ -174,4 +112,4 @@ To uninstall Goldstone:
 root# fab -f installer_fabfile.py uninstall
 ```
 
-This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.
+This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.  It also does not revert configuration changes made by the `fab configure_stack` command.
