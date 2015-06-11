@@ -524,42 +524,42 @@ class ResourcesRetrieve(RetrieveAPIView):
 # Event views #
 ###############
 
-# # Our API documentation extracts this docstring, hence the use of markup.
-# class EventSummarizeView(ElasticListAPIView):
-#     """Return a summary of events.
+# Our API documentation extracts this docstring, hence the use of markup.
+class EventSummarizeView(ElasticListAPIView):
+    """Return a summary of events.
 
-#     ---
+    ---
 
-#     GET:
-#        parameters:
-#           - name: timestamp__range
-#             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
-#                          lt.  Nnn is an epoch number.  E.g.,
-#                          gte:1430164651890.
-#             paramType: query
+    GET:
+       parameters:
+          - name: timestamp__range
+            description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
+                         lt.  Nnn is an epoch number.  E.g.,
+                         gte:1430164651890.
+            paramType: query
 
-#     """
+    """
 
-#     # serializer_class = LogEventAggSerializer
-#     reserved_params = ['interval', 'per_host']
+    # serializer_class = LogEventAggSerializer
+    reserved_params = ['interval', 'per_host']
 
-#     class Meta:     # pylint: disable=C1001,W0232
-#         """Meta"""
-#         # model = LogEvent
+    # class Meta:     # pylint: disable=C1001,W0232
+    #     """Meta"""
+    #     # model = LogEvent
 
-#     def get(self, request, *args, **kwargs):
-#         """Return a response to a GET request."""
-#         import ast
+    # def get(self, request, *args, **kwargs):
+    #     """Return a response to a GET request."""
+    #     import ast
 
-#         base_queryset = self.filter_queryset(self.get_queryset())
-#         interval = self.request.query_params.get('interval', '1d')
-#         per_host = ast.literal_eval(
-#             self.request.query_params.get('per_host', 'True'))
+    #     base_queryset = self.filter_queryset(self.get_queryset())
+    #     interval = self.request.query_params.get('interval', '1d')
+    #     per_host = ast.literal_eval(
+    #         self.request.query_params.get('per_host', 'True'))
 
-#         data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
-#         serializer = self.serializer_class(data)
+    #     data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
+    #     serializer = self.serializer_class(data)
 
-#         return Response(serializer.data)
+    #     return Response(serializer.data)
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
@@ -581,18 +581,19 @@ class EventSearchView(ElasticListAPIView):
            - name: _id__match
              description: The string each id must exactly match.
              paramType: query
-           - name: _id__fuzzy
-             description: The string each id must approximiately match.
-             paramType: query
            - name: _type__prefix
              description: The string each entry's type must start with.
              paramType: query
            - name: _type__match
              description: The string each entry's type must exactly match.
              paramType: query
-           - name: _type__fuzzy
-             description: The string each entry's type must approximiately
-                          match.
+           - name: page
+             description: The page number
+             type: integer
+             paramType: query
+           - name: page_size
+             description: The number of entries on each page
+             type: integer
              paramType: query
 
     """
