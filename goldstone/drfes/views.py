@@ -27,7 +27,7 @@ class ElasticListAPIView(ListAPIView):
 
     serializer_class = ReadOnlyElasticSerializer
     pagination_class = ElasticPageNumberPagination
-    filter_backends = (ElasticFilter,)
+    filter_backends = (ElasticFilter, )
     reserved_params = ['page_size', 'page']
 
     class Meta:

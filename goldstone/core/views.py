@@ -575,6 +575,25 @@ class EventSearchView(ElasticListAPIView):
                           lt.  Nnn is an epoch number.  E.g.,
                           gte:1430164651890.
              paramType: query
+           - name: _id__prefix
+             description: The string each id must start with.
+             paramType: query
+           - name: _id__match
+             description: The string each id must exactly match.
+             paramType: query
+           - name: _id__fuzzy
+             description: The string each id must approximiately match.
+             paramType: query
+           - name: _type__prefix
+             description: The string each entry's type must start with.
+             paramType: query
+           - name: _type__match
+             description: The string each entry's type must exactly match.
+             paramType: query
+           - name: _type__fuzzy
+             description: The string each entry's type must approximiately
+                          match.
+             paramType: query
 
     """
 
