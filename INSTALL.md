@@ -22,10 +22,6 @@ root# yum localinstall -y goldstone-server-{version}.rpm
 
 ## Install and configure Goldstone (as root)
 
-You have two ways to install Goldstone.
-
-### 1. Complete (requires terminal interaction)
-
 The installation script will check the Goldstone prerequisites. If all checks pass, it will then prompt you for additional configuration information. Execute these commands:
 
 ```bash

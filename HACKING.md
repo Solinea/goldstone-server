@@ -360,7 +360,7 @@ Follow instructions in the [INSTALL](http://goldstone-server.readthedocs.org/en/
 
     root# cd /opt/goldstone
     root# . bin/activate
-    root# fab partial_install::django_admin_password=YOUR_PASSWORD
+    root# fab partial_install:django_admin_password=YOUR_PASSWORD
 
 This will deploy Goldstone Server, but will leave the connection to the OpenStack cloud unconfigured.  It can be configured later via the client or the API.
 
