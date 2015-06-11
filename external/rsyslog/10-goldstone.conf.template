@@ -18,5 +18,4 @@ $ActionQueueMaxDiskSpace 1g        # 1gb space limit (use as much as possible)
 $ActionQueueSaveOnShutdown on      # save messages to disk on shutdown
 $ActionQueueType LinkedList        # run asynchronously
 $ActionResumeRetryCount -1         # infinite retries if host is down
-$MaxMessageSize 65536
-*.*    @@goldstone_ip:5514    
+*.*    @@%(goldstone_addr)s:5514    
