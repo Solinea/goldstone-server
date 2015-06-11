@@ -841,11 +841,13 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
     from fabric.contrib.files import upload_template
 
     if not accept:
-        accepted = prompt(cyan("This utility will modify configuration files "
-                               "on the hosts supplied via the -H parameter, "
-                               "and optionally restart OpenStack and syslog "
-                               "services.  Do you want to continue (yes/no)?"),
-                          default='no', validate='yes|no')
+        accepted = prompt(cyan(
+            "This utility will modify configuration fileson the hosts\n"
+            "supplied via the -H parameter, and optionally restart\n"
+            "OpenStack and syslog services.\n\n"
+            "Do you want to continue (yes/no)?"),
+            default='no', validate='yes|no')
+
     if accepted != 'yes':
         return 0
 
