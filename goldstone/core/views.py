@@ -19,6 +19,7 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
+from goldstone.glogging.serializers import LogEventAggSerializer
 from goldstone.utils import TopologyMixin
 
 from .models import MetricData, ReportData, PolyResource, EventData
@@ -526,40 +527,24 @@ class ResourcesRetrieve(RetrieveAPIView):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 class EventSummarizeView(ElasticListAPIView):
-    """Return a summary of events.
+    """Return a summary of events."""
 
-    ---
-
-    GET:
-       parameters:
-          - name: timestamp__range
-            description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
-                         lt.  Nnn is an epoch number.  E.g.,
-                         gte:1430164651890.
-            paramType: query
-
-    """
-
-    # serializer_class = LogEventAggSerializer
+    serializer_class = LogEventAggSerializer
     reserved_params = ['interval', 'per_host']
 
-    # class Meta:     # pylint: disable=C1001,W0232
-    #     """Meta"""
-    #     # model = LogEvent
+    class Meta:     # pylint: disable=C1001,W0232
+        model = EventData
 
-    # def get(self, request, *args, **kwargs):
-    #     """Return a response to a GET request."""
-    #     import ast
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
 
-    #     base_queryset = self.filter_queryset(self.get_queryset())
-    #     interval = self.request.query_params.get('interval', '1d')
-    #     per_host = ast.literal_eval(
-    #         self.request.query_params.get('per_host', 'True'))
+        base_queryset = self.filter_queryset(self.get_queryset())
+        interval = self.request.query_params.get('interval', '1d')
 
-    #     data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
-    #     serializer = self.serializer_class(data)
+        data = EventData.ranged_event_agg(base_queryset, interval)
+        serializer = self.serializer_class(data)
 
-    #     return Response(serializer.data)
+        return Response(serializer.data)
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
@@ -588,11 +573,11 @@ class EventSearchView(ElasticListAPIView):
              description: The string each entry's type must exactly match.
              paramType: query
            - name: page
-             description: The page number
+             description: The desired result page number
              type: integer
              paramType: query
            - name: page_size
-             description: The number of entries on each page
+             description: The number of results on each page
              type: integer
              paramType: query
 
