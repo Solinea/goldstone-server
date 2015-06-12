@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
+Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.8.0-openjdk, postgresql-server, postgresql-devel, git
 
 %pre
 
@@ -54,13 +54,11 @@ chown -R apache:apache /opt/goldstone
 
 echo "*****************************************************************************"
 echo ""
-echo "  To complete installation, do one of the following as root:"
+echo "  To continue installation, do the following as root:"
 echo ""
-echo "  1. A full installation."
-echo ""
-echo "      cd /opt/goldstone"
-echo "      . bin/activate"
-echo "      fab full_install"
+echo "      root# cd /opt/goldstone"
+echo "      root# . bin/activate"
+echo "      root# fab install"
 echo ""
 echo "  You will be prompted for:"
 echo "      - the Django admin (admin) password"
@@ -69,12 +67,6 @@ echo "      - the OpenStack admin tenant (from your adminrc)"
 echo "      - the OpenStack admin user (from your adminrc)"
 echo "      - the OpenStack admin password (from your adminrc)"
 echo "      - the OpenStack auth URL (from your adminrc)"
-echo ""
-echo "  2. A partial installation."
-echo ""
-echo "      cd /opt/goldstone"
-echo "      . bin/activate"
-echo "      fab install:django_admin_password=ADMIN_PASSWORD"
 echo ""
 echo "*****************************************************************************"
 

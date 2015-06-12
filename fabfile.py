@@ -30,7 +30,7 @@ sys.path.append('')
 SETTINGS_DIR = "goldstone.settings"
 
 # The default settings are to run Elasticsearch and PostgreSQL locally.
-DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
+DEV_SETTINGS = SETTINGS_DIR + ".local_docker"
 
 BREW_PGDATA = '/usr/local/var/postgres'
 CENTOS_PGDATA = '/var/lib/pgsql/data'

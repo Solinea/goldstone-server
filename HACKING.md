@@ -352,6 +352,18 @@ Insert this text before the `</dict>`:
 ```
 
 
+## Building a Generic Goldstone VM
+
+* work in progress *
+
+Follow instructions in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide for installing via an RPM inside your VM; however, instead of executing `fab install`, execute:
+
+    root# cd /opt/goldstone
+    root# . bin/activate
+    root# fab partial_install:django_admin_password=YOUR_PASSWORD
+
+This will deploy Goldstone Server, but will leave the connection to the OpenStack cloud unconfigured.  It can be configured later via the client or the API.
+
 ## Major Design Decisions
 
 * The client code supplied with Goldstone may be used in production, or it may be used as a reference design for your own custom client. Goldstone has been designed to be used through its API without using Django's authentication or view+template subsystems.

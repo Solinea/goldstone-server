@@ -22,44 +22,13 @@ root# yum localinstall -y goldstone-server-{version}.rpm
 
 ## Install and configure Goldstone (as root)
 
-You have two ways to install Goldstone.
-
-### 1. Complete (requires terminal interaction)
-
 The installation script will check the Goldstone prerequisites. If all checks pass, it will then prompt you for additional configuration information. Execute these commands:
 
 ```bash
 root# cd /opt/goldstone
 root# . bin/activate
-root# fab full_install
+root# fab install
 ```
-
-### 2. Partial (requires no terminal interaction)
-
-**This section is a work in progress.**
-
-This installation requires no terminal interaction. But, you will have to perform additional installation steps (described below) after it completes.
-
-The installation script will check the Goldstone prerequisites. If all checks pass, it will then do a partial installation of Goldstone. Execute these commands, replacing "PASSWORD" with the password you want the Django administrative account to have:
-
-```bash
-root# cd /opt/goldstone
-root# . bin/activate
-root# fab install:django_admin_password=PASSWORD
-```
-
-#### Completing the installation
-
-Point your browser at the Goldstone server IP address or name, and log in with the account name "admin" and the Django administrative password.  Then perform these steps to complete the installation:
-
-1. Click TBD
-2. You will see a form for a new Goldstone tenant administrator account. Fill in the form, and click TBD
-1. Click TBD
-2. You will now see a form for a new Goldstone tenant. Fill in the form, and click TBD
-3. Click TBD
-3. You will see a form for a new OpenStack cloud, to be created under your Goldstone tenant. Fill in the form, and click TBD
-4. You may now stay logged in as the site administrator and explore Goldstone. Or, you may logout and log back in using the Goldstone tenant administrator account you just created.
-
 
 ## Check your password-reset sequence
 
