@@ -201,8 +201,26 @@ class PolyResource(PolymorphicModel):
         return LogEvent.search().query(name_query)
 
     @classmethod
+    def clouddata(cls):
+        """Return information about all the objects of this type within the
+        OpenStack cloud.
+
+        :return: Attributes about each instance of this type, including unique
+                 identifying ids. (The unique ids are unique only within the
+                 cloud, and aren't guaranteed to be unique across Goldstone. If
+                 OpenStack defines a unique id for this resource type, we'll
+                 use it. Otherwise, we'll generate unique hashes from other
+                 values.)
+
+        :rtype: list of dict
+
+        """
+
+        return []
+
+    @classmethod
     def unique_class_id(cls):
-        """Return this class' unique id."""
+        """Return this class' (not object!) unique id."""
 
         return str(cls)
 
@@ -212,27 +230,23 @@ class PolyResource(PolymorphicModel):
 
         return []
 
-    @classmethod
-    def identity(cls, thing):
-        """Return thing's uniquely identifying value.
+    @property
+    def unique_id_key(self):
+        """Return the key to use within a clouddata() entry to retrieve the
+        unique id of an object within the OpenStack cloud.
 
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass. When an cloud instance has a unique identifying
-        value defined by OpenStack, we will use it. Otherwise, we will generate
-        a unique hash from other values.
+        Clouddata() returns a list of dicts. Each dict represents an instance
+        within the cloud, and contains a unique cloud id. If OpenStack defines
+        the unique id, then it's given it a name (i.e., key) within the
+        instances' attributes. Otherwise, we create the unique cloud id and use
+        our own key for it.
 
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies this type's instance
-        :rtype: str
+        Semantically, this is a property of the class, but Python doesn't have
+        class properties, so it's a property of each instance.
 
         """
 
-        return thing.get("id", '')
+        return "unique_cloud_id"
 
 
 #
@@ -242,26 +256,17 @@ class PolyResource(PolymorphicModel):
 class User(PolyResource):
     """An OpenStack user."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "User",
-                }
+        return {"integration_name": "Keystone", "name": "User"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -286,26 +291,17 @@ class User(PolyResource):
 class Domain(PolyResource):
     """An OpenStack domain."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Domain",
-                }
+        return {"integration_name": "Keystone", "name": "Domain"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -323,51 +319,33 @@ class Domain(PolyResource):
 class Group(PolyResource):
     """An OpenStack group."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Group",
-                }
+        return {"integration_name": "Keystone", "name": "Group"}
 
 
 class Token(PolyResource):
     """An OpenStack token."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Token",
-                }
+        return {"integration_name": "Keystone", "name": "Token"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -383,26 +361,17 @@ class Token(PolyResource):
 class Credential(PolyResource):
     """An OpenStack credential."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Credential",
-                }
+        return {"integration_name": "Keystone", "name": "Credential"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -416,26 +385,17 @@ class Credential(PolyResource):
 class Role(PolyResource):
     """An OpenStack role."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Role",
-                }
+        return {"integration_name": "Keystone", "name": "Role"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -459,26 +419,17 @@ class Role(PolyResource):
 class Region(PolyResource):
     """An OpenStack region."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Region",
-                }
+        return {"integration_name": "Keystone", "name": "Region"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -494,26 +445,17 @@ class Region(PolyResource):
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone",
-                "name": "Endpoint",
-                }
+        return {"integration_name": "Keystone", "name": "Endpoint"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -527,22 +469,15 @@ class Endpoint(PolyResource):
 class Service(PolyResource):
     """An OpenStack service."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
         return {"integration_name": "Keystone", "name": "Service"}
 
@@ -550,22 +485,15 @@ class Service(PolyResource):
 class Project(PolyResource):
     """An OpenStack project."""
 
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
     @classmethod
-    def identity(cls, thing):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return None
+        return []
 
     @classmethod
     def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+        """See the parent class' method's docstring."""
 
         return {"integration_name": "Keystone", "name": "Project"}
 
@@ -716,8 +644,8 @@ class Project(PolyResource):
 class AvailabilityZone(PolyResource):
     """An OpenStack Availability Zone."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -726,19 +654,10 @@ class AvailabilityZone(PolyResource):
         return [x.to_dict() for x in nova_client.availability_zones.list()]
 
     @classmethod
-    def identity(cls, thing):
+    def display_attributes(cls):
         """See the parent class' method's docstring."""
 
-        return _hash(get_cloud().tenant_name, thing.get("zoneName", ''))
-
-    @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
-
-        return {"integration_name": "Nova",
-                "name": "Availability Zone",
-                }
+        return {"integration_name": "Nova", "name": "Availability Zone"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -764,24 +683,35 @@ class AvailabilityZone(PolyResource):
               f.get("zoneName") and f.get("zoneName") == t.get("zone")}},
             ]
 
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "zoneName"
+
 
 class Aggregate(PolyResource):
     """An OpenStack Aggregate."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.aggregates.list()]
+        result = []
 
-    @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
+        # For every Aggregate in the cloud...
+        for entry in nova_client.aggregates.list():
+            # Make a dict from this entry's data, and concoct a unique id for
+            # it.
+            this_entry = entry.to_dict()
+            this_entry[self.unique_id_key] = _hash(cls.unique_class_id(),
+                                                   this_entry.get("id", ''))
+            result.append(this_entry)
 
-        return _hash(cls.unique_class_id(), thing.get("id", ''))
+        return result
 
     @classmethod
     def display_attributes(cls):
@@ -794,20 +724,23 @@ class Aggregate(PolyResource):
 class Flavor(PolyResource):
     """An OpenStack Flavor."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.flavors.list()]
+        # For every Flavor in the cloud...
+        for entry in nova_client.flavors.list():
+            # Make a dict from this entry's data, and concoct a unique id for
+            # it.
+            this_entry = entry.to_dict()
+            this_entry[self.unique_id_key] = _hash(cls.unique_class_id(),
+                                                   this_entry.get("id", ''))
+            result.append(this_entry)
 
-    @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
-
-        return _hash(cls.unique_class_id(), thing.get("id", ''))
+        return result
 
     @classmethod
     def display_attributes(cls):
@@ -835,8 +768,8 @@ class Flavor(PolyResource):
 class Keypair(PolyResource):
     """An OpenStack Keypair."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -845,19 +778,11 @@ class Keypair(PolyResource):
         return [x.to_dict()["keypair"] for x in nova_client.keypairs.list()]
 
     @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("fingerprint")
-
-    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Keypair",
-                }
+        return {"integration_name": "Nova", "name": "Keypair"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -873,6 +798,12 @@ class Keypair(PolyResource):
                                    f.get("fingerprint") is not None and
                                    t is not None}},
                 ]
+
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "fingerprint"
 
 
 class Host(PolyResource):
@@ -905,8 +836,8 @@ class Host(PolyResource):
 
         return host_name, fqdn
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -919,31 +850,30 @@ class Host(PolyResource):
         # Availability Zone for each one.
         result = []
 
+        # For every found host...
         for host in hosts:
             parsed_name = Host._parse_host_name(host["host_name"])[0]
 
             if all(x["host_name"] != parsed_name for x in result):
-                # This is a new entry for the result set.
+                # This is a new entry for the result set. Set the host_name
+                # value, and concoct a unique id for it.
                 host["host_name"] = parsed_name
+                host[self.unique_id_key] = _hash(get_cloud().tenant_name,
+                                                 parsed_name)
+
+                # We don't want or need this key.
                 del host["service"]
+
                 result.append(host)
 
         return result
-
-    @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
-
-        return _hash(get_cloud().tenant_name, thing.get("host_name", ''))
 
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Host",
-                }
+        return {"integration_name": "Nova", "name": "Host"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -976,20 +906,25 @@ class Hypervisor(PolyResource):
     virt_cpus = IntegerField(editable=True, blank=True, default=8)
     memory = IntegerField(editable=True, blank=True, default=8192)
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.hypervisors.list()]
+        result = []
 
-    @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
+        # For every Hypervisor in the cloud...
+        for entry in nova_client.hypervisors.list():
+            # Make a dict from this entry's data, and concoct a unique id for
+            # it.
+            this_entry = entry.to_dict()
+            this_entry[self.unique_id_key] = _hash(cls.unique_class_id(),
+                                                   this_entry.get("id", ''))
+            result.append(this_entry)
 
-        return _hash(cls.unique_class_id(), thing.get("id", ''))
+        return result
 
     @classmethod
     def display_attributes(cls):
@@ -1018,20 +953,14 @@ class Hypervisor(PolyResource):
 class Cloudpipe(PolyResource):
     """An OpenStack Cloudpipe."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.cloudpipe.list()]
-
-    @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("project_id")
 
     @classmethod
     def display_attributes(cls):
@@ -1054,12 +983,18 @@ class Cloudpipe(PolyResource):
               lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
             ]
 
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "project_id"
+
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -1072,16 +1007,20 @@ class ServerGroup(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Server Group",
-                }
+        return {"integration_name": "Nova", "name": "Server Group"}
+
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "id"
 
 
 class Server(PolyResource):
     """An OpenStack Server."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -1096,9 +1035,7 @@ class Server(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Server",
-                }
+        return {"integration_name": "Nova", "name": "Server"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1135,12 +1072,18 @@ class Server(PolyResource):
                                        for volentry in t["links"])}},
                 ]
 
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "id"
+
 
 class Interface(PolyResource):
     """An OpenStack Interface."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
@@ -1166,12 +1109,6 @@ class Interface(PolyResource):
         return result
 
     @classmethod
-    def identity(cls, thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("mac_addr")
-
-    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
@@ -1193,12 +1130,18 @@ class Interface(PolyResource):
                   f.get("mac_addr") == t["mac_address"]}},
                 ]
 
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "mac_addr"
+
 
 class NovaLimits(PolyResource):
     """An OpenStack Limits within a Nova integration."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         # TODO: This needs to be rewritten.
@@ -1222,8 +1165,8 @@ class NovaLimits(PolyResource):
 class Image(PolyResource):
     """An OpenStack Image."""
 
-    @staticmethod
-    def clouddata():
+    @classmethod
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
         return list(get_glance_client()["client"].images.list())
@@ -1248,11 +1191,18 @@ class Image(PolyResource):
                   lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                 ]
 
+    @property
+    def unique_id_key(self):
+        """See the parent class' method's docstring."""
+
+        return "id"
+
+
 #
 # These classes represent entities within a Cinder integration.
 #
 
-
+continue here
 class QuotaSet(PolyResource):
     """An OpenStack Quota Set."""
 

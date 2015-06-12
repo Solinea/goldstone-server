@@ -40,26 +40,6 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 
-class GraphNode(object):
-    """Resource graph nodes."""
-
-    # The Goldstone UUID of the table row represented by this node.
-    uuid = None
-
-    # This node's Resource Type.
-    resourcetype = None
-
-    # This node's attributes (e.g., from a get_xxxxx_client() call).
-    attributes = {}
-
-    def __init__(self, **kwargs):
-        """Initialize the object."""
-
-        self.uuid = kwargs.get("uuid")
-        self.resourcetype = kwargs.get("resourcetype")
-        self.attributes = kwargs.get("attributes", {})
-
-
 class Graph(object):
     """The base class for Resource Type and Resource graphs.
 
@@ -233,3 +213,23 @@ class Resources(Graph):
 
 # Here's Goldstone's Resource Instance graph.
 resources = Resources()       # pylint: disable=C0103
+
+
+class GraphNode(object):
+    """A Resource graph node."""
+
+    # This node's Goldstone UUID.
+    uuid = None
+
+    # This node's Resource Type.
+    resourcetype = None
+
+    # This node's attributes. E.g., from ideget_xxxxx_client().
+    attributes = {}
+
+    def __init__(self, **kwargs):
+        """Initialize the object."""
+
+        self.uuid = kwargs.get("uuid")
+        self.resourcetype = kwargs.get("resourcetype")
+        self.attributes = kwargs.get("attributes", {})

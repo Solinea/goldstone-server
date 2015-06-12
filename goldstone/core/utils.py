@@ -197,8 +197,7 @@ def process_resource_type(nodetype):
        - added if they are in the OpenStack cloud, but not in the graph.
        - updated from the cloud if they are already in the graph.
 
-    :param nodetype: A type of Resource graph node, i.e., a node in the
-                     Resource Type graph.
+    :param nodetype: A Resource Type node
     :type nodetype: PolyResource subclass
 
     """
