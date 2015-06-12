@@ -41,9 +41,11 @@ class ReportDataListView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                              lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -64,9 +66,11 @@ class ReportNamesAggView(SimpleAggView):
     \n\nQuery string parameters:\n
 
     <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                              lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -92,9 +96,11 @@ class MetricDataListView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                              lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -115,9 +121,11 @@ class MetricNamesAggView(SimpleAggView):
     \n\nQuery string parameters:\n
 
     <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                              lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -136,9 +144,11 @@ class MetricAggView(DateHistogramAggView):
     \n\nQuery string parameters:\n
 
     <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                              lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -534,9 +544,10 @@ class EventSummarizeView(ElasticListAPIView):
     GET:
         parameters:
            - name: timestamp__range
-             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
-                          lt.  Nnn is an epoch number.  E.g.,
-                          gte:1430164651890.
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
              paramType: query
            - name: interval
              description: The desired time interval, as n(s|m|h|w). E.g., 1d
@@ -572,9 +583,10 @@ class EventSearchView(ElasticListAPIView):
     GET:
         parameters:
            - name: timestamp__range
-             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
-                          lt.  Nnn is an epoch number.  E.g.,
-                          gte:1430164651890.
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
              paramType: query
            - name: _id__prefix
              description: The string each id must start with.
