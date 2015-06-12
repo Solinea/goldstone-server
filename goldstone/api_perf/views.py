@@ -26,8 +26,7 @@ class ApiPerfAggView(DateHistogramAggView):
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
 
-    class Meta:      # pylint: disable=C1001,W0232
-        """Meta."""
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         model = ApiPerfData
 
     # Our API documentation extracts this docstring, hence the use of markup.
@@ -42,10 +41,11 @@ class ApiPerfAggView(DateHistogramAggView):
         <b>end_time</b>: The desired end time, in UTC\n
         <b>interval</b>: The desired interval, as nnni. nnn is a number, i is
                          one of: smhwd.  E.g., 3600s.\n
-        <b>@timestamp__range</b>: Another way to specify a time range. Value is
-                                  xxx:nnn. Xxx is one of: gte, gt, lte, or lt.
-                                  Nnn is an epoch number. E.g.,
-                                  gte:1430164651890.\n
+        <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
+                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
         <b>component</b>: The OpenStack service to query: nova, neutron,
                           keystone, glance, or cinder.
 

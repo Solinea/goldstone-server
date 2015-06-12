@@ -26,9 +26,11 @@ class LogDataView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
+                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -46,9 +48,11 @@ class LogAggView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
+                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -74,6 +78,10 @@ class LogAggView(ElasticListAPIView):
         return Response(serializer.data)
 
 
+##########################################
+# These two classes are pending removal. #
+##########################################
+
 class LogEventView(ElasticListAPIView):
     """Return events from Logstash data.
 
@@ -81,9 +89,11 @@ class LogEventView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
+                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 
@@ -101,9 +111,11 @@ class LogEventAggView(ElasticListAPIView):
 
     <b>name__prefix</b>: The desired service name prefix. E.g.,
                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
-                              gte, gt, lte, or lt.  Nnn is an epoch number.
-                              E.g., gte:1430164651890.\n\n
+    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
+                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
+                              {'gte': 1430164651890}. You can also use AND,
+                              e.g., {'gte': 1430164651890, 'lt':
+                              1455160000000}\n\n
 
     """
 

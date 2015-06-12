@@ -40,7 +40,7 @@ class ApiPerfData(DailyIndexDocType):
     INDEX_PREFIX = 'goldstone-'
     SORT = '-@timestamp'
 
-    class Meta:       # pylint: disable=C1001,W0232
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'api_stats'
 
     @classmethod

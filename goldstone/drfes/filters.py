@@ -21,10 +21,8 @@ class ElasticFilter(BaseFilterBackend):
     Everything will be treated as query enhancements (rather than filters) from
     an ES perspective.  Conditionals other than AND are not currently
     supported.
-    """
 
-    class Meta:
-        reserved_params = []
+    """
 
     @staticmethod
     def _update_queryset(param, value, view, queryset, op='match'):

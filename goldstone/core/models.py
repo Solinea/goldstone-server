@@ -16,6 +16,8 @@ from django.conf import settings
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
+from elasticsearch_dsl import A
+from elasticsearch_dsl.query import Q, QueryString
 from polymorphic import PolymorphicModel
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
@@ -24,7 +26,6 @@ from goldstone.glogging.models import LogData, LogEvent
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
     get_cinder_client, get_cloud
 
-from elasticsearch_dsl.query import Q, QueryString
 import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
@@ -78,17 +79,15 @@ class MetricData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_metrics-'
 
-    class Meta:     # pylint: disable=C1001,W0232
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'core_metric'
 
     @classmethod
     def stats_agg(cls):
-        from elasticsearch_dsl import A
         return A('extended_stats', field='value')
 
     @classmethod
     def units_agg(cls):
-        from elasticsearch_dsl import A
         return A('terms', field='unit')
 
 
@@ -96,8 +95,62 @@ class ReportData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_reports-'
 
-    class Meta:       # pylint: disable=C1001,W0232
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'core_report'
+
+
+class EventData(DailyIndexDocType):
+    """The model for logstash events data."""
+
+    # The indexes we look for start with this string.
+    INDEX_PREFIX = 'events'
+
+    # Time sorting is on this key in the log.
+    SORT = '-timestamp'
+
+    class Meta:          # pylint: disable=C0111,W0232,C1001
+        # Return all document types.
+        doc_type = ''
+
+    @classmethod
+    def ranged_event_agg(cls, base_queryset, interval='1d'):
+        """Return an aggregation for /core/events/summarize.
+
+        :param base_queryset: search to use as basis for aggregation
+        :type base_queryset: Search
+        :param interval: valid ES time interval such as 1m, 1h, 30s
+        :type interval: str
+        :return: The aggregation
+        :rtype: object
+
+        """
+
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = base_queryset.params(search_type="count")
+
+        # Add a top-level aggregation for time intervals.
+        search.aggs.bucket('per_interval',
+                           "date_histogram",
+                           field="timestamp",
+                           interval=interval,
+                           min_doc_count=0)
+
+        # Add a top-level aggregation for types.
+        search.aggs.bucket('per_type',
+                           "terms",
+                           field="_type",
+                           min_doc_count=0)
+
+        # Add a second-level aggregation for types, under time intervals.
+        search.aggs['per_interval'].bucket('per_type',
+                                           'terms',
+                                           field='_type',
+                                           min_doc_count=0)
+
+        return search.execute().aggregations
 
 
 class PolyResource(PolymorphicModel):

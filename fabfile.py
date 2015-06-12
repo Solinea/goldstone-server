@@ -30,7 +30,7 @@ sys.path.append('')
 SETTINGS_DIR = "goldstone.settings"
 
 # The default settings are to run Elasticsearch and PostgreSQL locally.
-DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
+DEV_SETTINGS = SETTINGS_DIR + ".local_docker"
 
 BREW_PGDATA = '/usr/local/var/postgres'
 CENTOS_PGDATA = '/var/lib/pgsql/data'
@@ -139,7 +139,7 @@ def _choose_runserver_settings(verbose):
     # Bash command to locate the candidate settings files, from results piped
     # in. Production is included because this command is used by the external
     # installation script. The results will be in alphabetical order.
-    CANDIDATES = 'egrep "production|dev_|test_" | egrep -v "pyc|~"'
+    CANDIDATES = 'egrep "production|local_|dev_|test_" | egrep -v "pyc|~"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
@@ -199,14 +199,19 @@ def goldstone_init(verbose=False):
 
     """
     from installer_fabfile import goldstone_init as installer_goldstone_init
+    from installer_fabfile import syncmigrate, django_admin_init
 
-    installer_goldstone_init(settings=_django_settings_module(verbose),
-                             install_dir='.')
+    # Get the desired settings from the user.
+    settings = _django_settings_module(verbose)
+
+    # Do the initialization with the user's settings, on the current directory.
+    syncmigrate(settings=settings, install_dir='.')
+    django_admin_init(settings=settings, install_dir='.')
+    installer_goldstone_init(settings=settings, install_dir='.')
 
 
 @task
 def runserver(verbose=False):
-
     """Do runserver using a user-selected settings file.
 
     :keyword verbose: Display detail about each settings choice?

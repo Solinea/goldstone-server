@@ -20,29 +20,30 @@ import platform
 import subprocess
 from time import sleep
 
-from fabric.api import task, local, settings as fab_settings
+from django.core.exceptions import ObjectDoesNotExist
+from fabric.api import task, local, run, settings as fab_settings
 from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
 from fabric.context_managers import lcd
 
 
-ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
+ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.5.repo"
 
-ES_REPO_TEXT = "[elasticsearch-1.4]\n" + \
-    "name=Elasticsearch repository for 1.4.x packages\n" + \
+ES_REPO_TEXT = "[elasticsearch-1.5]\n" + \
+    "name=Elasticsearch repository for 1.5.x packages\n" + \
     "baseurl=http://packages.elasticsearch.org/" + \
-    "elasticsearch/1.4/centos\n" + \
+    "elasticsearch/1.5/centos\n" + \
     "gpgcheck=1\n" + \
     "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
     "enabled=1\n"
 
-LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.4.repo"
+LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.5.repo"
 
-LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
-    "name=Logstash repository for 1.4.x packages\n" + \
+LOGSTASH_REPO_TEXT = "[logstash-1.5]\n" + \
+    "name=Logstash repository for 1.5.x packages\n" + \
     "baseurl=http://packages.elasticsearch.org/" + \
-    "logstash/1.4/centos\n" + \
+    "logstash/1.5/centos\n" + \
     "gpgcheck=1\n" + \
     "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
     "enabled=1\n"
@@ -65,10 +66,10 @@ PROD_SETTINGS = "goldstone.settings.production"
 # used to collect configuration data, then presented at completion
 # of install.
 final_report = {    # pylint: disable=C0103
-    'django_admin_user': None,
-    'django_admin_pass': None,
-    'goldstone_admin_user': None,
-    'goldstone_admin_pass': None,
+    'django_admin_user': "None",
+    'django_admin_pass': "None",
+    'goldstone_admin_user': "None",
+    'goldstone_admin_pass': "None",
     'port': 80
 }
 
@@ -238,7 +239,8 @@ def install_extra_rpms():
 
     print()
     print(green("Installing redis, logstash, and ES."))
-    local('yum -y install redis elasticsearch logstash logstash-contrib')
+    local('yum -y install redis elasticsearch logstash')
+    local('/opt/logstash/bin/plugin install logstash-filter-translate')
 
 
 @task
@@ -268,22 +270,26 @@ def cloud_init(gs_tenant,
     :type install_dir: str
 
     """
-
-    # The OpenStack identity authorization URL has a version number segment.
-    # This is the authorization version we use. It should end with a slash, but
-    # maybe that's not necessary.
     import re
-    CLOUD_AUTH_URL_VERSION = "/v3/"
+
+    # The OpenStack identity authorization URL has a version number segment. We
+    # use this version. It should not start with a slash.
+    AUTH_URL_VERSION = "v3/"
+
+    # This is used to detect a version segment at an authorization URL's end.
+    AUTH_URL_VERSION_LIKELY = r'\/[vV]\d'
 
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
-        from django.core.exceptions import ObjectDoesNotExist
 
         try:
             # unique constraint on (tenant, tenant_name, and username)
-            Cloud.objects.get(tenant=gs_tenant, tenant_name=stack_tenant,
+            Cloud.objects.get(tenant=gs_tenant,
+                              tenant_name=stack_tenant,
                               username=stack_user)
         except ObjectDoesNotExist:
+            # Since the row doesn't exist, we have to create it. Ask for user
+            # for each of the necessary attributes if they're not defined.
             if stack_tenant is None:
                 stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
                                       default='admin')
@@ -293,16 +299,21 @@ def cloud_init(gs_tenant,
             if stack_password is None:
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
+
             if stack_auth_url is None:
-                while stack_auth_url is None or \
-                        not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                    stack_auth_url = prompt(
-                        cyan("Enter OpenStack auth URL base "
-                             "(ex: http://10.10.10.10:5000/v2.0): "))
-                    if not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                        stack_auth_url = re.sub('/v2.0[/]?$|/v3[/]?$',
-                                                CLOUD_AUTH_URL_VERSION,
-                                                stack_auth_url)
+                stack_auth_url = \
+                    prompt(cyan("Enter OpenStack auth URL "
+                                "(eg: http://10.10.10.10:5000/v2.0/): "))
+
+                if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
+                    # The user shouldn't have included the version segment, but
+                    # did anyway. Remove it.
+                    version_index = re.search(AUTH_URL_VERSION_LIKELY,
+                                              stack_auth_url)
+                    stack_auth_url = stack_auth_url[:version_index.start()]
+
+                # Append our version number to the base URL.
+                stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
@@ -376,6 +387,9 @@ def _final_report():
                 "\n\tURL: http://" + socket.gethostname() + ":" +
                 str(final_report['port'])))
 
+    print(green("\nRun 'fab -H {openstack_ip, ...} configure_stack' to set " +
+                "up OpenStack nodes."))
+
 
 @task
 def django_admin_init(username='admin',
@@ -383,7 +397,7 @@ def django_admin_init(username='admin',
                       email='root@localhost',
                       settings=PROD_SETTINGS,
                       install_dir=INSTALL_DIR):
-    """Create the Django admin user in a non-interactive way.
+    """Create the Django admin user.
 
     :keyword username: the django admin user name
     :type username: str
@@ -400,7 +414,6 @@ def django_admin_init(username='admin',
 
     with _django_env(settings, install_dir):
         from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
 
         try:
             get_user_model().objects.get(username=username)
@@ -409,8 +422,9 @@ def django_admin_init(username='admin',
             if password is None:
                 password = prompt(cyan("Enter Django admin password: "))
 
-            get_user_model().objects.create_superuser(
-                username, email, password)
+            get_user_model().objects.create_superuser(username,
+                                                      email,
+                                                      password)
             final_report['django_admin_user'] = username
             final_report['django_admin_pass'] = password
             fastprint("done.\n")
@@ -447,8 +461,7 @@ def tenant_init(gs_tenant='default',
                 gs_tenant_admin_password=None,
                 settings=PROD_SETTINGS,
                 install_dir=INSTALL_DIR):
-    """Create a tenant and default_tenant_admin, or use existing ones; and
-    create a cloud under the tenant.
+    """Create a tenant and default_tenant_admin, or use existing ones.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
     create it as the default_tenant_admin, and the tenant's tenant_admin.
@@ -486,7 +499,6 @@ def tenant_init(gs_tenant='default',
         # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
         # has been changed!
         from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
         from goldstone.tenants.models import Tenant
 
         # Process the tenant.
@@ -549,10 +561,7 @@ def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 
 @task
-def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
-                   django_admin_password=None,
-                   django_admin_email='root@localhost',
-                   gs_tenant='default',
+def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
                    gs_tenant_owner='None',
                    gs_tenant_admin='gsadmin',
                    gs_tenant_admin_password=None,
@@ -562,14 +571,9 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
                    stack_auth_url=None,
                    settings=PROD_SETTINGS,
                    install_dir=INSTALL_DIR):
-    """Configure goldstone after the RPM has been installed.
+    """Configure the Goldstone tenant, cloud, miscellaneous services, and
+    templates.
 
-    :keyword django_admin_user: username for django admin
-    :type django_admin_user: str
-    :keyword django_admin_password: password for django admin user
-    :type django_admin_password: str
-    :keyword django_admin_email: email for django admin user
-    :type django_admin_email: str
     :keyword gs_tenant: goldstone default tenant name
     :type gs_tenant: str
     :keyword gs_tenant_owner: goldstone default tenant owner (don't change)
@@ -597,14 +601,6 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     """
 
-    syncmigrate(settings=settings, install_dir=install_dir)
-
-    django_admin_init(username=django_admin_user,
-                      password=django_admin_password,
-                      email=django_admin_email,
-                      settings=settings,
-                      install_dir=install_dir)
-
     tenant = tenant_init(gs_tenant,
                          gs_tenant_owner,
                          gs_tenant_admin,
@@ -626,21 +622,25 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
 
 @task
-def install(pg_passwd='goldstone',  # pylint: disable=R0913
+def install(pg_passwd='goldstone',       # pylint: disable=R0913
             django_admin_user='admin',
             django_admin_password=None,
             django_admin_email='root@localhost',
             gs_tenant='default',
-            gs_tenant_owner='None', gs_tenant_admin='gsadmin',
-            gs_tenant_admin_password=None, stack_tenant=None,
-            stack_user=None, stack_password=None,
+            gs_tenant_owner='None',
+            gs_tenant_admin='gsadmin',
+            gs_tenant_admin_password=None,
+            stack_tenant=None,
+            stack_user=None,
+            stack_password=None,
             stack_auth_url=None):
-    """Check prerequisites, and install Goldstone server.
+    """Do a full installation of Goldstone, including prompting the user for
+    various credentials.
 
-    For non-interactive installation, the following parameters must be supplied
-    on the command line: rpm_file, django_admin_password,
-    gs_tenant_admin_password, stack_tenant, stack_user, stack_password,
-    stack_auth_url.  Other parameters can be supplied to override defaults.
+    To do a non-interactive installation, supply these parameters on the
+    command line: rpm_file, django_admin_password, gs_tenant_admin_password,
+    stack_tenant, stack_user, stack_password, stack_auth_url. Other parameters
+    can be supplied to override defaults.
 
     Example:
 
@@ -684,16 +684,70 @@ def install(pg_passwd='goldstone',  # pylint: disable=R0913
         install_repos()
         setup_postgres(pg_passwd)
         install_extra_rpms()
-        goldstone_init(
-            django_admin_user=django_admin_user,
-            django_admin_password=django_admin_password,
-            django_admin_email=django_admin_email,
-            gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
-            gs_tenant_admin=gs_tenant_admin,
-            gs_tenant_admin_password=gs_tenant_admin_password,
-            stack_tenant=stack_tenant, stack_user=stack_user,
-            stack_password=stack_password,
-            stack_auth_url=stack_auth_url)
+
+        syncmigrate()
+
+        django_admin_init(username=django_admin_user,
+                          password=django_admin_password,
+                          email=django_admin_email)
+
+        goldstone_init(gs_tenant=gs_tenant,
+                       gs_tenant_owner=gs_tenant_owner,
+                       gs_tenant_admin=gs_tenant_admin,
+                       gs_tenant_admin_password=gs_tenant_admin_password,
+                       stack_tenant=stack_tenant,
+                       stack_user=stack_user,
+                       stack_password=stack_password,
+                       stack_auth_url=stack_auth_url)
+
+    else:
+        print()
+        abort('This appears to be an unsupported platform. Exiting.')
+
+
+@task
+def partial_install(django_admin_password,
+                    pg_passwd='goldstone',
+                    django_admin_user='admin',
+                    django_admin_email='root@localhost'):
+    """Do a partial installation of Goldstone.
+
+    This requires no interaction with the user.
+
+    This does what full_install() does, except for creating the Goldstone
+    tenant and storing the OpenStack connection details. After this runs, the
+    user must log in to Goldstone as the Django admin, create a Goldstone
+    tenant, and create a cloud under that tenant.
+
+    :param django_admin_password: Password for Django admin user
+    :type django_admin_password: str
+    :keyword pg_passwd: Postgres password for the Goldstone account.  This must
+                        match what's in the Goldstone settings file.
+    :type django_admin_user: str
+    :keyword django_admin_user: Username for the Django admin user
+    :type django_admin_user: str
+    :keyword django_admin_email: Email for the Django admin user
+    :type django_admin_email: str
+
+    """
+
+    if _is_supported_centos7():
+        install_repos()
+        setup_postgres(pg_passwd)
+        install_extra_rpms()
+
+        syncmigrate()
+
+        django_admin_init(username=django_admin_user,
+                          password=django_admin_password,
+                          email=django_admin_email)
+
+        _collect_static(PROD_SETTINGS, INSTALL_DIR)
+        _configure_services()
+        load_es_templates()
+
+        _final_report()
+
     else:
         print()
         abort('This appears to be an unsupported platform. Exiting.')
@@ -730,3 +784,182 @@ def uninstall(dropdb=True, dropuser=True):
 
     with fab_settings(warn_only=True):
         local('yum remove -y goldstone-server')
+
+
+def get_ip():
+    """Return an IP address."""
+    import socket
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 0))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+
+    return ip
+
+
+def configure_notification_driver(filename):
+    """Configure a notification_driver setting for ceilometer."""
+    from fabric.contrib.files import contains, sed
+
+    with fab_settings(warn_only=True, user="root"):
+        # Set up syslog shipping
+        print(green("\nConfiguring notification_driver settings for " +
+                    filename))
+
+        has_messagingv2 = contains(
+            filename,
+            '^notification_driver[\s]*=.*messagingv2', escape=False)
+
+        has_empty_driver = contains(
+            filename, '^notification_driver[ ]*=[ ]*$', escape=False)
+
+        if not has_messagingv2:
+            if has_empty_driver:
+                print(green("\nReplacing empty notification_driver entry"))
+                sed(filename, '^notification_driver[ ]*=[ ]*$',
+                    'notification_driver=messagingv2')
+            else:
+                print(green("\nAdding a new notification_driver entry in "
+                            "DEFAULT section"))
+                sed(filename, '^\[DEFAULT\][\s]*$',
+                    '\[DEFAULT\]\\nnotification_driver=messagingv2')
+        else:
+            print(green("\nnotification_driver already configured"))
+
+
+@task
+def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
+    """Configures syslog and ceilometer parameters on OpenStack hosts.
+
+    :param goldstone_addr: Goldstone server's hostname or IP accessible to
+                         OpenStack hosts
+    :type goldstone_addr: str
+    """
+
+    from fabric.contrib.files import upload_template
+
+    if not accept:
+        accepted = prompt(cyan(
+            "This utility will modify configuration fileson the hosts\n"
+            "supplied via the -H parameter, and optionally restart\n"
+            "OpenStack and syslog services.\n\n"
+            "Do you want to continue (yes/no)?"),
+            default='no', validate='yes|no')
+
+    if accepted != 'yes':
+        return 0
+
+    if goldstone_addr is None:
+        goldstone_addr = prompt(cyan("Goldstone server's hostname or IP "
+                                     "accessible to OpenStack hosts?"),
+                                default=get_ip())
+
+    if restart_services is None:
+        restart_services = prompt(cyan("Restart OpenStack and syslog services "
+                                       "after configuration changes(yes/no)?"),
+                                  default='no', validate='yes|no')
+
+    loglevel_mapping = {
+        "nova": "LOG_LOCAL0",
+        "keystone": "LOG_LOCAL6",
+        "ceilometer": "LOG_LOCAL3",
+        "neutron": "LOG_LOCAL2",
+        "cinder": "LOG_LOCAL5",
+        "glance": "LOG_LOCAL1",
+    }
+
+    openstack_config_map = [
+        ("/etc/nova/nova.conf", loglevel_mapping['nova']),
+        ("/etc/keystone/keystone.conf", loglevel_mapping['keystone']),
+        ("/etc/ceilometer/ceilometer.conf", loglevel_mapping['ceilometer']),
+        ("/etc/neutron/neutron.conf", loglevel_mapping['neutron']),
+        ("/etc/cinder/cinder.conf", loglevel_mapping['cinder']),
+        ("/etc/glance/glance-cache.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-api.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-registry.conf", loglevel_mapping['glance']),
+        ("/etc/glance/glance-scrubber.conf", loglevel_mapping['glance'])]
+
+    ceilometer_template_dir = os.path.join(os.getcwd(), "external/ceilometer")
+    syslog_template_dir = os.path.join(os.getcwd(), "external/rsyslog")
+
+    with fab_settings(warn_only=True, user="root"):
+        # Set up syslog shipping
+        print(green("\nConfiguring syslog settings."))
+        for entry in openstack_config_map:
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT use_syslog True")
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT verbose True")
+            run("crudini --existing=file --set " + entry[0] +
+                " DEFAULT syslog_log_facility " + entry[1])
+
+        # Set up ceilometer event shipping
+        print(green("\nConfiguring services to ship ceilometer events to "
+                    "Goldstone."))
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "event definitions_cfg_file event_definitions.yaml")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "event drop_unmatched_notifications False")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "notification store_events True")
+        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
+            "database event_connection es://" + goldstone_addr + ":9200")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT instance_usage_audit True")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT instance_usage_audit_period hour")
+        run("crudini --set /etc/nova/nova.conf "
+            "DEFAULT notify_on_state_change vm_and_task_state")
+        run("crudini --set /etc/cinder/cinder.conf "
+            "DEFAULT control_exchange cinder")
+
+        try:
+            print(green("\nInstalling ceilometer and rsyslog config files."))
+            upload_template('pipeline.yaml.template',
+                            '/etc/ceilometer/pipeline.yaml',
+                            context={'goldstone_addr': goldstone_addr},
+                            template_dir=ceilometer_template_dir)
+            upload_template('event_definitions.yaml',
+                            '/etc/ceilometer/event_definitions.yaml',
+                            template_dir=ceilometer_template_dir)
+            upload_template('event_pipeline.yaml',
+                            '/etc/ceilometer/event_pipeline.yaml',
+                            template_dir=ceilometer_template_dir)
+            upload_template('rsyslog.conf',
+                            '/etc/rsyslog.conf',
+                            template_dir=syslog_template_dir)
+            upload_template('10-goldstone.conf.template',
+                            '/etc/rsyslog.d/10-goldstone.conf',
+                            context={'goldstone_addr': goldstone_addr},
+                            backup=False,
+                            template_dir=syslog_template_dir)
+        except (AttributeError, TypeError):
+            raise AssertionError('The goldstone_addr parameter should be a '
+                                 'string representing a hostname or IP '
+                                 'address')
+
+        # this is a little messy business to deal with params that can have
+        # multiple lines in the file.
+
+        configure_notification_driver('/etc/nova/nova.conf')
+        configure_notification_driver('/etc/cinder/cinder.conf')
+
+        if restart_services == 'yes':
+            print(green("\nRestarting OpenStack and rsyslog services."))
+            run("openstack-service restart nova")
+            run("openstack-service restart glance")
+            run("openstack-service restart cinder")
+            run("openstack-service restart neutron")
+            run("openstack-service restart ceilometer")
+            run("openstack-service restart keystone")
+            run("service rsyslog restart")
+        else:
+            print(green("\nRestart OpenStack and rsyslog services on remote"
+                        "hosts to complete configuration."))
