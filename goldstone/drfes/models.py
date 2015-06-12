@@ -14,8 +14,7 @@
 # limitations under the License.
 
 from elasticsearch_dsl import DocType, Search
-from goldstone.models import es_conn, es_indices, \
-    daily_index
+from goldstone.models import es_conn, es_indices, daily_index
 
 
 class DailyIndexDocType(DocType):
@@ -24,7 +23,7 @@ class DailyIndexDocType(DocType):
     INDEX_PREFIX = 'logstash-'
     SORT = '-@timestamp'
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         doc_type = 'syslog'
 
     @classmethod
@@ -76,7 +75,6 @@ class DailyIndexDocType(DocType):
     @classmethod
     def bounded_search(cls, start=None, end=None, key_field='@timestamp'):
         """ Returns a search with time range."""
-
         import arrow
         from arrow import Arrow
 

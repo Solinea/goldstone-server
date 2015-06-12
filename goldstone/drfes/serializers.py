@@ -20,9 +20,10 @@ class ReadOnlyElasticSerializer(Serializer):
 
     Uses the to_dict() method and removed fields listed in the exclude Meta
     field.
+
     """
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         exclude = ()
 
     def create(self, validated_data):
@@ -55,8 +56,8 @@ class ReadOnlyElasticSerializer(Serializer):
 
 
 class SimpleAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     AGG_NAME = None
 
@@ -83,8 +84,8 @@ class SimpleAggSerializer(ReadOnlyElasticSerializer):
 
 
 class DateHistogramAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     AGG_NAME = 'per_interval'
 
@@ -92,8 +93,9 @@ class DateHistogramAggSerializer(ReadOnlyElasticSerializer):
         """Create serialized representation of a single top-level aggregation.
 
         :param instance: the result from the Model.simple_agg call
-        :return:
+
         """
+
         assert self.AGG_NAME is not None, (
             "'%s' should set the `AGG_NAME` attribute."
             % self.__class__.__name__

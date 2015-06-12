@@ -16,6 +16,8 @@ from django.conf import settings
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
+from elasticsearch_dsl import A
+from elasticsearch_dsl.query import Q, QueryString
 from polymorphic import PolymorphicModel
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
@@ -24,7 +26,6 @@ from goldstone.glogging.models import LogData, LogEvent
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
     get_cinder_client
 
-from elasticsearch_dsl.query import Q, QueryString
 import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
@@ -60,17 +61,15 @@ class MetricData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_metrics-'
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'core_metric'
 
     @classmethod
     def stats_agg(cls):
-        from elasticsearch_dsl import A
         return A('extended_stats', field='value')
 
     @classmethod
     def units_agg(cls):
-        from elasticsearch_dsl import A
         return A('terms', field='unit')
 
 
@@ -78,7 +77,7 @@ class ReportData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_reports-'
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'core_report'
 
 
@@ -91,7 +90,7 @@ class EventData(DailyIndexDocType):
     # Time sorting is on this key in the log.
     SORT = '-timestamp'
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         # Return all document types.
         doc_type = ''
 

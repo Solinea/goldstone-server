@@ -26,8 +26,7 @@ class ApiPerfAggView(DateHistogramAggView):
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
 
-    class Meta:
-        """Meta."""
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         model = ApiPerfData
 
     # Our API documentation extracts this docstring, hence the use of markup.

@@ -527,7 +527,23 @@ class ResourcesRetrieve(RetrieveAPIView):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 class EventSummarizeView(ElasticListAPIView):
-    """Return a summary of events."""
+    """Return an aggregation summary of events from Logstash data.
+
+    ---
+
+    GET:
+        parameters:
+           - name: timestamp__range
+             description: The time range, as xxx:nnn. Xxx is gte, gt, lte, or
+                          lt.  Nnn is an epoch number.  E.g.,
+                          gte:1430164651890.
+             paramType: query
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m.
+             paramType: query
+
+    """
 
     serializer_class = LogEventAggSerializer
     reserved_params = ['interval', 'per_host']

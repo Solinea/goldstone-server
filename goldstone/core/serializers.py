@@ -21,7 +21,7 @@ from .models import PolyResource
 class MetricDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         exclude = ('@version', 'sort', 'tags', 'type')
 
 
@@ -32,7 +32,7 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
     UNIT_AGG_NAME = 'units'
     STATS_AGG_NAME = 'stats'
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         exclude = ('@version', 'sort', 'tags', 'type')
 
     def to_representation(self, instance):
@@ -68,7 +68,7 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
 class ReportDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
 
-    class Meta:
+    class Meta:          # pylint: disable=C0111,W0232,C1001
         exclude = ('@version', 'sort', 'tags', 'type')
 
 
