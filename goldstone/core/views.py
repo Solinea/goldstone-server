@@ -19,14 +19,13 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
-from goldstone.glogging.serializers import LogEventAggSerializer
 from goldstone.utils import TopologyMixin
 
 from .models import MetricData, ReportData, PolyResource, EventData
 from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventSerializer
+    MetricAggSerializer, EventSerializer, EventAggSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -556,7 +555,7 @@ class EventSummarizeView(ElasticListAPIView):
 
     """
 
-    serializer_class = LogEventAggSerializer
+    serializer_class = EventAggSerializer
     reserved_params = ['interval', 'per_host']
 
     class Meta:     # pylint: disable=C1001,W0232

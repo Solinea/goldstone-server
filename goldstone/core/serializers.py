@@ -103,17 +103,10 @@ class PassthruSerializer(serializers.Serializer):
 class EventSerializer(ReadOnlyElasticSerializer):
     """Serializer for event data that's stored in ElasticSearch."""
 
-    class Meta:        # pylint: disable=C1001,W0232
-        """Exclude several uninteresting fields."""
-
-        exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
-                   'tags', 'syslog_facility_code', 'syslog_severity_code',
-                   'syslog_pri', 'syslog5424_pri', 'syslog5424_host')
-
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
 
-        The returned value includes fields that are in the instance's metadata.
+        The returned value includes fields from the instance's metadata.
 
         The instance.to_dict() return value doesn't include instance metadata.
         We could subclass the to_dict() method in the EventData() class, which
@@ -140,3 +133,60 @@ class EventSerializer(ReadOnlyElasticSerializer):
                 result[field] = instance.meta[field]
 
         return result
+
+
+class EventAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer for the aggregation that's returned from
+    Elasticsearch.
+
+    Copied from LogEventAggSerializer, because LEAS is scheduled for deletion.
+
+    """
+
+    def to_representation(self, instance):
+        """Create serialized representation of aggregate log data.
+
+        There will be a summary block that can be used for ranging, legends,
+        etc., then the detailed aggregation data which will be a nested
+        structure.  The number of layers will depend on whether the host
+        aggregation was done.
+
+        """
+
+        timestamps = [i['key'] for i in instance.per_interval['buckets']]
+        event_types = [i['key'] for i in instance.per_type['buckets']]
+        hosts = [i['key'] for i in instance.per_host['buckets']] \
+            if hasattr(instance, 'per_host') else None
+
+        # let's clean up the inner buckets
+        data = []
+
+        if hosts is None:
+            for interval_bucket in instance.per_interval.buckets:
+                key = interval_bucket.key
+                values = [{item.key: item.doc_count}
+                          for item in interval_bucket.per_type.buckets]
+                data.append({key: values})
+
+        else:
+            for interval_bucket in instance.per_interval.buckets:
+                interval_key = interval_bucket.key
+                interval_values = []
+                for host_bucket in interval_bucket.per_host.buckets:
+                    key = host_bucket.key
+                    values = [{item.key: item.doc_count}
+                              for item in host_bucket.per_type.buckets]
+                    interval_values.append({key: values})
+                data.append({interval_key: interval_values})
+
+        if hosts is None:
+            return {'timestamps': timestamps,
+                    'types': event_types,
+                    'data': data
+                    }
+        else:
+            return {'timestamps': timestamps,
+                    'hosts': hosts,
+                    'types': event_types,
+                    'data': data
+                    }
