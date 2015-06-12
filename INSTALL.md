@@ -30,19 +30,6 @@ root# . bin/activate
 root# fab install
 ```
 
-#### Completing the installation
-
-Point your browser at the Goldstone server IP address or name, and log in with the account name "admin" and the Django administrative password.  Then perform these steps to complete the installation:
-
-1. Click TBD
-2. You will see a form for a new Goldstone tenant administrator account. Fill in the form, and click TBD
-1. Click TBD
-2. You will now see a form for a new Goldstone tenant. Fill in the form, and click TBD
-3. Click TBD
-3. You will see a form for a new OpenStack cloud, to be created under your Goldstone tenant. Fill in the form, and click TBD
-4. You may now stay logged in as the site administrator and explore Goldstone. Or, you may logout and log back in using the Goldstone tenant administrator account you just created.
-
-
 ## Check your password-reset sequence
 
 Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
