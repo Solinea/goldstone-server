@@ -19,7 +19,7 @@ from goldstone.drfes.models import DailyIndexDocType
 class LogData(DailyIndexDocType):
     """Logstash log entry model (intended to be read-only)."""
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         doc_type = 'syslog'
 
     @classmethod
@@ -113,7 +113,7 @@ class LogEvent(LogData):
 
     LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         doc_type = 'syslog'
 
     @classmethod
