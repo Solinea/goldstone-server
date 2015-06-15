@@ -95,13 +95,15 @@ class EventData(DailyIndexDocType):
         doc_type = ''
 
     @classmethod
-    def ranged_event_agg(cls, base_queryset, interval='1d'):
+    def ranged_event_agg(cls, base_queryset, interval='1d', per_host=False):
         """Return an aggregation for /core/events/summarize.
 
         :param base_queryset: search to use as basis for aggregation
         :type base_queryset: Search
         :param interval: valid ES time interval such as 1m, 1h, 30s
         :type interval: str
+        :param per_host: aggregate by host inside the time aggregation?
+        :type per_host: bool
         :return: The aggregation
         :rtype: object
 
@@ -126,11 +128,29 @@ class EventData(DailyIndexDocType):
                            field="_type",
                            min_doc_count=0)
 
-        # Add a second-level aggregation for types, under time intervals.
-        search.aggs['per_interval'].bucket('per_type',
-                                           'terms',
-                                           field='_type',
-                                           min_doc_count=0)
+        if per_host:
+            # add a top-level aggregation for hosts
+            search.aggs.bucket('per_host',
+                               "terms",
+                               field="host.raw",
+                               min_doc_count=0)
+
+            # nested aggregation per interval, per host
+            search.aggs['per_interval'].bucket('per_host',
+                                               'terms',
+                                               field='host.raw',
+                                               min_doc_count=0)
+
+            search.aggs['per_interval']['per_host'].bucket('per_type',
+                                                           'terms',
+                                                           field='_type',
+                                                           min_doc_count=0)
+        else:
+            # Add a second-level aggregation for types, under time intervals.
+            search.aggs['per_interval'].bucket('per_type',
+                                               'terms',
+                                               field='_type',
+                                               min_doc_count=0)
 
         return search.execute().aggregations
 

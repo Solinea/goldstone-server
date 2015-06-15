@@ -563,11 +563,15 @@ class EventSummarizeView(ElasticListAPIView):
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
+        import ast
 
         base_queryset = self.filter_queryset(self.get_queryset())
         interval = self.request.query_params.get('interval', '1d')
 
-        data = EventData.ranged_event_agg(base_queryset, interval)
+        per_host = ast.literal_eval(
+            self.request.query_params.get('per_host', 'False'))
+
+        data = EventData.ranged_event_agg(base_queryset, interval, per_host)
         serializer = self.serializer_class(data)
 
         return Response(serializer.data)
