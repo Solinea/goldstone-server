@@ -45,7 +45,7 @@ module.exports = {
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
     coverageReportTargets: {
-        'client/js/*.js': ['coverage'],
+        'client/js/preload/*.js': ['coverage'],
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage']

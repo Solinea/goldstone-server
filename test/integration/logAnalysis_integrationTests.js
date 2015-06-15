@@ -34,8 +34,8 @@ describe('logAnalysis.js spec', function() {
 
         this.protoFetchSpy = sinon.spy(LogAnalysisCollection.prototype, "fetch");
 
-        var testStart = (+new Date() - (15 * 60 * 1000));
         var testEnd = (+new Date());
+        var testStart = (testEnd - (15 * 60 * 1000));
 
 
         this.testCollection = new LogAnalysisCollection({});
@@ -103,19 +103,14 @@ describe('logAnalysis.js spec', function() {
             });
             expect(this.testCollection.length).to.equal(2);
             this.testCollection.parse(dataTest);
-            if (this.testCollection.dummyGen) {
-                this.testCollection.dummyGen();
-            }
         });
         it('should parse appropriately', function() {
-            expect(this.protoFetchSpy.callCount).to.equal(1);
             testObj = {
                 monkeys: 'bananas',
                 next: 'rotten/core/apples/llamas.html',
                 data: [1, 2, 3]
             };
             var test1 = this.testCollection.parse(testObj);
-            expect(this.protoFetchSpy.callCount).to.equal(2);
             expect(test1).to.deep.equal({
                 monkeys: 'bananas',
                 next: 'rotten/core/apples/llamas.html',
@@ -132,7 +127,6 @@ describe('logAnalysis.js spec', function() {
                 next: null,
                 data: [1, 2, 3]
             });
-            expect(this.protoFetchSpy.callCount).to.equal(2);
         });
     });
     describe('collectionPrep test', function() {

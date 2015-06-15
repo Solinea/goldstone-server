@@ -21,7 +21,7 @@ from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
 instantiated in goldstoneRouter as
-    new LogSearchView({
+    new EventsBrowserPageView({
         el: ".launcher-container"
     });
 */

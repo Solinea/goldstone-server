@@ -24,7 +24,7 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
     urlBase: '/core/events/summarize/',
 
     addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ', "lte":' + this.epochNow + '}';
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
     addInterval: function(n) {

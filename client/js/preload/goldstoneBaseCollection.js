@@ -40,7 +40,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         var nextUrl;
 
         // in the case that there are additional paged server responses
-        if (data.next && data.next !== null) {
+        if (data && data.next && data.next !== null) {
             var dN = data.next;
 
             // if url params change, be sure to update this:

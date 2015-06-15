@@ -35,7 +35,7 @@ describe('dataTableBaseView.js', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new EventsBrowserDataTableView({
+        this.testView = new DataTableBaseView({
             el: '.events-browser-table',
             chartTitle: 'Events Browser',
             infoIcon: 'fa-table',
@@ -158,6 +158,35 @@ describe('dataTableBaseView.js', function() {
                 d: 'd'
             });
 
+        });
+    });
+    describe('testing methods', function() {
+        it('should preprocess noop', function() {
+            var test1 = this.testView.preprocess(123);
+            expect(test1).to.equal(123);
+        });
+        it('pins headings', function() {
+            var test1 = this.testView.isPinnedHeading('name');
+            expect(test1).to.equal(true);
+            test1 = this.testView.isPinnedHeading('namez');
+            expect(test1).to.equal(true);
+            test1 = this.testView.isPinnedHeading('nmaez');
+            expect(test1).to.equal(false);
+        });
+        it('sorts arrays', function() {
+            var test1 = this.testView.sortRemainingKeys([]);
+            expect(test1).to.deep.equal([]);
+            test1 = this.testView.sortRemainingKeys([1, 2, 3]);
+            expect(test1).to.deep.equal([1, 2, 3]);
+            // sorts numbers as well
+            test1 = this.testView.sortRemainingKeys([3, 2, 1]);
+            expect(test1).to.deep.equal([1, 2, 3]);
+            test1 = this.testView.sortRemainingKeys(['apple', 'banana', 'cat']);
+            expect(test1).to.deep.equal(['apple', 'banana', 'cat']);
+            test1 = this.testView.sortRemainingKeys(['cat', 'banana', 'apple', 'apple']);
+            expect(test1).to.deep.equal(['apple', 'apple', 'banana', 'cat']);
+            test1 = this.testView.sortRemainingKeys(['apple', '1banana', 'cat']);
+            expect(test1).to.deep.equal(['1banana', 'apple', 'cat']);
         });
     });
 });

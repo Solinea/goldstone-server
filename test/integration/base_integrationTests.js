@@ -27,6 +27,8 @@ describe('base.js spec', function() {
             "Content-Type": "application/json"
         }, 'OK']);
 
+        $('body').append('<form class="global-lookback-selector role="form"><div class="form-group"><div class="col-xl-1"><div class="input-group"><select class="form-control" id="global-lookback-range"><option value="20"></select></div></div></div></form>');
+
         this.testCollection = new GoldstoneBaseCollection({
             url: 'hoo/haw'
         });
@@ -119,21 +121,16 @@ describe('base.js spec', function() {
     });
     describe('base collection is tested', function() {
         it('returns the proper lookback', function() {
-            var test1 = this.testCollection.computeLookback();
-            expect(test1).to.equal(60);
-        });
-        it('returns the proper lookback', function() {
-            $('body').append('<form class="global-lookback-selector role="form"><div class="form-group"><div class="col-xl-1"><div class="input-group"><select class="form-control" id="global-lookback-range"><option value="20"></select></div></div></div></form>');
-            var test2 = this.testCollection.computeLookback();
-            expect(test2).to.equal(20);
+            var test1 = this.testCollection.computeLookbackAndInterval();
+            expect(this.testCollection.globalLookback).to.equal(20);
         });
         it('fetches', function() {
             this.testCollection.fetchNoReset();
             this.server.respond();
         });
         it('parses', function() {
-            var test1 = this.testCollection.parse([1,2,3]);
-            expect(test1).to.deep.equal([1,2,3]);
+            var test1 = this.testCollection.parse([1, 2, 3]);
+            expect(test1).to.deep.equal([1, 2, 3]);
         });
     });
 });
