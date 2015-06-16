@@ -94,46 +94,6 @@ class EventData(DailyIndexDocType):
         # Return all document types.
         doc_type = ''
 
-    @classmethod
-    def ranged_event_agg(cls, base_queryset, interval='1d'):
-        """Return an aggregation for /core/events/summarize.
-
-        :param base_queryset: search to use as basis for aggregation
-        :type base_queryset: Search
-        :param interval: valid ES time interval such as 1m, 1h, 30s
-        :type interval: str
-        :return: The aggregation
-        :rtype: object
-
-        """
-
-        assert isinstance(interval, basestring), 'interval must be a string'
-
-        # we are not interested in the actual docs, so use the count search
-        # type.
-        search = base_queryset.params(search_type="count")
-
-        # Add a top-level aggregation for time intervals.
-        search.aggs.bucket('per_interval',
-                           "date_histogram",
-                           field="timestamp",
-                           interval=interval,
-                           min_doc_count=0)
-
-        # Add a top-level aggregation for types.
-        search.aggs.bucket('per_type',
-                           "terms",
-                           field="_type",
-                           min_doc_count=0)
-
-        # Add a second-level aggregation for types, under time intervals.
-        search.aggs['per_interval'].bucket('per_type',
-                                           'terms',
-                                           field='_type',
-                                           min_doc_count=0)
-
-        return search.execute().aggregations
-
 
 class PolyResource(PolymorphicModel):
     """The base type for resources.

@@ -535,41 +535,66 @@ class ResourcesRetrieve(RetrieveAPIView):
 ###############
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class EventSummarizeView(ElasticListAPIView):
+class EventSummarizeView(DateHistogramAggView):
     """Return an aggregation summary of events from Logstash data.
 
     ---
 
     GET:
         parameters:
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m.
+             required: true
+             paramType: query
+           - name: per_type
+             description: Include per-type information in the results.
+             type: boolean
+             defaultValue: true
+             paramType: query
            - name: timestamp__range
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
                           {'gte':1430164651890}. You can also use AND, e.g.,
                           {'gte':1430164651890, 'lt':1455160000000}
              paramType: query
-           - name: interval
-             description: The desired time interval, as n(s|m|h|w). E.g., 1d
-                          or 3m.
-             paramType: query
 
     """
 
+    AGG_FIELD = 'timestamp'
+    AGG_NAME = 'per_interval'
     serializer_class = EventAggSerializer
-    reserved_params = ['interval', 'per_host']
+    reserved_params = ['interval', 'per_type']
 
-    class Meta:     # pylint: disable=C1001,W0232
+    class Meta:             # pylint: disable=C1001,W0232,C0111
         model = EventData
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         """Return a response to a GET request."""
+        import ast
 
-        base_queryset = self.filter_queryset(self.get_queryset())
-        interval = self.request.query_params.get('interval', '1d')
+        # Start with a basic histogram search, having a top-level aggregation
+        # for time intervals.
+        search = self._get_search(request)
 
-        data = EventData.ranged_event_agg(base_queryset, interval)
-        serializer = self.serializer_class(data)
+        # See if the request wants per-type information.
+        per_type = ast.literal_eval(
+            self.request.query_params.get('per_type', 'True').capitalize())
 
+        if per_type:
+            # Add a top-level aggregation for types.
+            search.aggs.bucket('per_type',
+                               "terms",
+                               field="_type",
+                               min_doc_count=0)
+
+            # Add a second-level aggregation for types, under time intervals.
+            search.aggs['per_interval'].bucket('per_type',
+                                               'terms',
+                                               field='_type',
+                                               min_doc_count=0)
+
+        serializer = self.serializer_class(search.execute().aggregations)
         return Response(serializer.data)
 
 
@@ -612,5 +637,5 @@ class EventSearchView(ElasticListAPIView):
 
     serializer_class = EventSerializer
 
-    class Meta:     # pylint: disable=C1001,W0232
+    class Meta:     # pylint: disable=C1001,W0232,C0111
         model = EventData
