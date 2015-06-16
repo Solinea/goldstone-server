@@ -30,7 +30,7 @@ class ElasticListAPIView(ListAPIView):
     filter_backends = (ElasticFilter, )
     reserved_params = ['page_size', 'page']
 
-    class Meta:
+    class Meta:            # pylint: disable=C0111,C1001,W0232
         model = None
 
     def get_queryset(self):
@@ -68,7 +68,7 @@ class SimpleAggView(ElasticListAPIView):
     AGG_FIELD = None
     AGG_NAME = None
 
-    class Meta:
+    class Meta:              # pylint: disable=C0111,C1001,W0232
         model = None
 
     def get(self, request, *args, **kwargs):
@@ -106,7 +106,7 @@ class DateHistogramAggView(ElasticListAPIView):
     reserved_params = ['interval']
     serializer_class = DateHistogramAggSerializer
 
-    class Meta:
+    class Meta:              # pylint: disable=C0111,C1001,W0232
         model = None
 
     def get(self, request):

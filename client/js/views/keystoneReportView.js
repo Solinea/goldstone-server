@@ -38,11 +38,17 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
             el: '#keystone-report-r1-c1',
             width: $('#keystone-report-r1-c1').width()
         });
+
     },
 
     template: _.template('' +
         '<div id="keystone-report-r1" class="row">' +
         '<div id="keystone-report-r1-c1" class="col-md-6"></div>' +
+        '<div id="keystone-report-r1-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="keystone-report-r2" class="row">' +
+        '<div id="keystone-report-r2-c1" class="col-md-6"></div>' +
         '</div>'
     )
+
 });

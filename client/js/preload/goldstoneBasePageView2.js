@@ -28,55 +28,42 @@ selectors can be customized on the page's correspoinding django HTML template,
 by modifying the parameters of the globalLookbackRefreshButtonsView
 */
 
-var GoldstoneBasePageView = GoldstoneBaseView.extend({
+var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.globalLookback = null;
-        this.defaults.globalRefresh = null;
-
+    instanceSpecificInit: function() {
         this.render();
-        this.getGlobalLookbackRefresh();
+        this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView2
         this.renderCharts();
         this.setGlobalLookbackRefreshTriggers();
         this.scheduleInterval();
     },
 
     clearScheduledInterval: function() {
-        var ns = this.defaults;
-        clearInterval(ns.scheduleInterval);
+        clearInterval(this.currentInterval);
     },
 
     onClose: function() {
-        if (this.defaults.scheduleInterval) {
-            clearInterval(this.defaults.scheduleInterval);
+        if (this.currentInterval) {
+            clearInterval(this.currentInterval);
         }
-        this.off();
+        _.each(this.viewsToStopListening, function(view) {
+            view.stopListening();
+            view.off();
+        });
     },
 
     scheduleInterval: function() {
         var self = this;
-        var ns = this.defaults;
-
-        var intervalDelay = ns.globalRefresh * 1000;
+        var intervalDelay = this.globalRefresh * 1000;
 
         // the value of the global refresh selector "refresh off" = -1
         if (intervalDelay < 0) {
             return true;
         }
 
-        ns.scheduleInterval = setInterval(function() {
+        this.currentInterval = setInterval(function() {
             self.triggerChange('lookbackIntervalReached');
         }, intervalDelay);
-    },
-
-    getGlobalLookbackRefresh: function() {
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.defaults.globalRefresh = $('#global-refresh-range').val();
     },
 
     triggerChange: function(change) {
@@ -121,9 +108,9 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         // important: use obj.listenTo(obj, change, callback);
         this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
-            self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
+            self.triggerChange('lookbackSelectorChanged');
         });
         this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
@@ -131,11 +118,6 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
             self.scheduleInterval();
             self.triggerChange('refreshSelectorChanged');
         });
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     },
 
     renderCharts: function() {
@@ -167,9 +149,5 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         });
         */
 
-    },
-
-    // to be customized per view extended from this view
-    template: _.template('')
-
+    }
 });

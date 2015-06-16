@@ -1,0 +1,28 @@
+language: python
+sudo: required
+python:
+  - "2.7"
+# command to install dependencies
+install: 
+  - "sudo apt-get install postgresql-9.4"
+  - "sudo su - postgres -c 'createdb goldstone_docker'"
+  - "sudo su - postgres -c 'createuser -s -d goldstone' <<EOF
+    goldstone
+    goldstone
+    EOF
+    "
+  - "wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -"
+  - "echo 'deb http://packages.elastic.co/elasticsearch/1.6/debian stable main' | sudo tee -a /etc/apt/sources.list"
+  - "sudo apt-get install elasticsearch"
+  - "sudo update-rc.d elasticsearch defaults 95 10"
+  - "sudo service elasticsearch start"
+  - "pip install --upgrade pip"
+  - "pip install -q -r requirements.txt"
+  - "pip install -q -r test-requirements.txt"
+  # - ". utils/import_es_test_data 2015.06.15"
+# command to run tests
+before_script:
+  - "pep8 --exclude=build,dist,utils,migrations,.tox,doc/source/conf.py,node_modules/casperjs,node_modules/grunt-casper ."
+script: 
+  # - "python ./manage.py test --settings=goldstone.settings.local_docker"
+  - "echo 'placeholder'"

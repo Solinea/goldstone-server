@@ -92,7 +92,14 @@ describe('apiPerfView.js spec', function() {
     });
     describe('collection is constructed', function() {
         it('should exist', function() {
-            var dataTest = JSON.stringify('hello');
+            var dataTest = {
+                per_interval: {
+                    'hello': 'hi'
+                }
+            };
+            var dataTest1 = {
+                'hello': 'hi'
+            };
             assert.isDefined(this.testCollection, 'this.testCollection has been defined');
             expect(this.testCollection.parse).to.be.a('function');
             this.testCollection.initialize({
@@ -104,6 +111,11 @@ describe('apiPerfView.js spec', function() {
             });
             expect(this.testCollection.length).to.equal(2);
             this.testCollection.parse(dataTest);
+            this.testCollection.parse(dataTest1);
+            expect(this.testCollection.parse(dataTest)).to.deep.equal({
+                'hello': 'hi'
+            });
+            expect(this.testCollection.parse(dataTest1)).to.deep.equal([]);
         });
     });
 

@@ -70,57 +70,57 @@ describe('eventTimeline.js spec', function() {
 
         this.testCollection = new EventTimelineCollection({});
         this.testCollection.add([{
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:24.921Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:24.921Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:23.921Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:23.921Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:22.921Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:22.921Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:21.921Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:21.921Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:20.921Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:20.921Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:04:17.460Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:04:17.460Z",
             "syslog_facility": "kernel",
             "syslog_severity": "CRITICAL",
             "host": "rsrc-01",
             "log_message": "kernel: STARTING CRC_T10DIF"
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:03:05.401Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:03:05.401Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
             "log_message": "rpcbind: rpcbind terminating on signal. Restart with \"rpcbind -w\""
         }, {
-            "event_type": "GenericSyslogError",
-            "@timestamp": "2015-03-18T18:03:03.193Z",
+            "doc_type": "GenericSyslogError",
+            "timestamp": "2015-03-18T18:03:03.193Z",
             "syslog_facility": "daemon",
             "syslog_severity": "ERROR",
             "host": "rsrc-01",
@@ -213,11 +213,11 @@ describe('eventTimeline.js spec', function() {
             this.fetchNowWithResetSpy.restore();
             this.fetchNowNoResetSpy.restore();
         });
-        it('can handle events without an event_type', function() {
+        it('can handle events without an doc_type', function() {
             this.testCollection.reset();
             this.testCollection.add({
-                "event_type": undefined,
-                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "doc_type": undefined,
+                "timestamp": "2015-03-18T18:04:21.921Z",
                 "syslog_facility": "daemon",
                 "syslog_severity": "WARNING",
                 "host": "rsrc-01",
@@ -240,8 +240,8 @@ describe('eventTimeline.js spec', function() {
             expect($('.popup-message').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
             this.testCollection.add({
-                "event_type": "GenericSyslogError",
-                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "doc_type": "GenericSyslogError",
+                "timestamp": "2015-03-18T18:04:21.921Z",
                 "syslog_facility": "daemon",
                 "syslog_severity": "ERROR",
                 "host": "rsrc-01",
@@ -267,8 +267,8 @@ describe('eventTimeline.js spec', function() {
             expect($('svg').find('rect').length).to.equal(0);
             this.testCollection.reset();
             this.testCollection.add({
-                "event_type": "GenericSyslogError",
-                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "doc_type": "GenericSyslogError",
+                "timestamp": "2015-03-18T18:04:21.921Z",
                 "syslog_facility": "daemon",
                 "syslog_severity": "ERROR",
                 "host": "rsrc-01",
@@ -278,8 +278,8 @@ describe('eventTimeline.js spec', function() {
             expect($('svg').find('rect').length).to.equal(1);
             // adding the same item
             this.testCollection.add({
-                "event_type": "GenericSyslogError",
-                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "doc_type": "GenericSyslogError",
+                "timestamp": "2015-03-18T18:04:21.921Z",
                 "syslog_facility": "daemon",
                 "syslog_severity": "ERROR",
                 "host": "rsrc-01",
@@ -289,8 +289,8 @@ describe('eventTimeline.js spec', function() {
             expect($('svg').find('rect').length).to.equal(1);
             // adding a different item
             this.testCollection.add({
-                "event_type": "GenericSyslogError",
-                "@timestamp": "2015-03-18T18:04:22.921Z",
+                "doc_type": "GenericSyslogError",
+                "timestamp": "2015-03-18T18:04:22.921Z",
                 "syslog_facility": "daemon",
                 "syslog_severity": "NOTICE",
                 "host": "rsrc-02",

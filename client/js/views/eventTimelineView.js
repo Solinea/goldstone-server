@@ -115,7 +115,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // you can change the value in colorArray to select
         // a particular number of different colors
         var colorArray = new GoldstoneColors().get('colorSets');
-        ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[1]);
 
         /*
          * The graph and axes
@@ -154,22 +154,21 @@ var EventTimelineView = GoldstoneBaseView.extend({
             })
             .html(function(d) {
 
-                d.host = d.host || '';
+                d.host = d.traits.host || 'No host logged';
                 d.log_message = d.log_message || 'No message logged';
 
                 if (d.log_message.length > 280) {
                     d.log_message = d.log_message.slice(0, 300) + "...";
                 }
-
-                d.event_type = d.event_type || 'No event type logged';
-                d['@timestamp'] = d['@timestamp'] || 'No date logged';
+                d.doc_type = d.doc_type || 'No event type logged';
+                d.timestamp = d.timestamp || 'No date logged';
 
                 return "" +
                     "Host: " + d.host + "<br>" +
-                    d.event_type + " (click event line to persist popup info)<br>" +
+                    d.doc_type + " (click event line to persist popup info)<br>" +
                     // "uuid: " + d.id + "<br>" +
-                    "Created: " + d['@timestamp'] + "<br>" +
-                    "Message: " + d.log_message + "<br>";
+                    "Created: " + d.timestamp + "<br>";
+                    // "Message: " + d.log_message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -204,7 +203,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
     opacityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (filterType === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.doc_type && !ns.filter[filterType].active) {
                 return 0;
             }
         }
@@ -214,7 +213,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
     visibilityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (filterType === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.doc_type && !ns.filter[filterType].active) {
                 return "hidden";
             }
         }
@@ -230,11 +229,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var allthelogs = (this.collection.toJSON());
 
         var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
-            return evt['@timestamp'];
+            return evt.timestamp;
         })));
 
         var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
-            return evt['@timestamp'];
+            return evt.timestamp;
         })));
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
@@ -249,14 +248,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
         ns.dataset = allthelogs
             .map(function(d) {
-                d['@timestamp'] = moment(d['@timestamp'])._d;
+                d.timestamp = moment(d.timestamp)._d;
                 return d;
             });
 
 
         // compile an array of the unique event types
         ns.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
-            return item.event_type;
+            return item.doc_type;
         }));
 
         // populate ns.filter based on the array of unique event types
@@ -341,11 +340,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var rectangle = ns.graph.selectAll("rect")
 
             // bind data to d3 nodes and create uniqueness based on
-            // the @timestamp param. This could possibly create some
+            // th.timestamparam. This could possibly create some
             // issues due to duplication of a supposedly unique
             // param, but has not yet been a problem in practice.
             .data(ns.dataset, function(d) {
-                return d['@timestamp'];
+                return d.timestamp;
             });
 
         // enters at wider width and transitions to lesser width for a
@@ -365,7 +364,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 return self.visibilityByFilter(d);
             })
             .attr("fill", function(d) {
-                return ns.color(ns.uniqueEventTypes.indexOf(d.event_type) % ns.color.range().length);
+                return ns.color(ns.uniqueEventTypes.indexOf(d.doc_type) % ns.color.range().length);
             })
             .on("mouseover", ns.tooltip.show)
             .on("click", function() {
@@ -389,7 +388,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
             .transition()
             .attr("width", 2)
             .attr("x", function(d) {
-                return ns.xScale(d['@timestamp']);
+                return ns.xScale(d.timestamp);
             });
 
         rectangle.exit().remove();
@@ -404,7 +403,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         ns.graph.selectAll("rect")
             .transition().duration(500)
             .attr("x", function(d) {
-                return ns.xScale(d['@timestamp']);
+                return ns.xScale(d.timestamp);
             })
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);

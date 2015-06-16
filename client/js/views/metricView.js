@@ -42,6 +42,22 @@ var MetricView = ApiPerfView.extend({
         }
     },
 
+    processOptions: function() {
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = "Response Time (s)";
+        }
+        this.defaults.start = this.collection.reportParams.start || null;
+        this.defaults.end = this.collection.reportParams.end || null;
+        this.defaults.interval = this.collection.reportParams.interval || null;
+    },
+
     standardInit: function() {
 
         /*
@@ -92,8 +108,8 @@ var MetricView = ApiPerfView.extend({
         var self = this;
         var data = this.collection.toJSON()[0];
         json = this.dataPrep(data.per_interval);
-        ns.statToChart = this.collection.defaults.statistic || 'band';
-        ns.standardDev = this.collection.defaults.standardDev || 0;
+        ns.statToChart = this.collection.statistic || 'band';
+        ns.standardDev = this.collection.standardDev || 0;
         var mw = ns.mw;
         var mh = ns.mh;
 

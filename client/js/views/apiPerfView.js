@@ -80,7 +80,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
     processOptions: function() {
         ApiPerfView.__super__.processOptions.call(this);
-
         this.defaults.start = this.collection.defaults.reportParams.start || null;
         this.defaults.end = this.collection.defaults.reportParams.end || null;
         this.defaults.interval = this.collection.defaults.reportParams.interval || null;

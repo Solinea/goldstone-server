@@ -154,39 +154,29 @@ class EventAggSerializer(ReadOnlyElasticSerializer):
         """
 
         timestamps = [i['key'] for i in instance.per_interval['buckets']]
-        event_types = [i['key'] for i in instance.per_type['buckets']]
-        hosts = [i['key'] for i in instance.per_host['buckets']] \
-            if hasattr(instance, 'per_host') else None
+
+        event_types = [i['key'] for i in instance.per_type['buckets']] \
+            if hasattr(instance, 'per_type') else None
 
         # let's clean up the inner buckets
         data = []
 
-        if hosts is None:
-            for interval_bucket in instance.per_interval.buckets:
-                key = interval_bucket.key
-                values = [{item.key: item.doc_count}
-                          for item in interval_bucket.per_type.buckets]
-                data.append({key: values})
+        # If the caller wants event type detail, compile it. Otherwise, just
+        # give a total count per timestamp.
+        for interval_bucket in instance.per_interval.buckets:
+            key = interval_bucket.key
+            if event_types:
+                value = [{item.key: item.doc_count}
+                         for item in interval_bucket.per_type.buckets]
+            else:
+                value = sum(item.doc_count
+                            for item in instance.per_interval.buckets)
+            data.append({key: value})
 
-        else:
-            for interval_bucket in instance.per_interval.buckets:
-                interval_key = interval_bucket.key
-                interval_values = []
-                for host_bucket in interval_bucket.per_host.buckets:
-                    key = host_bucket.key
-                    values = [{item.key: item.doc_count}
-                              for item in host_bucket.per_type.buckets]
-                    interval_values.append({key: values})
-                data.append({interval_key: interval_values})
+        # We return event types iff the caller asked for them.
+        results = {'timestamps': timestamps, 'data': data}
 
-        if hosts is None:
-            return {'timestamps': timestamps,
-                    'types': event_types,
-                    'data': data
-                    }
-        else:
-            return {'timestamps': timestamps,
-                    'hosts': hosts,
-                    'types': event_types,
-                    'data': data
-                    }
+        if event_types:
+            results['types'] = event_types
+
+        return results

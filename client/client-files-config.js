@@ -19,13 +19,17 @@
 
 module.exports = {
     clientWildcards: [
-        'client/js/base.js',
-        'client/js/goldstoneBaseModel.js',
-        'client/js/goldstoneBaseView.js',
-        'client/js/goldstoneBasePageView.js',
-        'client/js/goldstoneBaseCollection.js',
-        'client/js/goldstoneRouter.js',
-        'client/js/utilizationCpuView.js',
+        'client/js/preload/base.js',
+        'client/js/preload/goldstoneBaseModel.js',
+        'client/js/preload/goldstoneBaseView.js',
+        'client/js/preload/goldstoneBaseView2.js',
+        'client/js/preload/goldstoneBasePageView.js',
+        'client/js/preload/goldstoneBasePageView2.js',
+        'client/js/preload/goldstoneBaseCollection.js',
+        'client/js/preload/dataTableBaseView.js',
+        'client/js/preload/goldstoneRouter.js',
+        'client/js/preload/chartSet.js',
+        'client/js/preload/utilizationCpuView.js',
         'client/js/models/*.js',
         'client/js/collections/*.js',
         'client/js/views/*.js'
@@ -41,7 +45,7 @@ module.exports = {
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
     coverageReportTargets: {
-        'client/js/*.js': ['coverage'],
+        'client/js/preload/*.js': ['coverage'],
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage']

@@ -474,12 +474,10 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     render: function() {
 
-        new ChartHeaderView({
-            el: this.el,
-            columns: 12,
+        this.$el.append(new ChartHeaderView({
             chartTitle: this.defaults.chartTitle,
             infoText: this.defaults.infoCustom
-        });
+        }).el);
 
         $(this.el).find('.mainContainer').append(this.template());
         return this;

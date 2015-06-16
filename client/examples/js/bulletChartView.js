@@ -369,12 +369,12 @@ var BulletChartView = Backbone.View.extend({
         var ns = this.defaults;
 
         if (ns.chartHeader !== null) {
-            new ChartHeaderView({
+            $(ns.chartHeader[0]).append(new ChartHeaderView({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
                 columns: 12
-            });
+            }).el);
         }
 
         this.$el.append(this.template());

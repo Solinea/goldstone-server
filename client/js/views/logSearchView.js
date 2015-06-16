@@ -60,13 +60,11 @@ var LogSearchView = GoldstoneBasePageView.extend({
     render: function() {
         this.$el.html(this.template());
 
-        new ChartHeaderView({
-            el: '.log-analysis-container',
+        $('.log-analysis-container').append(new ChartHeaderView({
             chartTitle: 'Log Analysis',
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
-            columns: 13
-        });
+        }).el);
 
         return this;
     },

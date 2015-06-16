@@ -165,26 +165,21 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         // ChartHeaderViews frame out chart header bars and populate info buttons
 
-        new ChartHeaderView({
-            el: '#service-status-title-bar',
+        $('#service-status-title-bar').append(new ChartHeaderView({
             chartTitle: 'Service Status Report',
             infoText: 'serviceStatus',
-            columns: 12
-        });
-        new ChartHeaderView({
-            el: '#utilization-title-bar',
+        }).el);
+
+        $('#utilization-title-bar').append(new ChartHeaderView({
             chartTitle: 'Utilization',
             infoText: 'utilization',
-            columns: 12
-        });
+        }).el);
 
         // PENDING
-        // new ChartHeaderView({
-        //     el: '#hypervisor-title-bar',
+        // $('#hypervisor-title-bar').append(new ChartHeaderView({
         //     chartTitle: 'Hypervisor',
         //     infoText: 'hypervisor',
-        //     columns: 12
-        // });
+        // }).el);
 
         // construct api calls from url component
         // between the last '/' and the following '.'

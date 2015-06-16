@@ -713,22 +713,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)
             .call(d3.legend);
-    },
-
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-
-        new ChartHeaderView({
-            el: this.el,
-            columns: 12,
-            chartTitle: this.defaults.chartTitle,
-            infoText: this.defaults.infoCustom
-        });
-
-        $(this.el).find('.mainContainer').append(this.template());
-        return this;
     }
 
 });

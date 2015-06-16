@@ -14,39 +14,29 @@
  * limitations under the License.
  */
 
-var ChartHeaderView = Backbone.View.extend({
+var ChartHeaderView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.columns = options.columns || 12;
-        this.defaults.chartTitle = options.chartTitle;
-        this.defaults.infoText = options.infoText;
-        this.defaults.infoIcon = options.infoIcon || 'fa-tasks';
-
-        var ns = this.defaults;
-        var self = this;
-
+    instanceSpecificInit: function() {
+        this.columns = this.options.columns || 12;
+        this.infoText = this.options.infoText;
+        this.infoIcon = this.options.infoIcon || 'fa-dashboard';
+        this.chartTitle = this.options.chartTitle || 'Set Chart Title';
         this.render();
-
     },
 
     render: function() {
-        this.$el.append(this.template());
+        this.$el.html(this.template());
         this.populateInfoButton();
         return this;
     },
 
     populateInfoButton: function() {
-        var ns = this.defaults;
         var self = this;
         // chart info button popover generator
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
-            var result = infoButtonText[ns.infoText];
+            var result = infoButtonText[this.infoText];
+            result = result ? result : 'Set in InfoButtonText.js';
             return result;
         };
 
@@ -65,9 +55,10 @@ var ChartHeaderView = Backbone.View.extend({
             });
     },
 
-    template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +
+    template: _.template('' +
+        '<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.columns %>">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa <%= this.defaults.infoIcon %>"></i> <%= this.defaults.chartTitle %>' +
+        '<h3 class="panel-title"><i class="fa <%= this.infoIcon %>"></i> <%= this.chartTitle %>' +
         '<span class="pull-right special-icon-post"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +

@@ -203,8 +203,8 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // if there is already a chart populating this div:
         if (this.metricChart) {
             this.metricChart.url = url;
-            this.metricChart.defaults.statistic = this.chartOptions.get('statistic');
-            this.metricChart.defaults.standardDev = this.chartOptions.get('standardDev');
+            this.metricChart.statistic = this.chartOptions.get('statistic');
+            this.metricChart.standardDev = this.chartOptions.get('standardDev');
             $(this.metricChartView.el).find('#spinner').show();
             this.metricChart.fetchWithReset();
         } else {
