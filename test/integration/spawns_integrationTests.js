@@ -115,6 +115,14 @@ describe('apiPerfView.js spec', function() {
             $(this.testView.el).find('#info-button').click();
             expect($('div.popover').length).to.equal(1);
         });
+        it('returns data.per_interval', function() {
+            var test1 = this.testCollection.parse(123);
+            expect(test1).to.deep.equal([]);
+            test1 = this.testCollection.parse({
+                per_interval: 123
+            });
+            expect(test1).to.deep.equal(123);
+        });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
             this.testView.update();

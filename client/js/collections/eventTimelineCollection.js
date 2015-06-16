@@ -19,7 +19,7 @@
 var EventTimelineModel = GoldstoneBaseModel.extend({
     // sort by @timestamp. Used to be id, but that has been
     // removed as of v3 api.
-    idAttribute: '@timestamp'
+    idAttribute: 'timestamp'
 });
 
 var EventTimelineCollection = Backbone.Collection.extend({
@@ -32,7 +32,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
             var dN = data.next;
 
             // if url params change, be sure to update this:
-            nextUrl = dN.slice(dN.indexOf('/logging'));
+            nextUrl = dN.slice(dN.indexOf(this.urlBase));
 
             // fetch and add to collection without deleting existing data
             this.fetch({
@@ -46,6 +46,8 @@ var EventTimelineCollection = Backbone.Collection.extend({
     },
 
     defaults: {},
+
+    urlBase: '/core/events/search/',
 
     initialize: function(options) {
 
@@ -95,8 +97,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
         // /logging/events/search/?@timestamp__range={"gte":1426698303974}&page_size=1000"
 
         var lookback = +new Date() - (val * 60 * 1000);
-        this.url = '/logging/events/search/?@timestamp__range={"gte":' +
-            lookback + '}&page_size=1000';
-
+        this.url = this.urlBase + '?timestamp__range={"gte":' +
+            lookback + ',"lte":' + (+new Date()) + '}&page_size=100';
     }
 });

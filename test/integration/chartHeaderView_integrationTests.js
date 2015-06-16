@@ -17,7 +17,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('UtilizationNet.js spec', function() {
+describe('ChartHeaderView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
@@ -42,13 +42,13 @@ describe('UtilizationNet.js spec', function() {
             }
         });
 
+
         this.testView = new ChartHeaderView({
-            el: '.testContainer',
             chartTitle: 'Test Chart',
             infoText: 'testText',
-            columns: 12
         });
 
+        $('.testContainer').append(this.testView.el);
 
 
     });
@@ -60,7 +60,6 @@ describe('UtilizationNet.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.testContainer');
         });
         it('can be instantiated with or without a column designation', function() {
             this.testView = new ChartHeaderView({

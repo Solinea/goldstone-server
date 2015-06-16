@@ -73,71 +73,18 @@ describe('NodeReportView.js spec', function() {
         app = {};
         app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new NodeReportView({
-            el: '.test-container',
-            node_uuid: 'power-of-greyskull'
+        this.testView = new GoldstoneBasePageView2({
+            el: '.test-container'
         });
     });
     afterEach(function() {
         $('body').html('');
         this.server.restore();
     });
-    describe('report sections are hide-able', function() {
-        it('should only trigger refresh on charts that are visible', function() {
-            expect(this.testView.visiblePanel).to.deep.equal({
-                Services: true,
-                Reports: false,
-                Events: false,
-                Details: false,
-                Logs: false
-            });
-
-            $('.reportsButton').click();
-            expect(this.testView.visiblePanel).to.deep.equal({
-                Services: false,
-                Reports: true,
-                Events: false,
-                Details: false,
-                Logs: false
-            });
-
-            $('.eventsButton').click();
-            expect(this.testView.visiblePanel).to.deep.equal({
-                Services: false,
-                Reports: false,
-                Events: true,
-                Details: false,
-                Logs: false
-            });
-
-            $('.detailsButton').click();
-            expect(this.testView.visiblePanel).to.deep.equal({
-                Services: false,
-                Reports: false,
-                Events: false,
-                Details: true,
-                Logs: false
-            });
-
-            $('.logsButton').click();
-            expect(this.testView.visiblePanel).to.deep.equal({
-                Services: false,
-                Reports: false,
-                Events: false,
-                Details: false,
-                Logs: true
-            });
-
-        });
-    });
     describe('view is constructed', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.test-container');
-        });
-        it('should exist', function() {
-            this.testView.render();
         });
         it('view responds to global selector changes', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
@@ -157,40 +104,20 @@ describe('NodeReportView.js spec', function() {
             this.getGlobalLookbackRefresh_spy.restore();
         });
         it('view won\'t refresh if global refresh is set to off', function() {
-            var test1 = this.testView.defaults.scheduleInterval;
+            var test1 = this.testView.currentInterval;
             $('#global-refresh-range').val('-1');
             this.testView.getGlobalLookbackRefresh();
             this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.equal(test1);
+            expect(this.testView.currentInterval).to.equal(test1);
             $('#global-refresh-range').val('30');
             this.testView.getGlobalLookbackRefresh();
             this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.not.equal(test1);
-        });
-        it('should correctly parse the node from the url', function() {
-            var test1 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.lab.solinea.com');
-            var test2 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01');
-            var test3 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.a.b.c.d.e.f.g.h');
-            var test4 = this.testView.constructHostName('http://localhost:8000/report/node/');
-            expect(test1).to.equal('controller-01');
-            expect(test2).to.equal('controller-01');
-            expect(test3).to.equal('controller-01');
-            expect(test4).to.equal('');
-        });
-        it('should show/hide report sections accordingly', function() {
-            this.testView.initializeChartButtons();
-            $('#headerBar').click();
-            expect($('#servicesReport').css('display')).to.equal('block');
-            expect($('#reportsReport').css('display')).to.equal('none');
-            expect($('#eventsReport').css('display')).to.equal('none');
-            $('.reportsButton').click();
-            expect($('#servicesReport').css('display')).to.equal('block');
-            expect($('#reportsReport').css('display')).to.equal('block');
-            expect($('#eventsReport').css('display')).to.equal('none');
-            $('.eventsButton').click();
-            expect($('#servicesReport').css('display')).to.equal('block');
-            expect($('#reportsReport').css('display')).to.equal('block');
-            expect($('#eventsReport').css('display')).to.equal('block');
+            expect(this.testView.currentInterval).to.not.equal(test1);
+            this.testView.viewsToStopListening = [{
+                stopListening: function() {},
+                off: function() {}
+            }];
+            this.testView.onClose();
         });
     });
 });

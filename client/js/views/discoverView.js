@@ -115,6 +115,9 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r2" class="row">' +
         '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="goldstone-discover-r3" class="row">' +
+        '<br><br>' +
         '</div>'
     )
 
