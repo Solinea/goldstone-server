@@ -547,6 +547,11 @@ class EventSummarizeView(DateHistogramAggView):
                           or 3m.
              required: true
              paramType: query
+           - name: per_type
+             description: Include per-type information in the results.
+             type: boolean
+             defaultValue: true
+             paramType: query
            - name: timestamp__range
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
@@ -559,50 +564,30 @@ class EventSummarizeView(DateHistogramAggView):
     AGG_FIELD = 'timestamp'
     AGG_NAME = 'per_interval'
     serializer_class = EventAggSerializer
-    reserved_params = ['interval', 'per_host']
+    reserved_params = ['interval', 'per_host', 'per_type']
 
     class Meta:             # pylint: disable=C1001,W0232,C0111
         model = EventData
 
     def get(self, request):
         """Return a response to a GET request."""
-        import ast
-
-        # Remember if the request wanted the information to be per-host
-        per_host = ast.literal_eval(
-            self.request.query_params.get('per_host', 'False'))
 
         # Start with a basic histogram search, having a top-level aggregation
         # for time intervals.
         search = self._get_search(request)
 
-        # Add a top-level aggregation for types.
-        search.aggs.bucket('per_type',
-                           "terms",
-                           field="_type",
-                           min_doc_count=0)
+        # See if the request wants per-type information.
+        per_type = \
+            self.request.query_params.get('per_type', 'True')[0].upper() == 'T'
 
-        if per_host:
-            # The caller wants to see per-host results. Add a top-level
-            # aggregation for hosts
-            search.aggs.bucket('per_host',
+        if per_type:
+            # Add a top-level aggregation for types.
+            search.aggs.bucket('per_type',
                                "terms",
-                               field="host.raw",
+                               field="_type",
                                min_doc_count=0)
 
-            # nested aggregations per interval, per host
-            search.aggs['per_interval'].bucket('per_host',
-                                               'terms',
-                                               field='host.raw',
-                                               min_doc_count=0)
-
-            search.aggs['per_interval']['per_host'].bucket('per_type',
-                                                           'terms',
-                                                           field='_type',
-                                                           min_doc_count=0)
-        else:
-            # No per-host results. Add a second-level aggregation for types,
-            # under time intervals.
+            # Add a second-level aggregation for types, under time intervals.
             search.aggs['per_interval'].bucket('per_type',
                                                'terms',
                                                field='_type',
