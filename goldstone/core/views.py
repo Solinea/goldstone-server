@@ -564,21 +564,22 @@ class EventSummarizeView(DateHistogramAggView):
     AGG_FIELD = 'timestamp'
     AGG_NAME = 'per_interval'
     serializer_class = EventAggSerializer
-    reserved_params = ['interval', 'per_host', 'per_type']
+    reserved_params = ['interval', 'per_type']
 
     class Meta:             # pylint: disable=C1001,W0232,C0111
         model = EventData
 
     def get(self, request):
         """Return a response to a GET request."""
+        import ast
 
         # Start with a basic histogram search, having a top-level aggregation
         # for time intervals.
         search = self._get_search(request)
 
         # See if the request wants per-type information.
-        per_type = \
-            self.request.query_params.get('per_type', 'True')[0].upper() == 'T'
+        per_type = ast.literal_eval(
+            self.request.query_params.get('per_type', 'True').capitalize())
 
         if per_type:
             # Add a top-level aggregation for types.
