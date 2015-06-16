@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n }{% autoescape off %}
 {% trans "You're receiving this email because a tenant has been created, and you've been granted tenant administration permissions on it." %}
 
 {% trans "The site:" %}  {{ protocol }}://{{ domain }}/{{ site_name }}

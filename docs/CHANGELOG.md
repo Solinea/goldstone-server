@@ -1,5 +1,35 @@
 # Change Log
 
+## [Unreleased](https://github.com/Solinea/goldstone-server/tree/HEAD)
+
+[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.1...HEAD)
+
+**Fixed bugs:**
+
+- fab uninstall postgres cleanup errors when run from /opt/goldstone [\#33](https://github.com/Solinea/goldstone-server/issues/33)
+
+**Closed issues:**
+
+- fab install python 'name' TypeError on collecting OpenStack resources [\#36](https://github.com/Solinea/goldstone-server/issues/36)
+
+**Merged pull requests:**
+
+- Event design phase1 [\#38](https://github.com/Solinea/goldstone-server/pull/38) ([jxstanford](https://github.com/jxstanford))
+
+- Events api updates: add parameter-based querying of the events in the system [\#47](https://github.com/Solinea/goldstone-server/pull/47) ([stugots](https://github.com/stugots))
+
+- Bump elasticsearch and logstash along with misc fixes/cleanups [\#46](https://github.com/Solinea/goldstone-server/pull/46) ([jxstanford](https://github.com/jxstanford))
+
+- Config ceilometer events [\#45](https://github.com/Solinea/goldstone-server/pull/45) ([jxstanford](https://github.com/jxstanford))
+
+- Dockerized development environment [\#44](https://github.com/Solinea/goldstone-server/pull/44) ([jxstanford](https://github.com/jxstanford))
+
+- update fab installer to handle unspecified cloud settings [\#43](https://github.com/Solinea/goldstone-server/pull/43) ([stugots](https://github.com/stugots))
+
+- Expose cloud settings for cloud admin users via API [\#42](https://github.com/Solinea/goldstone-server/pull/42) ([stugots](https://github.com/stugots))
+
+- removed repo rpm stuff, and moved server rpm spec to rpm\_packaging. [\#41](https://github.com/Solinea/goldstone-server/pull/41) ([jxstanford](https://github.com/jxstanford))
+
 ## [0.5.1](https://github.com/Solinea/goldstone-server/tree/0.5.1) (2015-05-20)
 
 [Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.0...0.5.1)

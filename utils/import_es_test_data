@@ -1,0 +1,45 @@
+#!/bin/bash
+set -x
+
+DATA_FILE_NAME=es_test_data-2015.06.15.tar.gz
+DATA_URL="https://github.com/Solinea/goldstone-server/releases/download/0.5.1/${DATA_FILE_NAME}"
+SNAP_REPO_DIR=`pwd`/es_snapshot
+DEST_ES_URL='http://127.0.0.1:9200'
+
+mkdir $SNAP_REPO_DIR
+cd $SNAP_REPO_DIR
+curl -GO $DATA_URL
+gunzip $DATA_FILE_NAME
+tar xf ${DATA_FILE_NAME%.gz}
+rm ${DATA_FILE_NAME%.gz}
+cd ..
+
+# create the destination snaphost repo, if necessary
+echo "creating the snapshot repo, if it doesn't already exist."
+curl -s -XPUT "${DEST_ES_URL}/_snapshot/test_data" -d '{
+    "type": "fs",
+    "settings": {
+        "location": "${SNAP_REPO_DIR}",
+        "max_snapshot_bytes_per_sec": "100mb",
+        "max_restore_bytes_per_sec": "100mb",
+        "compress": true
+    }
+}'
+
+echo;echo
+
+# delete all existing indices
+echo "deleting all existing indices."
+curl -s -XDELETE "${DEST_ES_URL}/_all"
+echo;echo
+
+# restore the snapshot
+if [[ $# == 1 ]]; then
+   datestr=$1
+else
+   # use today's date, and delete yesterday's export
+   datestr=`date -u +%Y.%m.%d`
+fi
+
+curl -s -XPOST "${DEST_ES_URL}/_snapshot/test_data/${datestr}/_restore?wait_for_completion=true"
+echo
