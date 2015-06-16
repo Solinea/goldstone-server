@@ -40,9 +40,9 @@ def dictassign(thedict, key, value):
     thedict[key] = value
 
 
-def do_test(type_from, data_from, identity_from, match_from_key_fn,
-            type_to, data_to, identity_to, match_to_key_fn):
-    """Test two resource_types nodes.
+def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
+            match_to_key_fn):
+    """Test the methods of two resource type nodes.
 
     This function modifies data_from and to_from.
 
@@ -50,8 +50,6 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
     :type type_from: PolyResource subclass
     :param data_from: Type_from's initial test data.
     :type data_from: dict
-    :param identity_from: The identity() value against which to test
-    :type identity_from: str
     :param match_from_key_fn: A one-argument function to modify the value used
                               in the matching_fn test
     :type match_from_key_fn: Callable
@@ -59,17 +57,11 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
     :type type_to: PolyResource subclass
     :param data_to: Type_to's initial test data.
     :type data_to: dict
-    :param identity_to: The identity() value against which to test
-    :type identity_to: str
     :param match_to_key_fn: A one-argument function to modify the value used
                             in the matching_fn test
     :type match_to_key_fn: Callable
 
     """
-
-    # Test identity method.
-    assert type_from.identity(data_from) == identity_from
-    assert type_to.identity(data_to) == identity_to
 
     # Test edge discovery.
     edges = resource_types.graph.out_edges(type_from, data=True)
@@ -199,11 +191,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Image,
                 IMAGE,
-                '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
                 partial(dictassign, IMAGE, "id"),
                 Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 partial(dictassign, SERVER, "id"))
 
     @staticmethod
@@ -244,15 +234,12 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        do_test(
-            AvailabilityZone,
-            AVAILABILITY_ZONE,
-            '8ccf0ae91ac1058336d10c4248950d4d1de44c0f3c7eec323b28b3e81a9dcb45',
-            partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
-            Aggregate,
-            AGGREGATE,
-            'f801b45072a317f1170ca415d41d94c58fb58637f44fca4e23b1fe3dbbfa5ef1',
-            partial(dictassign, AGGREGATE, "availability_zone"))
+        do_test(AvailabilityZone,
+                AVAILABILITY_ZONE,
+                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
+                Aggregate,
+                AGGREGATE,
+                partial(dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
     def test_availability_zone_host():
@@ -284,15 +271,12 @@ class ResourceTypesTests(SimpleTestCase):
 
         HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
 
-        do_test(
-            AvailabilityZone,
-            AVAILABILITY_ZONE,
-            '8ccf0ae91ac1058336d10c4248950d4d1de44c0f3c7eec323b28b3e81a9dcb45',
-            partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
-            Host,
-            HOST,
-            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
-            partial(dictassign, HOST, "zone"))
+        do_test(AvailabilityZone,
+                AVAILABILITY_ZONE,
+                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
+                Host,
+                HOST,
+                partial(dictassign, HOST, "zone"))
 
     @staticmethod
     def test_cloudpipe():
@@ -390,15 +374,12 @@ class ResourceTypesTests(SimpleTestCase):
 
             SERVER["flavor"]["id"] = value
 
-        do_test(
-            Flavor,
-            FLAVOR,
-            'f844d77ef57dd2d494a60761a17edaecfc52bf7451534c67f72c03e62f364554',
-            partial(dictassign, FLAVOR, "id"),
-            Server,
-            SERVER,
-            'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-            serverassign)
+        do_test(Flavor,
+                FLAVOR,
+                partial(dictassign, FLAVOR, "id"),
+                Server,
+                SERVER,
+                serverassign)
 
     @staticmethod
     def test_host_aggregate():
@@ -422,15 +403,12 @@ class ResourceTypesTests(SimpleTestCase):
 
             AGGREGATE["hosts"] = ["bob", "marley", value]
 
-        do_test(
-            Host,
-            HOST,
-            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
-            partial(dictassign, HOST, "host_name"),
-            Aggregate,
-            AGGREGATE,
-            'f801b45072a317f1170ca415d41d94c58fb58637f44fca4e23b1fe3dbbfa5ef1',
-            aggregateassign)
+        do_test(Host,
+                HOST,
+                partial(dictassign, HOST, "host_name"),
+                Aggregate,
+                AGGREGATE,
+                aggregateassign)
 
     @staticmethod
     def test_host_hypervisor():
@@ -467,15 +445,12 @@ class ResourceTypesTests(SimpleTestCase):
                       u'vcpus': 8,
                       u'vcpus_used': 4}
 
-        do_test(
-            Host,
-            HOST,
-            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
-            partial(dictassign, HOST, "host_name"),
-            Hypervisor,
-            HYPERVISOR,
-            '64614e70f9ecfe2b37ad1abc1d597e670a5fcb9ae341419b44063725fc164733',
-            partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
+        do_test(Host,
+                HOST,
+                partial(dictassign, HOST, "host_name"),
+                Hypervisor,
+                HYPERVISOR,
+                partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
 
     @staticmethod
     def test_hypervisor_server():
@@ -572,17 +547,14 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        do_test(
-            Hypervisor,
-            HYPERVISOR,
-            '64614e70f9ecfe2b37ad1abc1d597e670a5fcb9ae341419b44063725fc164733',
-            partial(dictassign, HYPERVISOR, "id"),
-            Server,
-            SERVER,
-            'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-            partial(dictassign,
-                    SERVER,
-                    "OS-EXT-SRV-ATTR:hypervisor_hostname"))
+        do_test(Hypervisor,
+                HYPERVISOR,
+                partial(dictassign, HYPERVISOR, "id"),
+                Server,
+                SERVER,
+                partial(dictassign,
+                        SERVER,
+                        "OS-EXT-SRV-ATTR:hypervisor_hostname"))
 
     @staticmethod
     def test_interface_port():
@@ -621,11 +593,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Interface,
                 INTERFACE,
-                'fa:16:3e:00:11:22',
                 partial(dictassign, INTERFACE, "mac_addr"),
                 Port,
                 PORT,
-                'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
                 partial(dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
@@ -710,12 +680,6 @@ class ResourceTypesTests(SimpleTestCase):
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
-        # Test identity method.
-        self.assertEqual(Keypair.identity(KEYPAIR),
-                         'fa:73:23:78:1f:8c:10:bb:25:0f:6f:5e:25:62:14:c7')
-        self.assertEqual(Server.identity(SERVER),
-                         'ee662ff5-3de6-46cb-8b85-4eb4317beb7c')
-
         # Test edge discovery.
         edges = resource_types.graph.out_edges(Keypair, data=True)
         edge = [x for x in edges if x[1] == Server][0][2]

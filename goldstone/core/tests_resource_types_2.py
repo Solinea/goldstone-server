@@ -107,11 +107,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 serverassign,
                 Interface,
                 INTERFACE,
-                'fa:16:3e:00:11:22',
                 partial(dictassign, INTERFACE, "mac_addr"))
 
     @staticmethod
@@ -194,11 +192,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 partial(dictassign, SERVER, "hostId"),
                 ServerGroup,
                 SERVERGROUP,
-                'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
                 servergroupassign)
 
     @staticmethod
@@ -294,11 +290,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 serverassign,
                 Volume,
                 VOLUME,
-                "45baf976-c20a-4894-a7c3-c94b7376bf55",
                 volumeassign)
 
     @staticmethod
@@ -326,11 +320,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(QOSSpec,
                 QOSSPEC,
-                "0388d6c6-d5d4-42a3-b289-95205c50dd15",
                 partial(dictassign, QOSSPEC, "id"),
                 VolumeType,
                 VOLUME_TYPE,
-                "6685584b-1eac-4da6-b5c3-555430cf68ff",
                 volumetypeassign)
 
     @staticmethod
@@ -373,11 +365,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(VolumeType,
                 VOLUME_TYPE,
-                "6685584b-1eac-4da6-b5c3-555430cf68ff",
                 partial(dictassign, VOLUME_TYPE, "id"),
                 Volume,
                 VOLUME,
-                "5aa119a8-d25b-45a7-8d1b-88e127885635",
                 partial(dictassign, VOLUME, "volume_type"))
 
     @staticmethod
@@ -427,9 +417,7 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Snapshot,
                 SNAPSHOT,
-                "43f20e0e-2c2c-4770-9d4e-c3d769ae5470",
                 partial(dictassign, SNAPSHOT, "id"),
                 Volume,
                 VOLUME,
-                "5aa119a8-d25b-45a7-8d1b-88e127885635",
                 partial(dictassign, VOLUME, "snapshot_id"))
