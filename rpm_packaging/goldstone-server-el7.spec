@@ -129,8 +129,9 @@ install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
 install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
 install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
 install -m 640 %{_sourcedir}/installer_fabfile.py %{buildroot}/opt/goldstone/fabfile.py
-install -m 640 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
-install -m 640 %{_sourcedir}/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
+install -m 640 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
+install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
+install -m 640 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 640 %{_sourcedir}/external/httpd/zgoldstone-el7.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 640 %{_sourcedir}/external/selinux/config %{buildroot}/etc/selinux/config
@@ -157,6 +158,7 @@ rm -rf %{buildroot}
 /opt/goldstone/fabfile.py
 /opt/goldstone/README.md
 /opt/goldstone/INSTALL.md
+/opt/goldstone/CHANGELOG.md
 /opt/goldstone/LICENSE
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
