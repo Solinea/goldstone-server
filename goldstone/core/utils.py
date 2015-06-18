@@ -204,19 +204,22 @@ def process_resource_type(nodetype):
     from goldstone.core.models import Host
     from goldstone.core.resources import GraphNode
 
-    # Get the cloud instances that are of the "nodetype" type.
+    # Remove Resource graph nodes that no longer exist. First get the cloud
+    # instances of the desired type, and then existing nodes of that type in
+    # the resource graph.
     actual = nodetype.clouddata()
 
-    # Remove Resource graph nodes that no longer exist.  We use the first
-    # edge's destination node's matching_attributes' source key value, and look
-    # for a match in the resource graph.
+    nodetype_unique_cloud_id_key = nodetype.unique_cloud_id_key()
+    actual_cloud_instance_ids = set([x.get(nodetype_unique_cloud_id_key)
+                                     for x in actual if x])
+
     resource_nodes = resources.nodes_of_type(nodetype)
-    actual_cloud_instances = set([nodetype.identity(x) for x in actual if x])
 
     # For every node of this type in the resource graph...
     for entry in resource_nodes:
         # Check this node's identifying attribute value.
-        if nodetype.identity(entry.attributes) not in actual_cloud_instances:
+        if entry.attributes[nodetype_unique_cloud_id_key] \
+           not in actual_cloud_instance_ids:
             # This node does not appear to be in the cloud anymore. Delete it.
             resources.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
@@ -228,15 +231,16 @@ def process_resource_type(nodetype):
     # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
 
-    # For every current node of the desired nodetype for which we're able to
-    # generate a unique cloud id...
+    # For every current node of the desired nodetype...
     for entry in actual:
-        native_id = nodetype.identity(entry)
+        native_id = entry.get(nodetype_unique_cloud_id_key)
 
+        # Work on this node iff it has a unique id...
+        # TODO: Should we log a warning or error if not?
         if native_id:
             # Try to find its corresponding Resource graph node.
             node = resources.locate(resource_nodes,
-                                    nodetype.identity,
+                                    nodetype.unique_cloud_id,
                                     native_id)
 
             if node:
