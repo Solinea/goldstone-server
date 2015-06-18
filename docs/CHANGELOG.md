@@ -1,8 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/Solinea/goldstone-server/tree/HEAD)
+## [0.6.0](https://github.com/Solinea/goldstone-server/tree/0.6.0) (2015-06-17)
 
-[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.1...HEAD)
+[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.1...0.6.0)
 
 **Fixed bugs:**
 
@@ -15,6 +15,16 @@
 **Merged pull requests:**
 
 - Event design phase1 [\#38](https://github.com/Solinea/goldstone-server/pull/38) ([jxstanford](https://github.com/jxstanford))
+
+- updated rpm spec for doc moves [\#54](https://github.com/Solinea/goldstone-server/pull/54) ([jxstanford](https://github.com/jxstanford))
+
+- fixed broken tox runs by cleaning up setup.cfg [\#53](https://github.com/Solinea/goldstone-server/pull/53) ([jxstanford](https://github.com/jxstanford))
+
+- First pass at travis-ci build, fixed RTD build problem [\#52](https://github.com/Solinea/goldstone-server/pull/52) ([jxstanford](https://github.com/jxstanford))
+
+- Gold 808 [\#51](https://github.com/Solinea/goldstone-server/pull/51) ([lexjacobs](https://github.com/lexjacobs))
+
+- Empty buckets [\#49](https://github.com/Solinea/goldstone-server/pull/49) ([stugots](https://github.com/stugots))
 
 - Events api updates: add parameter-based querying of the events in the system [\#47](https://github.com/Solinea/goldstone-server/pull/47) ([stugots](https://github.com/stugots))
 
