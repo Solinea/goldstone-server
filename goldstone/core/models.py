@@ -225,11 +225,11 @@ class PolyResource(PolymorphicModel):
 #
 # These classes represent entities within a Keystone integration.
 #
+# TODO: Fill in User, Domain, Group, Token, Credential, Role, Region, Endpoint,
+# Service, Project.
 
 class User(PolyResource):
     """An OpenStack user."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -261,8 +261,6 @@ class User(PolyResource):
 class Domain(PolyResource):
     """An OpenStack domain."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -286,8 +284,6 @@ class Domain(PolyResource):
 class Group(PolyResource):
     """An OpenStack group."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -298,8 +294,6 @@ class Group(PolyResource):
 
 class Token(PolyResource):
     """An OpenStack token."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -322,8 +316,6 @@ class Token(PolyResource):
 class Credential(PolyResource):
     """An OpenStack credential."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -342,8 +334,6 @@ class Credential(PolyResource):
 
 class Role(PolyResource):
     """An OpenStack role."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -374,8 +364,6 @@ class Role(PolyResource):
 class Region(PolyResource):
     """An OpenStack region."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -397,8 +385,6 @@ class Region(PolyResource):
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -418,8 +404,6 @@ class Endpoint(PolyResource):
 class Service(PolyResource):
     """An OpenStack service."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -430,8 +414,6 @@ class Service(PolyResource):
 
 class Project(PolyResource):
     """An OpenStack project."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1348,11 +1330,12 @@ class Limits(PolyResource):
 #
 # These classes represent entities within a Neutron integration.
 #
+# TODO: Fill in MeteringLabelRule, MeteringLabel, NeutronQuota, RemoteGroup,
+# SecurityRules, SecurityGroup., LBVIP, LBPool, HealthMonitor, FloatingIP,
+# FloatingIPPool, FixedIP, LBMember, Subnet, Network, Router.
 
 class MeteringLabelRule(PolyResource):
     """An OpenStack Metering Label Rule."""
-
-    # TODO: Fill in.
 
     @classmethod
     def display_attributes(cls):
@@ -1364,8 +1347,6 @@ class MeteringLabelRule(PolyResource):
 
 class MeteringLabel(PolyResource):
     """An OpenStack Metering Label."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1388,8 +1369,6 @@ class MeteringLabel(PolyResource):
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1401,8 +1380,6 @@ class NeutronQuota(PolyResource):
 class RemoteGroup(PolyResource):
     """An OpenStack Remote Group."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1413,8 +1390,6 @@ class RemoteGroup(PolyResource):
 
 class SecurityRules(PolyResource):
     """An OpenStack Security Rules."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1436,8 +1411,6 @@ class SecurityRules(PolyResource):
 
 class SecurityGroup(PolyResource):
     """An OpenStack Security Group."""
-
-    # TODO: Fill in.
 
     @classmethod
     def display_attributes(cls):
@@ -1488,8 +1461,6 @@ class Port(PolyResource):
 class LBVIP(PolyResource):
     """An OpenStack load balancer VIP address."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -1513,8 +1484,6 @@ class LBVIP(PolyResource):
 class LBPool(PolyResource):
     """An OpenStack load balancer pool."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1525,8 +1494,6 @@ class LBPool(PolyResource):
 
 class HealthMonitor(PolyResource):
     """An OpenStack Health Monitor."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1549,8 +1516,6 @@ class HealthMonitor(PolyResource):
 class FloatingIP(PolyResource):
     """An OpenStack Floating IP address."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1561,8 +1526,6 @@ class FloatingIP(PolyResource):
 
 class FloatingIPPool(PolyResource):
     """An OpenStack Floating IP address pool."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1589,8 +1552,6 @@ class FloatingIPPool(PolyResource):
 class FixedIP(PolyResource):
     """An OpenStack Fixed IP address."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1601,8 +1562,6 @@ class FixedIP(PolyResource):
 
 class LBMember(PolyResource):
     """An OpenStack load balancer member."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1627,8 +1586,6 @@ class LBMember(PolyResource):
 class Subnet(PolyResource):
     """An OpenStack subnet."""
 
-    # TODO: Fill in.
-
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
@@ -1650,8 +1607,6 @@ class Subnet(PolyResource):
 class Network(PolyResource):
     """An OpenStack network."""
 
-    # TODO: Fill in.
-
     @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
@@ -1662,8 +1617,6 @@ class Network(PolyResource):
 
 class Router(PolyResource):
     """An OpenStack router."""
-
-    # TODO: Fill in.
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201

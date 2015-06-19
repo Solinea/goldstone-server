@@ -199,12 +199,16 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
     def get_regions():
         return []
 
-    def _rescope_module_tree(self, tree, module_name):
+    @staticmethod
+    def _rescope_module_tree(tree, module_name):
+        """Return a tree that is ready to merge with the global tree.
+
+        This uses an rsrc_type of module, and a label of the module name.  If
+        cloud rsrc_type is the root, throws it away.  Result is wrapped in a
+        list.
+
         """
-        Returns a tree that is ready to merge with the global tree.  Uses
-        a rsrc_type of module, and a label of the module name.  If cloud
-        rsrc_type is the root, throws it away.  Result is wrapped in a list.
-        """
+
         if tree['rsrcType'] == 'cloud':
             result = []
             for child in tree['children']:
@@ -431,9 +435,9 @@ class ResourcesList(ListAPIView):
         otherwise it's used anywhere within the key. " OR " is a logical
         or. All names and ids are case-sensitive.\n\n
 
-        For example,
-        <b>?native_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
-        results in a native_name filter of <b>^Four score|^Five score</b> and
+        For example, a native_name argument of
+        <b>^A%20score%20OR%20B%20score&integration=nova%20OR%20keystone</b>
+        results in a native_name filter of <b>^A score|^B score</b> and
         an integration filter of <b>nova|keystone</b>.\n\n
 
         N.B. Edges are not included in the response if they are not from or to

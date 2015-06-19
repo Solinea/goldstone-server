@@ -25,14 +25,14 @@ class ElasticFilter(BaseFilterBackend):
     """
 
     @staticmethod
-    def _update_queryset(param, value, view, queryset, op='match'):
-        """Builds a query, preferring the raw field if available.
+    def _update_queryset(param, value, view, queryset, operation='match'):
+        """Return a query, preferring the raw field if available.
 
         :param param: the field name in ES
         :param value: the field value
         :param view: the calling view
         :param queryset: the base queryset
-        :param op: the query operation
+        :param operation: the query operation
         :rtype Search
         :return: the update Search object
 
@@ -41,7 +41,7 @@ class ElasticFilter(BaseFilterBackend):
         model_class = view.Meta.model
         param = param if not model_class.field_has_raw(param) \
             else param + '.raw'
-        return queryset.query(op, **{param: value})
+        return queryset.query(operation, **{param: value})
 
     @staticmethod
     def _coerce_value(value):
@@ -92,8 +92,8 @@ class ElasticFilter(BaseFilterBackend):
             else:
                 # first term is the field, second term is the query operation
                 param = split_param[0]
-                op = split_param[1]
+                operation = split_param[1]
                 queryset = self._update_queryset(
-                    param, value, view, queryset, op)
+                    param, value, view, queryset, operation)
 
         return queryset

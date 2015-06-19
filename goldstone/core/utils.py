@@ -236,7 +236,6 @@ def process_resource_type(nodetype):
         native_id = entry.get(nodetype_unique_cloud_id_key)
 
         # Work on this node iff it has a unique id...
-        # TODO: Should we log a warning or error if not?
         if native_id:
             # Try to find its corresponding Resource graph node.
             node = resources.locate(resource_nodes,
