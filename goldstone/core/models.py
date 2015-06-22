@@ -146,12 +146,8 @@ class PolyResource(PolymorphicModel):
         """Return information about all the objects of this type within the
         OpenStack cloud.
 
-        :return: Attributes about each instance of this type, including unique
-                 identifying ids. (The unique ids are unique only within the
-                 cloud, and aren't guaranteed to be unique across Goldstone. If
-                 OpenStack defines a unique id for this resource type, we'll
-                 use it. Otherwise, we'll generate unique hashes from other
-                 values.)
+        :return: Attributes about each instance of this type, including native
+                 ids.
 
         :rtype: list of dict
 
@@ -160,15 +156,15 @@ class PolyResource(PolymorphicModel):
         return []
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """Return the key to use within a clouddata() entry to retrieve an
-        instance's unique id.
+        instance's native id.
 
         Clouddata() returns a list of dicts. Each dict represents an instance
-        within the cloud, and contains a unique cloud id. If OpenStack defines
-        the unique id, then it's given the id a name (i.e., key) within the
-        instances' attributes. Otherwise, we create the unique cloud id and use
-        our own key for it.
+        within the cloud, and contains a native id which will be unique within
+        the cloud. If OpenStack defines a unique id, then it's given it a name
+        (i.e., key) within the instances' attributes. Otherwise, we create the
+        unique cloud id and use our own key for it.
 
         Semantically, this is a class property, but Python doesn't have class
         properties, so it's a method.
@@ -178,9 +174,9 @@ class PolyResource(PolymorphicModel):
         return "id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
-        """Return the OpenStack unique id value of a class instance from the
-        instance's OpenStack attributes.
+    def native_id_from_attributes(cls, attributes):
+        """Return the native id of a class instance from the instance's
+        OpenStack attributes.
 
         :param attributes: An instance's attributes, e.g., from an
                            xxxxx_client() call
@@ -188,7 +184,7 @@ class PolyResource(PolymorphicModel):
 
         """
 
-        return attributes[cls.unique_cloud_id_key()]
+        return attributes[cls.native_id_key()]
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -579,7 +575,7 @@ class AvailabilityZone(PolyResource):
         return [x.to_dict() for x in nova_client.availability_zones.list()]
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "zoneName"
@@ -632,20 +628,20 @@ class Aggregate(PolyResource):
             # Make a dict from this entry's data, and concoct a unique id for
             # it.
             this_entry = entry.to_dict()
-            this_entry[cls.unique_cloud_id_key] = \
-                cls.unique_cloud_id(this_entry)
+            this_entry[cls.native_id_key] = \
+                cls.native_id_from_attributes(this_entry)
             result.append(this_entry)
 
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
+    def native_id_from_attributes(cls, attributes):
         """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
@@ -675,20 +671,20 @@ class Flavor(PolyResource):
             # Make a dict from this entry's data, and concoct a unique id for
             # it.
             this_entry = entry.to_dict()
-            this_entry[cls.unique_cloud_id_key] = \
-                cls.unique_cloud_id(this_entry)
+            this_entry[cls.native_id_key] = \
+                cls.native_id_from_attributes(this_entry)
             result.append(this_entry)
 
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
+    def native_id_from_attributes(cls, attributes):
         """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
@@ -729,7 +725,7 @@ class Keypair(PolyResource):
         return [x.to_dict()["keypair"] for x in nova_client.keypairs.list()]
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "fingerprint"
@@ -809,7 +805,7 @@ class Host(PolyResource):
                 # This is a new entry for the result set. Set the host_name
                 # value, and concoct a unique id for it.
                 host["host_name"] = parsed_name
-                host[cls.unique_cloud_id_key] = cls.unique_cloud_id(host)
+                host[cls.native_id_key] = cls.native_id_from_attributes(host)
 
                 # We don't want or need this key.
                 del host["service"]
@@ -819,13 +815,13 @@ class Host(PolyResource):
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
+    def native_id_from_attributes(cls, attributes):
         """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("host_name", ''))
@@ -882,20 +878,20 @@ class Hypervisor(PolyResource):
             # Make a dict from this entry's data, and concoct a unique id for
             # it.
             this_entry = entry.to_dict()
-            this_entry[cls.unique_cloud_id_key] = \
-                cls.unique_cloud_id(this_entry)
+            this_entry[cls.native_id_key] = \
+                cls.native_id_from_attributes(this_entry)
             result.append(this_entry)
 
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
+    def native_id_from_attributes(cls, attributes):
         """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
@@ -937,7 +933,7 @@ class Cloudpipe(PolyResource):
         return [x.to_dict() for x in nova_client.cloudpipe.list()]
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "project_id"
@@ -1071,7 +1067,7 @@ class Interface(PolyResource):
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "mac_addr"
@@ -1172,20 +1168,20 @@ class QuotaSet(PolyResource):
             # Make a dict from this entry's data, and concoct a unique id for
             # it.
             this_entry = entry.to_dict()
-            this_entry[cls.unique_cloud_id_key] = \
-                cls.unique_cloud_id(this_entry)
+            this_entry[cls.native_id_key] = \
+                cls.native_id_from_attributes(this_entry)
             result.append(this_entry)
 
         return result
 
     @classmethod
-    def unique_cloud_id_key(cls):
+    def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
-    def unique_cloud_id(cls, attributes):
+    def native_id_from_attributes(cls, attributes):
         """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))

@@ -209,8 +209,8 @@ def process_resource_type(nodetype):
     # the resource graph.
     actual = nodetype.clouddata()
 
-    nodetype_unique_cloud_id_key = nodetype.unique_cloud_id_key()
-    actual_cloud_instance_ids = set([x.get(nodetype_unique_cloud_id_key)
+    nodetype_native_id_key = nodetype.native_id_key()
+    actual_cloud_instance_ids = set([x.get(nodetype_native_id_key)
                                      for x in actual if x])
 
     resource_nodes = resources.nodes_of_type(nodetype)
@@ -218,7 +218,7 @@ def process_resource_type(nodetype):
     # For every node of this type in the resource graph...
     for entry in resource_nodes:
         # Check this node's identifying attribute value.
-        if entry.attributes[nodetype_unique_cloud_id_key] \
+        if entry.attributes[nodetype_native_id_key] \
            not in actual_cloud_instance_ids:
             # This node does not appear to be in the cloud anymore. Delete it.
             resources.graph.remove_node(entry)
@@ -233,13 +233,13 @@ def process_resource_type(nodetype):
 
     # For every current node of the desired nodetype...
     for entry in actual:
-        native_id = entry.get(nodetype_unique_cloud_id_key)
+        native_id = entry.get(nodetype_native_id_key)
 
         # Work on this node iff it has a unique id...
         if native_id:
             # Try to find its corresponding Resource graph node.
             node = resources.locate(resource_nodes,
-                                    nodetype.unique_cloud_id,
+                                    nodetype.native_id_from_attributes,
                                     native_id)
 
             if node:
