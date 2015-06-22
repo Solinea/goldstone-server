@@ -199,12 +199,16 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
     def get_regions():
         return []
 
-    def _rescope_module_tree(self, tree, module_name):
+    @staticmethod
+    def _rescope_module_tree(tree, module_name):
+        """Return a tree that is ready to merge with the global tree.
+
+        This uses an rsrc_type of module, and a label of the module name.  If
+        cloud rsrc_type is the root, throws it away.  Result is wrapped in a
+        list.
+
         """
-        Returns a tree that is ready to merge with the global tree.  Uses
-        a rsrc_type of module, and a label of the module name.  If cloud
-        rsrc_type is the root, throws it away.  Result is wrapped in a list.
-        """
+
         if tree['rsrcType'] == 'cloud':
             result = []
             for child in tree['children']:
@@ -310,7 +314,11 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
 # Our API documentation extracts this docstring, hence the use of markup.
 class ResourceTypeList(ListAPIView):
     """Return the Resource Type graph, as a collection of nodes and directed
-    edges."""
+    edges.
+
+    This is a work-in-progress, and should not yet be used by client code.
+
+    """
 
     serializer_class = PassthruSerializer
 
@@ -332,7 +340,7 @@ class ResourceTypeList(ListAPIView):
 
         # Gather the nodes.
         nodes = [{"display_attributes": entry.display_attributes(),
-                  "unique_id": entry.unique_id(),
+                  "unique_id": entry.unique_class_id(),
                   "present": bool(resources.nodes_of_type(entry))}
                  for entry in resource_types.graph]
 
@@ -347,7 +355,11 @@ class ResourceTypeList(ListAPIView):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 class ResourceTypeRetrieve(RetrieveAPIView):
-    """Return the resource graph instances of a specific resource type."""
+    """Return the resource graph instances of a specific resource type.
+
+    This is a work-in-progress, and should not yet be used by client code.
+
+    """
 
     serializer_class = PassthruSerializer
 
@@ -396,7 +408,11 @@ class ResourceTypeRetrieve(RetrieveAPIView):
 # Our API documentation extracts this docstring, hence the use of markup.
 class ResourcesList(ListAPIView):
     """Return the Resource graph, as a collection of nodes and directed
-    edges."""
+    edges.
+
+    This is a work-in-progress, and should not yet be used by client code.
+
+    """
 
     serializer_class = PassthruSerializer
 
@@ -419,9 +435,9 @@ class ResourcesList(ListAPIView):
         otherwise it's used anywhere within the key. " OR " is a logical
         or. All names and ids are case-sensitive.\n\n
 
-        For example,
-        <b>?native_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
-        results in a native_name filter of <b>^Four score|^Five score</b> and
+        For example, a native_name argument of
+        <b>^A%20score%20OR%20B%20score&integration=nova%20OR%20keystone</b>
+        results in a native_name filter of <b>^A score|^B score</b> and
         an integration filter of <b>nova|keystone</b>.\n\n
 
         N.B. Edges are not included in the response if they are not from or to
@@ -470,7 +486,8 @@ class ResourcesList(ListAPIView):
             if proceed:
                 # Include this node!
                 nodes.append({"resourcetype":
-                              {"unique_id": node.resourcetype.unique_id(),
+                              {"unique_id":
+                               node.resourcetype.unique_class_id(),
                                "name":
                                node.resourcetype.display_attributes()["name"]},
                               "uuid": node.uuid,
@@ -492,7 +509,11 @@ class ResourcesList(ListAPIView):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 class ResourcesRetrieve(RetrieveAPIView):
-    """Return a specific resource graph node's detail."""
+    """Return a specific resource graph node's detail.
+
+    This is a work-in-progress, and should not yet be used by client code.
+
+    """
 
     serializer_class = PassthruSerializer
 

@@ -41,7 +41,7 @@ def delete_indices(prefix,
 
 
 @celery_app.task()
-def reconcile_hosts():
+def update_graph():
     """Update the Resource graph nodes and edges from the current OpenStack
     cloud state.
 
@@ -51,11 +51,11 @@ def reconcile_hosts():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.glance.utils import reconcile_glance_hosts
-    from goldstone.nova.utils import reconcile_nova_hosts
-    from goldstone.cinder.utils import reconcile_cinder_hosts
+    from goldstone.glance.utils import update_glance_nodes
+    from goldstone.nova.utils import update_nova_nodes
+    from goldstone.cinder.utils import update_cinder_nodes
 
-    for services in [reconcile_glance_hosts,
-                     reconcile_nova_hosts,
-                     reconcile_cinder_hosts]:
+    for services in [update_glance_nodes,
+                     update_nova_nodes,
+                     update_cinder_nodes]:
         services()

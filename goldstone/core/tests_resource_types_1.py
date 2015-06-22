@@ -16,9 +16,10 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from functools import partial
 
+from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, FlavorExtraSpec, Interface, Keypair
+    Flavor, Interface, Keypair
 from .resources import resource_types
 
 # Using the latest version of django-polymorphic, a
@@ -39,9 +40,9 @@ def dictassign(thedict, key, value):
     thedict[key] = value
 
 
-def do_test(type_from, data_from, identity_from, match_from_key_fn,
-            type_to, data_to, identity_to, match_to_key_fn):
-    """Test two resource_types nodes.
+def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
+            match_to_key_fn):
+    """Test the methods of two resource type nodes.
 
     This function modifies data_from and to_from.
 
@@ -49,8 +50,6 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
     :type type_from: PolyResource subclass
     :param data_from: Type_from's initial test data.
     :type data_from: dict
-    :param identity_from: The identity() value against which to test
-    :type identity_from: str
     :param match_from_key_fn: A one-argument function to modify the value used
                               in the matching_fn test
     :type match_from_key_fn: Callable
@@ -58,17 +57,11 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
     :type type_to: PolyResource subclass
     :param data_to: Type_to's initial test data.
     :type data_to: dict
-    :param identity_to: The identity() value against which to test
-    :type identity_to: str
     :param match_to_key_fn: A one-argument function to modify the value used
                             in the matching_fn test
     :type match_to_key_fn: Callable
 
     """
-
-    # Test identity method.
-    assert type_from.identity(data_from) == identity_from
-    assert type_to.identity(data_to) == identity_to
 
     # Test edge discovery.
     edges = resource_types.graph.out_edges(type_from, data=True)
@@ -95,6 +88,20 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
 class ResourceTypesTests(SimpleTestCase):
     """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
     functions."""
+
+    def setUp(self):
+        """Run before each test."""
+
+        Tenant.objects.all().delete()
+
+        tenant = Tenant.objects.create(name="Bebe",
+                                       owner="Rebozo",
+                                       owner_contact="Siberia")
+        Cloud.objects.create(tenant_name="test1",
+                             username="test1 user",
+                             password="password",
+                             auth_url="http://1.1.1.1:5000/",
+                             tenant=tenant)
 
     @staticmethod
     def test_image():
@@ -184,11 +191,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Image,
                 IMAGE,
-                '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
                 partial(dictassign, IMAGE, "id"),
                 Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 partial(dictassign, SERVER, "id"))
 
     @staticmethod
@@ -231,11 +236,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(AvailabilityZone,
                 AVAILABILITY_ZONE,
-                "internal",
                 partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Aggregate,
                 AGGREGATE,
-                1,
                 partial(dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
@@ -270,11 +273,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(AvailabilityZone,
                 AVAILABILITY_ZONE,
-                "internal",
                 partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Host,
                 HOST,
-                'ctrl-01',
                 partial(dictassign, HOST, "zone"))
 
     @staticmethod
@@ -282,42 +283,6 @@ class ResourceTypesTests(SimpleTestCase):
         """Test the Cloudpipe entry."""
 
         pass
-
-    @staticmethod
-    def test_flavor_flavorextraspec():
-        """Test the Flavor - FlavorExtraSpec entry."""
-
-        # Test data.
-        FLAVOR = {u'OS-FLV-DISABLED:disabled': False,
-                  u'OS-FLV-EXT-DATA:ephemeral': 0,
-                  u'disk': 80,
-                  u'id': u'4',
-                  u'links': [{u'href':
-                              u'http://10.11.12.13:8774/v2/7077765ed0df43b1b'
-                              u'23d43c9c290daf9/flavors/4',
-                              u'rel': u'self'},
-                             {u'href': u'http://10.11.12.13:8774/7077765ed0'
-                              u'df43b1b23d43c9c290daf9/flavors/4',
-                              u'rel': u'bookmark'}],
-                  u'name': u'm1.large',
-                  u'os-flavor-access:is_public': True,
-                  u'ram': 8192,
-                  u'rxtx_factor': 1.0,
-                  u'swap': u'',
-                  u'vcpus': 4}
-
-        FLAVOR_EXTRA_SPEC = {u'id': u'4',
-                             u'we are': u'making this up',
-                             }
-
-        do_test(Flavor,
-                FLAVOR,
-                "4",
-                partial(dictassign, FLAVOR, "id"),
-                FlavorExtraSpec,
-                FLAVOR_EXTRA_SPEC,
-                '4',
-                partial(dictassign, FLAVOR_EXTRA_SPEC, "id"))
 
     @staticmethod
     def test_flavor_server():
@@ -411,11 +376,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Flavor,
                 FLAVOR,
-                "4",
                 partial(dictassign, FLAVOR, "id"),
                 Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 serverassign)
 
     @staticmethod
@@ -442,11 +405,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Host,
                 HOST,
-                'ctrl-01',
                 partial(dictassign, HOST, "host_name"),
                 Aggregate,
                 AGGREGATE,
-                1,
                 aggregateassign)
 
     @staticmethod
@@ -486,11 +447,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Host,
                 HOST,
-                "ctrl-01",
                 partial(dictassign, HOST, "host_name"),
                 Hypervisor,
                 HYPERVISOR,
-                1,
                 partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
 
     @staticmethod
@@ -590,11 +549,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Hypervisor,
                 HYPERVISOR,
-                1,
                 partial(dictassign, HYPERVISOR, "id"),
                 Server,
                 SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
                 partial(dictassign,
                         SERVER,
                         "OS-EXT-SRV-ATTR:hypervisor_hostname"))
@@ -636,11 +593,9 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Interface,
                 INTERFACE,
-                'fa:16:3e:00:11:22',
                 partial(dictassign, INTERFACE, "mac_addr"),
                 Port,
                 PORT,
-                'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
                 partial(dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
@@ -725,12 +680,6 @@ class ResourceTypesTests(SimpleTestCase):
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
-        # Test identity method.
-        self.assertEqual(Keypair.identity(KEYPAIR),
-                         'fa:73:23:78:1f:8c:10:bb:25:0f:6f:5e:25:62:14:c7')
-        self.assertEqual(Server.identity(SERVER),
-                         'ee662ff5-3de6-46cb-8b85-4eb4317beb7c')
-
         # Test edge discovery.
         edges = resource_types.graph.out_edges(Keypair, data=True)
         edge = [x for x in edges if x[1] == Server][0][2]

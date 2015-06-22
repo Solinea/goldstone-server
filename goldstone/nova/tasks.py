@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 import logging
 
+import arrow
 from goldstone.nova.models import AgentsData, AggregatesData, \
     AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
@@ -39,7 +40,6 @@ def nova_hypervisors_stats():
     """Get stats from the nova API and add them as Goldstone metrics."""
     from goldstone.utils import get_nova_client
     from goldstone.models import es_conn, daily_index
-    import arrow
 
     novaclient = get_nova_client()['client']
     response = \
@@ -72,17 +72,15 @@ def nova_hypervisors_stats():
         conn.create(es_index, es_doc_type, doc)
 
 
-def _update_nova_records(rec_type, region, db, items):
-
+def _update_nova_records(rec_type, region, database, items):
     from goldstone.utils import to_es_date
-    import arrow
 
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:
-        db.post(body)
+        database.post(body)
     except Exception:           # pylint: disable=W0703
         logging.exception("failed to index nova %s", rec_type)
 

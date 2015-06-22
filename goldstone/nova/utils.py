@@ -161,8 +161,8 @@ class DiscoverTree(TopologyMixin):
             raise
 
 
-def reconcile_nova_hosts():
-    """Update the Resource graph Nova nodes and edges from the current
+def update_nova_nodes():
+    """Update the Resource graph's Nova nodes and edges from the current
     OpenStack cloud state.
 
     Nodes are:

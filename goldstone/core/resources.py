@@ -15,7 +15,7 @@
 from django.conf import settings
 import networkx
 from .models import User, Domain, Group, Token, Credential, Role, Region, \
-    Endpoint, Service, Project, AvailabilityZone, FlavorExtraSpec, Aggregate, \
+    Endpoint, Service, Project, AvailabilityZone, Aggregate, \
     Flavor, Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server, \
     Interface, NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
@@ -26,7 +26,7 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project, AvailabilityZone,
-                  FlavorExtraSpec, Aggregate, Flavor, Keypair, Host,
+                  Aggregate, Flavor, Keypair, Host,
                   Hypervisor, Cloudpipe, ServerGroup, Server, Interface,
                   NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType,
                   Volume, Limits, MeteringLabelRule, MeteringLabel,
@@ -38,26 +38,6 @@ RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
 TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
-
-
-class GraphNode(object):
-    """Resource graph nodes."""
-
-    # The Goldstone UUID of the table row represented by this node.
-    uuid = None
-
-    # This node's Resource Type.
-    resourcetype = None
-
-    # This node's attributes (e.g., from a get_xxxxx_client() call).
-    attributes = {}
-
-    def __init__(self, **kwargs):
-        """Initialize the object."""
-
-        self.uuid = kwargs.get("uuid")
-        self.resourcetype = kwargs.get("resourcetype")
-        self.attributes = kwargs.get("attributes", {})
 
 
 class Graph(object):
@@ -147,8 +127,11 @@ class ResourceTypes(Graph):
 
         """
 
-        result = [x for x in RESOURCE_TYPES if x.unique_id() == unique_id]
-        return result[0] if result else None
+        for entry in RESOURCE_TYPES:
+            if entry.unique_class_id() == unique_id:
+                return entry
+
+        return None
 
     @property
     def edgetypes(self):       # pylint: disable=R0201
@@ -230,3 +213,23 @@ class Resources(Graph):
 
 # Here's Goldstone's Resource Instance graph.
 resources = Resources()       # pylint: disable=C0103
+
+
+class GraphNode(object):
+    """A Resource graph node."""
+
+    # This node's Goldstone UUID.
+    uuid = None
+
+    # This node's Resource Type.
+    resourcetype = None
+
+    # This node's attributes. E.g., from ideget_xxxxx_client().
+    attributes = {}
+
+    def __init__(self, **kwargs):
+        """Initialize the object."""
+
+        self.uuid = kwargs.get("uuid")
+        self.resourcetype = kwargs.get("resourcetype")
+        self.attributes = kwargs.get("attributes", {})

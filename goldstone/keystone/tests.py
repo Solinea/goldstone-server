@@ -18,8 +18,10 @@ from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
 
 class DataViewTests(SimpleTestCase):
+    """/keystone/xxxxxx tests."""
 
     def _evaluate(self, response):
+        """Evalute the client's response."""
         import json
 
         self.assertIsInstance(response, HttpResponse)
@@ -42,6 +44,9 @@ class DataViewTests(SimpleTestCase):
         get_user_model().objects.all().delete()
         self.token = create_and_login()
 
+    # Disabling pylint's docstring check, because the remaining methods are
+    # cookie-cutter.
+    # pylint: disable=C0111
     def test_get_endpoints(self):
         self._evaluate(self.client.get(
             "/keystone/endpoints/",

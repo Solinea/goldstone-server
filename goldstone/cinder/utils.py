@@ -168,8 +168,8 @@ class DiscoverTree(TopologyMixin):
             raise
 
 
-def reconcile_cinder_hosts():
-    """Update the Resource graph Cinder nodes and edges from the current
+def update_cinder_nodes():
+    """Update the Resource graph's Cinder nodes and edges from the current
     OpenStack cloud state.
 
     Nodes are:
