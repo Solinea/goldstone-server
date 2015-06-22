@@ -127,11 +127,12 @@ class EventSerializer(ReadOnlyElasticSerializer):
         # Get the standard to_dict() result...
         result = super(EventSerializer, self).to_representation(instance)
 
-        # ...now add non-None/bank metadata fields and values to it.
+        # ...now add non-None/blank metadata fields and values to it.
         for field in METADATA:
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
+        # import pdb; pdb.set_trace()
         return result
 
 

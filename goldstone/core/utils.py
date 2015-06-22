@@ -22,7 +22,7 @@ from rest_framework import mixins
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
-from .resources import resources, resource_types
+from goldstone.core import resource
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ def custom_exception_handler(exc, context):
 def _add_edges(node):
     """Add edges from this resource graph node to its neighbors.
 
-    This is driven by the node's type information in resource_types.
+    This is driven by the node's type information in resource.types.
 
     :param node: A Resource graph node
     :type node: GraphNode
@@ -172,20 +172,21 @@ def _add_edges(node):
     """
 
     # For every possible edge from this node...
-    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
+    for edge in resource.types.graph.out_edges(node.resourcetype, data=True):
         # This is the desired neighbor's type and matching function for this
         # edge.
         neighbor_type = edge[1]
         match_fn = edge[2][MATCHING_FN]
 
         # For all nodes that are of the desired type...
-        for candidate in resources.nodes_of_type(neighbor_type):
+        for candidate in resource.instances.nodes_of_type(neighbor_type):
             if match_fn(node.attributes, candidate.attributes):
                 # We have a match! Create the edge from the node to this
                 # candidate.
-                resources.graph.add_edge(node,
-                                         candidate,
-                                         attr_dict={TYPE: edge[2][TYPE]})
+                resource.instances.graph.add_edge(node,
+                                                  candidate,
+                                                  attr_dict={TYPE:
+                                                             edge[2][TYPE]})
 
 
 def process_resource_type(nodetype):
@@ -202,7 +203,7 @@ def process_resource_type(nodetype):
 
     """
     from goldstone.core.models import Host
-    from goldstone.core.resources import GraphNode
+    from goldstone.core.resource import GraphNode
 
     # Remove Resource graph nodes that no longer exist. First get the cloud
     # instances of the desired type, and then existing nodes of that type in
@@ -213,7 +214,7 @@ def process_resource_type(nodetype):
     actual_cloud_instance_ids = set([x.get(nodetype_native_id_key)
                                      for x in actual if x])
 
-    resource_nodes = resources.nodes_of_type(nodetype)
+    resource_nodes = resource.instances.nodes_of_type(nodetype)
 
     # For every node of this type in the resource graph...
     for entry in resource_nodes:
@@ -221,7 +222,7 @@ def process_resource_type(nodetype):
         if entry.attributes[nodetype_native_id_key] \
            not in actual_cloud_instance_ids:
             # This node does not appear to be in the cloud anymore. Delete it.
-            resources.graph.remove_node(entry)
+            resource.instances.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
 
     # Now, for every node of this type in the cloud, add it to the Resource
@@ -229,7 +230,7 @@ def process_resource_type(nodetype):
     # may have just deleted some nodes, refresh the existing node list.
 
     # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
-    resource_nodes = resources.nodes_of_type(nodetype)
+    resource_nodes = resource.instances.nodes_of_type(nodetype)
 
     # For every current node of the desired nodetype...
     for entry in actual:
@@ -238,9 +239,10 @@ def process_resource_type(nodetype):
         # Work on this node iff it has a unique id...
         if native_id:
             # Try to find its corresponding Resource graph node.
-            node = resources.locate(resource_nodes,
-                                    nodetype.native_id_from_attributes,
-                                    native_id)
+            node = \
+                resource.instances.locate(resource_nodes,
+                                          nodetype.native_id_from_attributes,
+                                          native_id)
 
             if node:
                 # This resource node corresponds to this service. Update its
@@ -263,9 +265,10 @@ def process_resource_type(nodetype):
                     db_node = nodetype.objects.create(native_id=native_id,
                                                       native_name=native_name)
 
-                resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                                   resourcetype=nodetype,
-                                                   attributes=entry))
+                resource.instances.graph.add_node(
+                    GraphNode(uuid=db_node.uuid,
+                              resourcetype=nodetype,
+                              attributes=entry))
 
     # Now, update the outgoing edges of every node of this type in the resource
     # graph.
@@ -273,7 +276,8 @@ def process_resource_type(nodetype):
         # Delete the existing edges. It's simpler to do this and potentially
         # add them back, than to check whether an existing edge matches what's
         # currently in the cloud.
-        resources.graph.remove_edges_from(resources.graph.edges(node))
+        resource.instances.graph.remove_edges_from(
+            resource.instances.graph.edges(node))
 
         _add_edges(node)
 

@@ -1234,7 +1234,7 @@ class Image(PolyResource):
 
         result = []
 
-        # N.B.: Unlike other OpenStack client calls, this one returns a list of
+        # N.B.: Unlike most OpenStack client calls, this one returns a list of
         # dicts.
         for entry in get_glance_client()["client"].images.list():
             # Add the name of the resource type.
@@ -1407,11 +1407,11 @@ class VolumeType(PolyResource):
 
         result = []
 
+        # N.B.: Unlike most OpenStack client calls, this returns the relevant
+        # data in the _info attribute.  Sigh.
         for entry in get_cinder_client()["client"].volume_types.list():
-            # Make a dict for this entry.
-            this_entry = entry.to_dict()
-
             # Add the name of the resource type.
+            this_entry = entry._info              # pylint: disable=W0212
             this_entry[cls.resource_type_name_key] = cls.unique_class_id()
 
             result.append(this_entry)

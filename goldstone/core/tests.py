@@ -23,9 +23,9 @@ import mock
 from mock import patch
 from rest_framework.test import APISimpleTestCase
 
+from goldstone.core import resource
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server
-from .resources import resource_types, resources, GraphNode
 
 from . import tasks
 from .utils import custom_exception_handler, _add_edges, \
@@ -52,6 +52,7 @@ def _load_rg_and_db(startnodes, startedges):
     :type startedges: An "EDGES" iterable
 
     """
+    from .resource import GraphNode
 
     nameindex = 0
 
@@ -62,23 +63,24 @@ def _load_rg_and_db(startnodes, startedges):
                                       native_name="name_%d" % nameindex)
         nameindex += 1
 
-        resources.graph.add_node(GraphNode(uuid=row.uuid,
-                                           resourcetype=nodetype,
-                                           attributes={"id": native_id}))
+        resource.instances.graph.add_node(GraphNode(uuid=row.uuid,
+                                                    resourcetype=nodetype,
+                                                    attributes={"id":
+                                                                native_id}))
 
     # Create the resource graph edges.
     for source, dest in startedges:
         # Find the from and to nodes.
-        nodes = resources.nodes_of_type(source[0])
+        nodes = resource.instances.nodes_of_type(source[0])
         row = source[0].objects.get(native_id=source[1])
         fromnode = [x for x in nodes if x.uuid == row.uuid][0]
 
-        nodes = resources.nodes_of_type(dest[0])
+        nodes = resource.instances.nodes_of_type(dest[0])
         row = dest[0].objects.get(native_id=dest[1])
         tonode = [x for x in nodes if x.uuid == row.uuid][0]
 
         # Add the edge
-        resources.graph.add_edge(fromnode, tonode)
+        resource.instances.graph.add_edge(fromnode, tonode)
 
 
 class TaskTests(SimpleTestCase):
@@ -96,14 +98,14 @@ class PolyResourceModelTests(SimpleTestCase):
     """Test the PolyResourceModel."""
 
     def test_logs(self):
-        """test that the logs method returns an appropriate search object."""
+        """Test that the logs method returns an appropriate search object."""
 
         expectation = {'bool': {
             'must': [{'query_string': {'query': 'polly'}}],
             'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
 
-        resource = PolyResource(native_name='polly')
-        result = resource.logs().to_dict()
+        polyresource = PolyResource(native_name='polly')
+        result = polyresource.logs().to_dict()
         self.assertDictEqual(expectation, result['query'])
 
         expectation = [{'@timestamp': {'order': 'desc'}}]
@@ -114,8 +116,8 @@ class PolyResourceModelTests(SimpleTestCase):
 
         expectation = {"query_string":
                        {"query": "\"polly\"", "default_field": "_all"}}
-        resource = PolyResource(native_name='polly')
-        result = resource.events().to_dict()
+        polyresource = PolyResource(native_name='polly')
+        result = polyresource.events().to_dict()
         self.assertTrue(expectation in result['query']['bool']['must'])
 
 
@@ -190,7 +192,7 @@ class AddEdges(SimpleTestCase):
     def setUp(self):
         """Run before every test."""
 
-        resources.graph.clear()
+        resource.instances.graph.clear()
 
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
@@ -202,7 +204,7 @@ class AddEdges(SimpleTestCase):
         be done.
 
         """
-        from goldstone.core.resources import ResourceTypes
+        from goldstone.core.resource import ResourceTypes
 
         # Test data.
         NODES = [(Host, "deadbeef")]
@@ -211,16 +213,17 @@ class AddEdges(SimpleTestCase):
 
         # Mock out the resource_types object so that the Host entry has no
         # edges.
-        node = resources.graph.nodes()[0]
+        node = resource.instances.graph.nodes()[0]
         mock_rt_graph = ResourceTypes()
         mock_rt_graph.graph.remove_edges_from(
             mock_rt_graph.graph.out_edges(node.resourcetype))
 
-        with patch("goldstone.core.utils.resource_types", mock_rt_graph):
+        with patch("goldstone.core.utils.resource.types", mock_rt_graph):
             _add_edges(node)
 
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     def test_neighbor_no_matchtype(self):
         """The candidates for a node's destination neighbor have no matching
@@ -243,16 +246,17 @@ class AddEdges(SimpleTestCase):
         # Modify the candidate destination nodes' attributes so that they do
         # not have the desired match key.
         for nodetype in (Aggregate, Hypervisor):
-            for node in resources.nodes_of_type(nodetype):
+            for node in resource.instances.nodes_of_type(nodetype):
                 node.attributes = {"silly": "putty",
                                    "emacs": "the sacred editor"}
 
-        node = resources.nodes_of_type(Host)[0]
+        node = resource.instances.nodes_of_type(Host)[0]
 
         _add_edges(node)
 
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     def test_no_attribute_value(self):
         """The node's neighbor has a matching attribute, but its value does not
@@ -272,12 +276,13 @@ class AddEdges(SimpleTestCase):
 
         _load_rg_and_db(NODES, [])
 
-        node = resources.nodes_of_type(Host)[0]
+        node = resource.instances.nodes_of_type(Host)[0]
 
         _add_edges(node)
 
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     def test_no_matching_nghbr_types(self):
         """No instance matches the desired type for the neighbor, although
@@ -297,12 +302,13 @@ class AddEdges(SimpleTestCase):
 
         _load_rg_and_db(NODES, [])
 
-        node = resources.nodes_of_type(Host)[0]
+        node = resource.instances.nodes_of_type(Host)[0]
 
         _add_edges(node)
 
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     def test_multiple_neighbor_matches(self):
         """Multiple instances match the desired neighbor type.
@@ -323,19 +329,20 @@ class AddEdges(SimpleTestCase):
 
         _load_rg_and_db(NODES, [])
 
-        node = resources.nodes_of_type(Project)[0]
+        node = resource.instances.nodes_of_type(Project)[0]
 
         _add_edges(node)
 
         # Test the node and edge count
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), 4)
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_edges(), 4)
 
         # Test the types of edges created.
-        edges = resources.graph.out_edges(node, data=True)
+        edges = resource.instances.graph.out_edges(node, data=True)
         self.assertEqual(len(edges), 4)
 
-        project_type_edges = resource_types.graph.out_edges(Project, data=True)
+        project_type_edges = resource.types.graph.out_edges(Project, data=True)
 
         # For every resource graph edge...
         for edge in edges:
@@ -384,7 +391,7 @@ class ProcessResourceType(SimpleTestCase):
     def setUp(self):
         """Run before every test."""
 
-        resources.graph.clear()
+        resource.instances.graph.clear()
 
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
@@ -403,8 +410,8 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 0)
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_empty_cloud_image(self, ggc):
@@ -427,9 +434,11 @@ class ProcessResourceType(SimpleTestCase):
         _load_rg_and_db(NODES, EDGES)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
         self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        self.assertEqual(resource.instances.graph.number_of_edges(),
+                         len(EDGES))
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -437,9 +446,9 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 0)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
         self.assertEqual(PolyResource.objects.count(), 0)
-        self.assertEqual(resources.graph.number_of_edges(), 0)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_other_empty_cloud(self, ggc):
@@ -480,9 +489,11 @@ class ProcessResourceType(SimpleTestCase):
         _load_rg_and_db(NODES, EDGES)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
         self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        self.assertEqual(resource.instances.graph.number_of_edges(),
+                         len(EDGES))
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -490,10 +501,10 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 3)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 3)
         self.assertEqual(PolyResource.objects.count(), 3)
-        self.assertEqual(resources.nodes_of_type(Image), [])
-        self.assertEqual(resources.graph.number_of_edges(), 2)
+        self.assertEqual(resource.instances.nodes_of_type(Image), [])
+        self.assertEqual(resource.instances.graph.number_of_edges(), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_empty_rg_cloud_multi_noid(self, ggc):
@@ -536,9 +547,9 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 2)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
         self.assertEqual(PolyResource.objects.count(), 2)
-        self.assertEqual(len(resources.nodes_of_type(Image)), 2)
+        self.assertEqual(len(resource.instances.nodes_of_type(Image)), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud(self, ggc):
@@ -574,9 +585,11 @@ class ProcessResourceType(SimpleTestCase):
         _load_rg_and_db(NODES, EDGES)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
         self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        self.assertEqual(resource.instances.graph.number_of_edges(),
+                         len(EDGES))
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -599,17 +612,17 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 6)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 6)
         self.assertEqual(PolyResource.objects.count(), 6)
 
-        resource_node_attributes = [x.attributes
-                                    for x in resources.nodes_of_type(Image)]
+        resource_node_attributes = \
+            [x.attributes for x in resource.instances.nodes_of_type(Image)]
         expected = [good_image_0, good_image_1, good_image_2]
         resource_node_attributes.sort()
         expected.sort()
         self.assertEqual(resource_node_attributes, expected)
 
-        self.assertEqual(resources.graph.number_of_edges(), 2)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud_hit(self, ggc):
@@ -649,9 +662,11 @@ class ProcessResourceType(SimpleTestCase):
         _load_rg_and_db(NODES, EDGES)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
         self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        self.assertEqual(resource.instances.graph.number_of_edges(),
+                         len(EDGES))
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -680,11 +695,11 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 7 + 1 - 1)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 7 + 1 - 1)
         self.assertEqual(PolyResource.objects.count(), 7 + 1 - 1)
 
-        resource_node_attributes = [x.attributes
-                                    for x in resources.nodes_of_type(Image)]
+        resource_node_attributes = \
+            [x.attributes for x in resource.instances.nodes_of_type(Image)]
         expected = [good_image_0, good_image_1, good_image_2]
         resource_node_attributes.sort()
         expected.sort()
@@ -692,7 +707,7 @@ class ProcessResourceType(SimpleTestCase):
 
         # The edges are: ((NovaLimits, "0"), (ServerGroup, "ab")),
         # ((NovaLimits, "0"), (Image, "a")), ((Image, "ab"), (Server, "ab")).
-        self.assertEqual(resources.graph.number_of_edges(), 3)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 3)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_duplicate_native_ids(self, ggc):
@@ -721,9 +736,11 @@ class ProcessResourceType(SimpleTestCase):
         _load_rg_and_db(NODES, EDGES)
 
         # Sanity check.
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resource.instances.graph.number_of_nodes(),
+                         len(NODES))
         self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        self.assertEqual(resource.instances.graph.number_of_edges(),
+                         len(EDGES))
 
         # Set up get_glance_client to return some glance services, two of
         # which have duplicate OpenStack ids.
@@ -749,9 +766,9 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resources.graph.number_of_nodes(), 5)
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 5)
         self.assertEqual(PolyResource.objects.count(), 5)
-        self.assertEqual(len(resources.nodes_of_type(Image)), 3)
+        self.assertEqual(len(resource.instances.nodes_of_type(Image)), 3)
 
 
 class ParseTests(SimpleTestCase):

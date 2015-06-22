@@ -21,8 +21,8 @@ from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
 from goldstone.utils import TopologyMixin
 
+from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData
-from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
     MetricAggSerializer, EventSerializer, EventAggSerializer
@@ -341,14 +341,14 @@ class ResourceTypeList(ListAPIView):
         # Gather the nodes.
         nodes = [{"display_attributes": entry.display_attributes(),
                   "unique_id": entry.unique_class_id(),
-                  "present": bool(resources.nodes_of_type(entry))}
-                 for entry in resource_types.graph]
+                  "present": bool(resource.instances.nodes_of_type(entry))}
+                 for entry in resource.types.graph]
 
         # Gather the edges.
         edges = [{"from": str(entry[0]),
                   "to": str(entry[1]),
                   "type": entry[2][TYPE]}
-                 for entry in resource_types.graph.edges_iter(data=True)]
+                 for entry in resource.types.graph.edges_iter(data=True)]
 
         return Response({"nodes": nodes, "edges": edges})
 
@@ -385,7 +385,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
         """
 
         # Get the type that matches the supplied id.
-        target_type = resource_types.get_type(unique_id)
+        target_type = resource.types.get_type(unique_id)
 
         result = []
 
@@ -393,7 +393,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
             # The desired resource type was found. Each instance's information
             # comes from its resource graph node, and its PolyResource table
             # row.
-            for node in resources.nodes_of_type(target_type):
+            for node in resource.instances.nodes_of_type(target_type):
                 row = PolyResource.objects.get(uuid=node.uuid)
                 result.append({"uuid": node.uuid,
                                "native_id": row.native_id,
@@ -410,14 +410,16 @@ class ResourcesList(ListAPIView):
     """Return the Resource graph, as a collection of nodes and directed
     edges.
 
-    This is a work-in-progress, and should not yet be used by client code.
+    This is a work-in-progress, and should not yet be used by client code.\n\n
 
     """
 
     serializer_class = PassthruSerializer
 
     def get(self, request, *args, **kwargs):
-        """The response payload is:
+        """Return the resource graph's nodes and edges.
+
+        The response payload is:
 
         {"nodes": [<b>node</b>, <b>node</b>, ...],
          "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
@@ -436,11 +438,11 @@ class ResourcesList(ListAPIView):
         or. All names and ids are case-sensitive.\n\n
 
         For example, a native_name argument of
-        <b>^A%20score%20OR%20B%20score&integration=nova%20OR%20keystone</b>
+        <b>%5EA%20score%20OR%20B%20score&integration=nova%20OR%20keystone</b>
         results in a native_name filter of <b>^A score|^B score</b> and
         an integration filter of <b>nova|keystone</b>.\n\n
 
-        N.B. Edges are not included in the response if they are not from or to
+        Edges are included in the response if and only if they are from or to
         a node in the response.
 
         ---
@@ -468,7 +470,7 @@ class ResourcesList(ListAPIView):
         node_uuids = []
 
         # For every node in the resource graph...
-        for node in resources.graph.nodes():
+        for node in resource.instances.graph.nodes():
             # Get this node's matching table row.
             row = PolyResource.objects.get(uuid=node.uuid)
 
@@ -501,7 +503,7 @@ class ResourcesList(ListAPIView):
             [{"from": str(entry[0]),
               "to": str(entry[1]),
               "type": entry[2][TYPE]}
-             for entry in resources.graph.edges_iter(data=True)
+             for entry in resource.instances.graph.edges_iter(data=True)
              if entry[0].uuid in node_uuids or entry[1].uuid in node_uuids]
 
         return Response({"nodes": nodes, "edges": edges})
@@ -535,7 +537,7 @@ class ResourcesRetrieve(RetrieveAPIView):
         from django.core.exceptions import ObjectDoesNotExist
 
         # Get this resource's graph node and table row.
-        node = resources.get_uuid(uuid)
+        node = resource.instances.get_uuid(uuid)
 
         try:
             row = PolyResource.objects.get(uuid=uuid)

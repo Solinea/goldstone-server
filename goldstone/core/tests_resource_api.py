@@ -24,8 +24,8 @@ from django.conf import settings
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
     Aggregate, Server, Project, Network, Limits, PolyResource
 
-from goldstone.core.resources import ResourceTypes, Resources, resources, \
-    GraphNode
+from goldstone.core import resource         # For resource.instances.
+from goldstone.core.resource import ResourceTypes, Instances, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, BAD_UUID
 import json
@@ -72,7 +72,7 @@ class CoreResourceTypes(Setup):
         mock_rt_graph = ResourceTypes()
         mock_rt_graph.graph.clear()
 
-        with patch("goldstone.core.views.resource_types", mock_rt_graph):
+        with patch("goldstone.core.views.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -334,9 +334,9 @@ class CoreResourceTypes(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create a user, do the test.
         token = create_and_login()
@@ -369,7 +369,7 @@ class CoreResourceTypesDetail(Setup):
         mock_rt_graph.graph.clear()
 
         # Note, we ask for a resource type that normally exists.
-        with patch("goldstone.core.views.resource_types", mock_rt_graph):
+        with patch("goldstone.core.views.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_DETAIL_URL % "<class 'goldstone.core.models.QOSSpec'>",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -401,9 +401,9 @@ class CoreResourceTypesDetail(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create a user, do the test.
         token = create_and_login()
@@ -477,9 +477,9 @@ class CoreResourceTypesDetail(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create a user, do the test.
         token = create_and_login()
@@ -512,10 +512,10 @@ class CoreResources(Setup):
         token = create_and_login()
 
         # Mock out resources so that it has no nodes or edges.
-        mock_r_graph = Resources()
+        mock_r_graph = Instances()
         mock_r_graph.graph.clear()
 
-        with patch("goldstone.core.views.resources", mock_r_graph):
+        with patch("goldstone.core.views.resource.instances", mock_r_graph):
             response = self.client.get(
                 RES_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -753,9 +753,9 @@ class CoreResources(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
@@ -764,14 +764,14 @@ class CoreResources(Setup):
             destination_row = \
                 PolyResource.objects.get(native_id=destination_id)
 
-            source_node = [x for x in resources.graph.nodes()
+            source_node = [x for x in resource.instances.graph.nodes()
                            if x.uuid == source_row.uuid][0]
-            destination_node = [x for x in resources.graph.nodes()
+            destination_node = [x for x in resource.instances.graph.nodes()
                                 if x.uuid == destination_row.uuid][0]
 
-            resources.graph.add_edge(source_node,
-                                     destination_node,
-                                     attr_dict=attr_dict)
+            resource.instances.graph.add_edge(source_node,
+                                              destination_node,
+                                              attr_dict=attr_dict)
 
         # Create a user, do the test.
         token = create_and_login()
@@ -848,9 +848,9 @@ class CoreResourcesDetail(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create a user.
         token = create_and_login()
@@ -912,9 +912,9 @@ class CoreResourcesDetail(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create a user.
         token = create_and_login()
@@ -928,7 +928,7 @@ class CoreResourcesDetail(Setup):
         # pylint: disable=E1101
         uuid = json.loads(response.content)["nodes"][1]["uuid"]
 
-        for node in resources.graph.nodes():
+        for node in resource.instances.graph.nodes():
             if node.uuid == uuid:
                 break
         else:

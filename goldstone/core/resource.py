@@ -139,16 +139,19 @@ class ResourceTypes(Graph):
 
         return settings.R_EDGE.keys()
 
-resource_types = ResourceTypes()          # pylint: disable=C0103
+
+# This is Goldstone's resource type graph. Import resources, then reference
+# resource.types.
+types = ResourceTypes()          # pylint: disable=C0103
 
 
-class Resources(Graph):
+class Instances(Graph):
     """A graph of the resources used within an OpenStack cloud."""
 
     def __init__(self):
         """Initialize the object."""
 
-        super(Resources, self).__init__()
+        super(Instances, self).__init__()
 
     def get_uuid(self, uuid):
         """Return the instance with this UUID.
@@ -171,7 +174,7 @@ class Resources(Graph):
 
         :param nodetype: The Resource Type that is desired
         :type nodetype: A node in ResourceTypes
-        :return: All the nodes in the Resources graph that have a type equal to
+        :return: All the nodes in the Instances graph that have a type equal to
                  <nodetype>
         :rtype: list of node
 
@@ -211,8 +214,9 @@ class Resources(Graph):
         return settings.RI_EDGE.keys()
 
 
-# Here's Goldstone's Resource Instance graph.
-resources = Resources()       # pylint: disable=C0103
+# Here's Goldstone's Resource Instance graph. Import resources, then reference
+# resource.instances.
+instances = Instances()                         # pylint: disable=C0103
 
 
 class GraphNode(object):

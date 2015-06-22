@@ -20,7 +20,7 @@ from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
     Flavor, Interface, Keypair
-from .resources import resource_types
+from goldstone.core import resource
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -46,14 +46,14 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
     This function modifies data_from and to_from.
 
-    :param type_from: The type of the "from" node in the resource_types graph
+    :param type_from: The type of the "from" node in the resource.types graph
     :type type_from: PolyResource subclass
     :param data_from: Type_from's initial test data.
     :type data_from: dict
     :param match_from_key_fn: A one-argument function to modify the value used
                               in the matching_fn test
     :type match_from_key_fn: Callable
-    :param type_to: The type of the "to" node in the resource_types graph
+    :param type_to: The type of the "to" node in the resource.types graph
     :type type_to: PolyResource subclass
     :param data_to: Type_to's initial test data.
     :type data_to: dict
@@ -64,7 +64,7 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
     """
 
     # Test edge discovery.
-    edges = resource_types.graph.out_edges(type_from, data=True)
+    edges = resource.types.graph.out_edges(type_from, data=True)
     edge = [x for x in edges if x[1] == type_to][0][2]
 
     # Test one being None
@@ -681,7 +681,7 @@ class ResourceTypesTests(SimpleTestCase):
         # except for the no-match test.
         #
         # Test edge discovery.
-        edges = resource_types.graph.out_edges(Keypair, data=True)
+        edges = resource.types.graph.out_edges(Keypair, data=True)
         edge = [x for x in edges if x[1] == Server][0][2]
 
         # Test the keypair being None
