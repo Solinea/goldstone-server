@@ -72,7 +72,7 @@ class CoreResourceTypes(Setup):
         mock_rt_graph = ResourceTypes()
         mock_rt_graph.graph.clear()
 
-        with patch("goldstone.core.views.resource.types", mock_rt_graph):
+        with patch("goldstone.core.views.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -369,7 +369,7 @@ class CoreResourceTypesDetail(Setup):
         mock_rt_graph.graph.clear()
 
         # Note, we ask for a resource type that normally exists.
-        with patch("goldstone.core.views.resource.types", mock_rt_graph):
+        with patch("goldstone.core.views.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_DETAIL_URL % "<class 'goldstone.core.models.QOSSpec'>",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)

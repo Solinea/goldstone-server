@@ -42,7 +42,7 @@ def delete_indices(prefix,
 
 @celery_app.task()
 def update_graph():
-    """Update the Resource graph nodes and edges from the current OpenStack
+    """Update the Resource graph's persistent data from the current OpenStack
     cloud state.
 
     Nodes are:

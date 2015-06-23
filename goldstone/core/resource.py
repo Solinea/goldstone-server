@@ -41,7 +41,7 @@ EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 
 class Graph(object):
-    """The base class for Resource Type and Resource graphs.
+    """The base class for Resource Type and Instance graphs.
 
     This defines the navigational methods needed by the child classes. Some
     of these may simply be convenience methods for calling networkx methods.
@@ -87,8 +87,7 @@ class ResourceTypes(Graph):
 
         super(ResourceTypes, self).__init__()
 
-        # Every resource type with >= one outgoing edge must define an
-        # outgoing_edges() class method.
+        # Every resource type has an outgoing_edges() class method.
         #
         # Each entry in the value of outgoing_edges() is a control_dict.  Each
         # control_dict is:
@@ -140,9 +139,8 @@ class ResourceTypes(Graph):
         return settings.R_EDGE.keys()
 
 
-# This is Goldstone's resource type graph. Import resources, then reference
-# resource.types.
-types = ResourceTypes()          # pylint: disable=C0103
+# This is Goldstone's resource type graph.
+types = ResourceTypes()                      # pylint: disable=C0103
 
 
 class Instances(Graph):

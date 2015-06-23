@@ -21,6 +21,7 @@ from elasticsearch_dsl.query import Q, QueryString
 from polymorphic import PolymorphicModel
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
+from picklefield.fields import PickledObjectField
 
 # Get_glance_client is defined here for easy unit test mocking.
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
@@ -130,6 +131,13 @@ class PolyResource(PolymorphicModel):
 
     native_name = CharField(max_length=64)
 
+    # This instance's outgoing edges, as [(dest_uuid, attribute_dict),
+    # (dest_uuid, attribute_dict), ...]
+    edges = PickledObjectField(default=[])
+
+    # This node's cloud attributes.
+    cloud_attributes = PickledObjectField(default={})
+
     created = CreationDateTimeField(editable=False,
                                     blank=True,
                                     default=utc_now)
@@ -204,9 +212,31 @@ class PolyResource(PolymorphicModel):
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+        """Return the edges leaving this type (not instance!)."""
 
         return []
+
+    def update_edges(self):
+        """Update this persistent instance's edges to match what's in the
+        persistent resource graph."""
+
+        outgoing = []
+
+        # For every possible edge from this node's type...
+        for edge in self.outgoing_edges():
+            # Get the target neighbor's type and matching function.
+            neighbor_type = edge[TO]
+            match_fn = edge[MATCHING_FN]
+
+            # For all nodes of the desired type...
+            for candidate in neighbor_type.objects.all():
+                if match_fn(self.cloud_attributes, candidate.cloud_attributes):
+                    # We have a match! Create an edge to this candidate.
+                    outgoing.append((candidate.uuid, edge[EDGE_ATTRIBUTES]))
+
+        # Save the edges.
+        self.edges = outgoing
+        self.save()
 
     def logs(self):
         """Return a search object for logs related to this resource.
@@ -432,138 +462,82 @@ class Project(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Image,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: MEMBER_OF,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
                 {TO: Keypair,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: NovaLimits,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 1,
-                  MAX: 1,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: 1}},
                 {TO: Server,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 1,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
                 {TO: MeteringLabel,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: NeutronQuota,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: SUBSCRIBED_TO,
-                  MIN: 1,
-                  MAX: 1,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}},
                 {TO: Network,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: USES,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: USES, MIN: 0, MAX: sys.maxint}},
                 {TO: Network,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Subnet,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: LBMember,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: HealthMonitor,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: LBVIP,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Port,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: SecurityRules,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: QuotaSet,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES:
-                 {TYPE: SUBSCRIBED_TO,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 {TYPE: SUBSCRIBED_TO, MIN: 0, MAX: sys.maxint}},
                 {TO: QOSSpec,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Snapshot,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Volume,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: MEMBER_OF,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
                 {TO: Limits,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -598,7 +572,7 @@ class AvailabilityZone(PolyResource):
             # type.
             this_entry[cls.resource_name_key] = this_entry.get("zoneName",
                                                                "None")
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -616,22 +590,16 @@ class AvailabilityZone(PolyResource):
 
         return [
             {TO: Aggregate,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("zoneName") and
-              f.get("zoneName") == t.get("availability_zone")}},
+             MATCHING_FN:
+             lambda f, t:
+             f.get("zoneName") and
+             f.get("zoneName") == t.get("availability_zone"),
+             EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
             {TO: Host,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("zoneName") and f.get("zoneName") == t.get("zone")}},
+             MATCHING_FN:
+             lambda f, t:
+             f.get("zoneName") and f.get("zoneName") == t.get("zone"),
+             EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
             ]
 
     @classmethod
@@ -661,7 +629,7 @@ class Aggregate(PolyResource):
                 cls.native_id_from_attributes(this_entry)
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -707,7 +675,7 @@ class Flavor(PolyResource):
                 cls.native_id_from_attributes(this_entry)
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -731,13 +699,10 @@ class Flavor(PolyResource):
 
         return [
             {TO: Server,
-             EDGE_ATTRIBUTES:
-             {TYPE: DEFINES,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("id") and f.get("id") == t.get("flavor", {}).get("id")}},
+             MATCHING_FN:
+             lambda f, t:
+             f.get("id") and f.get("id") == t.get("flavor", {}).get("id"),
+             EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}},
             ]
 
     @classmethod
@@ -764,7 +729,7 @@ class Keypair(PolyResource):
             this_entry = entry.to_dict()["keypair"]
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -781,14 +746,12 @@ class Keypair(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Server,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint,
-                                   # Any keypair can be used on any server.
-                                   MATCHING_FN:
-                                   lambda f, t:
-                                   f.get("fingerprint") is not None and
-                                   t is not None}},
+                 # Any keypair can be used on any server.
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("fingerprint") is not None and t is not None,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -857,7 +820,7 @@ class Host(PolyResource):
                 # it to where the client expects it. And add the name of the
                 # resource type.
                 host[cls.resource_name_key] = host.get("host_name", "None")
-                host[cls.resource_type_name_key] = cls.unique_class_id()
+                host[cls.resource_type_name_key()] = cls.unique_class_id()
 
                 # We don't want or need this key.
                 del host["service"]
@@ -884,22 +847,16 @@ class Host(PolyResource):
 
         return [
             {TO: Aggregate,
-             EDGE_ATTRIBUTES:
-             {TYPE: MEMBER_OF,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t: f.get("host_name") and
-              f.get("host_name") in t.get("hosts", [])}},
+             MATCHING_FN:
+             lambda f, t:
+             f.get("host_name") and f.get("host_name") in t.get("hosts", []),
+             EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
             {TO: Hypervisor,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: 1,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("host_name") and
-              f.get("host_name") == t.get("hypervisor_hostname")}},
+             MATCHING_FN:
+             lambda f, t:
+             f.get("host_name") and
+             f.get("host_name") == t.get("hypervisor_hostname"),
+             EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}},
             ]
 
     @classmethod
@@ -935,7 +892,7 @@ class Hypervisor(PolyResource):
             # Indicate that the hypervisor has no name, and add the name of the
             # resource type.
             this_entry[cls.resource_name_key] = "None"
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -958,15 +915,11 @@ class Hypervisor(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Server,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: OWNS,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t:
-                  f.get("id") and
-                  f.get("id") ==
-                  t.get("OS-EXT-SRV-ATTR:hypervisor_hostname")}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("id") and
+                 f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname"),
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -995,7 +948,7 @@ class Cloudpipe(PolyResource):
             # Indicate that the cloudpipe has no name, and add the name of the
             # resource type.
             this_entry[cls.resource_name_key] = "None"
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1013,12 +966,9 @@ class Cloudpipe(PolyResource):
 
         return [
             {TO: Server,
-             EDGE_ATTRIBUTES:
-             {TYPE: INSTANCE_OF,
-              MIN: 1,
-              MAX: 1,
-              MATCHING_FN:
-              lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+             MATCHING_FN:
+             lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+             EDGE_ATTRIBUTES: {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}},
             ]
 
     @classmethod
@@ -1046,7 +996,7 @@ class ServerGroup(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1076,7 +1026,7 @@ class Server(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1087,34 +1037,27 @@ class Server(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Interface,
-                 EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                   MIN: 0,
-                                   MAX: sys.maxint,
-                                   MATCHING_FN:
-                                   lambda f, t:
-                                   f.get("addresses") and
-                                   t.get("mac_addr") and
-                                   t.get("mac_addr") in
-                                   [y["OS-EXT-IPS-MAC:mac_addr"]
-                                    for x in f.get("addresses").values()
-                                    for y in x]}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("addresses") and t.get("mac_addr") and
+                 t.get("mac_addr") in
+                 [y["OS-EXT-IPS-MAC:mac_addr"]
+                  for x in f.get("addresses").values() for y in x],
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: ServerGroup,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                   MIN: 0,
-                                   MAX: sys.maxint,
-                                   MATCHING_FN: lambda f, t:
-                                   f.get("hostId") and
-                                   f.get("hostId") in t["members"]}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("hostId") and f.get("hostId") in t["members"],
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
                 {TO: Volume,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint,
-                                   MATCHING_FN: lambda f, t:
-                                   f.get("links") and t.get("links") and
-                                   any(volentry.get("href") and
-                                       volentry["href"] in
-                                       [x["href"] for x in f["links"]]
-                                       for volentry in t["links"])}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("links") and t.get("links") and
+                 any(volentry.get("href") and
+                     volentry["href"] in [x["href"] for x in f["links"]]
+                     for volentry in t["links"]),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1150,7 +1093,7 @@ class Interface(PolyResource):
                 # We haven't seen this MAC address before. Give it a "None"
                 # name, add its resource type, and add it to the result.
                 entry[cls.resource_name_key] = "None"
-                entry[cls.resource_type_name_key] = cls.unique_class_id()
+                entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
                 result.append(entry)
 
@@ -1170,14 +1113,10 @@ class Interface(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Port,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: ATTACHED_TO,
-                  MIN: 0,
-                  MAX: 1,
-                  MATCHING_FN:
-                  lambda f, t:
-                  f.get("mac_addr") and
-                  f.get("mac_addr") == t["mac_address"]}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("mac_addr") and
+                 f.get("mac_addr") == t["mac_address"],
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
                 ]
 
     @classmethod
@@ -1207,7 +1146,7 @@ class NovaLimits(PolyResource):
 
             # This has no name, and add the name of the resource type.
             this_entry[cls.resource_name_key] = "None"
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1238,7 +1177,7 @@ class Image(PolyResource):
         # dicts.
         for entry in get_glance_client()["client"].images.list():
             # Add the name of the resource type.
-            entry[cls.resource_type_name_key] = cls.unique_class_id()
+            entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(entry)
 
@@ -1249,12 +1188,9 @@ class Image(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Server,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: DEFINES,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1286,7 +1222,7 @@ class QuotaSet(PolyResource):
 
             # Add this resource's name, and the name of the resource type.
             this_entry[cls.resource_name_key] = "None"
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1326,7 +1262,7 @@ class QOSSpec(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1337,15 +1273,11 @@ class QOSSpec(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: VolumeType,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: APPLIES_TO,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t:
-                  f.get("id") and
-                  f.get("id") in
-                  t.get("extra_specs", {}).get("qos", '')}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("id") and
+                 f.get("id") in t.get("extra_specs", {}).get("qos", ''),
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1370,7 +1302,7 @@ class Snapshot(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1381,13 +1313,10 @@ class Snapshot(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Volume,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: APPLIES_TO,
-                  MIN: 1,
-                  MAX: 1,
-                  MATCHING_FN:
-                  lambda f, t:
-                  f.get("id") and f.get("id") == t.get("snapshot_id")}},
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("id") and f.get("id") == t.get("snapshot_id"),
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 1, MAX: 1}},
                 ]
 
     @classmethod
@@ -1412,7 +1341,7 @@ class VolumeType(PolyResource):
         for entry in get_cinder_client()["client"].volume_types.list():
             # Add the name of the resource type.
             this_entry = entry._info              # pylint: disable=W0212
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1423,13 +1352,9 @@ class VolumeType(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: Volume,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: APPLIES_TO,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t:
-                  f.get("id") and f["id"] == t.get("volume_type")}},
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t.get("volume_type"),
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1454,7 +1379,7 @@ class Volume(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1483,7 +1408,7 @@ class Limits(PolyResource):
 
             # Add the name of the resource type.
             this_entry[cls.resource_name_key] = "None"
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1523,9 +1448,7 @@ class MeteringLabel(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: MeteringLabel,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
-                                   MIN: 1,
-                                   MAX: 1}},
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 1, MAX: 1}},
                 ]
 
     @classmethod
@@ -1613,7 +1536,7 @@ class Port(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key] = cls.unique_class_id()
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
 
@@ -1681,9 +1604,7 @@ class HealthMonitor(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1713,13 +1634,9 @@ class FloatingIPPool(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: FixedIP,
-                 EDGE_ATTRIBUTES: {TYPE: ROUTES_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES: {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}},
                 {TO: FloatingIP,
-                 EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1749,9 +1666,7 @@ class LBMember(PolyResource):
         """Return the edges leaving this type."""
 
         return [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
                 {TO: Subnet,
                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
                 ]
@@ -1806,9 +1721,8 @@ class Router(PolyResource):
         return [{TO: Network,
                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
                 {TO: Port,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod

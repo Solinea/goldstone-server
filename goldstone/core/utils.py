@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 
-from django.conf import settings
 import elasticsearch
 from rest_framework import status, serializers
 from rest_framework.response import Response
@@ -22,14 +21,8 @@ from rest_framework import mixins
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
-from goldstone.core import resource
 
 logger = logging.getLogger(__name__)
-
-# Aliases to make the code less verbose.
-EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
-MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
-TYPE = settings.R_ATTRIBUTE.TYPE
 
 
 class JsonReadOnlySerializer(serializers.Serializer):
@@ -161,125 +154,81 @@ def custom_exception_handler(exc, context):
     return response
 
 
-def _add_edges(node):
-    """Add edges from this resource graph node to its neighbors.
-
-    This is driven by the node's type information in resource.types.
-
-    :param node: A Resource graph node
-    :type node: GraphNode
-
-    """
-
-    # For every possible edge from this node...
-    for edge in resource.types.graph.out_edges(node.resourcetype, data=True):
-        # This is the desired neighbor's type and matching function for this
-        # edge.
-        neighbor_type = edge[1]
-        match_fn = edge[2][MATCHING_FN]
-
-        # For all nodes that are of the desired type...
-        for candidate in resource.instances.nodes_of_type(neighbor_type):
-            if match_fn(node.attributes, candidate.attributes):
-                # We have a match! Create the edge from the node to this
-                # candidate.
-                resource.instances.graph.add_edge(node,
-                                                  candidate,
-                                                  attr_dict={TYPE:
-                                                             edge[2][TYPE]})
-
-
 def process_resource_type(nodetype):
-    """Update the Resource graph nodes that are of, and the outgoing edges
-    from, this type.
+    """Update the persistent Resource graph nodes that are of this type.
 
     Nodes are:
        - deleted if they are no longer in the OpenStack cloud.
        - added if they are in the OpenStack cloud, but not in the graph.
        - updated from the cloud if they are already in the graph.
 
-    :param nodetype: A Resource Type node
+    :param nodetype: A resource type
     :type nodetype: PolyResource subclass
 
     """
-    from goldstone.core.models import Host
-    from goldstone.core.resource import GraphNode
+    from django.core.exceptions import ObjectDoesNotExist
+    from goldstone.core.models import Host, PolyResource
 
     # Remove Resource graph nodes that no longer exist. First get the cloud
-    # instances of the desired type, and then existing nodes of that type in
-    # the resource graph.
-    actual = nodetype.clouddata()
+    # instances of the desired type, and nodes of that type in the persistent
+    # resource graph.
+    actual_node_data = nodetype.clouddata()
+    persistent_nodes = nodetype.objects.all()
 
     nodetype_native_id_key = nodetype.native_id_key()
     actual_cloud_instance_ids = set([x.get(nodetype_native_id_key)
-                                     for x in actual if x])
+                                     for x in actual_node_data if x])
 
-    resource_nodes = resource.instances.nodes_of_type(nodetype)
+    # For every node of this type in the persistent resource graph...
+    for entry in persistent_nodes:
+        if entry.native_id not in actual_cloud_instance_ids:
+            # This node isn't in the cloud anymore, so delete it from the
+            # persistent data.
+            entry.delete()
 
-    # For every node of this type in the resource graph...
-    for entry in resource_nodes:
-        # Check this node's identifying attribute value.
-        if entry.attributes[nodetype_native_id_key] \
-           not in actual_cloud_instance_ids:
-            # This node does not appear to be in the cloud anymore. Delete it.
-            resource.instances.graph.remove_node(entry)
-            nodetype.objects.get(uuid=entry.uuid).delete()
-
-    # Now, for every node of this type in the cloud, add it to the Resource
-    # graph if it's not present, or update its information if it is. Since we
-    # may have just deleted some nodes, refresh the existing node list.
-
-    # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
-    resource_nodes = resource.instances.nodes_of_type(nodetype)
-
-    # For every current node of the desired nodetype...
-    for entry in actual:
+    # Now, for every node of this type in the cloud, add it to the persistent
+    # Resource graph if it's not there, or update its information if it is.
+    #
+    # For every actual node's data...
+    for entry in actual_node_data:
         native_id = entry.get(nodetype_native_id_key)
 
-        # Work on this node iff it has a unique id...
+        # If this node has a unique id... (All nodes should...)
         if native_id:
-            # Try to find its corresponding Resource graph node.
-            node = \
-                resource.instances.locate(resource_nodes,
-                                          nodetype.native_id_from_attributes,
-                                          native_id)
-
-            if node:
-                # This resource node corresponds to this service. Update its
-                # information in the graph and database.
-                node.attributes = entry
-                db_node = nodetype.objects.get(uuid=node.uuid)
-                db_node.attributes = entry
-                db_node.save()
-            else:
-                # This is a new node. Add it to the Resource graph and database
-                # table.
-
+            # Try to find its corresponding persistent Resource graph node.
+            # Note: This try/except block works iff there's only one copy of
+            # this function executing at a time.
+            try:
+                persistent_node = nodetype.objects.get(native_id=native_id)
+            except ObjectDoesNotExist:
+                # The node doesn't exist. Create it. We need to treat Host
+                # instances a little differently.
                 if nodetype == Host:
                     native_name = entry.get("host_name", '')
-                    db_node = nodetype.objects.create(native_id=native_id,
-                                                      native_name=native_name,
-                                                      fqdn=native_name+".com")
+                    persistent_node = \
+                        nodetype.objects.create(native_id=native_id,
+                                                native_name=native_name,
+                                                cloud_attributes=entry,
+                                                fqdn=native_name+".com")
                 else:
                     native_name = entry.get("name", '')
-                    db_node = nodetype.objects.create(native_id=native_id,
-                                                      native_name=native_name)
+                    persistent_node = \
+                        nodetype.objects.create(native_id=native_id,
+                                                native_name=native_name,
+                                                cloud_attributes=entry)
+            else:
+                # Persistent_node corresponds to the actual node in entry.
+                # Update its persistent information, in the database.
+                persistent_node.cloud_attributes = entry
+                persistent_node.save()
 
-                resource.instances.graph.add_node(
-                    GraphNode(uuid=db_node.uuid,
-                              resourcetype=nodetype,
-                              attributes=entry))
-
-    # Now, update the outgoing edges of every node of this type in the resource
-    # graph.
-    for node in resource_nodes:
-        # Delete the existing edges. It's simpler to do this and potentially
-        # add them back, than to check whether an existing edge matches what's
-        # currently in the cloud.
-        resource.instances.graph.remove_edges_from(
-            resource.instances.graph.edges(node))
-
-        _add_edges(node)
+    # The persistent nodes have been updated. Now Now fill in / update all
+    # nodes' outgoing edges.
+    #
+    # TODO: Perhaps make this a table Manager method, to hide the loop &
+    # optimize it.
+    for node in PolyResource.objects.all():
+        node.update_edges()
 
 
 ########################

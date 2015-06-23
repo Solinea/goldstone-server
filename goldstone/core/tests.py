@@ -20,16 +20,14 @@ from django.conf import settings
 from django.test import SimpleTestCase
 import elasticsearch
 import mock
-from mock import patch
+from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase
 
-from goldstone.core import resource
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server
 
 from . import tasks
-from .utils import custom_exception_handler, _add_edges, \
-    process_resource_type, parse
+from .utils import custom_exception_handler, process_resource_type, parse
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -42,9 +40,8 @@ NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
 TYPE = settings.R_ATTRIBUTE.TYPE
 
 
-def _load_rg_and_db(startnodes, startedges):
-    """Create PolyResource database rows, and their corresponding Resource
-    graph nodes.
+def _load_persistent_rg(startnodes, startedges):
+    """Create PolyResource database rows.
 
     :param startnodes: The nodes to add.
     :type startnodes: A "NODES" iterable
@@ -52,35 +49,31 @@ def _load_rg_and_db(startnodes, startedges):
     :type startedges: An "EDGES" iterable
 
     """
-    from .resource import GraphNode
 
     nameindex = 0
 
     # Create the resource nodes. Each will have a unique name. Note that
     # the native_id is stored in the .attributes attribute.
     for nodetype, native_id in startnodes:
-        row = nodetype.objects.create(native_id=native_id,
-                                      native_name="name_%d" % nameindex)
+        nodetype.objects.create(native_id=native_id,
+                                native_name="name_%d" % nameindex)
         nameindex += 1
 
-        resource.instances.graph.add_node(GraphNode(uuid=row.uuid,
-                                                    resourcetype=nodetype,
-                                                    attributes={"id":
-                                                                native_id}))
-
-    # Create the resource graph edges.
+    # Create the resource graph edges. We don't use the update_edges() method,
+    # because some of these tests test it. Each row's edge information is
+    # currently empty.
     for source, dest in startedges:
-        # Find the from and to nodes.
-        nodes = resource.instances.nodes_of_type(source[0])
-        row = source[0].objects.get(native_id=source[1])
-        fromnode = [x for x in nodes if x.uuid == row.uuid][0]
-
-        nodes = resource.instances.nodes_of_type(dest[0])
-        row = dest[0].objects.get(native_id=dest[1])
-        tonode = [x for x in nodes if x.uuid == row.uuid][0]
+        # Get the from and to nodes.
+        fromnode = source[0].objects.get(native_id=source[1])
+        tonode = dest[0].objects.get(native_id=dest[1])
 
         # Add the edge
-        resource.instances.graph.add_edge(fromnode, tonode)
+        edges = fromnode.edges
+        edges.append((tonode.uuid, {}))
+
+        # Save it in the row.
+        fromnode.edges = edges
+        fromnode.save()
 
 
 class TaskTests(SimpleTestCase):
@@ -186,44 +179,37 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             self.assertEqual(result, None)
 
 
-class AddEdges(SimpleTestCase):
-    """Test core.tasks._add_edges."""
+class UpdateEdges(SimpleTestCase):
+    """Test PolyResource.update_edges."""
 
     def setUp(self):
         """Run before every test."""
-
-        resource.instances.graph.clear()
 
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
 
     def test_no_edges(self):
-        """The node's type has no edges.
+        """The source node's type has no edges.
 
         Normally, this condition should never occur. Regardless, nothing should
         be done.
 
         """
-        from goldstone.core.resource import ResourceTypes
 
-        # Test data.
+        # Test data. Each entry is (Type, native_id).
         NODES = [(Host, "deadbeef")]
 
-        _load_rg_and_db(NODES, [])
+        _load_persistent_rg(NODES, [])
 
-        # Mock out the resource_types object so that the Host entry has no
-        # edges.
-        node = resource.instances.graph.nodes()[0]
-        mock_rt_graph = ResourceTypes()
-        mock_rt_graph.graph.remove_edges_from(
-            mock_rt_graph.graph.out_edges(node.resourcetype))
+        # Get the Host instance and do the test.
+        node = Host.objects.all()[0]
+        node.outgoing_edges = MagicMock()
+        node.outgoing_edges.return_value = []
+        node.update_edges()
 
-        with patch("goldstone.core.utils.resource.types", mock_rt_graph):
-            _add_edges(node)
-
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+        # Test the results, re-reading from the db.
+        node = Host.objects.all()[0]
+        self.assertEqual(node.edges, [])
 
     def test_neighbor_no_matchtype(self):
         """The candidates for a node's destination neighbor have no matching
@@ -235,28 +221,32 @@ class AddEdges(SimpleTestCase):
 
         # The initial resource graph nodes, as (Type, native_id) tuples.  The
         # native_id's must be unique within a node type. The Host type can form
-        # outoing links to Aggregate and Hypervisor nodes.
+        # outgoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Aggregate, "0"),
                  (Hypervisor, "1"),
                  (Hypervisor, "2")]
 
-        _load_rg_and_db(NODES, [])
+        _load_persistent_rg(NODES, [])
 
-        # Modify the candidate destination nodes' attributes so that they do
-        # not have the desired match key.
-        for nodetype in (Aggregate, Hypervisor):
-            for node in resource.instances.nodes_of_type(nodetype):
-                node.attributes = {"silly": "putty",
-                                   "emacs": "the sacred editor"}
+        # Set up the host attributes.
+        node = Host.objects.all()[0]
+        node.cloud_attributes = {"host_name": "fred"}
+        node.save()
 
-        node = resource.instances.nodes_of_type(Host)[0]
+        # Modify the candidate destination nodes' attributes so they don't have
+        # the desired match key.
+        for target_type in [Aggregate, Hypervisor]:
+            for row in target_type.objects.all():
+                row.cloud_attributes = {"silly": "putty", "emacs": "sacred"}
+                row.save()
 
-        _add_edges(node)
+        # Do the test.
+        node.update_edges()
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+        # Test the results, re-reading from the db.
+        node = Host.objects.all()[0]
+        self.assertEqual(node.edges, [])
 
     def test_no_attribute_value(self):
         """The node's neighbor has a matching attribute, but its value does not
@@ -268,21 +258,33 @@ class AddEdges(SimpleTestCase):
 
         # The initial resource graph nodes, as (Type, native_id) tuples.  The
         # native_id's must be unique within a node type. The Host type can form
-        # outoing links to Aggregate and Hypervisor nodes.
+        # outgoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Aggregate, "0"),
                  (Hypervisor, "1"),
                  (Hypervisor, "2")]
 
-        _load_rg_and_db(NODES, [])
+        _load_persistent_rg(NODES, [])
 
-        node = resource.instances.nodes_of_type(Host)[0]
+        # Set up the host attributes.
+        node = Host.objects.all()[0]
+        node.cloud_attributes = {"host_name": "fred"}
+        node.save()
 
-        _add_edges(node)
+        # Modify the candidate destination nodes' attributes so they have the
+        # desired match key, but the values won't match.
+        for target_type in [Aggregate, Hypervisor]:
+            for row in target_type.objects.all():
+                row.cloud_attributes = {"hosts": "putty",
+                                        "hypervisor_hostname": "sacred"}
+                row.save()
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+        # Do the test.
+        node.update_edges()
+
+        # Test the results, re-reading from the db.
+        node = Host.objects.all()[0]
+        self.assertEqual(node.edges, [])
 
     def test_no_matching_nghbr_types(self):
         """No instance matches the desired type for the neighbor, although
@@ -294,21 +296,32 @@ class AddEdges(SimpleTestCase):
 
         # The initial resource graph nodes, as (Type, native_id) tuples.  The
         # native_id's must be unique within a node type. The Host type can form
-        # outoing links to Aggregate and Hypervisor nodes.
+        # outgoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Image, "deadbeef"),
                  (Cloudpipe, "deadbeef"),
                  (Port, "deadbeef")]
 
-        _load_rg_and_db(NODES, [])
+        _load_persistent_rg(NODES, [])
 
-        node = resource.instances.nodes_of_type(Host)[0]
+        # Set up the host attributes.
+        node = Host.objects.all()[0]
+        node.cloud_attributes = {"host_name": "fred"}
+        node.save()
 
-        _add_edges(node)
+        # Modify the non-candidate destination nodes' attributes so they have
+        # the desired match key and value.
+        for target_type in [Image, Cloudpipe, Port]:
+            for row in target_type.objects.all():
+                row.cloud_attributes = {"hosts": "fred",
+                                        "hypervisor_hostname": "fred"}
+                row.save()
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+        node.update_edges()
+
+        # Test the results, re-reading from the db.
+        node = Host.objects.all()[0]
+        self.assertEqual(node.edges, [])
 
     def test_multiple_neighbor_matches(self):
         """Multiple instances match the desired neighbor type.
@@ -319,7 +332,7 @@ class AddEdges(SimpleTestCase):
 
         # The initial resource graph nodes, as (Type, native_id) tuples.  The
         # native_id's must be unique within a node type. The Host type can form
-        # outoing links to Aggregate and Hypervisor nodes.
+        # outgoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Image, "cad"),
                  (Cloudpipe, "deadbeef"),
@@ -327,47 +340,48 @@ class AddEdges(SimpleTestCase):
                  (Port, "cad"),
                  (Network, "cad")]
 
-        _load_rg_and_db(NODES, [])
+        _load_persistent_rg(NODES, [])
 
-        node = resource.instances.nodes_of_type(Project)[0]
+        # Set up the project attributes.
+        node = Project.objects.all()[0]
+        node.cloud_attributes = {"id": node.native_id}
+        node.save()
 
-        _add_edges(node)
+        # Modify the candidate destination nodes' attributes so they
+        # all have id keys.
+        for target_type in [Image, Cloudpipe, Port, Network, Host]:
+            for row in target_type.objects.all():
+                row.cloud_attributes = {"id": row.native_id}
+                row.save()
 
-        # Test the node and edge count
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(), 4)
+        # Do the test.
+        node.update_edges()
 
-        # Test the types of edges created.
-        edges = resource.instances.graph.out_edges(node, data=True)
-        self.assertEqual(len(edges), 4)
+        # Test the results, re-reading from the db.
+        node = Project.objects.all()[0]
+        self.assertEqual(len(node.edges), 4)
 
-        project_type_edges = resource.types.graph.out_edges(Project, data=True)
-
-        # For every resource graph edge...
-        for edge in edges:
-            self.assertEqual(edge[0].resourcetype, Project)
-
-            to_type = edge[1].resourcetype
-            rt_edges = [x for x in project_type_edges if x[1] == to_type]
-
-            # A Project Node should have two edges to each Network node. So we
-            # have to special-case the Network nodes.
-            if len(rt_edges) == 2:
-                # Project => Network.
-                self.assertEqual(to_type, Network)
-                expected_attr_dicts = [{TYPE: rt_edges[0][2][TYPE]},
-                                       {TYPE: rt_edges[1][2][TYPE]}]
-                self.assertIn(edge[2], expected_attr_dicts)
-            else:
-                # Project => other types.
-                self.assertIn(to_type, (Port, Image))
-                expected_attr_dict = {TYPE: rt_edges[0][2][TYPE]}
-                self.assertEqual(edge[2], expected_attr_dict)
+        # Test the types of edges created. There should be one edge to the
+        # image node, one to the port node, and two to the network node.
+        #
+        # Image destination.
+        dest = Image.objects.all()[0]
+        edge = [x for x in node.edges if x[0] == dest.uuid]
+        self.assertEqual(len(edge), 1)
+        #
+        # Port destination.
+        dest = Port.objects.all()[0]
+        edge = [x for x in node.edges if x[0] == dest.uuid]
+        self.assertEqual(len(edge), 1)
+        #
+        # Network destinations.
+        dest = [x.uuid for x in Network.objects.all()]
+        edges = [x for x in node.edges if x[0] in dest]
+        self.assertEqual(len(edges), 2)
 
 
 class ProcessResourceType(SimpleTestCase):
-    """Test utiles.process_resource_type."""
+    """Test utilities.process_resource_type."""
 
     class EmptyClientObject(object):
         """A class that simulates one of get_glance_client's return
@@ -391,8 +405,6 @@ class ProcessResourceType(SimpleTestCase):
     def setUp(self):
         """Run before every test."""
 
-        resource.instances.graph.clear()
-
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
 
@@ -410,8 +422,7 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+        self.assertEqual(PolyResource.objects.count(), 0)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_empty_cloud_image(self, ggc):
@@ -429,16 +440,8 @@ class ProcessResourceType(SimpleTestCase):
         # native_id), (to_type, native_id)).
         EDGES = [((Image, "a"), (Image, "ab")), ((Image, "abc"), (Image, "a"))]
 
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(),
-                         len(EDGES))
+        # Create the PolyResource database rows.
+        _load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -446,16 +449,14 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
         self.assertEqual(PolyResource.objects.count(), 0)
-        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_other_empty_cloud(self, ggc):
         """Something in the resource graph, some of which are non-Image
         instances; nothing in the cloud.
 
-        The Image resource graph nodes should be deleted.
+        Only the Image resource graph nodes should be deleted.
 
         """
 
@@ -484,16 +485,8 @@ class ProcessResourceType(SimpleTestCase):
                  ((ServerGroup, "0"), (NovaLimits, "0")),
                  ]
 
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(),
-                         len(EDGES))
+        # Create the PolyResource database rows.
+        _load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -501,10 +494,7 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 3)
         self.assertEqual(PolyResource.objects.count(), 3)
-        self.assertEqual(resource.instances.nodes_of_type(Image), [])
-        self.assertEqual(resource.instances.graph.number_of_edges(), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_empty_rg_cloud_multi_noid(self, ggc):
@@ -547,9 +537,7 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
         self.assertEqual(PolyResource.objects.count(), 2)
-        self.assertEqual(len(resource.instances.nodes_of_type(Image)), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud(self, ggc):
@@ -580,16 +568,8 @@ class ProcessResourceType(SimpleTestCase):
                  ((ServerGroup, "0"), (NovaLimits, "0")),
                  ]
 
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(),
-                         len(EDGES))
+        # Create the PolyResource database rows.
+        _load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -612,17 +592,7 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 6)
         self.assertEqual(PolyResource.objects.count(), 6)
-
-        resource_node_attributes = \
-            [x.attributes for x in resource.instances.nodes_of_type(Image)]
-        expected = [good_image_0, good_image_1, good_image_2]
-        resource_node_attributes.sort()
-        expected.sort()
-        self.assertEqual(resource_node_attributes, expected)
-
-        self.assertEqual(resource.instances.graph.number_of_edges(), 2)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud_hit(self, ggc):
@@ -657,16 +627,8 @@ class ProcessResourceType(SimpleTestCase):
                  ((ServerGroup, "0"), (NovaLimits, "0")),
                  ]
 
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(),
-                         len(EDGES))
+        # Create the PolyResource database rows.
+        _load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -695,25 +657,19 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 7 + 1 - 1)
         self.assertEqual(PolyResource.objects.count(), 7 + 1 - 1)
-
-        resource_node_attributes = \
-            [x.attributes for x in resource.instances.nodes_of_type(Image)]
-        expected = [good_image_0, good_image_1, good_image_2]
-        resource_node_attributes.sort()
-        expected.sort()
-        self.assertEqual(resource_node_attributes, expected)
-
-        # The edges are: ((NovaLimits, "0"), (ServerGroup, "ab")),
-        # ((NovaLimits, "0"), (Image, "a")), ((Image, "ab"), (Server, "ab")).
-        self.assertEqual(resource.instances.graph.number_of_edges(), 3)
 
     @patch('goldstone.core.models.get_glance_client')
     def test_duplicate_native_ids(self, ggc):
         """Something in the resource graph, and some glance services in the
         cloud; and some of the cloud's glance services have duplicate
-        native_ids."""
+        native_ids.
+
+        This should never happen, as the native_ids are supposed to be unique
+        within each cloud. But we shouldn't throw an exception. The duplicate
+        native_ids should map to the same Image row in the PolyResource table.
+
+        """
 
         # The initial resource graph nodes, as (Type, native_id) tuples.  The
         # native_id's must be unique within a node type.
@@ -731,16 +687,8 @@ class ProcessResourceType(SimpleTestCase):
                  ((ServerGroup, "0"), (NovaLimits, "0")),
                  ]
 
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check.
-        self.assertEqual(resource.instances.graph.number_of_nodes(),
-                         len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resource.instances.graph.number_of_edges(),
-                         len(EDGES))
+        # Create the PolyResource database rows.
+        _load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance services, two of
         # which have duplicate OpenStack ids.
@@ -766,9 +714,7 @@ class ProcessResourceType(SimpleTestCase):
 
         process_resource_type(Image)
 
-        self.assertEqual(resource.instances.graph.number_of_nodes(), 5)
-        self.assertEqual(PolyResource.objects.count(), 5)
-        self.assertEqual(len(resource.instances.nodes_of_type(Image)), 3)
+        self.assertEqual(PolyResource.objects.count(), 4)
 
 
 class ParseTests(SimpleTestCase):

@@ -20,7 +20,6 @@ from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
     Flavor, Interface, Keypair
-from goldstone.core import resource
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -30,7 +29,7 @@ NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
               Hypervisor, Project, Network, Server]
 
 # Aliases to make the code less verbose
-TYPE = settings.R_ATTRIBUTE.TYPE
+TO = settings.R_ATTRIBUTE.TO
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 
 
@@ -46,14 +45,14 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
     This function modifies data_from and to_from.
 
-    :param type_from: The type of the "from" node in the resource.types graph
+    :param type_from: The type of the "from" node in the resource types graph
     :type type_from: PolyResource subclass
     :param data_from: Type_from's initial test data.
     :type data_from: dict
     :param match_from_key_fn: A one-argument function to modify the value used
                               in the matching_fn test
     :type match_from_key_fn: Callable
-    :param type_to: The type of the "to" node in the resource.types graph
+    :param type_to: The type of the "to" node in the resource types graph
     :type type_to: PolyResource subclass
     :param data_to: Type_to's initial test data.
     :type data_to: dict
@@ -63,26 +62,27 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
     """
 
-    # Test edge discovery.
-    edges = resource.types.graph.out_edges(type_from, data=True)
-    edge = [x for x in edges if x[1] == type_to][0][2]
+    # Get the matching function from the source type
+    from_to_entry = [x for x in type_from.outgoing_edges()
+                     if x[TO] == type_to][0]
+    matching_fn = from_to_entry[MATCHING_FN]
 
     # Test one being None
     match_from_key_fn(None)
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test both being None
     match_to_key_fn(None)
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test no match
     match_from_key_fn("4445")
     match_to_key_fn("4444")
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test match
     match_to_key_fn("4445")
-    assert edge[MATCHING_FN](data_from, data_to)
+    assert matching_fn(data_from, data_to)
 
 
 class ResourceTypesTests(SimpleTestCase):
@@ -680,19 +680,20 @@ class ResourceTypesTests(SimpleTestCase):
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
-        # Test edge discovery.
-        edges = resource.types.graph.out_edges(Keypair, data=True)
-        edge = [x for x in edges if x[1] == Server][0][2]
+        # Get the matching function from the source type
+        from_to_entry = [x for x in Keypair.outgoing_edges()
+                         if x[TO] == Server][0]
+        matching_fn = from_to_entry[MATCHING_FN]
 
         # Test the keypair being None
         dictassign(KEYPAIR, "fingerprint", None)
-        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertFalse(matching_fn(KEYPAIR, SERVER))
 
         # Test both being None
         dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", None)
-        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertFalse(matching_fn(KEYPAIR, SERVER))
 
         # Test match
         dictassign(KEYPAIR, "fingerprint", "4445")
         dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
-        self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertTrue(matching_fn(KEYPAIR, SERVER))
