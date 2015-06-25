@@ -20,9 +20,10 @@ Tests:
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import datetime, timedelta
 from django.conf import settings
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
-    Aggregate, Server, Project, Network, Limits, PolyResource
+    Aggregate, Server, Project, Network, Limits, PolyResource, Image, Flavor
 
 from goldstone.core import resource         # For resource.instances.
 from goldstone.core.resource import ResourceTypes, Instances, GraphNode
@@ -33,9 +34,7 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 # Aliases to make the Resource Graph definitions less verbose.
-TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
-EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 ALLOCATED_TO = settings.R_EDGE.ALLOCATED_TO
 APPLIES_TO = settings.R_EDGE.APPLIES_TO
@@ -500,6 +499,292 @@ class CoreResourceTypesDetail(Setup):
         content.sort()
 
         self.assertEqual(content, EXPECTED)
+
+
+class CoreResourcesUnpacking(Setup):
+    """The unpacking of persistent data into the in-memory graph."""
+
+    def test_unpacking_none(self):
+        """Test unpacking when the graph doesn't exist."""
+
+        # Create two persistent graph rows, with one edge between them.
+        image = Image.objects.create(native_id="bar",
+                                     native_name="foo",
+                                     edges=[],
+                                     cloud_attributes={"high": "school"})
+        project = Project.objects.create(native_id="foo",
+                                         native_name="bar",
+                                         edges=[(image.uuid,
+                                                 {"edgescore": 7})],
+                                         cloud_attributes={"madonn": 'a'})
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
+        # Reference the graph. This should unpack the two rows.
+        resource.instances.graph
+
+        # Check the graph's timestamp. It should be within a few seconds of
+        # now.
+        self.assertLess(datetime.now() - resource.instances._timestamp,
+                        timedelta(seconds=10))
+
+        # Check the number of nodes and edges
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 1)
+
+        # Check the node information.
+        for entry, entrytype in ((image, Image), (project, Project)):
+            node = resource.instances.get_uuid(entry.uuid)
+            self.assertEqual(node.uuid, entry.uuid)
+            self.assertEqual(node.resourcetype, entrytype)
+            self.assertEqual(node.attributes, entry.cloud_attributes)
+
+        # Check the edge information.
+        edge = resource.instances.graph.edges(data=True)[0]
+        self.assertEqual(edge[2], project.edges[0][1])
+
+    def test_unpacking_timestamp(self):
+        """Test unpacking when the timestamp check demands it."""
+
+        # Create two persistent graph rows, with one edge between them.
+        image = Image.objects.create(native_id="bar",
+                                     native_name="foo",
+                                     edges=[],
+                                     cloud_attributes={"high": "school"})
+        Project.objects.create(native_id="foo",
+                               native_name="bar",
+                               edges=[(image.uuid, {"edgescore": 7})],
+                               cloud_attributes={"madonn": 'a'})
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
+        # Reference the graph. This should unpack the two rows.
+        resource.instances.graph
+
+        # Now create a completely different persisent graph in the db.
+        Image.objects.all().delete()
+        Project.objects.all().delete()
+
+        server = Server.objects.create(native_id="ser",
+                                       native_name="serser",
+                                       edges=[],
+                                       cloud_attributes={"a": "aaa",
+                                                         "id": "zzdd"})
+        flavor = Flavor.objects.create(native_id="fla",
+                                       native_name="vor",
+                                       edges=[(server.uuid, {"type": "hot"})],
+                                       cloud_attributes={"flavor":
+                                                         {"time": "now",
+                                                          "id": "zzdd"}})
+
+        # Do the test by forcing resource.instances.PERIOD to be a small value.
+        with patch.object(resource.instances, "PERIOD") as period:
+            period.return_value = 3
+            resource.instances.graph
+
+        # Check the graph's timestamp. It should be within a few seconds of
+        # now.
+        self.assertLess(datetime.now() - resource.instances._timestamp,
+                        timedelta(seconds=10))
+
+        # Check the number of nodes and edges
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 1)
+
+        # Check the node information.
+        for entry, entrytype in ((server, Server), (flavor, Flavor)):
+            node = resource.instances.get_uuid(entry.uuid)
+            self.assertEqual(node.uuid, entry.uuid)
+            self.assertEqual(node.resourcetype, entrytype)
+            self.assertEqual(node.attributes, entry.cloud_attributes)
+
+        # Check the edge information.
+        edge = resource.instances.graph.edges(data=True)[0]
+        self.assertEqual(edge[2], flavor.edges[0][1])
+
+    def test_unpacking_not_timestamp(self):
+        """Test not unpacking when the timestamp check doesn't pass."""
+
+        # Create two persistent graph rows, with one edge between them.
+        image = Image.objects.create(native_id="bar",
+                                     native_name="foo",
+                                     edges=[],
+                                     cloud_attributes={"high": "school"})
+        project = Project.objects.create(native_id="foo",
+                                         native_name="bar",
+                                         edges=[(image.uuid,
+                                                 {"edgescore": 7})],
+                                         cloud_attributes={"madonn": 'a'})
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
+        # Reference the graph. This should unpack the two rows.
+        resource.instances.graph
+
+        # Now create a completely different persisent graph in the db.
+        Image.objects.all().delete()
+        Project.objects.all().delete()
+
+        server = Server.objects.create(native_id="ser",
+                                       native_name="serser",
+                                       edges=[],
+                                       cloud_attributes={"a": "aaa",
+                                                         "id": "zzdd"})
+        Flavor.objects.create(native_id="fla",
+                              native_name="vor",
+                              edges=[(server.uuid, {"type": "hot"})],
+                              cloud_attributes={"flavor":
+                                                {"time": "now", "id": "zzdd"}})
+
+        # Do the test by referencing the graph now. This is well within
+        # resource.instances.PERIOD's value.
+        resource.instances.graph
+
+        # Check the graph's timestamp. It should be within a few seconds of
+        # now.
+        self.assertLess(datetime.now() - resource.instances._timestamp,
+                        timedelta(seconds=10))
+
+        # Check the number of nodes and edges
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 1)
+
+        # Check the node information.
+        for entry, entrytype in ((image, Image), (project, Project)):
+            node = resource.instances.get_uuid(entry.uuid)
+            self.assertEqual(node.uuid, entry.uuid)
+            self.assertEqual(node.resourcetype, entrytype)
+            self.assertEqual(node.attributes, entry.cloud_attributes)
+
+        # Check the edge information.
+        edge = resource.instances.graph.edges(data=True)[0]
+        self.assertEqual(edge[2], project.edges[0][1])
+
+    def test_unpack_empty(self):
+        """Test unpacking no graph."""
+
+        # Create two persistent graph rows, with one edge between them.
+        image = Image.objects.create(native_id="bar",
+                                     native_name="foo",
+                                     edges=[],
+                                     cloud_attributes={"high": "school"})
+        Project.objects.create(native_id="foo",
+                               native_name="bar",
+                               edges=[(image.uuid, {"edgescore": 7})],
+                               cloud_attributes={"madonn": 'a'})
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
+        # Reference the graph. This should unpack the two rows.
+        resource.instances.graph
+
+        # Delete the persistent graph.
+        Image.objects.all().delete()
+        Project.objects.all().delete()
+
+        # Do the test by forcing resource.instances.PERIOD to be a small value.
+        # The empty persistent graph should be unpacked into memory.
+        with patch.object(resource.instances, "PERIOD") as period:
+            period.return_value = 3
+            resource.instances.graph
+
+        # Check the graph's timestamp. It should be within a few seconds of
+        # now.
+        self.assertLess(datetime.now() - resource.instances._timestamp,
+                        timedelta(seconds=10))
+
+        # Check the number of nodes and edges
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 0)
+
+    def test_unpack_bad_nodes(self):
+        """Persistent graph edges reference nodes that do not exist."""
+
+        # Create five persistent graph rows and four edges. Two edges will
+        # reference destination uuids that don't exist.
+        #
+        # image -> server, good
+        server = Server.objects.create(native_id="bar",
+                                       native_name="foo",
+                                       edges=[],
+                                       cloud_attributes={"id": "42"})
+        image = Image.objects.create(native_id="bar77",
+                                     native_name="foo77",
+                                     edges=[(server.uuid, {"some!": "stuff"})],
+                                     cloud_attributes={"id": "42"})
+        # host -> hypervisor, but bad uuid used.
+        hypervisor = \
+            Hypervisor.objects.create(native_id="bbbbbar",
+                                      native_name="fffffoo",
+                                      edges=[],
+                                      cloud_attributes={"hypervisor_hostname":
+                                                        "school"})
+        host = Host.objects.create(native_id="barfjohn",
+                                   native_name="foojohn",
+                                   edges=[("66", {"SOME": "stuFF"})],
+                                   cloud_attributes={"host_name": "school"})
+        # project -> image, but bad uuid used.
+        # project -> server, good
+        project = \
+            Project.objects.create(native_id="sigh",
+                                   native_name="gasp",
+                                   edges=[("66666", {"edgescore": 17}),
+                                          (server.uuid, {"success!": True})],
+                                   cloud_attributes={"id": '42'})
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
+        # Reference the graph. This should unpack the two rows.
+        resource.instances.graph
+
+        # Check the graph's timestamp. It should be within a few seconds of
+        # now.
+        self.assertLess(datetime.now() - resource.instances._timestamp,
+                        timedelta(seconds=10))
+
+        # Check the number of nodes and edges
+        self.assertEqual(resource.instances.graph.number_of_nodes(), 5)
+        self.assertEqual(resource.instances.graph.number_of_edges(), 2)
+
+        # Check the node information.
+        for entry, entrytype in ((server, Server), (image, Image),
+                                 (hypervisor, Hypervisor), (host, Host),
+                                 (project, Project)):
+            node = resource.instances.get_uuid(entry.uuid)
+            self.assertEqual(node.uuid, entry.uuid)
+            self.assertEqual(node.resourcetype, entrytype)
+            self.assertEqual(node.attributes, entry.cloud_attributes)
+
+        # Check the edge information.
+        edge_attributes = [x[2]
+                           for x in resource.instances.graph.edges(data=True)]
+        self.assertIn({"some!": "stuff"}, edge_attributes)
+        self.assertIn({"success!": True}, edge_attributes)
 
 
 class CoreResources(Setup):

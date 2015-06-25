@@ -570,8 +570,8 @@ class AvailabilityZone(PolyResource):
             # The resource's name is at key "zoneName", so we have to copy it
             # to where the client expects it. And add the name of the resource
             # type.
-            this_entry[cls.resource_name_key] = this_entry.get("zoneName",
-                                                               "None")
+            this_entry[cls.resource_name_key()] = this_entry.get("zoneName",
+                                                                 "None")
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
@@ -819,7 +819,7 @@ class Host(PolyResource):
                 # The resource's name is at key "host_name", so we have to copy
                 # it to where the client expects it. And add the name of the
                 # resource type.
-                host[cls.resource_name_key] = host.get("host_name", "None")
+                host[cls.resource_name_key()] = host.get("host_name", "None")
                 host[cls.resource_type_name_key()] = cls.unique_class_id()
 
                 # We don't want or need this key.
@@ -891,7 +891,7 @@ class Hypervisor(PolyResource):
 
             # Indicate that the hypervisor has no name, and add the name of the
             # resource type.
-            this_entry[cls.resource_name_key] = "None"
+            this_entry[cls.resource_name_key()] = "None"
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
@@ -947,7 +947,7 @@ class Cloudpipe(PolyResource):
 
             # Indicate that the cloudpipe has no name, and add the name of the
             # resource type.
-            this_entry[cls.resource_name_key] = "None"
+            this_entry[cls.resource_name_key()] = "None"
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
@@ -1092,7 +1092,7 @@ class Interface(PolyResource):
             if entry["mac_addr"] not in mac_addresses:
                 # We haven't seen this MAC address before. Give it a "None"
                 # name, add its resource type, and add it to the result.
-                entry[cls.resource_name_key] = "None"
+                entry[cls.resource_name_key()] = "None"
                 entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
                 result.append(entry)
@@ -1145,7 +1145,7 @@ class NovaLimits(PolyResource):
             this_entry = entry.to_dict()
 
             # This has no name, and add the name of the resource type.
-            this_entry[cls.resource_name_key] = "None"
+            this_entry[cls.resource_name_key()] = "None"
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
@@ -1221,7 +1221,7 @@ class QuotaSet(PolyResource):
                 cls.native_id_from_attributes(this_entry)
 
             # Add this resource's name, and the name of the resource type.
-            this_entry[cls.resource_name_key] = "None"
+            this_entry[cls.resource_name_key()] = "None"
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)
@@ -1407,7 +1407,7 @@ class Limits(PolyResource):
             this_entry = entry.to_dict()
 
             # Add the name of the resource type.
-            this_entry[cls.resource_name_key] = "None"
+            this_entry[cls.resource_name_key()] = "None"
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 
             result.append(this_entry)

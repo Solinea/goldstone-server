@@ -198,28 +198,32 @@ def process_resource_type(nodetype):
             # Try to find its corresponding persistent Resource graph node.
             # Note: This try/except block works iff there's only one copy of
             # this function executing at a time.
+            #
+            # N.B. In glance, entry will be of type warlock.core.image instead
+            # of dict. So we simply use dict(entry) everywhere, to cover those
+            # situations.
             try:
                 persistent_node = nodetype.objects.get(native_id=native_id)
             except ObjectDoesNotExist:
                 # The node doesn't exist. Create it. We need to treat Host
-                # instances a little differently.
+                # instances a little differently that other nodes...
                 if nodetype == Host:
                     native_name = entry.get("host_name", '')
                     persistent_node = \
                         nodetype.objects.create(native_id=native_id,
                                                 native_name=native_name,
-                                                cloud_attributes=entry,
+                                                cloud_attributes=dict(entry),
                                                 fqdn=native_name+".com")
                 else:
                     native_name = entry.get("name", '')
                     persistent_node = \
                         nodetype.objects.create(native_id=native_id,
                                                 native_name=native_name,
-                                                cloud_attributes=entry)
+                                                cloud_attributes=dict(entry))
             else:
                 # Persistent_node corresponds to the actual node in entry.
                 # Update its persistent information, in the database.
-                persistent_node.cloud_attributes = entry
+                persistent_node.cloud_attributes = dict(entry)
                 persistent_node.save()
 
     # The persistent nodes have been updated. Now Now fill in / update all

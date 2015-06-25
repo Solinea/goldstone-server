@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import timedelta, datetime
 from django.conf import settings
+import logging
 import networkx
 from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Endpoint, Service, Project, AvailabilityZone, Aggregate, \
@@ -38,6 +40,8 @@ RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
 TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
+
+logger = logging.getLogger(__name__)
 
 
 class Graph(object):
@@ -144,15 +148,128 @@ types = ResourceTypes()                      # pylint: disable=C0103
 
 
 class Instances(Graph):
-    """A graph of the resources used within an OpenStack cloud."""
+    """An in-memory navigable graph of the resources used within an OpenStack
+    cloud.
+
+    The correct way to import the graph is:
+
+         import resources
+         foo = resource.instances...
+
+    If you use, "from resources import instances," instances is added to the
+    local namespace, and it won't work as you expect.
+
+    The persistent data is held in the db, which is periodically updated by a
+    celery task. This lazy-evaluates when to update the in-memory graph from
+    the db data.
+
+    """
+
+    # How often to refresh the graph from the database.
+    PERIOD = timedelta(minutes=15)
 
     def __init__(self):
-        """Initialize the object."""
+        """Initialize the object.
 
-        super(Instances, self).__init__()
+        We deliberately do not call the parent class' __init__, because it
+        creates self.graph. This class uses lazy evaluation of the graph
+        object, and self.graph is a property here!
+
+        """
+
+        # The internal graph object
+        self._graph = None
+
+        # When the graph object was last updated.
+        self._timestamp = datetime.now()
+
+    @staticmethod
+    def unpack():
+        """Return a graph object representing the persistent graph data.
+
+        Unpacking the graph will be so fast that the probability of a graph
+        state shear (with the celery task that updates the graph) should be
+        very small. If it happens in practice, a simple solution would be to
+        lock the db table.
+
+        """
+        from .models import PolyResource
+
+        def get_uuid(uuid):
+            """Return the graph node having this UUID.
+
+            :param UUID: A resource graph UUID
+            :type UUID: str
+            :return: A node
+            :rtype: GraphNode or None
+
+            """
+
+            for entry in graph.nodes():
+                if entry.uuid == uuid:
+                    return entry
+
+            return None
+
+        # Start with an empty graph.
+        graph = networkx.MultiDiGraph()
+
+        # Collect the table nodes once.
+        nodes = PolyResource.objects.all()
+
+        # Create all the nodes.
+        for node in nodes:
+            graph.add_node(GraphNode(uuid=node.uuid,
+                                     resourcetype=type(node),
+                                     attributes=node.cloud_attributes))
+
+        # Create all the edges.
+        for node in nodes:
+            for edge in node.edges:
+                # Get the source and destination nodes in the graph.
+                source_node = get_uuid(node.uuid)
+                dest_node = get_uuid(edge[0])
+
+                # If either aren't there, we have a database inconsistency. Log
+                # it as evidence of a db shear, and skip this edge.
+                if not source_node or not dest_node:
+                    logger.warning("Missing source or destination node in "
+                                   "unpacked graph state: source uuid %s, "
+                                   "source native_id %s, source native_name "
+                                   "%s, source edges %s, source created %s",
+                                   node.uuid,
+                                   node.native_id,
+                                   node.native_name,
+                                   node.edges,
+                                   node.created)
+                    continue
+
+                # Create the edge.
+                graph.add_edge(source_node, dest_node, attr_dict=edge[1])
+
+        return graph
+
+    @property
+    def graph(self):
+        """Return a lazy-evaluated graph object.
+
+        The graph is unpacked from the database if it's never been unpacked, or
+        if was last unpacked more than N time units ago. The next effect is,
+        the unpack expense doesn't happen until it's needed, and the object is
+        periodically refreshed if the in-memory object lives long enough.
+
+        """
+
+        if self._graph is None or \
+           self._timestamp + self.PERIOD < datetime.now():
+            # Unpack the graph from the database, and reset the timestamp.
+            self._graph = self.unpack()
+            self._timestamp = datetime.now()
+
+        return self._graph
 
     def get_uuid(self, uuid):
-        """Return the instance with this UUID.
+        """Return the node having this UUID.
 
         :param UUID: A resource graph UUID
         :type UUID: str
@@ -211,9 +328,7 @@ class Instances(Graph):
 
         return settings.RI_EDGE.keys()
 
-
-# Here's Goldstone's Resource Instance graph. Import resources, then reference
-# resource.instances.
+# Here's Goldstone's Resource Instance graph.
 instances = Instances()                         # pylint: disable=C0103
 
 
@@ -226,7 +341,7 @@ class GraphNode(object):
     # This node's Resource Type.
     resourcetype = None
 
-    # This node's attributes. E.g., from ideget_xxxxx_client().
+    # This node's attributes. E.g., from get_xxxxx_client().
     attributes = {}
 
     def __init__(self, **kwargs):
