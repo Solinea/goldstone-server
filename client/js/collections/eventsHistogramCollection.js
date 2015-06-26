@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
+ /*
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+this.eventsBrowserView = new ChartSet({
+    chartTitle: 'Events Histogram',
+    collection: this.eventsBrowserVizCollection,
+    el: '#events-histogram-visualization',
+    infoIcon: 'fa-tasks',
+    width: $('#events-histogram-visualization').width(),
+    yAxisLabel: 'Number of Events'
+});
+ */
+
 // define collection and link to model
 
 var EventsHistogramCollection = GoldstoneBaseCollection.extend({
