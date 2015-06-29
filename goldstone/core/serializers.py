@@ -135,6 +135,10 @@ class EventSerializer(ReadOnlyElasticSerializer):
         # These metadata fields will be added to the return value.
         METADATA = ["doc_type", "id", "index"]
 
+        # When we look for a resource graph node's id, we look for these keys.
+        # (Interface has port_id and net_id, but no id.)
+        NODE_ID_KEYS = ["id", "port_id", "net_id"]
+
         # The "_name" and "_type" fields we'll add to the return value.
         INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
 
@@ -160,17 +164,18 @@ class EventSerializer(ReadOnlyElasticSerializer):
             result[resource_type] = NOT_FOUND
             result[resource_name] = NOT_FOUND
 
-            target_value = instance.traits.get(source_key)
+            # Some ids contain dashes while others do not. We're unsure when
+            # the dashes are embedded or stripped, so we'll 'normalize' the ids
+            # here by removing the dashes.
+            target_value = instance.traits.get(source_key).replace('-', '')
 
             if target_value:
                 # For every node in the resource graph...
                 for node in resource.instances.graph.nodes():
-                    # Look for the first match on any key ending with "id".
-                    # OpenStack's API is a bit casual, so we'll cast a wide net
-                    # unless there's a performance problem.
-                    idkeys = [x for x in node.attributes
-                              if x.lower().endswith("id")]
-                    id_values = [node.attributes.get(x) for x in idkeys]
+                    # Look for an id match.
+                    id_values = \
+                        [node.attributes[x].replace('-', '')
+                         for x in NODE_ID_KEYS if node.attributes.get(x)]
 
                     if target_value in id_values:
                         # We found this instance! Plug in the resource type and
