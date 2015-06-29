@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import timedelta, datetime
 from django.conf import settings
 import logging
 import networkx
@@ -42,6 +41,26 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 logger = logging.getLogger(__name__)
+
+
+class GraphNode(object):
+    """A Resource graph node."""
+
+    # This node's Goldstone UUID.
+    uuid = None
+
+    # This node's Resource Type.
+    resourcetype = None
+
+    # This node's attributes. E.g., from get_xxxxx_client().
+    attributes = {}
+
+    def __init__(self, **kwargs):
+        """Initialize the object."""
+
+        self.uuid = kwargs.get("uuid")
+        self.resourcetype = kwargs.get("resourcetype")
+        self.attributes = kwargs.get("attributes", {})
 
 
 class Graph(object):
@@ -136,13 +155,6 @@ class Types(Graph):
 
         return None
 
-    @property
-    def edgetypes(self):       # pylint: disable=R0201
-        """Return a list of the graph's edge types."""
-
-        return settings.R_EDGE.keys()
-
-
 # This is Goldstone's resource type graph.
 types = Types()                      # pylint: disable=C0103
 
@@ -151,48 +163,28 @@ class Instances(Graph):
     """An in-memory navigable graph of the resources used within an OpenStack
     cloud.
 
-    The correct way to import the graph is:
+    The correct way to import this:
 
          from goldstone.core import resource
          foo = resource.instances...
 
-    If you use, "from resources import instances," instances is added to the
+    If you use, "from resources import instances," it adds instances to the
     local namespace, and it won't work as you expect.
 
-    The persistent data is held in the db, which is periodically updated by a
-    celery task. This lazy-evaluates when to update the in-memory graph from
-    the db data.
+    A celery task periodically updates the persistent data and this in-memory
+    graph.
 
     """
 
-    # How often to refresh the graph from the database.
-    PERIOD = timedelta(minutes=15)
-
     def __init__(self):
-        """Initialize the object.
+        """Initialize the object, and unpack the current persistent graph into
+        it."""
 
-        We deliberately do not call the parent class' __init__, because it
-        creates self.graph. This class uses lazy evaluation of the graph
-        object, and self.graph is a property here!
+        super(Instances, self).__init__()
+        self.unpack()
 
-        """
-
-        # The internal graph object
-        self._graph = None
-
-        # When the graph object was last updated.
-        self._timestamp = datetime.now()
-
-    @staticmethod
-    def unpack():
-        """Return a graph object representing the persistent graph data.
-
-        Unpacking the graph will be so fast that the probability of a graph
-        state shear (with the celery task that updates the graph) should be
-        very small. If it happens in practice, a simple solution would be to
-        lock the db table.
-
-        """
+    def unpack(self):
+        """Unpack the persistent graph into the in-memory graph object."""
         from .models import PolyResource
 
         def get_uuid(uuid):
@@ -247,26 +239,8 @@ class Instances(Graph):
                 # Create the edge.
                 graph.add_edge(source_node, dest_node, attr_dict=edge[1])
 
-        return graph
-
-    @property
-    def graph(self):
-        """Return a lazy-evaluated graph object.
-
-        The graph is unpacked from the database if it's never been unpacked, or
-        if was last unpacked more than N time units ago. The next effect is,
-        the unpack expense doesn't happen until it's needed, and the object is
-        periodically refreshed if the in-memory object lives long enough.
-
-        """
-
-        if self._graph is None or \
-           self._timestamp + self.PERIOD < datetime.now():
-            # Unpack the graph from the database, and reset the timestamp.
-            self._graph = self.unpack()
-            self._timestamp = datetime.now()
-
-        return self._graph
+        # Update this object and we're done.
+        self.graph = graph
 
     def get_uuid(self, uuid):
         """Return the node having this UUID.
@@ -322,31 +296,5 @@ class Instances(Graph):
 
         return None
 
-    @property
-    def edgetypes(self):         # pylint: disable=R0201
-        """Return a list of the graph's edge types."""
-
-        return settings.RI_EDGE.keys()
-
 # Here's Goldstone's Resource Instance graph.
 instances = Instances()                         # pylint: disable=C0103
-
-
-class GraphNode(object):
-    """A Resource graph node."""
-
-    # This node's Goldstone UUID.
-    uuid = None
-
-    # This node's Resource Type.
-    resourcetype = None
-
-    # This node's attributes. E.g., from get_xxxxx_client().
-    attributes = {}
-
-    def __init__(self, **kwargs):
-        """Initialize the object."""
-
-        self.uuid = kwargs.get("uuid")
-        self.resourcetype = kwargs.get("resourcetype")
-        self.attributes = kwargs.get("attributes", {})

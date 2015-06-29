@@ -120,8 +120,9 @@ class EventSerializer(ReadOnlyElasticSerializer):
            override to_representation() and add the metadata to the return
            result. We chose the latter.
 
-        2) The "resource_type" and "resource_name" keys are added, with values
-           from the resource types and resource instances graphs.
+        2) Adds "_name" and "_type" key:value pairs for "instance", "user", and
+           "tenant". The values come from the resource types and instances
+           graphs.
 
         :type instance: Result
         :param instance: One instance from an Elasticsearch search response
@@ -134,6 +135,12 @@ class EventSerializer(ReadOnlyElasticSerializer):
         # These metadata fields will be added to the return value.
         METADATA = ["doc_type", "id", "index"]
 
+        # The "_name" and "_type" fields we'll add to the return value.
+        INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
+
+        # The string used when a resource isn't found in the instance graph.
+        NOT_FOUND = "Unknown"
+
         # Get the standard to_dict() result...
         result = super(EventSerializer, self).to_representation(instance)
 
@@ -142,37 +149,47 @@ class EventSerializer(ReadOnlyElasticSerializer):
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
-        # Add the resource type, and the resource name if we can find them.
-        result["resource_type"] = "None"
-        result["resource_name"] = "None"
+        # Add the resource type, and the resource name if we can find them. For
+        # every root type...
+        for id_root in INSTANCE_GRAPH_IDS:
+            # Make the source _id key, and the destination _name and _type
+            # keys. And initialize the destination keys to, "not found."
+            source_key = id_root + "_id"
+            resource_type = id_root + "_type"
+            resource_name = id_root + "_name"
+            result[resource_type] = NOT_FOUND
+            result[resource_name] = NOT_FOUND
 
-        target_value = instance.traits.get("instance_id")
+            target_value = instance.traits.get(source_key)
 
-        if target_value:
-            # For every node in the resource graph...
-            for node in resource.instances.graph.nodes():
-                # Look for the first match on any key ending with "id".
-                # OpenStack's API is a bit casual, so we'll cast a wide net
-                # unless there's a performance problem.
-                idkeys = [x for x in node.attributes
-                          if x.lower().endswith("id")]
-                id_values = [node.attributes.get(x) for x in idkeys]
+            if target_value:
+                # For every node in the resource graph...
+                for node in resource.instances.graph.nodes():
+                    # Look for the first match on any key ending with "id".
+                    # OpenStack's API is a bit casual, so we'll cast a wide net
+                    # unless there's a performance problem.
+                    idkeys = [x for x in node.attributes
+                              if x.lower().endswith("id")]
+                    id_values = [node.attributes.get(x) for x in idkeys]
 
-                if target_value in id_values:
-                    # We found this instance! Plug in the resource type and
-                    # name, and return.
-                    result["resource_type"] = \
-                        node.resourcetype.display_attributes()["name"]
-                    result["resource_name"] = node.attributes.get("name",
-                                                                  "None")
-                    break
+                    if target_value in id_values:
+                        # We found this instance! Plug in the resource type and
+                        # name, and return.
+                        result[resource_type] = \
+                            node.resourcetype.display_attributes()["name"]
+                        result[resource_name] = node.attributes.get("name",
+                                                                    NOT_FOUND)
+                        break
+                else:
+                    # We didn't find this instance in the resource graph.
+                    logger.warning("Didn't find %s[%s] in the resource graph",
+                                   instance,
+                                   source_key)
             else:
-                # We didn't find this instance in the resource graph.
-                logger.warning("Didn't find %s in the resource graph",
+                # This instance doesn't have an instance_id.graph.
+                logger.warning("Didn't find the %s key in %s",
+                               source_key,
                                instance)
-        else:
-            # This instance doesn't have an instance_id.graph.
-            logger.warning("Didn't find the instance_id key in %s", instance)
 
         return result
 

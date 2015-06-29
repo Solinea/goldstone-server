@@ -30,7 +30,7 @@ from goldstone.test_utils import Setup, create_and_login, \
 import json
 from mock import patch
 from rest_framework.status import HTTP_200_OK
-from .tests_resource_api import RES_URL
+from .tests_resource_api_2 import RES_URL
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO
