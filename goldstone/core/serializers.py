@@ -12,10 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from rest_framework import serializers
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
+
+logger = logging.getLogger(__name__)
 
 
 class MetricDataSerializer(ReadOnlyElasticSerializer):
@@ -106,20 +109,27 @@ class EventSerializer(ReadOnlyElasticSerializer):
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
 
-        The returned value includes fields from the instance's metadata.
+        Two additions are made to the normal instance values.
 
-        The instance.to_dict() return value doesn't include instance metadata.
-        We could subclass the to_dict() method in the EventData() class, which
-        would require that we track updates to the elasticsearch_dsl.utils
-        module where it's defined. Or, we could override to_representation()
-        and add the metadata to the return result. We chose the latter.
+        1) The returned value includes fields from the instance's metadata.
+
+           The instance.to_dict() return value doesn't include instance
+           metadata. We could subclass the to_dict() method in the EventData()
+           class, which would require that we track updates to the
+           elasticsearch_dsl.utils module where it's defined. Or, we could
+           override to_representation() and add the metadata to the return
+           result. We chose the latter.
+
+        2) The "resource_type" and "resource_name" keys are added, with values
+           from the resource types and resource instances graphs.
 
         :type instance: Result
         :param instance: One instance from an Elasticsearch search response
         :rtype: dict
-        :return: The response minus exclusions, plus some metadata values
+        :return: The response minus exclusions, plus some additional values
 
         """
+        from goldstone.core import resource
 
         # These metadata fields will be added to the return value.
         METADATA = ["doc_type", "id", "index"]
@@ -127,12 +137,43 @@ class EventSerializer(ReadOnlyElasticSerializer):
         # Get the standard to_dict() result...
         result = super(EventSerializer, self).to_representation(instance)
 
-        # ...now add non-None/blank metadata fields and values to it.
+        # Add non-None/blank metadata fields and values to it.
         for field in METADATA:
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
-        # import pdb; pdb.set_trace()
+        # Add the resource type, and the resource name if we can find them.
+        result["resource_type"] = "None"
+        result["resource_name"] = "None"
+
+        target_value = instance.traits.get("instance_id")
+
+        if target_value:
+            # For every node in the resource graph...
+            for node in resource.instances.graph.nodes():
+                # Look for the first match on any key ending with "id".
+                # OpenStack's API is a bit casual, so we'll cast a wide net
+                # unless there's a performance problem.
+                idkeys = [x for x in node.attributes
+                          if x.lower().endswith("id")]
+                id_values = [node.attributes.get(x) for x in idkeys]
+
+                if target_value in id_values:
+                    # We found this instance! Plug in the resource type and
+                    # name, and return.
+                    result["resource_type"] = \
+                        node.resourcetype.display_attributes()["name"]
+                    result["resource_name"] = node.attributes.get("name",
+                                                                  "None")
+                    break
+            else:
+                # We didn't find this instance in the resource graph.
+                logger.warning("Didn't find %s in the resource graph",
+                               instance)
+        else:
+            # This instance doesn't have an instance_id.graph.
+            logger.warning("Didn't find the instance_id key in %s", instance)
+
         return result
 
 

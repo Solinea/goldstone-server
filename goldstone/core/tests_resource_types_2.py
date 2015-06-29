@@ -21,7 +21,7 @@ from .tests_resource_types_1 import do_test, dictassign
 
 
 class ResourceTypesTests(SimpleTestCase):
-    """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
+    """Test each entry in Types.EDGES, in particular the matching_fn
     functions."""
 
     @staticmethod

@@ -78,7 +78,7 @@ class Graph(object):
                 if x[2].get(TYPE) == edgetype]
 
 
-class ResourceTypes(Graph):
+class Types(Graph):
     """A graph of an OpenStack cloud's resource types."""
 
     def __init__(self):
@@ -89,7 +89,7 @@ class ResourceTypes(Graph):
 
         """
 
-        super(ResourceTypes, self).__init__()
+        super(Types, self).__init__()
 
         # Every resource type has an outgoing_edges() class method.
         #
@@ -144,7 +144,7 @@ class ResourceTypes(Graph):
 
 
 # This is Goldstone's resource type graph.
-types = ResourceTypes()                      # pylint: disable=C0103
+types = Types()                      # pylint: disable=C0103
 
 
 class Instances(Graph):
@@ -153,7 +153,7 @@ class Instances(Graph):
 
     The correct way to import the graph is:
 
-         import resources
+         from goldstone.core import resource
          foo = resource.instances...
 
     If you use, "from resources import instances," instances is added to the
@@ -288,7 +288,7 @@ class Instances(Graph):
         """Return all the instances that are of type <nodetype>.
 
         :param nodetype: The Resource Type that is desired
-        :type nodetype: A node in ResourceTypes
+        :type nodetype: A node in Types
         :return: All the nodes in the Instances graph that have a type equal to
                  <nodetype>
         :rtype: list of node

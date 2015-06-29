@@ -26,7 +26,7 @@ from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
     Aggregate, Server, Project, Network, Limits, PolyResource, Image, Flavor
 
 from goldstone.core import resource         # For resource.instances.
-from goldstone.core.resource import ResourceTypes, Instances, GraphNode
+from goldstone.core.resource import Types, Instances, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, BAD_UUID
 import json
@@ -68,7 +68,7 @@ class CoreResourceTypes(Setup):
         token = create_and_login()
 
         # Mock out resource_types so that it has no nodes or edges.
-        mock_rt_graph = ResourceTypes()
+        mock_rt_graph = Types()
         mock_rt_graph.graph.clear()
 
         with patch("goldstone.core.views.types", mock_rt_graph):
@@ -364,7 +364,7 @@ class CoreResourceTypesDetail(Setup):
         token = create_and_login()
 
         # Mock out resource_types so that it has no nodes or edges.
-        mock_rt_graph = ResourceTypes()
+        mock_rt_graph = Types()
         mock_rt_graph.graph.clear()
 
         # Note, we ask for a resource type that normally exists.
@@ -504,6 +504,19 @@ class CoreResourceTypesDetail(Setup):
 class CoreResourcesUnpacking(Setup):
     """The unpacking of persistent data into the in-memory graph."""
 
+    def setUp(self):
+        """Run before every test."""
+
+        super(CoreResourcesUnpacking, self).setUp()
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        # pylint: disable=W0212
+        resource.instances._graph = None
+        resource.instances._timestamp = None
+        self.assertIsNone(resource.instances._graph)
+        self.assertIsNone(resource.instances._timestamp)
+
     def test_unpacking_none(self):
         """Test unpacking when the graph doesn't exist."""
 
@@ -518,18 +531,12 @@ class CoreResourcesUnpacking(Setup):
                                                  {"edgescore": 7})],
                                          cloud_attributes={"madonn": 'a'})
 
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None
-        resource.instances._timestamp = None
-        self.assertIsNone(resource.instances._graph)
-        self.assertIsNone(resource.instances._timestamp)
-
         # Reference the graph. This should unpack the two rows.
-        resource.instances.graph
+        resource.instances.graph         # pylint: disable=W0104
 
         # Check the graph's timestamp. It should be within a few seconds of
         # now.
+        # pylint: disable=W0212
         self.assertLess(datetime.now() - resource.instances._timestamp,
                         timedelta(seconds=10))
 
@@ -561,15 +568,8 @@ class CoreResourcesUnpacking(Setup):
                                edges=[(image.uuid, {"edgescore": 7})],
                                cloud_attributes={"madonn": 'a'})
 
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None
-        resource.instances._timestamp = None
-        self.assertIsNone(resource.instances._graph)
-        self.assertIsNone(resource.instances._timestamp)
-
         # Reference the graph. This should unpack the two rows.
-        resource.instances.graph
+        resource.instances.graph            # pylint: disable=W0104
 
         # Now create a completely different persisent graph in the db.
         Image.objects.all().delete()
@@ -590,10 +590,11 @@ class CoreResourcesUnpacking(Setup):
         # Do the test by forcing resource.instances.PERIOD to be a small value.
         with patch.object(resource.instances, "PERIOD") as period:
             period.return_value = 3
-            resource.instances.graph
+            resource.instances.graph           # pylint: disable=W0104
 
         # Check the graph's timestamp. It should be within a few seconds of
         # now.
+        # pylint: disable=W0212
         self.assertLess(datetime.now() - resource.instances._timestamp,
                         timedelta(seconds=10))
 
@@ -626,15 +627,8 @@ class CoreResourcesUnpacking(Setup):
                                                  {"edgescore": 7})],
                                          cloud_attributes={"madonn": 'a'})
 
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None
-        resource.instances._timestamp = None
-        self.assertIsNone(resource.instances._graph)
-        self.assertIsNone(resource.instances._timestamp)
-
         # Reference the graph. This should unpack the two rows.
-        resource.instances.graph
+        resource.instances.graph               # pylint: disable=W0104
 
         # Now create a completely different persisent graph in the db.
         Image.objects.all().delete()
@@ -653,10 +647,11 @@ class CoreResourcesUnpacking(Setup):
 
         # Do the test by referencing the graph now. This is well within
         # resource.instances.PERIOD's value.
-        resource.instances.graph
+        resource.instances.graph            # pylint: disable=W0104
 
         # Check the graph's timestamp. It should be within a few seconds of
         # now.
+        # pylint: disable=W0212
         self.assertLess(datetime.now() - resource.instances._timestamp,
                         timedelta(seconds=10))
 
@@ -688,15 +683,8 @@ class CoreResourcesUnpacking(Setup):
                                edges=[(image.uuid, {"edgescore": 7})],
                                cloud_attributes={"madonn": 'a'})
 
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None
-        resource.instances._timestamp = None
-        self.assertIsNone(resource.instances._graph)
-        self.assertIsNone(resource.instances._timestamp)
-
         # Reference the graph. This should unpack the two rows.
-        resource.instances.graph
+        resource.instances.graph             # pylint: disable=W0104
 
         # Delete the persistent graph.
         Image.objects.all().delete()
@@ -751,13 +739,6 @@ class CoreResourcesUnpacking(Setup):
                                    edges=[("66666", {"edgescore": 17}),
                                           (server.uuid, {"success!": True})],
                                    cloud_attributes={"id": '42'})
-
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None
-        resource.instances._timestamp = None
-        self.assertIsNone(resource.instances._graph)
-        self.assertIsNone(resource.instances._timestamp)
 
         # Reference the graph. This should unpack the two rows.
         resource.instances.graph

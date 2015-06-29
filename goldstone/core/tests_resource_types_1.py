@@ -86,7 +86,7 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
 
 class ResourceTypesTests(SimpleTestCase):
-    """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
+    """Test each entry in Types.EDGES, in particular the matching_fn
     functions."""
 
     def setUp(self):

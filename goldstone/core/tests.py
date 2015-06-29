@@ -617,7 +617,7 @@ class ProcessResourceType(SimpleTestCase):
         # The initial resource graph edges. Each entry is ((from_type,
         # native_id), (to_type, native_id)).  The native_id's must be unique
         # within a node type. N.B. Some of these edges would not exist in a
-        # running system, because they're not defined in ResourceTypes.
+        # running system, because they're not defined in Types.
         EDGES = [((Image, "a"), (Image, "ab")),
                  ((Image, "a"), (ServerGroup, "0")),
                  ((Image, "ab"), (ServerGroup, "ab")),
