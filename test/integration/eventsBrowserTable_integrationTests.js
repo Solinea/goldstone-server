@@ -19,12 +19,24 @@
 
 describe('eventsBrowserTableCollection.js spec', function() {
     beforeEach(function() {
+
+        $('body').html(
+            '<div class="container"></div>'
+        );
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
         this.testCollection = new EventsBrowserTableCollection({});
+        this.testView = new EventsBrowserDataTableView({
+            chartTitle: 'Events Browser',
+            collection: this.testCollection,
+            el: '.container',
+            infoIcon: 'fa-table',
+            width: $('.container').width()
+        });
         this.protoFetchSpy = sinon.spy(EventsBrowserTableCollection.prototype, "fetch");
     });
     afterEach(function() {
@@ -35,6 +47,79 @@ describe('eventsBrowserTableCollection.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testCollection, 'this.testCollection has been defined');
             expect(this.testCollection).to.be.an('object');
+        });
+    });
+    describe('test view methods', function() {
+        it('should convert "None" to "unknown"', function() {
+            var testData = [{
+                'id': 'hello',
+                'doc_type': 'hi',
+                'timestamp': 'timestamp',
+                'resource_name': 'None',
+            }];
+            var test1 = this.testView.preprocess(testData);
+            expect(test1).to.deep.equal([{
+                id: 'hello',
+                type: 'hi',
+                timestamp: 'timestamp',
+                traits: undefined,
+                resource_name: 'unknown',
+                resource_type: undefined
+            }]);
+
+            testData = [{
+                'id': 'hello',
+                'doc_type': 'hi',
+                'timestamp': 'timestamp',
+                'resource_type': 'None',
+            }];
+
+            test1 = this.testView.preprocess(testData);
+            expect(test1).to.deep.equal([{
+                id: 'hello',
+                type: 'hi',
+                timestamp: 'timestamp',
+                traits: undefined,
+                resource_name: undefined,
+                resource_type: 'unknown'
+            }]);
+
+            testData = [{
+                'id': 'hello',
+                'doc_type': 'hi',
+                'timestamp': 'timestamp',
+                'resource_type': 'None',
+                'resource_name': 'None'
+            }];
+
+            test1 = this.testView.preprocess(testData);
+            expect(test1).to.deep.equal([{
+                id: 'hello',
+                type: 'hi',
+                timestamp: 'timestamp',
+                traits: undefined,
+                resource_name: 'unknown',
+                resource_type: 'unknown'
+            }]);
+
+            testData = [{
+                'id': 'hello',
+                'doc_type': 'hi',
+                'timestamp': 'timestamp',
+                'resource_type': 'Server',
+                'resource_name': 'test-name'
+            }];
+
+            test1 = this.testView.preprocess(testData);
+            expect(test1).to.deep.equal([{
+                id: 'hello',
+                type: 'hi',
+                timestamp: 'timestamp',
+                traits: undefined,
+                resource_name: 'test-name',
+                resource_type: 'Server'
+            }]);
+
         });
     });
     describe('test collection methods', function() {
@@ -67,8 +152,10 @@ describe('eventsBrowserTableCollection.js spec', function() {
             expect(test1).to.deep.equal(undefined);
             test1 = this.testCollection.preProcessData(undefined);
             expect(test1).to.equal(undefined);
-            test1 = this.testCollection.preProcessData({results: [1,2,3]});
-            expect(test1).to.deep.equal([1,2,3]);
+            test1 = this.testCollection.preProcessData({
+                results: [1, 2, 3]
+            });
+            expect(test1).to.deep.equal([1, 2, 3]);
         });
     });
 
