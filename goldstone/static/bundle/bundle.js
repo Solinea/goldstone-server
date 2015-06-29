@@ -5457,16 +5457,12 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             tempObj.type = item.doc_type;
             tempObj.timestamp = item.timestamp;
             tempObj.traits = item.traits;
-
-            // change "None" to "unknown" for resource_name and resource_type
-            if (item.resource_name === "None") {
-                item.resource_name = "unknown";
-            }
-            tempObj.resource_name = item.resource_name;
-            if (item.resource_type === "None") {
-                item.resource_type = "unknown";
-            }
-            tempObj.resource_type = item.resource_type;
+            tempObj.user_name = item.user_name;
+            tempObj.user_type = item.user_type;
+            tempObj.tenant_name = item.tenant_name;
+            tempObj.tenant_type = item.tenant_type;
+            tempObj.instance_name = item.instance_name;
+            tempObj.instance_type = item.instance_type;
 
             result.push(tempObj);
         });
@@ -5486,7 +5482,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         return result;
     },
 
-    headingsToPin: ['id', 'type', 'timestamp', 'resource_name', 'resource_type'],
+    headingsToPin: ['id', 'type', 'timestamp', 'user_name', 'user_type', 'tenant_name', 'tenant_type', 'instance_name', 'instance_type'],
 
     // overwrite original method to search for exact equality
     // within array of headingsToPin
