@@ -1669,7 +1669,7 @@ var ChartSet = GoldstoneBaseView2.extend({
 
         this.collection = this.options.collection ? this.options.collection : undefined;
         this.chartTitle = this.options.chartTitle || null;
-        if(this.options.el) {
+        if (this.options.el) {
             this.el = this.options.el;
         }
         this.width = this.options.width || 300;
@@ -1681,6 +1681,8 @@ var ChartSet = GoldstoneBaseView2.extend({
         this.marginTop = this.options.marginTop || 20;
         this.marginBottom = this.options.marginBottom || 80;
         this.yAxisLabel = this.options.yAxisLabel;
+        this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
+        this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
         this.colorArray = new GoldstoneColors().get('colorSets');
         this.shapeArray = ['rect', 'circle'];
         this.shapeCounter = 0;
@@ -1710,6 +1712,7 @@ var ChartSet = GoldstoneBaseView2.extend({
     makeChart: function() {
         this.processListeners();
         this.svgAdder(this.width, this.height);
+        this.initializePopovers();
         this.chartAdder();
 
         this.setXDomain();
@@ -1738,6 +1741,20 @@ var ChartSet = GoldstoneBaseView2.extend({
         this.shapeEnter(this.shape);
         this.shapeExit(this.shape);
         this.hideSpinner();
+    },
+
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+                return self.popoverTimeLabel + ": " + moment(+d.time).format() +
+                    "<br>" +
+                    self.popoverUnitLabel + ": " + d.count;
+            });
+
+        this.svg.call(this.tip);
     },
 
     setData: function(newData) {
@@ -1833,6 +1850,8 @@ var ChartSet = GoldstoneBaseView2.extend({
             .append(shape)
             .attr("fill", this.colorArray.distinct[3][1])
             .style('fill-opacity', 1e-6)
+            .attr('class', 'chart-rect')
+            .attr('id', 'chart-rect')
             .attr('x', function(d) {
                 return self.x(d[xParam]);
             })
@@ -1850,8 +1869,22 @@ var ChartSet = GoldstoneBaseView2.extend({
                 return (self.y(d[yParam]));
             })
             .attr('r', 10)
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d);
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            })
             .transition()
             .style('fill-opacity', 1);
+    },
+
+    mouseoverAction: function(d) {
+        this.tip.show(d);
+    },
+
+    mouseoutAction: function(d) {
+        this.tip.hide();
     },
 
     shapeExit: function(shape) {
@@ -1912,8 +1945,8 @@ var ChartSet = GoldstoneBaseView2.extend({
         this.xAxis = d3.svg.axis()
             .scale(this.x)
             .ticks(4)
-            // format: day month H:M:S
-            .tickFormat(d3.time.format("%e %b %X"))
+        // format: day month H:M:S
+        .tickFormat(d3.time.format("%e %b %X"))
             .orient("bottom");
     },
 
@@ -2863,8 +2896,23 @@ var EventTimelineCollection = Backbone.Collection.extend({
  * limitations under the License.
  */
 
-// define collection and link to model
+/*
 
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+this.eventsBrowserTable = new EventsBrowserDataTableView({
+    chartTitle: 'Events Browser',
+    collection: this.eventsBrowserTableCollection,
+    el: '#events-browser-table',
+    infoIcon: 'fa-table',
+    width: $('#events-browser-table').width()
+});
+
+*/
+
+// define collection and link to model
 var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
     instanceSpecificInit: function() {
         this.urlGenerator();
@@ -2902,6 +2950,21 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ */
+
+ /*
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+this.eventsBrowserView = new ChartSet({
+    chartTitle: 'Events Histogram',
+    collection: this.eventsBrowserVizCollection,
+    el: '#events-histogram-visualization',
+    infoIcon: 'fa-tasks',
+    width: $('#events-histogram-visualization').width(),
+    yAxisLabel: 'Number of Events'
+});
  */
 
 // define collection and link to model

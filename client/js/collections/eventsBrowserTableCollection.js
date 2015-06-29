@@ -14,8 +14,23 @@
  * limitations under the License.
  */
 
-// define collection and link to model
+/*
 
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+this.eventsBrowserTable = new EventsBrowserDataTableView({
+    chartTitle: 'Events Browser',
+    collection: this.eventsBrowserTableCollection,
+    el: '#events-browser-table',
+    infoIcon: 'fa-table',
+    width: $('#events-browser-table').width()
+});
+
+*/
+
+// define collection and link to model
 var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
     instanceSpecificInit: function() {
         this.urlGenerator();
