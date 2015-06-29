@@ -50,12 +50,12 @@ describe('eventsBrowserTableCollection.js spec', function() {
         });
     });
     describe('test view methods', function() {
-        it('should convert "None" to "unknown"', function() {
+        it('should properly preprocess data', function() {
             var testData = [{
                 'id': 'hello',
                 'doc_type': 'hi',
                 'timestamp': 'timestamp',
-                'resource_name': 'None',
+                'user_name': 'Unknown',
             }];
             var test1 = this.testView.preprocess(testData);
             expect(test1).to.deep.equal([{
@@ -63,63 +63,58 @@ describe('eventsBrowserTableCollection.js spec', function() {
                 type: 'hi',
                 timestamp: 'timestamp',
                 traits: undefined,
-                resource_name: 'unknown',
-                resource_type: undefined
+                user_name: 'Unknown',
+                user_type: undefined,
+                tenant_name: undefined,
+                tenant_type: undefined,
+                instance_name: undefined,
+                instance_type: undefined
+            }]);
+
+            testData = [{}];
+
+            test1 = this.testView.preprocess(testData);
+            expect(test1).to.deep.equal([{
+                id: undefined,
+                type: undefined,
+                timestamp: undefined,
+                traits: undefined,
+                user_name: undefined,
+                user_type: undefined,
+                tenant_name: undefined,
+                tenant_type: undefined,
+                instance_name: undefined,
+                instance_type: undefined,
             }]);
 
             testData = [{
-                'id': 'hello',
-                'doc_type': 'hi',
-                'timestamp': 'timestamp',
-                'resource_type': 'None',
+                id: 'a',
+                doc_type: 'b',
+                timestamp: 'c',
+                traits: 'd',
+                user_name: 'e',
+                user_type: 'f',
+                tenant_name: 'g',
+                tenant_type: 'h',
+                instance_name: 'i',
+                instance_type: 'j',
             }];
 
             test1 = this.testView.preprocess(testData);
             expect(test1).to.deep.equal([{
-                id: 'hello',
-                type: 'hi',
-                timestamp: 'timestamp',
-                traits: undefined,
-                resource_name: undefined,
-                resource_type: 'unknown'
+                id: 'a',
+                type: 'b',
+                timestamp: 'c',
+                traits: 'd',
+                user_name: 'e',
+                user_type: 'f',
+                tenant_name: 'g',
+                tenant_type: 'h',
+                instance_name: 'i',
+                instance_type: 'j',
             }]);
 
-            testData = [{
-                'id': 'hello',
-                'doc_type': 'hi',
-                'timestamp': 'timestamp',
-                'resource_type': 'None',
-                'resource_name': 'None'
-            }];
-
-            test1 = this.testView.preprocess(testData);
-            expect(test1).to.deep.equal([{
-                id: 'hello',
-                type: 'hi',
-                timestamp: 'timestamp',
-                traits: undefined,
-                resource_name: 'unknown',
-                resource_type: 'unknown'
-            }]);
-
-            testData = [{
-                'id': 'hello',
-                'doc_type': 'hi',
-                'timestamp': 'timestamp',
-                'resource_type': 'Server',
-                'resource_name': 'test-name'
-            }];
-
-            test1 = this.testView.preprocess(testData);
-            expect(test1).to.deep.equal([{
-                id: 'hello',
-                type: 'hi',
-                timestamp: 'timestamp',
-                traits: undefined,
-                resource_name: 'test-name',
-                resource_type: 'Server'
-            }]);
-
+            this.testView.update();
         });
     });
     describe('test collection methods', function() {
