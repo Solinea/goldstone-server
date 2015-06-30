@@ -25,7 +25,7 @@ from picklefield.fields import PickledObjectField
 
 # Get_glance_client is defined here for easy unit test mocking.
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
-    get_cinder_client, get_cloud
+    get_cinder_client, get_keystone_client, get_cloud
 
 import sys
 
@@ -267,29 +267,57 @@ class PolyResource(PolymorphicModel):
 #
 # These classes represent entities within a Keystone integration.
 #
-# TODO: Fill in User, Domain, Group, Token, Credential, Role, Region, Endpoint,
-# Service, Project.
+# TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Domain, Group, Token,
+# Credential, Role, Region, Endpoint, Service, Project.
 
 class User(PolyResource):
     """An OpenStack user."""
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.users.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Credential,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["user_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
                 {TO: Group,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("domain_id") and f["domain_id"] == t["domain_id"],
                  EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
                                    MIN: 0,
                                    MAX: sys.maxint}},
                 {TO: Project,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("default_project_id") and
+                 f["default_project_id"] == t["id"],
                  EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
                 {TO: QuotaSet,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: SUBSCRIBED_TO,
-                  MIN: 0,
-                  MAX: sys.maxint}},
+                 # TODO: Fill in MATCHING_FN.
+                 MATCHING_FN: lambda f, t: False,
+                 EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
                 ]
 
     @classmethod

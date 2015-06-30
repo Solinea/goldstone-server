@@ -226,7 +226,7 @@ def process_resource_type(nodetype):
                 persistent_node.cloud_attributes = dict(entry)
                 persistent_node.save()
 
-    # The persistent nodes have been updated. Now Now fill in / update all
+    # The persistent nodes have been updated. Now fill in / update all
     # nodes' outgoing edges.
     #
     # TODO: Perhaps make this a table Manager method, to hide the loop &

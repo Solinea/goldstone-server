@@ -19,14 +19,14 @@ from functools import partial
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, Interface, Keypair
+    Flavor, Interface, Keypair, User, Credential, Group
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
 NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server]
+              Hypervisor, Project, Network, Server, User, Credential, Group]
 
 # Aliases to make the code less verbose
 TO = settings.R_ATTRIBUTE.TO
@@ -697,3 +697,101 @@ class ResourceTypesTests(SimpleTestCase):
         dictassign(KEYPAIR, "fingerprint", "4445")
         dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
         self.assertTrue(matching_fn(KEYPAIR, SERVER))
+
+    @staticmethod
+    def test_user_credential():
+        """Test the User - Credential entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        CREDENTIAL = {"blob":
+                      "{\"access\":\"181920\",\"secret\":\"secretKey\"}",
+                      "id": "414243",
+                      "links":
+                      {"self": "http://identity:35357/v3/credentials/414243"},
+                      "project_id": "456789",
+                      "type": "ec2",
+                      "user_id": u'0751ad1dcb054ddea7d4be13aa63dec0',
+                      }
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "id"),
+                Credential,
+                CREDENTIAL,
+                partial(dictassign, CREDENTIAL, "user_id"))
+
+    @staticmethod
+    def test_user_group():
+        """Test the User - Group entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        GROUP = {"description": "Developers cleared for work",
+                 "domain_id": "default",
+                 "id": "101112",
+                 "links": {"self": "http://identity:35357/v3/groups/101112"},
+                 "name": "Developers"
+                 }
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "domain_id"),
+                Group,
+                GROUP,
+                partial(dictassign, GROUP, "domain_id"))
+
+    @staticmethod
+    def test_user_project():
+        """Test the User - Project entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        PROJECT = {"domain_id": "1789d1",
+                   "parent_id": "123c56",
+                   "enabled": True,
+                   "id": "263fd9",
+                   "links":
+                   {"self": "https://identity:35357/v3/projects/263fd9"},
+                   "name": "Test Group"
+                   }
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "default_project_id"),
+                Project,
+                PROJECT,
+                partial(dictassign, PROJECT, "id"))
+
+    @staticmethod
+    def test_user_quotaset():
+        """Test the User - QuotaSet entry."""
+
+        pass

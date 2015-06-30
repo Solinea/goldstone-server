@@ -59,25 +59,11 @@ def es_indices(prefix="", conn=None):
         return "_all"
 
 
-def most_recent_index(prefix=""):
-    """Return the index matching the prefix that has the most recent datestamp.
-
-    :param prefix: index prefix
-    :return: the last index of a sorted list
-
-    """
-
-    all_indices = es_indices(prefix)
-    all_indices.sort()
-    return all_indices[-1]
-
-
 def daily_index(prefix=""):
-    """
-    Generate a daily index name of the form prefix-yyyy.mm.dd.  When
-    calling the index method of an ES connection, the target index will be
-    created if it doesn't already exist. This only generates the name.  It
-    does not guarantee that the index exists.
+    """Generate a daily index name of the form prefix-yyyy.mm.dd. When calling
+    the index method of an ES connection, the target index will be created if
+    it doesn't already exist. This only generates the name. It does not
+    guarantee that the index exists.
 
     :type prefix: str
     :param prefix: the prefix used to filter index list
