@@ -84,6 +84,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     // keys will be pinned in descending value order
     headingsToPin: {
-        'id': 8, 'type': 7, 'timestamp': 6, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
+        'id': 6, 'type': 7, 'timestamp': 8, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
     }
 });

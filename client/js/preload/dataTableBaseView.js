@@ -154,7 +154,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             "paging": true,
             "searching": true,
             "order": [
-                [0, 'asc']
+                [0, 'desc']
             ],
             "ordering": true,
             "data": data,
