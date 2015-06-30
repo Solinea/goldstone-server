@@ -165,12 +165,15 @@ class EventSerializer(ReadOnlyElasticSerializer):
             result[resource_type] = NOT_FOUND
             result[resource_name] = NOT_FOUND
 
-            # Some ids contain dashes while others do not. We're unsure when
-            # the dashes are embedded or stripped, so we'll 'normalize' the ids
-            # here by removing the dashes.
-            target_value = instance.traits.get(source_key).replace('-', '')
+            target_value = instance.traits.get(source_key)
 
-            if target_value:
+            # If the target value is a non-empty string...
+            if isinstance(target_value, basestring) and target_value != '':
+                # Some ids contain dashes while others do not. We're unsure
+                # when and where the dashes are embedded or stripped, so we'll
+                # 'normalize' the ids here by removing the dashes.
+                target_value = target_value.replace('-', '')
+
                 # For every node in the resource graph...
                 for node in resource.instances.graph.nodes():
                     # Look for an id match.
