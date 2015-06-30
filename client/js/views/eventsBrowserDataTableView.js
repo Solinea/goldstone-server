@@ -82,17 +82,8 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         return result;
     },
 
-    headingsToPin: ['id', 'type', 'timestamp', 'user_name', 'user_type', 'tenant_name', 'tenant_type', 'instance_name', 'instance_type'],
-
-    // overwrite original method to search for exact equality
-    // within array of headingsToPin
-    isPinnedHeading: function(item) {
-        for (var i = 0; i < this.headingsToPin.length; i++) {
-            var comparitor = this.headingsToPin[i];
-            if (item === comparitor) {
-                return true;
-            }
-        }
-        return false;
+    // keys will be pinned in descending value order
+    headingsToPin: {
+        'id': 8, 'type': 7, 'timestamp': 6, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
     }
 });
