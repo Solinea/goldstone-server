@@ -58,11 +58,10 @@ def update_graph():
     from goldstone.nova.utils import update_nova_nodes
 
     # Update the persistent state
-    for services in [update_glance_nodes,
-                     update_keystone_nodes,
-                     update_nova_nodes,
-                     update_cinder_nodes]:
-        services()
+    update_glance_nodes()
+    update_keystone_nodes()
+    update_nova_nodes()
+    update_cinder_nodes()
 
     # Update the in-memory state
     resource.instances.unpack()

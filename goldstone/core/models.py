@@ -199,8 +199,7 @@ class PolyResource(PolymorphicModel):
 
     @classmethod
     def native_id_from_attributes(cls, attributes):
-        """Return the native id of a class instance from the instance's
-        OpenStack attributes.
+        """Return an instance's native id from its OpenStack attributes.
 
         :param attributes: An instance's attributes, e.g., from an
                            xxxxx_client() call
