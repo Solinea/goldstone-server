@@ -268,7 +268,7 @@ class PolyResource(PolymorphicModel):
 # These classes represent entities within a Keystone integration.
 #
 # TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Domain, Group, Token,
-# Credential, Role, Region, Endpoint, Service, Project.
+# Credential, Role, Region, Endpoint, Service.
 
 class User(PolyResource):
     """An OpenStack user."""
@@ -484,6 +484,24 @@ class Service(PolyResource):
 
 class Project(PolyResource):
     """An OpenStack project."""
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.projects.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201

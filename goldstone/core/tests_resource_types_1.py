@@ -780,8 +780,8 @@ class ResourceTypesTests(SimpleTestCase):
                    "id": "263fd9",
                    "links":
                    {"self": "https://identity:35357/v3/projects/263fd9"},
-                   "name": "Test Group"
-                   }
+                   "name": "Test Group",
+                   'description': u'Tenant for the openstack services'}
 
         do_test(User,
                 USER,
@@ -795,3 +795,43 @@ class ResourceTypesTests(SimpleTestCase):
         """Test the User - QuotaSet entry."""
 
         pass
+
+    @staticmethod
+    def test_project_image():
+        """Test the Project - Image entry."""
+
+        # Test data.
+        PROJECT = {"domain_id": "1789d1",
+                   "parent_id": "123c56",
+                   "enabled": True,
+                   "id": "263fd9",
+                   "links":
+                   {"self": "https://identity:35357/v3/projects/263fd9"},
+                   "name": "Test Group"
+                   }
+
+        IMAGE = {u'checksum': u'd972013792949d0d3ba628fbe8685bce',
+                 u'container_format': u'bare',
+                 u'created_at': u'2015-01-20T22:41:11Z',
+                 u'disk_format': u'qcow2',
+                 u'file':
+                 u'/v2/images/0ae46ce1-80e5-447e-b0e8-9eeec81af920/file',
+                 u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                 u'min_disk': 0,
+                 u'min_ram': 0,
+                 u'name': u'cirros',
+                 u'owner': u'a8cc59bf0cfa4103bc038d269d7cae65',
+                 u'protected': False,
+                 u'schema': u'/v2/schemas/image',
+                 u'size': 13147648,
+                 u'status': u'active',
+                 u'tags': [],
+                 u'updated_at': u'2015-01-20T22:41:12Z',
+                 u'visibility': u'public'}
+
+        do_test(Project,
+                PROJECT,
+                partial(dictassign, PROJECT, "id"),
+                Image,
+                IMAGE,
+                partial(dictassign, IMAGE, "id"))

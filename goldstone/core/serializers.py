@@ -140,6 +140,7 @@ class EventSerializer(ReadOnlyElasticSerializer):
         NODE_ID_KEYS = ["id", "port_id", "net_id"]
 
         # The "_name" and "_type" fields we'll add to the return value.
+        # N.B. Tenant is the old name for project, but is being used for now.
         INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
 
         # The string used when a resource isn't found in the instance graph.
