@@ -219,8 +219,8 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
-    'update_graph': {
-        'task': 'goldstone.core.tasks.update_graph',
+    'update_persistent_graph': {
+        'task': 'goldstone.core.tasks.update_persistent_graph',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
 }

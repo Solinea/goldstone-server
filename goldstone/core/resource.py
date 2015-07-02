@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import datetime, timedelta
 from django.conf import settings
 import logging
 import networkx
@@ -174,17 +175,41 @@ class Instances(Graph):
     A celery task periodically updates the persistent data and this in-memory
     graph.
 
+    The persistent data is held in the db, which is periodically updated by a
+    celery task. This lazy-evaluates when to update the in-memory graph from
+    the db data.
+
     """
 
-    def __init__(self):
-        """Initialize the object, and unpack the current persistent graph into
-        it."""
+    # How often to refresh the graph from the database.
+    PERIOD = timedelta(minutes=2)
 
-        super(Instances, self).__init__()
-        self.unpack()
+    def __init__(self):              # pylint: disable=W0231
+        """Initialize the object, and unpack the persistent graph data into it.
 
-    def unpack(self):
-        """Unpack the persistent graph into the in-memory graph object."""
+        We do not call the parent class' __init__ because it creates
+        self.graph. This class uses lazy evaluation of the graph object, and
+        self.graph is a property here.
+
+        """
+
+        # The internal graph object
+        self._graph = None
+
+        # When the graph object was last updated.
+        self._timestamp = datetime.now()
+
+    @staticmethod
+    def unpack():
+        """Return a graph object that was unpaced fromk the persistent graph
+        data.
+
+        Unpacking the graph is so fast that the probability of a graph state
+        shear (with the celery task that updates the graph) should be very
+        small. If it happens in practice, a simple solution would be to lock
+        the db table.
+
+        """
         from .models import PolyResource
 
         def get_uuid(uuid):
@@ -239,8 +264,26 @@ class Instances(Graph):
                 # Create the edge.
                 graph.add_edge(source_node, dest_node, attr_dict=edge[1])
 
-        # Update this object and we're done.
-        self.graph = graph
+        return graph
+
+    @property
+    def graph(self):
+        """Return a lazy-evaluated graph object.
+
+        The graph is unpacked from the database if it's never been unpacked, or
+        if was last unpacked more than N time units ago. The next effect is,
+        the unpack expense doesn't happen until it's needed, and the object is
+        periodically refreshed if the in-memory object lives long enough.
+
+        """
+
+        if self._graph is None or \
+           self._timestamp + self.PERIOD < datetime.now():
+            # Unpack the graph from the database, and reset the timestamp.
+            self._graph = self.unpack()
+            self._timestamp = datetime.now()
+
+        return self._graph
 
     def get_uuid(self, uuid):
         """Return the node having this UUID.

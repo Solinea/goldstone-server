@@ -28,7 +28,6 @@ from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, BAD_UUID
 import json
 from mock import patch
-import networkx
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 # Aliases to make the Resource Graph definitions less verbose.
@@ -65,10 +64,10 @@ class CoreResourcesUnpacking(Setup):
         # Resource.instances may have been used before this test, so force it
         # into a virgin state.
         # pylint: disable=W0212
-        resource.instances.graph = networkx.MultiDiGraph()
+        resource.instances._graph = None
 
     def test_unpacking_none(self):
-        """Test unpacking when the graph doesn't exist."""
+        """Test unpacking when the in-memory graph is empty."""
 
         # Create two persistent graph rows, with one edge between them.
         image = Image.objects.create(native_id="bar",
@@ -82,7 +81,7 @@ class CoreResourcesUnpacking(Setup):
                                          cloud_attributes={"madonn": 'a'})
 
         # Unpack the graph
-        resource.instances.unpack()
+        resource.instances.graph           # pylint: disable=W0104
 
         # Check the number of nodes and edges
         self.assertEqual(resource.instances.graph.number_of_nodes(), 2)
@@ -100,7 +99,7 @@ class CoreResourcesUnpacking(Setup):
         self.assertEqual(edge[2], project.edges[0][1])
 
     def test_unpack_empty(self):
-        """Test unpacking no graph."""
+        """Test unpacking an empty graph."""
 
         # Create two persistent graph rows, with one edge between them.
         image = Image.objects.create(native_id="bar",
@@ -113,14 +112,15 @@ class CoreResourcesUnpacking(Setup):
                                cloud_attributes={"madonn": 'a'})
 
         # Unpack the graph
-        resource.instances.unpack()
+        resource.instances.graph       # pylint: disable=W0104
 
         # Delete the persistent graph.
         Image.objects.all().delete()
         Project.objects.all().delete()
 
         # Unpack an empty graph.
-        resource.instances.unpack()
+        resource.instances._graph = None       # pylint: disable=W0212
+        resource.instances.graph               # pylint: disable=W0104
 
         # Check the number of nodes and edges
         self.assertEqual(resource.instances.graph.number_of_nodes(), 0)
@@ -162,7 +162,7 @@ class CoreResourcesUnpacking(Setup):
                                    cloud_attributes={"id": '42'})
 
         # Unpack the graph
-        resource.instances.unpack()
+        resource.instances.graph       # pylint: disable=W0104
 
         # Check the number of nodes and edges
         self.assertEqual(resource.instances.graph.number_of_nodes(), 5)
