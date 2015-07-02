@@ -271,9 +271,7 @@ class Instances(Graph):
         """Return a lazy-evaluated graph object.
 
         The graph is unpacked from the database if it's never been unpacked, or
-        if was last unpacked more than N time units ago. The next effect is,
-        the unpack expense doesn't happen until it's needed, and the object is
-        periodically refreshed if the in-memory object lives long enough.
+        if was last unpacked more than N time units ago.
 
         """
 
