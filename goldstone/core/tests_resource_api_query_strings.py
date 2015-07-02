@@ -24,13 +24,13 @@ from django.conf import settings
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
     Aggregate, Server, Project, Network, Limits, PolyResource
 
-from goldstone.core.resources import Resources, resources, GraphNode
+from goldstone.core.resource import Instances, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD
 import json
 from mock import patch
 from rest_framework.status import HTTP_200_OK
-from .tests_resource_api import RES_URL
+from .tests_resource_api_2 import RES_URL
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO
@@ -66,11 +66,11 @@ class CoreResources(Setup):
         token = create_and_login()
 
         # Mock out resources so that it has no nodes or edges.
-        mock_r_graph = Resources()
+        mock_r_graph = Instances()
         mock_r_graph.graph.clear()
 
         # Test one filter, and two filters.
-        with patch("goldstone.core.views.resources", mock_r_graph):
+        with patch("goldstone.core.views.resource.instances", mock_r_graph):
             for filters in ["native_id=fred",
                             "integration_name=%5enova&native_id=fred"]:
                 response = self.client.get(
@@ -82,10 +82,10 @@ class CoreResources(Setup):
                 self.assertEqual(json.loads(response.content),
                                  {"nodes": [], "edges": []})
 
+    # pylint: disable=R0914
     def test_mix(self):
         """The resource graph is populated with a mixture of nodes."""
-
-        # pylint: disable=R0914
+        from goldstone.core import resource
 
         # The resource graph nodes in this test. Each entry is (resource_type,
         # native_id, native_name, attributes).
@@ -311,9 +311,9 @@ class CoreResources(Setup):
                 db_node = nodetype.objects.create(native_id=native_id,
                                                   native_name=native_name)
 
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=attributes))
+            resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                        resourcetype=nodetype,
+                                                        attributes=attributes))
 
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
@@ -322,18 +322,19 @@ class CoreResources(Setup):
             destination_row = \
                 PolyResource.objects.get(native_id=destination_id)
 
-            source_node = [x for x in resources.graph.nodes()
+            source_node = [x for x in resource.instances.graph.nodes()
                            if x.uuid == source_row.uuid][0]
-            destination_node = [x for x in resources.graph.nodes()
+            destination_node = [x for x in resource.instances.graph.nodes()
                                 if x.uuid == destination_row.uuid][0]
 
-            resources.graph.add_edge(source_node,
-                                     destination_node,
-                                     attr_dict=attr_dict)
+            resource.instances.graph.add_edge(source_node,
+                                              destination_node,
+                                              attr_dict=attr_dict)
 
-        # Create a user, do the test.
+        # Create a user.
         token = create_and_login()
 
+        # Do the test.
         for query_string, value in QUERIES.iteritems():
             expected_nodes = value[0]
             expected_edges = value[1]

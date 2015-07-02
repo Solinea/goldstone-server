@@ -12,10 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from rest_framework import serializers
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
+
+logger = logging.getLogger(__name__)
 
 
 class MetricDataSerializer(ReadOnlyElasticSerializer):
@@ -106,31 +109,96 @@ class EventSerializer(ReadOnlyElasticSerializer):
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
 
-        The returned value includes fields from the instance's metadata.
+        Two additions are made to the normal instance values.
 
-        The instance.to_dict() return value doesn't include instance metadata.
-        We could subclass the to_dict() method in the EventData() class, which
-        would require that we track updates to the elasticsearch_dsl.utils
-        module where it's defined. Or, we could override to_representation()
-        and add the metadata to the return result. We chose the latter.
+        1) The returned value includes fields from the instance's metadata.
+
+           The instance.to_dict() return value doesn't include instance
+           metadata. We could subclass the to_dict() method in the EventData()
+           class, which would require that we track updates to the
+           elasticsearch_dsl.utils module where it's defined. Or, we could
+           override to_representation() and add the metadata to the return
+           result. We chose the latter.
+
+        2) Adds "_name" and "_type" key:value pairs for "instance", "user", and
+           "tenant". The values come from the resource types and instances
+           graphs.
 
         :type instance: Result
         :param instance: One instance from an Elasticsearch search response
         :rtype: dict
-        :return: The response minus exclusions, plus some metadata values
+        :return: The response minus exclusions, plus some additional values
 
         """
+        from goldstone.core import resource
 
         # These metadata fields will be added to the return value.
         METADATA = ["doc_type", "id", "index"]
 
+        # When we look for a resource graph node's id, we look for these keys.
+        # (Interface has port_id and net_id, but no id.)
+        NODE_ID_KEYS = ["id", "port_id", "net_id"]
+
+        # We add these "_name" and "_type" fields to the return value.
+        # N.B. Tenant is the old name for project, but is being used for now.
+        INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
+
+        # The string used when a resource isn't found in the instance graph.
+        NOT_FOUND = "Unknown"
+
         # Get the standard to_dict() result...
         result = super(EventSerializer, self).to_representation(instance)
 
-        # ...now add non-None/bank metadata fields and values to it.
+        # Add non-None/blank metadata fields and values to it.
         for field in METADATA:
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
+
+        # Add the resource type, and the resource name if we can find them. For
+        # every root type...
+        for id_root in INSTANCE_GRAPH_IDS:
+            # Make the source _id key, and the destination _name and _type
+            # keys. And initialize the destination keys to, "not found."
+            source_key = id_root + "_id"
+            resource_type = id_root + "_type"
+            resource_name = id_root + "_name"
+            result[resource_type] = NOT_FOUND
+            result[resource_name] = NOT_FOUND
+
+            target_value = instance.traits.get(source_key)
+
+            # If the target value is a non-empty string...
+            if isinstance(target_value, basestring) and target_value != '':
+                # Some ids contain dashes while others do not. We're unsure
+                # when and where the dashes are embedded or stripped, so we'll
+                # 'normalize' the ids here by removing the dashes.
+                target_value = target_value.replace('-', '')
+
+                # For every node in the resource graph...
+                for node in resource.instances.graph.nodes():
+                    # Look for an id match.
+                    id_values = \
+                        [node.attributes[x].replace('-', '')
+                         for x in NODE_ID_KEYS if node.attributes.get(x)]
+
+                    if target_value in id_values:
+                        # We found this instance! Plug in the resource type and
+                        # name, and return.
+                        result[resource_type] = \
+                            node.resourcetype.display_attributes()["name"]
+                        result[resource_name] = node.attributes.get("name",
+                                                                    NOT_FOUND)
+                        break
+                else:
+                    # We didn't find this instance in the resource graph.
+                    logger.warning("Didn't find %s[%s] in the resource graph",
+                                   instance,
+                                   source_key)
+            else:
+                # This instance doesn't have an instance_id.graph.
+                logger.warning("Didn't find the %s key in %s",
+                               source_key,
+                               instance)
 
         return result
 

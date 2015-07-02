@@ -219,8 +219,8 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
-    'update_graph': {
-        'task': 'goldstone.core.tasks.update_graph',
+    'update_persistent_graph': {
+        'task': 'goldstone.core.tasks.update_persistent_graph',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
 }
@@ -391,9 +391,8 @@ class ResourceAttribute(ConstantDict):
     # This control_dict is for a "to" type/node of this value.
     TO = "to"       # pylint: disable=C0103
     TYPE = "type"   # The type of this edge or node.
-    # A callable(x, y). To find an edge from this starting node to a
-    # destination node, This is called with the from_attr_dict and
-    # to_attr_dict.
+    # A callable(x, y). To find an edge from a starting node to a destination
+    # node, This is called with the from_attr_dict and to_attr_dict.
     MATCHING_FN = "matchingattributes"
 
 R_ATTRIBUTE = ResourceAttribute()

@@ -35,14 +35,16 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return data;
     },
 
-    headingsToPin: ['name'],
+    // keys will be pinned in descending value order due to 'unshift' below
+    headingsToPin: {
+        'name': 0
+    },
 
     // search for headingsToPin anywhere in column heading
-    // will match 'name' or 'feature_name'
+    // exact match only
     isPinnedHeading: function(item) {
-        for (var i = 0; i < this.headingsToPin.length; i++) {
-            var comparitor = this.headingsToPin[i];
-            if (item.indexOf(comparitor) > -1) {
+        for (var key in this.headingsToPin) {
+            if (item === key) {
                 return true;
             }
         }
@@ -57,6 +59,16 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 return 1;
             }
         });
+        return arr;
+    },
+
+    pruneUndefinedValues: function(arr) {
+        for (i = 0; i < arr.length; i++) {
+            if (arr[i] === undefined) {
+                arr.splice(i, 1);
+                i--;
+            }
+        }
         return arr;
     },
 
@@ -87,12 +99,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 var item = uniqueObjectKeys[i];
                 if (this.isPinnedHeading(item)) {
                     var spliced = uniqueObjectKeys.splice(i, 1);
-                    keysWithName.push(spliced);
+                    keysWithName[this.headingsToPin[item]] = spliced;
                     i--;
                 } else {
                     continue;
                 }
             }
+
+            keysWithName = this.pruneUndefinedValues(keysWithName);
 
             uniqueObjectKeys = this.sortRemainingKeys(uniqueObjectKeys);
 
@@ -140,7 +154,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             "paging": true,
             "searching": true,
             "order": [
-                [0, 'asc']
+                [0, 'desc']
             ],
             "ordering": true,
             "data": data,

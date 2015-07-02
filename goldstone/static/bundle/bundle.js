@@ -1257,14 +1257,16 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return data;
     },
 
-    headingsToPin: ['name'],
+    // keys will be pinned in descending value order due to 'unshift' below
+    headingsToPin: {
+        'name': 0
+    },
 
     // search for headingsToPin anywhere in column heading
-    // will match 'name' or 'feature_name'
+    // exact match only
     isPinnedHeading: function(item) {
-        for (var i = 0; i < this.headingsToPin.length; i++) {
-            var comparitor = this.headingsToPin[i];
-            if (item.indexOf(comparitor) > -1) {
+        for (var key in this.headingsToPin) {
+            if (item === key) {
                 return true;
             }
         }
@@ -1279,6 +1281,16 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 return 1;
             }
         });
+        return arr;
+    },
+
+    pruneUndefinedValues: function(arr) {
+        for (i = 0; i < arr.length; i++) {
+            if (arr[i] === undefined) {
+                arr.splice(i, 1);
+                i--;
+            }
+        }
         return arr;
     },
 
@@ -1309,12 +1321,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 var item = uniqueObjectKeys[i];
                 if (this.isPinnedHeading(item)) {
                     var spliced = uniqueObjectKeys.splice(i, 1);
-                    keysWithName.push(spliced);
+                    keysWithName[this.headingsToPin[item]] = spliced;
                     i--;
                 } else {
                     continue;
                 }
             }
+
+            keysWithName = this.pruneUndefinedValues(keysWithName);
 
             uniqueObjectKeys = this.sortRemainingKeys(uniqueObjectKeys);
 
@@ -1362,7 +1376,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             "paging": true,
             "searching": true,
             "order": [
-                [0, 'asc']
+                [0, 'desc']
             ],
             "ordering": true,
             "data": data,
@@ -5457,6 +5471,13 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             tempObj.type = item.doc_type;
             tempObj.timestamp = item.timestamp;
             tempObj.traits = item.traits;
+            tempObj.user_name = item.user_name;
+            tempObj.user_type = item.user_type;
+            tempObj.tenant_name = item.tenant_name;
+            tempObj.tenant_type = item.tenant_type;
+            tempObj.instance_name = item.instance_name;
+            tempObj.instance_type = item.instance_type;
+
             result.push(tempObj);
         });
 
@@ -5475,18 +5496,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         return result;
     },
 
-    headingsToPin: ['id', 'type', 'timestamp'],
-
-    // overwrite original method to search for exact equality
-    // within array of headingsToPin
-    isPinnedHeading: function(item) {
-        for (var i = 0; i < this.headingsToPin.length; i++) {
-            var comparitor = this.headingsToPin[i];
-            if (item === comparitor) {
-                return true;
-            }
-        }
-        return false;
+    // keys will be pinned in descending value order
+    headingsToPin: {
+        'id': 6, 'type': 7, 'timestamp': 8, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
     }
 });
 ;

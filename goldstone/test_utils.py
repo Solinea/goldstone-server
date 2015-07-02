@@ -55,14 +55,14 @@ class Setup(SimpleTestCase):
 
         """
         from goldstone.core.models import PolyResource
-        from goldstone.core.resources import resources
+        from goldstone.core import resource
         from goldstone.tenants.models import Tenant
 
         get_user_model().objects.all().delete()
         Tenant.objects.all().delete()
 
         PolyResource.objects.non_polymorphic().all().delete()
-        resources.graph.clear()
+        resource.instances.graph.clear()
 
 
 def login(username, password):

@@ -19,18 +19,17 @@ from functools import partial
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, Interface, Keypair
-from .resources import resource_types
+    Flavor, Interface, Keypair, User, Credential, Group
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
 NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server]
+              Hypervisor, Project, Network, Server, User, Credential, Group]
 
 # Aliases to make the code less verbose
-TYPE = settings.R_ATTRIBUTE.TYPE
+TO = settings.R_ATTRIBUTE.TO
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 
 
@@ -46,14 +45,14 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
     This function modifies data_from and to_from.
 
-    :param type_from: The type of the "from" node in the resource_types graph
+    :param type_from: The type of the "from" node in the resource types graph
     :type type_from: PolyResource subclass
     :param data_from: Type_from's initial test data.
     :type data_from: dict
     :param match_from_key_fn: A one-argument function to modify the value used
                               in the matching_fn test
     :type match_from_key_fn: Callable
-    :param type_to: The type of the "to" node in the resource_types graph
+    :param type_to: The type of the "to" node in the resource types graph
     :type type_to: PolyResource subclass
     :param data_to: Type_to's initial test data.
     :type data_to: dict
@@ -63,30 +62,31 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
 
     """
 
-    # Test edge discovery.
-    edges = resource_types.graph.out_edges(type_from, data=True)
-    edge = [x for x in edges if x[1] == type_to][0][2]
+    # Get the matching function from the source type
+    from_to_entry = [x for x in type_from.outgoing_edges()
+                     if x[TO] == type_to][0]
+    matching_fn = from_to_entry[MATCHING_FN]
 
     # Test one being None
     match_from_key_fn(None)
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test both being None
     match_to_key_fn(None)
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test no match
     match_from_key_fn("4445")
     match_to_key_fn("4444")
-    assert not edge[MATCHING_FN](data_from, data_to)
+    assert not matching_fn(data_from, data_to)
 
     # Test match
     match_to_key_fn("4445")
-    assert edge[MATCHING_FN](data_from, data_to)
+    assert matching_fn(data_from, data_to)
 
 
 class ResourceTypesTests(SimpleTestCase):
-    """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
+    """Test each entry in Types.EDGES, in particular the matching_fn
     functions."""
 
     def setUp(self):
@@ -680,19 +680,158 @@ class ResourceTypesTests(SimpleTestCase):
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
-        # Test edge discovery.
-        edges = resource_types.graph.out_edges(Keypair, data=True)
-        edge = [x for x in edges if x[1] == Server][0][2]
+        # Get the matching function from the source type
+        from_to_entry = [x for x in Keypair.outgoing_edges()
+                         if x[TO] == Server][0]
+        matching_fn = from_to_entry[MATCHING_FN]
 
         # Test the keypair being None
         dictassign(KEYPAIR, "fingerprint", None)
-        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertFalse(matching_fn(KEYPAIR, SERVER))
 
         # Test both being None
         dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", None)
-        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertFalse(matching_fn(KEYPAIR, SERVER))
 
         # Test match
         dictassign(KEYPAIR, "fingerprint", "4445")
         dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
-        self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
+        self.assertTrue(matching_fn(KEYPAIR, SERVER))
+
+    @staticmethod
+    def test_user_credential():
+        """Test the User - Credential entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        CREDENTIAL = {"blob":
+                      "{\"access\":\"181920\",\"secret\":\"secretKey\"}",
+                      "id": "414243",
+                      "links":
+                      {"self": "http://identity:35357/v3/credentials/414243"},
+                      "project_id": "456789",
+                      "type": "ec2",
+                      "user_id": u'0751ad1dcb054ddea7d4be13aa63dec0',
+                      }
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "id"),
+                Credential,
+                CREDENTIAL,
+                partial(dictassign, CREDENTIAL, "user_id"))
+
+    @staticmethod
+    def test_user_group():
+        """Test the User - Group entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        GROUP = {"description": "Developers cleared for work",
+                 "domain_id": "default",
+                 "id": "101112",
+                 "links": {"self": "http://identity:35357/v3/groups/101112"},
+                 "name": "Developers"
+                 }
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "domain_id"),
+                Group,
+                GROUP,
+                partial(dictassign, GROUP, "domain_id"))
+
+    @staticmethod
+    def test_user_project():
+        """Test the User - Project entry."""
+
+        # Test data.
+        USER = {u'name': u'swift',
+                u'links':
+                {u'self':
+                 u'http://1.1.1.1:35357/v3/users/075999999b0549999994be13aa0'},
+                u'enabled': True,
+                u'domain_id': u'default',
+                u'default_project_id': u'31ebe76d822a4c709772ee7f15c14c1d',
+                u'id': u'0751ad1dcb054ddea7d4be13aa63dec0',
+                u'email': u'swift@localhost'}
+
+        PROJECT = {"domain_id": "1789d1",
+                   "parent_id": "123c56",
+                   "enabled": True,
+                   "id": "263fd9",
+                   "links":
+                   {"self": "https://identity:35357/v3/projects/263fd9"},
+                   "name": "Test Group",
+                   'description': u'Tenant for the openstack services'}
+
+        do_test(User,
+                USER,
+                partial(dictassign, USER, "default_project_id"),
+                Project,
+                PROJECT,
+                partial(dictassign, PROJECT, "id"))
+
+    @staticmethod
+    def test_user_quotaset():
+        """Test the User - QuotaSet entry."""
+
+        pass
+
+    @staticmethod
+    def test_project_image():
+        """Test the Project - Image entry."""
+
+        # Test data.
+        PROJECT = {"domain_id": "1789d1",
+                   "parent_id": "123c56",
+                   "enabled": True,
+                   "id": "263fd9",
+                   "links":
+                   {"self": "https://identity:35357/v3/projects/263fd9"},
+                   "name": "Test Group"
+                   }
+
+        IMAGE = {u'checksum': u'd972013792949d0d3ba628fbe8685bce',
+                 u'container_format': u'bare',
+                 u'created_at': u'2015-01-20T22:41:11Z',
+                 u'disk_format': u'qcow2',
+                 u'file':
+                 u'/v2/images/0ae46ce1-80e5-447e-b0e8-9eeec81af920/file',
+                 u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                 u'min_disk': 0,
+                 u'min_ram': 0,
+                 u'name': u'cirros',
+                 u'owner': u'a8cc59bf0cfa4103bc038d269d7cae65',
+                 u'protected': False,
+                 u'schema': u'/v2/schemas/image',
+                 u'size': 13147648,
+                 u'status': u'active',
+                 u'tags': [],
+                 u'updated_at': u'2015-01-20T22:41:12Z',
+                 u'visibility': u'public'}
+
+        do_test(Project,
+                PROJECT,
+                partial(dictassign, PROJECT, "id"),
+                Image,
+                IMAGE,
+                partial(dictassign, IMAGE, "id"))

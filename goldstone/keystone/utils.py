@@ -106,3 +106,20 @@ class DiscoverTree(TopologyMixin):
 
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
+
+def update_keystone_nodes():
+    """Update the Resource graph's Keystone nodes and edges from the current
+    OpenStack cloud state.
+
+    Nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    """
+    from goldstone.core.models import User, Project
+    from goldstone.core.utils import process_resource_type
+
+    process_resource_type(User)
+    process_resource_type(Project)
