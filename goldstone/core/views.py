@@ -23,10 +23,12 @@ from goldstone.utils import TopologyMixin
 
 from goldstone.core.resource import types
 from goldstone.core import resource
-from .models import MetricData, ReportData, PolyResource, EventData
+from .models import MetricData, ReportData, PolyResource, EventData, \
+    ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventSerializer, EventAggSerializer
+    MetricAggSerializer, EventSerializer, EventAggSerializer, \
+    ApiPerfAggSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -552,6 +554,110 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         else:
             return Response({}, status=HTTP_404_NOT_FOUND)
+
+
+#########################
+# API Performance views #
+#########################
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ApiPerfSummarizeView(DateHistogramAggView):
+    """Return an aggregation summary of API performance.
+
+    ---
+
+    GET:
+        parameters:
+           - name: component
+             description: The OpenStack service to query.
+             required: true
+             enum: [nova, neutron, keystone, glance, cinder]
+             paramType: query
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m.
+             required: true
+             paramType: query
+           - name: start_time
+             description: The desired start time, in UTC
+             type: string
+             paramType: query
+           - name: end_time
+             description: The desired end time, in UTC
+             type: string
+             paramType: query
+           - name: timestamp__range
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+
+    """
+
+    serializer_class = ApiPerfAggSerializer
+    reserved_params = ["interval", "start_time", "end_time", "component",
+                       "timestamp__range"]
+    RANGE_AGG_NAME = 'response_status'
+    STATS_AGG_NAME = 'stats'
+
+    class Meta:          # pylint: disable=C0111,W0232,C1001
+        model = ApiPerfData
+
+    def get(self, request):
+        """Return a response to a GET request."""
+
+        search = self._get_search(request)
+        search.aggs[self.AGG_NAME]. \
+            metric(self.STATS_AGG_NAME, self.Meta.model.stats_agg()). \
+            bucket(self.RANGE_AGG_NAME, self.Meta.model.range_agg())
+
+        serializer = self.serializer_class(search.execute().aggregations)
+
+        return Response(serializer.data)
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ApiPerfSearchView(ElasticListAPIView):
+    """Return API performance records from Logstash data.
+
+    ---
+
+    GET:
+        parameters:
+           - name: timestamp__range
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: _id__prefix
+             description: The string each id must start with.
+             paramType: query
+           - name: _id__match
+             description: The string each id must exactly match.
+             paramType: query
+           - name: _type__prefix
+             description: The string each entry's type must start with.
+             paramType: query
+           - name: _type__match
+             description: The string each entry's type must exactly match.
+             paramType: query
+           - name: page
+             description: The desired result page number
+             type: integer
+             paramType: query
+           - name: page_size
+             description: The number of results on each page
+             type: integer
+             paramType: query
+
+    """
+
+    serializer_class = EventSerializer
+
+    class Meta:     # pylint: disable=C1001,W0232,C0111
+        model = ApiPerfData
 
 
 ###############

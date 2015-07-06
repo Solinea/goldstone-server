@@ -15,6 +15,8 @@
 from django.conf.urls import patterns, url
 from .views import ApiPerfAggView
 
+# Scheduled for deletion.
+
 urlpatterns = patterns(
     '',
     url(r'^stats/', ApiPerfAggView.as_view()),

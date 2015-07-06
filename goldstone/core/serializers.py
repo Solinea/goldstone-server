@@ -154,51 +154,53 @@ class EventSerializer(ReadOnlyElasticSerializer):
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
-        # Add the resource type, and the resource name if we can find them. For
-        # every root type...
-        for id_root in INSTANCE_GRAPH_IDS:
-            # Make the source _id key, and the destination _name and _type
-            # keys. And initialize the destination keys to, "not found."
-            source_key = id_root + "_id"
-            resource_type = id_root + "_type"
-            resource_name = id_root + "_name"
-            result[resource_type] = NOT_FOUND
-            result[resource_name] = NOT_FOUND
+        # If the instance has a "traits" dict... (If it's an event...)
+        if "traits" in instance:
+            # Add the resource type, and the resource name if we can find them.
+            # For every root type...
+            for id_root in INSTANCE_GRAPH_IDS:
+                # Make the source _id key, and the destination _name and _type
+                # keys. And initialize the destination keys to, "not found."
+                source_key = id_root + "_id"
+                resource_type = id_root + "_type"
+                resource_name = id_root + "_name"
+                result[resource_type] = NOT_FOUND
+                result[resource_name] = NOT_FOUND
 
-            target_value = instance.traits.get(source_key)
+                target_value = instance.traits.get(source_key)
 
-            # If the target value is a non-empty string...
-            if isinstance(target_value, basestring) and target_value != '':
-                # Some ids contain dashes while others do not. We're unsure
-                # when and where the dashes are embedded or stripped, so we'll
-                # 'normalize' the ids here by removing the dashes.
-                target_value = target_value.replace('-', '')
+                # If the target value is a non-empty string...
+                if isinstance(target_value, basestring) and target_value != '':
+                    # Some ids contain dashes while others do not. We're unsure
+                    # when and where the dashes are embedded or stripped, so
+                    # we'll 'normalize' the ids here by removing the dashes.
+                    target_value = target_value.replace('-', '')
 
-                # For every node in the resource graph...
-                for node in resource.instances.graph.nodes():
-                    # Look for an id match.
-                    id_values = \
-                        [node.attributes[x].replace('-', '')
-                         for x in NODE_ID_KEYS if node.attributes.get(x)]
+                    # For every node in the resource graph...
+                    for node in resource.instances.graph.nodes():
+                        # Look for an id match.
+                        id_values = \
+                            [node.attributes[x].replace('-', '')
+                             for x in NODE_ID_KEYS if node.attributes.get(x)]
 
-                    if target_value in id_values:
-                        # We found this instance! Plug in the resource type and
-                        # name, and return.
-                        result[resource_type] = \
-                            node.resourcetype.display_attributes()["name"]
-                        result[resource_name] = node.attributes.get("name",
-                                                                    NOT_FOUND)
-                        break
+                        if target_value in id_values:
+                            # We found this instance! Plug in the resource type
+                            # and name, and return.
+                            result[resource_type] = \
+                                node.resourcetype.display_attributes()["name"]
+                            result[resource_name] = \
+                                node.attributes.get("name", NOT_FOUND)
+                            break
+                    else:
+                        # We didn't find this instance in the resource graph.
+                        logger.warning("%s[%s] isn't in the resource graph",
+                                       instance,
+                                       source_key)
                 else:
-                    # We didn't find this instance in the resource graph.
-                    logger.warning("Didn't find %s[%s] in the resource graph",
-                                   instance,
-                                   source_key)
-            else:
-                # This instance doesn't have an instance_id.graph.
-                logger.warning("Didn't find the %s key in %s",
-                               source_key,
-                               instance)
+                    # This instance doesn't have an instance_id.graph.
+                    logger.warning("Didn't find the %s key in %s",
+                                   source_key,
+                                   instance)
 
         return result
 
@@ -248,3 +250,43 @@ class EventAggSerializer(ReadOnlyElasticSerializer):
             results['types'] = event_types
 
         return results
+
+
+class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
+
+    DATEHIST_AGG_NAME = 'per_interval'
+    STATS_AGG_NAME = 'stats'
+    RANGE_AGG_NAME = 'response_status'
+
+    def to_representation(self, instance):
+        """Create serialized representation of a single top-level aggregation.
+
+        :param instance: the result from the Model.simple_agg call
+
+        """
+
+        datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
+
+        assert datehist_agg_base is not None, (
+            "DATEHIST_AGG_NAME must exist in the instance passed to %s."
+            % self.__class__.__name__
+        )
+
+        # let's clean up the inner buckets
+        data = [{bucket.key: {'count': bucket.doc_count,
+                              self.RANGE_AGG_NAME:
+                              self._process_range(bucket[self.RANGE_AGG_NAME]),
+                              self.STATS_AGG_NAME:
+                              bucket[self.STATS_AGG_NAME]}}
+                for bucket in datehist_agg_base.buckets]
+
+        return {self.DATEHIST_AGG_NAME: data}
+
+    @staticmethod
+    def _process_range(process_range):
+        """Reformat the range buckets."""
+
+        return [{key: value['doc_count']}
+                for key, value in process_range['buckets'].items()]

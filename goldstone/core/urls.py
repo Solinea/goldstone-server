@@ -17,10 +17,13 @@ from django.conf.urls import url, patterns
 from .views import MetricDataListView, ReportDataListView, \
     MetricNamesAggView, ReportNamesAggView, MetricAggView, NavTreeView, \
     ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve, \
-    EventSearchView, EventSummarizeView
+    EventSearchView, EventSummarizeView, ApiPerfSummarizeView, \
+    ApiPerfSearchView
 
 urlpatterns = patterns(
     '',
+    url(r'^apiperf/summarize/', ApiPerfSummarizeView.as_view()),
+    url(r'^apiperf/search/', ApiPerfSearchView.as_view()),
     url(r'^events/summarize/', EventSummarizeView.as_view()),
     url(r'^events/search/', EventSearchView.as_view()),
     url(r'^metrics/$', MetricDataListView.as_view()),
