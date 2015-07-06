@@ -223,6 +223,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.core.tasks.update_persistent_graph',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'expire_auth_tokens': {
+        'task': 'goldstone.core.tasks.expire_auth_tokens',
+        'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
+    },
 }
 
 # Database row settings.

@@ -60,3 +60,19 @@ def update_persistent_graph():
     update_keystone_nodes()
     update_nova_nodes()
     update_cinder_nodes()
+
+
+@celery_app.task()
+def expire_auth_tokens():
+    """Expire authorization tokens.
+
+    Currently, this deletes all existing tokens, which will force every user to
+    log in again.
+
+    This should be replaced with using djangorestframwork-timed-auth-token
+    after we upgrade to Django 1.8.
+
+    """
+    from rest_framework.authtoken.models import Token
+
+    Token.objects.all().delete()
