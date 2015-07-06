@@ -66,11 +66,11 @@ def update_persistent_graph():
 def expire_auth_tokens():
     """Expire authorization tokens.
 
-    Currently, this deletes all existing tokens, which will force every user to
-    log in again.
+    This deletes all existing tokens, which will force every user to log in
+    again.
 
-    This should be replaced with using djangorestframwork-timed-auth-token
-    after we upgrade to Django 1.8.
+    This should be replaced with djangorestframwork-timed-auth-token after we
+    upgrade to Django 1.8.
 
     """
     from rest_framework.authtoken.models import Token
