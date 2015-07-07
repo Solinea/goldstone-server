@@ -1480,24 +1480,24 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "api_perf/report": "apiPerfReport",
-        "cinder/report": "cinderReport",
-        // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
-        "glance/report": "glanceReport",
         "help": "help",
-        "intelligence/search": "logSearch",
-        "intelligence/events": "eventsBrowser",
-        "keystone/report": "keystoneReport",
         "login": "login",
-        "metric": "metricViewer",
-        "metric/": "metricViewer",
-        "metric/:numCharts": "metricViewer",
-        "neutron/report": "neutronReport",
-        "nova/report": "novaReport",
+        "metrics/api_perf": "apiPerfReport",
+        "metrics/cinder_report": "cinderReport",
+        "metrics/glance_report": "glanceReport",
+        "metrics/keystone_report": "keystoneReport",
+        "metrics/metric_report": "metricViewer",
+        "metrics/metric_report/": "metricViewer",
+        "metrics/metric_report/:numCharts": "metricViewer",
+        "metrics/neutron_report": "neutronReport",
+        "metrics/nova_report": "novaReport",
         "password": "password",
         "report/node/:nodeId": "nodeReport",
+        "reports/logbrowser": "logSearch",
+        "reports/eventbrowser": "eventsBrowser",
+        "reports/apibrowser": "apiBrowser",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -1584,6 +1584,9 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     */
 
+    apiBrowser: function() {
+        this.switchView(ApiBrowserPageView);
+    },
     apiPerfReport: function() {
         this.switchView(ApiPerfReportView);
     },
@@ -3892,6 +3895,83 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
  * limitations under the License.
  */
 
+/*
+The intelligence/search page is composed of a LogAnalysisView on top, contained
+within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+from this view, and with the triggerChange function, kick off responding
+processes in the LogAnalysisView that is instantiated from within this view.
+
+instantiated in goldstoneRouter as
+    new EventsBrowserPageView({
+        el: ".launcher-container"
+    });
+*/
+
+var ApiBrowserPageView = GoldstoneBasePageView2.extend({
+
+    renderCharts: function() {
+
+        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+        this.eventsBrowserView = new ChartSet({
+            chartTitle: 'Events Histogram',
+            collection: this.eventsBrowserVizCollection,
+            el: '#events-histogram-visualization',
+            infoIcon: 'fa-tasks',
+            width: $('#events-histogram-visualization').width(),
+            yAxisLabel: 'Number of Events'
+        });
+
+        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+        this.eventsBrowserTable = new EventsBrowserDataTableView({
+            chartTitle: 'Events Browser',
+            collection: this.eventsBrowserTableCollection,
+            el: '#events-browser-table',
+            infoIcon: 'fa-table',
+            width: $('#events-browser-table').width()
+        });
+
+        // triggered on GoldstoneBasePageView2, itereates through array
+        // and calls stopListening() and off() for memory management
+        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.eventsBrowserView.trigger('lookbackSelectorChanged');
+            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    template: _.template('' +
+
+        '<div class="row">' +
+        '<div id="events-histogram-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="events-browser-table" class="col-md-12"></div>' +
+        '</div>'
+    )
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
@@ -4397,6 +4477,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.setLogoutButtonHandler();
     },
 
+    // subscribed to gsRouter 'switching view' in router.html
     viewSwitchTriggered: function() {
         this.makeVisibleIfTokenPresent();
     },
