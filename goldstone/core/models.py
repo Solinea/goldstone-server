@@ -45,7 +45,6 @@ CONSUMES = settings.R_EDGE.CONSUMES
 CONTAINS = settings.R_EDGE.CONTAINS
 DEFINES = settings.R_EDGE.DEFINES
 INSTANCE_OF = settings.R_EDGE.INSTANCE_OF
-MANAGES = settings.R_EDGE.MANAGES
 MEMBER_OF = settings.R_EDGE.MEMBER_OF
 OWNS = settings.R_EDGE.OWNS
 ROUTES_TO = settings.R_EDGE.ROUTES_TO
@@ -140,12 +139,13 @@ class ApiPerfData(DailyIndexDocType):
     @classmethod
     def range_agg(cls):
 
-        return A('range', field='response_status', keyed=True,
-                 ranges=[
-                     {"from": 200, "to": 299},
-                     {"from": 300, "to": 399},
-                     {"from": 400, "to": 499},
-                     {"from": 500, "to": 599}])
+        return A('range',
+                 field='response_status',
+                 keyed=True,
+                 ranges=[{"from": 200, "to": 299},
+                         {"from": 300, "to": 399},
+                         {"from": 400, "to": 499},
+                         {"from": 500, "to": 599}])
 
 
 ######################################

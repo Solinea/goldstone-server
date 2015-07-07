@@ -22,10 +22,10 @@ from .views import MetricDataListView, ReportDataListView, \
 
 urlpatterns = patterns(
     '',
-    url(r'^apiperf/summarize/', ApiPerfSummarizeView.as_view()),
     url(r'^apiperf/search/', ApiPerfSearchView.as_view()),
-    url(r'^events/summarize/', EventSummarizeView.as_view()),
+    url(r'^apiperf/summarize/', ApiPerfSummarizeView.as_view()),
     url(r'^events/search/', EventSearchView.as_view()),
+    url(r'^events/summarize/', EventSummarizeView.as_view()),
     url(r'^metrics/$', MetricDataListView.as_view()),
     url(r'^metrics/summarize/', MetricAggView.as_view()),
     url(r'^metric_names/', MetricNamesAggView.as_view()),

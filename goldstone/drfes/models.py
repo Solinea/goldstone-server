@@ -114,27 +114,28 @@ class DailyIndexDocType(DocType):
                                  agg_name='per_interval',
                                  min_doc_count=1,
                                  bounds_min=None, bounds_max=None):
-        """ Returns a date histogram aggregations.
+        """Returns a date histogram aggregation.
 
-        :type base_queryset: Search
         :param base_queryset: The queryset on which to attach this aggregation
-        :type interval: str
+        :type base_queryset: Search
         :param interval: The time interval to use for agg bucket size
-        :type field: str
+        :type interval: str
         :param field: The field to aggregate
-        :type agg_name: str
+        :type field: str
         :param agg_name: the name to give the aggregation
-        :type size: int
+        :type agg_name: str
         :param size: passed to ES
-        :type min_doc_count: int
+        :type size: int
         :param min_doc_count: passed to ES
-        :rtype: object
+        :type min_doc_count: int
         :return: the (possibly nested) aggregation
+        :rtype: object
+
         """
 
         # aggregations mutate the search, so let's be nice to our caller
         # and work on a clone.
-        search = base_queryset._clone()
+        search = base_queryset._clone()          # pylint: disable=W0212
 
         # we are not interested in the actual docs, so use the count search
         # type.
@@ -180,20 +181,25 @@ class DailyIndexDocType(DocType):
 
     @classmethod
     def get_field_mapping(cls, field):
+        """Return a field mapping."""
 
         conn = es_conn()
         index = es_indices(cls.INDEX_PREFIX)
-        return conn.indices.get_field_mapping(
-            field, index, cls._doc_type.name,
-            include_defaults=True, allow_no_indices=False)
+
+        return conn.indices.get_field_mapping(field,
+                                              index,
+                                              cls._doc_type.name,
+                                              include_defaults=True,
+                                              allow_no_indices=False)
 
     @classmethod
     def field_has_raw(cls, field):
-        """Looks up the ES mapping for a field and determines if it has a 'raw'
+        """Return True if the Elasticsearch mapping for a field has a 'raw'
         representation.
 
         :param field: the field name in ES
-        :return: Boolean
+        :return: bool
+
         """
 
         try:

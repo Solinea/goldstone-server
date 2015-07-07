@@ -27,8 +27,8 @@ from .models import MetricData, ReportData, PolyResource, EventData, \
     ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventSerializer, EventAggSerializer, \
-    ApiPerfAggSerializer
+    MetricAggSerializer, EventApiPerfSerializer, EventSummarizeSerializer, \
+    ApiPerfSummarizeSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -595,7 +595,7 @@ class ApiPerfSummarizeView(DateHistogramAggView):
 
     """
 
-    serializer_class = ApiPerfAggSerializer
+    serializer_class = ApiPerfSummarizeSerializer
     reserved_params = ["interval", "start_time", "end_time", "component",
                        "timestamp__range"]
     RANGE_AGG_NAME = 'response_status'
@@ -654,7 +654,7 @@ class ApiPerfSearchView(ElasticListAPIView):
 
     """
 
-    serializer_class = EventSerializer
+    serializer_class = EventApiPerfSerializer
 
     class Meta:     # pylint: disable=C1001,W0232,C0111
         model = ApiPerfData
@@ -693,7 +693,7 @@ class EventSummarizeView(DateHistogramAggView):
 
     AGG_FIELD = 'timestamp'
     AGG_NAME = 'per_interval'
-    serializer_class = EventAggSerializer
+    serializer_class = EventSummarizeSerializer
     reserved_params = ['interval', 'per_type']
 
     class Meta:             # pylint: disable=C1001,W0232,C0111
@@ -765,7 +765,7 @@ class EventSearchView(ElasticListAPIView):
 
     """
 
-    serializer_class = EventSerializer
+    serializer_class = EventApiPerfSerializer
 
     class Meta:     # pylint: disable=C1001,W0232,C0111
         model = EventData

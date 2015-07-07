@@ -103,8 +103,8 @@ class PassthruSerializer(serializers.Serializer):
         return instance
 
 
-class EventSerializer(ReadOnlyElasticSerializer):
-    """Serializer for event data that's stored in ElasticSearch."""
+class EventApiPerfSerializer(ReadOnlyElasticSerializer):
+    """Serializer for event and API performance data, for the "search" URLs."""
 
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
@@ -147,14 +147,15 @@ class EventSerializer(ReadOnlyElasticSerializer):
         NOT_FOUND = "Unknown"
 
         # Get the standard to_dict() result...
-        result = super(EventSerializer, self).to_representation(instance)
+        result = \
+            super(EventApiPerfSerializer, self).to_representation(instance)
 
         # Add non-None/blank metadata fields and values to it.
         for field in METADATA:
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
-        # If the instance has a "traits" dict... (If it's an event...)
+        # If the instance has a "traits" dict... (Aka, if it's an event...)
         if "traits" in instance:
             # Add the resource type, and the resource name if we can find them.
             # For every root type...
@@ -205,9 +206,8 @@ class EventSerializer(ReadOnlyElasticSerializer):
         return result
 
 
-class EventAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer for the aggregation that's returned from
-    Elasticsearch.
+class EventSummarizeSerializer(ReadOnlyElasticSerializer):
+    """Serializer for event aggregation data, for the "summarize" URL.
 
     Copied from LogEventAggSerializer, because LEAS is scheduled for deletion.
 
@@ -252,9 +252,9 @@ class EventAggSerializer(ReadOnlyElasticSerializer):
         return results
 
 
-class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from
-    ES."""
+class ApiPerfSummarizeSerializer(ReadOnlyElasticSerializer):
+    """Serializer for API performance aggregation data, for the "summarize"
+    URL."""
 
     DATEHIST_AGG_NAME = 'per_interval'
     STATS_AGG_NAME = 'stats'
