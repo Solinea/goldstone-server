@@ -30,46 +30,46 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
     renderCharts: function() {
 
-        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+        this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
-        this.eventsBrowserView = new ChartSet({
+        this.apiBrowserView = new ChartSet({
             chartTitle: 'Events Histogram',
-            collection: this.eventsBrowserVizCollection,
-            el: '#events-histogram-visualization',
+            collection: this.apiBrowserVizCollection,
+            el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
-            width: $('#events-histogram-visualization').width(),
+            width: $('#api-histogram-visualization').width(),
             yAxisLabel: 'Number of Events'
         });
 
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({});
 
-        this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: 'Events Browser',
-            collection: this.eventsBrowserTableCollection,
-            el: '#events-browser-table',
+        this.apiBrowserTable = new ApiBrowserDataTableView({
+            chartTitle: 'Api Browser',
+            collection: this.apiBrowserTableCollection,
+            el: '#api-browser-table',
             infoIcon: 'fa-table',
-            width: $('#events-browser-table').width()
+            width: $('#api-browser-table').width()
         });
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
     },
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.eventsBrowserView.trigger('lookbackSelectorChanged');
-            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+            this.apiBrowserTable.trigger('lookbackSelectorChanged');
         }
     },
 
     template: _.template('' +
 
         '<div class="row">' +
-        '<div id="events-histogram-visualization" class="col-md-12"></div>' +
+        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
         '</div>' +
         '<div class="row">' +
-        '<div id="events-browser-table" class="col-md-12"></div>' +
+        '<div id="api-browser-table" class="col-md-12"></div>' +
         '</div>'
     )
 

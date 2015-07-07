@@ -69,7 +69,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 i--;
             }
         }
-        return arr;
+        return arr.reverse();
     },
 
     dataPrep: function(tableData) {
@@ -164,6 +164,11 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     drawSearchTable: function(location, data) {
 
+        // variables to capture current state of dataTable
+        var currentTop; // capture top edge of screen
+        var recordsPerPage; // capture records per page
+        var currentSearchBox; // capture search box contents
+
         this.hideSpinner();
 
         if (data === null) {
@@ -178,10 +183,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
         if ($.fn.dataTable.isDataTable(location)) {
 
-            // if dataTable already exists:
-            oTable = $(location).DataTable();
+            // first use jquery to store current top edge of visible screen
+            currentTop = $(document).scrollTop();
+            recordsPerPage = $(this.el).find('[name="reports-result-table_length"]').val();
+            currentSearchBox = $(this.el).find('[type="search"]').val();
 
+            // if dataTable already exists:
             // complete remove it from memory and the dom
+            oTable = $(location).DataTable();
             oTable.destroy({
                 remove: true
             });
@@ -195,6 +204,24 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         data = this.dataPrep(data);
         var oTableParams = this.oTableParamGenerator(data);
         oTable = $(location).DataTable(oTableParams);
+
+        // restore recordsPerPage
+        if (recordsPerPage !== undefined) {
+            oTable.page.len(recordsPerPage);
+        }
+
+        // lowercase dataTable returns reference to instantiated table
+        oTable = $(location).dataTable();
+
+        // restore currentSearchBox
+        if (currentSearchBox !== undefined) {
+            oTable.fnFilter(currentSearchBox);
+        }
+
+        // restore top edge of screen to couteract 'screen jump'
+        if (currentTop !== undefined) {
+            $(document).scrollTop(currentTop);
+        }
 
     },
 

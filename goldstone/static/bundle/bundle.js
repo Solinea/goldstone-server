@@ -1291,7 +1291,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 i--;
             }
         }
-        return arr;
+        return arr.reverse();
     },
 
     dataPrep: function(tableData) {
@@ -1386,6 +1386,11 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     drawSearchTable: function(location, data) {
 
+        // variables to capture current state of dataTable
+        var currentTop; // capture top edge of screen
+        var recordsPerPage; // capture records per page
+        var currentSearchBox; // capture search box contents
+
         this.hideSpinner();
 
         if (data === null) {
@@ -1400,10 +1405,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
         if ($.fn.dataTable.isDataTable(location)) {
 
-            // if dataTable already exists:
-            oTable = $(location).DataTable();
+            // first use jquery to store current top edge of visible screen
+            currentTop = $(document).scrollTop();
+            recordsPerPage = $(this.el).find('[name="reports-result-table_length"]').val();
+            currentSearchBox = $(this.el).find('[type="search"]').val();
 
+            // if dataTable already exists:
             // complete remove it from memory and the dom
+            oTable = $(location).DataTable();
             oTable.destroy({
                 remove: true
             });
@@ -1417,6 +1426,24 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         data = this.dataPrep(data);
         var oTableParams = this.oTableParamGenerator(data);
         oTable = $(location).DataTable(oTableParams);
+
+        // restore recordsPerPage
+        if (recordsPerPage !== undefined) {
+            oTable.page.len(recordsPerPage);
+        }
+
+        // lowercase dataTable returns reference to instantiated table
+        oTable = $(location).dataTable();
+
+        // restore currentSearchBox
+        if (currentSearchBox !== undefined) {
+            oTable.fnFilter(currentSearchBox);
+        }
+
+        // restore top edge of screen to couteract 'screen jump'
+        if (currentTop !== undefined) {
+            $(document).scrollTop(currentTop);
+        }
 
     },
 
@@ -2737,6 +2764,157 @@ var InfoButtonText = GoldstoneBaseModel.extend({
  */
 
 /*
+
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+this.eventsBrowserTable = new EventsBrowserDataTableView({
+    chartTitle: 'Events Browser',
+    collection: this.eventsBrowserTableCollection,
+    el: '#events-browser-table',
+    infoIcon: 'fa-table',
+    width: $('#events-browser-table').width()
+});
+
+*/
+
+// define collection and link to model
+var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/apiperf/search/',
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '&page_size=' + n;
+    },
+
+    preProcessData: function(data) {
+        if(data && data.results) {
+            return data.results;
+        }
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ /*
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+this.eventsBrowserView = new ChartSet({
+    chartTitle: 'Events Histogram',
+    collection: this.eventsBrowserVizCollection,
+    el: '#events-histogram-visualization',
+    infoIcon: 'fa-tasks',
+    width: $('#events-histogram-visualization').width(),
+    yAxisLabel: 'Number of Events'
+});
+ */
+
+// define collection and link to model
+
+var ApiHistogramCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/apiperf/summarize/',
+
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    // TODO: ONCE TIME RANGE AND INTERVAL ARE WORKING, SET 'd' BACK TO 's'
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 'd';
+    },
+
+    preProcessData: function(data) {
+        var self = this;
+
+        // initialize container for formatted results
+        finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.data, function(item) {
+            var tempObj = {};
+
+            // adds the 'time' param based on the
+            // object keyed by timestamp
+            tempObj.time = parseInt(_.keys(item)[0], 10);
+
+            // iterate through each item in the array
+            _.each(item[tempObj.time], function(obj){
+                var key = _.keys(obj);
+                var value = _.values(obj)[0];
+
+                // copy key/value pairs to tempObj
+                tempObj[key] = value;
+            });
+
+            // initialize counter
+            var count = 0;
+            _.each(tempObj, function(val, key) {
+                // add up the values of each nested object
+                if(key !== 'time') {
+                    count += val;
+                }
+            });
+
+            // set 'count' equal to the counter
+            tempObj.count = count;
+
+            // add the tempObj to the final results array
+            finalResult.push(tempObj);
+        });
+
+        // returning inside the 'parse' function adds to collection
+        // and triggers 'sync'
+        return finalResult;
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
@@ -3896,6 +4074,106 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
  */
 
 /*
+the jQuery dataTables plugin is documented at
+http://datatables.net/reference/api/
+
+instantiated on eventsBrowserPageView as:
+
+    this.eventsBrowserTable = new EventsBrowserDataTableView({
+        el: '.events-browser-table',
+        chartTitle: 'Events Browser',
+        infoIcon: 'fa-table',
+        width: $('.events-browser-table').width()
+    });
+
+*/
+
+var ApiBrowserDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+    },
+
+    update: function() {
+        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+    },
+
+    preprocess: function(data) {
+
+        /*
+        strip object down to _id, _type, timestamp, and things in 'traits'
+        and then flatten object before returning it to the dataPrep function
+        */
+
+        var self = this;
+        var result = [];
+
+        // strip away all but _id, _type, timestamp, and things in traits
+        _.each(data, function(item) {
+            var tempObj = {};
+            tempObj.type = item.doc_type;
+            tempObj.ip = item.client_ip;
+            tempObj.protocol = item.protocol;
+            tempObj.index = item.index;
+            tempObj.component = item.component;
+            tempObj.timestamp = item['@timestamp'];
+            tempObj.created = item.creation_time;
+            tempObj.uri = item.uri;
+            tempObj.id = item.id;
+            tempObj.host = item.host;
+            tempObj.type = item.type;
+            tempObj.status = item.response_status;
+            tempObj.received = item.received_at;
+            tempObj.length = item.response_length;
+            tempObj.version = item['@version'];
+            tempObj.method = item.method;
+            tempObj.response_time = item.response_time;
+
+
+            result.push(tempObj);
+        });
+
+        // replace original data with stripped down dataset
+        data = result;
+
+        // reset result array
+        result = [];
+
+        // un-nest (flatten) objects
+        _.each(data, function(item) {
+            result.push(self.flattenObj(item));
+        });
+
+        // return flattened/stripped array of objects
+        return result;
+    },
+
+    // keys will be pinned in ascending value order of key:value pair
+    headingsToPin: {
+        'timestamp': 0,
+        'type': 1,
+        'component': 2
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 The intelligence/search page is composed of a LogAnalysisView on top, contained
 within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
 from this view, and with the triggerChange function, kick off responding
@@ -3911,46 +4189,46 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
     renderCharts: function() {
 
-        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+        this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
-        this.eventsBrowserView = new ChartSet({
+        this.apiBrowserView = new ChartSet({
             chartTitle: 'Events Histogram',
-            collection: this.eventsBrowserVizCollection,
-            el: '#events-histogram-visualization',
+            collection: this.apiBrowserVizCollection,
+            el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
-            width: $('#events-histogram-visualization').width(),
+            width: $('#api-histogram-visualization').width(),
             yAxisLabel: 'Number of Events'
         });
 
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({});
 
-        this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: 'Events Browser',
-            collection: this.eventsBrowserTableCollection,
-            el: '#events-browser-table',
+        this.apiBrowserTable = new ApiBrowserDataTableView({
+            chartTitle: 'Api Browser',
+            collection: this.apiBrowserTableCollection,
+            el: '#api-browser-table',
             infoIcon: 'fa-table',
-            width: $('#events-browser-table').width()
+            width: $('#api-browser-table').width()
         });
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
     },
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.eventsBrowserView.trigger('lookbackSelectorChanged');
-            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+            this.apiBrowserTable.trigger('lookbackSelectorChanged');
         }
     },
 
     template: _.template('' +
 
         '<div class="row">' +
-        '<div id="events-histogram-visualization" class="col-md-12"></div>' +
+        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
         '</div>' +
         '<div class="row">' +
-        '<div id="events-browser-table" class="col-md-12"></div>' +
+        '<div id="api-browser-table" class="col-md-12"></div>' +
         '</div>'
     )
 
@@ -5577,9 +5855,17 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         return result;
     },
 
-    // keys will be pinned in descending value order
+    // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'id': 6, 'type': 7, 'timestamp': 8, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
+        'timestamp': 0,
+        'type': 1,
+        'id': 2,
+        'user_name': 3,
+        'user_type': 4,
+        'tenant_name': 5,
+        'tenant_type': 6,
+        'instance_name': 7,
+        'instance_type': 8
     }
 });
 ;
