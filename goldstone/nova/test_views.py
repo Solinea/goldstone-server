@@ -162,6 +162,7 @@ class SpawnsViewTests(BaseTest):
 
 
 class DataViewTests(SimpleTestCase):
+    """Test the non-hypervisor nova/ URLs."""
 
     def setUp(self):
         """Run before every test."""
@@ -170,6 +171,7 @@ class DataViewTests(SimpleTestCase):
         self.token = create_and_login()
 
     def _evaluate(self, response):
+        """Evalute test results."""
 
         self.assertIsInstance(response, HttpResponse)
         self.assertIsNotNone(response.content)
@@ -183,6 +185,10 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(j, list)
             self.assertGreaterEqual(len(j), 1)
             self.assertIsInstance(j[0], list)
+
+    # Disabling pylint's docstring check, because the remaining methods are
+    # cookie-cutter.
+    # pylint: disable=C0111
 
     def test_get_agents(self):
         self._evaluate(self.client.get(

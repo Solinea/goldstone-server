@@ -28,7 +28,8 @@ from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD
 import json
 from mock import patch
-from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, \
+    HTTP_401_UNAUTHORIZED
 
 # Aliases to make the Resource Graph definitions less verbose.
 TYPE = settings.R_ATTRIBUTE.TYPE
@@ -494,3 +495,38 @@ class CoreResourceTypesDetail(Setup):
         content.sort()
 
         self.assertEqual(content, EXPECTED)
+
+
+class AuthToken(Setup):
+    """Test authorization token expiration."""
+
+    def test_expiration(self):
+        """The authorization tokens expire."""
+        from .tasks import expire_auth_tokens
+
+        # Create a user.
+        token = create_and_login()
+
+        # Confirm we can make an API call now.
+        # Mock out resource_types so that it has no nodes or edges.
+        mock_rt_graph = Types()
+        mock_rt_graph.graph.clear()
+
+        with patch("goldstone.core.views.types", mock_rt_graph):
+            response = self.client.get(
+                RESTYPE_URL,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # pylint: disable=E1101
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Call the token-expiration task, then try to do an API call again. It
+        # should fail because of the tokens' expiration.
+        expire_auth_tokens()
+
+        with patch("goldstone.core.views.types", mock_rt_graph):
+            response = self.client.get(
+                RESTYPE_URL,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
