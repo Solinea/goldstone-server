@@ -45,43 +45,42 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
     // TODO: ONCE TIME RANGE AND INTERVAL ARE WORKING, SET 'd' BACK TO 's'
     addInterval: function(n) {
         n = n || this.interval;
-        return '&interval=' + n + 'd';
+        return '&interval=' + n + 'h';
     },
 
     preProcessData: function(data) {
         var self = this;
-
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.data, function(item) {
+        _.each(data.per_interval, function(item) {
             var tempObj = {};
 
             // adds the 'time' param based on the
             // object keyed by timestamp
             tempObj.time = parseInt(_.keys(item)[0], 10);
-
+            tempObj.count = item[tempObj.time].count;
             // iterate through each item in the array
-            _.each(item[tempObj.time], function(obj){
-                var key = _.keys(obj);
-                var value = _.values(obj)[0];
+            // _.each(item[tempObj.time], function(obj){
+            //     var key = _.keys(obj);
+            //     var value = _.values(obj)[0];
 
-                // copy key/value pairs to tempObj
-                tempObj[key] = value;
-            });
+            //     // copy key/value pairs to tempObj
+            //     tempObj[key] = value;
+            // });
 
             // initialize counter
-            var count = 0;
-            _.each(tempObj, function(val, key) {
-                // add up the values of each nested object
-                if(key !== 'time') {
-                    count += val;
-                }
-            });
+            // var count = 0;
+            // _.each(tempObj, function(val, key) {
+            //     // add up the values of each nested object
+            //     if(key !== 'time') {
+            //         count += val;
+            //     }
+            // });
 
             // set 'count' equal to the counter
-            tempObj.count = count;
+            // tempObj.count = count;
 
             // add the tempObj to the final results array
             finalResult.push(tempObj);
