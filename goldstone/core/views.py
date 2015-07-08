@@ -577,7 +577,7 @@ class ApiPerfSummarizeView(DateHistogramAggView):
                           or 3m.
              required: true
              paramType: query
-           - name: timestamp__range
+           - name: "@timestamp__range"
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
                           {'gte':1430164651890}. You can also use AND, e.g.,
@@ -616,7 +616,7 @@ class ApiPerfSearchView(ElasticListAPIView):
 
     GET:
         parameters:
-           - name: timestamp__range
+           - name: "@timestamp__range"
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
                           {'gte':1430164651890}. You can also use AND, e.g.,

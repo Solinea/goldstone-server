@@ -106,9 +106,20 @@ class PassthruSerializer(serializers.Serializer):
 class EventSerializer(ReadOnlyElasticSerializer):
     """Serializer for event data, for the "search" URL.
 
-    This is subclassed by ApiPerfSerializer, which adds key exclusions.
+    This is subclassed by ApiPerfSerializer.
 
     """
+
+    # These metadata fields will be added to the return value.
+    METADATA = ["doc_type", "id", "index"]
+
+    # When we look for a resource graph node's id, we look for these keys.
+    # (Interface has port_id and net_id, but no id.)
+    NODE_ID_KEYS = ["id", "port_id", "net_id"]
+
+    # We add these "_name" and "_type" fields to the return value.
+    # N.B. Tenant is the old name for project, but is being used for now.
+    INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
 
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
@@ -136,17 +147,6 @@ class EventSerializer(ReadOnlyElasticSerializer):
         """
         from goldstone.core import resource
 
-        # These metadata fields will be added to the return value.
-        METADATA = ["doc_type", "id", "index"]
-
-        # When we look for a resource graph node's id, we look for these keys.
-        # (Interface has port_id and net_id, but no id.)
-        NODE_ID_KEYS = ["id", "port_id", "net_id"]
-
-        # We add these "_name" and "_type" fields to the return value.
-        # N.B. Tenant is the old name for project, but is being used for now.
-        INSTANCE_GRAPH_IDS = ["instance", "tenant", "user"]
-
         # The string used when a resource isn't found in the instance graph.
         NOT_FOUND = "Unknown"
 
@@ -154,7 +154,7 @@ class EventSerializer(ReadOnlyElasticSerializer):
         result = super(EventSerializer, self).to_representation(instance)
 
         # Add non-None/blank metadata fields and values to it.
-        for field in METADATA:
+        for field in self.METADATA:
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
@@ -162,7 +162,7 @@ class EventSerializer(ReadOnlyElasticSerializer):
         if "traits" in instance:
             # Add the resource type, and the resource name if we can find them.
             # For every root type...
-            for id_root in INSTANCE_GRAPH_IDS:
+            for id_root in self.INSTANCE_GRAPH_IDS:
                 # Make the source _id key, and the destination _name and _type
                 # keys. And initialize the destination keys to, "not found."
                 source_key = id_root + "_id"
@@ -185,7 +185,8 @@ class EventSerializer(ReadOnlyElasticSerializer):
                         # Look for an id match.
                         id_values = \
                             [node.attributes[x].replace('-', '')
-                             for x in NODE_ID_KEYS if node.attributes.get(x)]
+                             for x in self.NODE_ID_KEYS
+                             if node.attributes.get(x)]
 
                         if target_value in id_values:
                             # We found this instance! Plug in the resource type
@@ -212,10 +213,13 @@ class EventSerializer(ReadOnlyElasticSerializer):
 class ApiPerfSerializer(EventSerializer):
     """Serializer for API performance data, for the "search" URL."""
 
+    # These metadata fields will be added to the return value.
+    METADATA = ["doc_type", "id"]
+
     class Meta:                  # pylint: disable=C0111,C1001,W0232
         # Don't return these keys.
-        exclude = ("creation_time", "received_at", "method", "@version",
-                   "protocol")
+        exclude = ("creation_time", "received_at", "method",
+                   "@version", "protocol")
 
 
 class EventSummarizeSerializer(ReadOnlyElasticSerializer):
