@@ -33,7 +33,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ChartSet({
-            chartTitle: 'Events Histogram',
+            chartTitle: 'Api Calls vs Time',
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',

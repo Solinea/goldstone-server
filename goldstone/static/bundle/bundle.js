@@ -4191,7 +4191,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ChartSet({
-            chartTitle: 'Events Histogram',
+            chartTitle: 'Api Calls vs Time',
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -5903,7 +5903,7 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events Histogram',
+            chartTitle: 'Events vs Time',
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -7914,7 +7914,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Log Analysis',
+            chartTitle: 'Logs vs Time',
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
         }).el);
