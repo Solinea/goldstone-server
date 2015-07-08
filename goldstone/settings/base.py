@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'goldstone.drfes',
     'goldstone.glance',
     'goldstone.glogging',
+    'goldstone.installable_apps',
     'goldstone.keystone',
     'goldstone.neutron',
     'goldstone.nova',
