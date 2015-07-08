@@ -578,14 +578,6 @@ class ApiPerfSummarizeView(DateHistogramAggView):
                           or 3m.
              required: true
              paramType: query
-           - name: start_time
-             description: The desired start time, in UTC
-             type: string
-             paramType: query
-           - name: end_time
-             description: The desired end time, in UTC
-             type: string
-             paramType: query
            - name: timestamp__range
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
@@ -596,8 +588,8 @@ class ApiPerfSummarizeView(DateHistogramAggView):
     """
 
     serializer_class = ApiPerfSummarizeSerializer
-    reserved_params = ["interval", "start_time", "end_time", "component",
-                       "timestamp__range"]
+    reserved_params = ["interval", "component", "timestamp__range"]
+
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
 
