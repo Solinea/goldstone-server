@@ -33,7 +33,7 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events Histogram',
+            chartTitle: 'Events vs Time',
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
