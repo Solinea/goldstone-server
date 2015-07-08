@@ -29,7 +29,7 @@ instantiated on eventsBrowserPageView as:
 
 */
 
-var EventsBrowserDataTableView = DataTableBaseView.extend({
+var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
         DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
@@ -53,16 +53,24 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // strip away all but _id, _type, timestamp, and things in traits
         _.each(data, function(item) {
             var tempObj = {};
-            tempObj.id = item.id;
             tempObj.type = item.doc_type;
-            tempObj.timestamp = item.timestamp;
-            tempObj.traits = item.traits;
-            tempObj.user_name = item.user_name;
-            tempObj.user_type = item.user_type;
-            tempObj.tenant_name = item.tenant_name;
-            tempObj.tenant_type = item.tenant_type;
-            tempObj.instance_name = item.instance_name;
-            tempObj.instance_type = item.instance_type;
+            tempObj.ip = item.client_ip;
+            tempObj.protocol = item.protocol;
+            tempObj.index = item.index;
+            tempObj.component = item.component;
+            tempObj.timestamp = item['@timestamp'];
+            tempObj.created = item.creation_time;
+            tempObj.uri = item.uri;
+            tempObj.id = item.id;
+            tempObj.host = item.host;
+            tempObj.type = item.type;
+            tempObj.status = item.response_status;
+            tempObj.received = item.received_at;
+            tempObj.length = item.response_length;
+            tempObj.version = item['@version'];
+            tempObj.method = item.method;
+            tempObj.response_time = item.response_time;
+
 
             result.push(tempObj);
         });
@@ -86,12 +94,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     headingsToPin: {
         'timestamp': 0,
         'type': 1,
-        'id': 2,
-        'user_name': 3,
-        'user_type': 4,
-        'tenant_name': 5,
-        'tenant_type': 6,
-        'instance_name': 7,
-        'instance_type': 8
+        'component': 2
     }
 });
