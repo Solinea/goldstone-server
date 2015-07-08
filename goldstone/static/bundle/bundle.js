@@ -1367,8 +1367,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
     },
 
     oTableParamGenerator: function(data) {
-        return {
-            // false = show scroll bars rather than take up extra width
+        result = {
             "scrollX": "100%",
             "info": true,
             "processing": false,
@@ -1382,6 +1381,15 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             "data": data,
             "serverSide": false,
         };
+
+        // hook to add additional paramaters to the options hash
+        result = this.addParams(result);
+
+        return result;
+    },
+
+    addParams: function(options) {
+        return options;
     },
 
     drawSearchTable: function(location, data) {
@@ -4097,6 +4105,20 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
 
+    // called in dataTableBaseView >
+    // oTableParamGenerator
+    addParams: function(options) {
+        options.columnDefs = [
+            {
+                // [8] = 'id'
+                "targets": [8],
+                "visible": false,
+                "searchable": true
+            }
+        ];
+        return options;
+    },
+
     preprocess: function(data) {
 
         /*
@@ -4112,22 +4134,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             var tempObj = {};
             tempObj.type = item.doc_type;
             tempObj.ip = item.client_ip;
-            tempObj.protocol = item.protocol;
-            tempObj.index = item.index;
             tempObj.component = item.component;
             tempObj.timestamp = item['@timestamp'];
-            tempObj.created = item.creation_time;
             tempObj.uri = item.uri;
-            tempObj.id = item.id;
             tempObj.host = item.host;
             tempObj.type = item.type;
             tempObj.status = item.response_status;
-            tempObj.received = item.received_at;
             tempObj.length = item.response_length;
-            tempObj.version = item['@version'];
-            tempObj.method = item.method;
+            tempObj.id = item.id;
             tempObj.response_time = item.response_time;
-
 
             result.push(tempObj);
         });
@@ -4150,8 +4165,13 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
     // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
         'timestamp': 0,
-        'type': 1,
-        'component': 2
+        'host': 1,
+        'ip': 2,
+        'uri': 3,
+        'status': 4,
+        'response_time': 5,
+        'length': 6,
+        'component': 7
     }
 });
 ;

@@ -145,8 +145,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
     },
 
     oTableParamGenerator: function(data) {
-        return {
-            // false = show scroll bars rather than take up extra width
+        result = {
             "scrollX": "100%",
             "info": true,
             "processing": false,
@@ -160,6 +159,15 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             "data": data,
             "serverSide": false,
         };
+
+        // hook to add additional paramaters to the options hash
+        result = this.addParams(result);
+
+        return result;
+    },
+
+    addParams: function(options) {
+        return options;
     },
 
     drawSearchTable: function(location, data) {
