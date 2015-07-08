@@ -27,8 +27,8 @@ from .models import MetricData, ReportData, PolyResource, EventData, \
     ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventApiPerfSerializer, EventSummarizeSerializer, \
-    ApiPerfSummarizeSerializer
+    MetricAggSerializer, EventSerializer, ApiPerfSerializer, \
+    EventSummarizeSerializer, ApiPerfSummarizeSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -570,7 +570,6 @@ class ApiPerfSummarizeView(DateHistogramAggView):
         parameters:
            - name: component
              description: The OpenStack service to query.
-             required: true
              enum: [nova, neutron, keystone, glance, cinder]
              paramType: query
            - name: interval
@@ -646,7 +645,7 @@ class ApiPerfSearchView(ElasticListAPIView):
 
     """
 
-    serializer_class = EventApiPerfSerializer
+    serializer_class = ApiPerfSerializer
 
     class Meta:     # pylint: disable=C1001,W0232,C0111
         model = ApiPerfData
@@ -757,7 +756,7 @@ class EventSearchView(ElasticListAPIView):
 
     """
 
-    serializer_class = EventApiPerfSerializer
+    serializer_class = EventSerializer
 
     class Meta:     # pylint: disable=C1001,W0232,C0111
         model = EventData

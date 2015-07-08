@@ -103,8 +103,12 @@ class PassthruSerializer(serializers.Serializer):
         return instance
 
 
-class EventApiPerfSerializer(ReadOnlyElasticSerializer):
-    """Serializer for event and API performance data, for the "search" URLs."""
+class EventSerializer(ReadOnlyElasticSerializer):
+    """Serializer for event data, for the "search" URL.
+
+    This is subclassed by ApiPerfSerializer, which adds key exclusions.
+
+    """
 
     def to_representation(self, instance):
         """Return instance's values suitable for rendering.
@@ -147,8 +151,7 @@ class EventApiPerfSerializer(ReadOnlyElasticSerializer):
         NOT_FOUND = "Unknown"
 
         # Get the standard to_dict() result...
-        result = \
-            super(EventApiPerfSerializer, self).to_representation(instance)
+        result = super(EventSerializer, self).to_representation(instance)
 
         # Add non-None/blank metadata fields and values to it.
         for field in METADATA:
@@ -204,6 +207,15 @@ class EventApiPerfSerializer(ReadOnlyElasticSerializer):
                                    instance)
 
         return result
+
+
+class ApiPerfSerializer(EventSerializer):
+    """Serializer for API performance data, for the "search" URL."""
+
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
+        # Don't return these keys.
+        exclude = ("creation_time", "received_at", "method", "@version",
+                   "protocol")
 
 
 class EventSummarizeSerializer(ReadOnlyElasticSerializer):
