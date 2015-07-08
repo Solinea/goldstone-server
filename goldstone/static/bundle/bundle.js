@@ -2844,13 +2844,12 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
     urlBase: '/core/apiperf/summarize/',
 
     addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    // TODO: ONCE TIME RANGE AND INTERVAL ARE WORKING, SET 'd' BACK TO 's'
     addInterval: function(n) {
         n = n || this.interval;
-        return '&interval=' + n + 'h';
+        return '&interval=' + n + 's';
     },
 
     preProcessData: function(data) {
