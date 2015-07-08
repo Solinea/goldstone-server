@@ -1647,7 +1647,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LoginPageView);
     },
     logSearch: function() {
-        this.switchView(LogSearchView);
+        this.switchView(LogSearchPageView);
     },
     metricViewer: function(numCharts) {
         if (numCharts === null || numCharts === undefined) {
@@ -7898,7 +7898,7 @@ instantiated in goldstoneRouter as
     });
 */
 
-var LogSearchView = GoldstoneBasePageView.extend({
+var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
