@@ -1366,8 +1366,8 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return finalResults;
     },
 
-    oTableParamGenerator: function(data) {
-        result = {
+    oTableParamGeneratorBase: function(data) {
+        return {
             "scrollX": "100%",
             "info": true,
             "processing": false,
@@ -1379,8 +1379,12 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             ],
             "ordering": true,
             "data": data,
-            "serverSide": false,
+            "serverSide": false
         };
+    },
+
+    oTableParamGenerator: function(data) {
+        result = this.oTableParamGeneratorBase(data);
 
         // hook to add additional paramaters to the options hash
         result = this.addParams(result);
@@ -1392,6 +1396,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return options;
     },
 
+    // invoked on subclass
     drawSearchTable: function(location, data) {
 
         // variables to capture current state of dataTable
