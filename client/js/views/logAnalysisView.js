@@ -613,7 +613,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         // here begins the combiation of additional params
                         // to construct the final url for the dataTable fetch
                         if (searchQuery) {
-                            settings.url += "&log_message__regexp=.*" +
+                            settings.url += "&_all__regexp=.*" +
                                 searchQuery + ".*";
                         }
 
