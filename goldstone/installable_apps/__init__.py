@@ -17,12 +17,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def startup():
-    """Display any inconsistencies found in the Application table.
+def _error(row):
+    """Log an error for an installable application.
+
+    :param row: An installable app that should exist, but doesn't.
+    :type row: Application
+
+    """
+
+    logger.error('Installable application %s has an "%s" url_root that isn\'t'
+                 'in Goldstone\'s URLconf. Delete it, or install the missing '
+                 'application.',
+                 row,
+                 row.url_root)
+
+
+def startup(error_handler=_error):
+    """Find and process any Application table inconsistencies.
 
     The runserver command will cause this to be executed twice upon initial
     startup, and once each time models are re-validated. In production, it is
     executed once upon wsgi startup.
+
+    :keyword error_handler: A callable that takes one argument, an Application
+                            row. This is called when a row is found that
+                            references a non-existent installable app.
+    :type error_handler: Callable
 
     """
     from django.core.urlresolvers import resolve, Resolver404
@@ -40,13 +60,9 @@ def startup():
         try:
             resolve(url)
         except Resolver404:
-            # This application's URL root doesn't exist. Log the error and
+            # This application's URL root doesn't exist. Process the error and
             # continue to the next application.
-            logger.error('Installable application %s has an "%s" url_root '
-                         'that isn\'t in Goldstone\'s URLconf. Delete it, or '
-                         'install the application.',
-                         row,
-                         row.url_root)
+            error_handler(row)
 
 
 startup()

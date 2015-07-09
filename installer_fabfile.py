@@ -790,18 +790,18 @@ def get_ip():
     """Return an IP address."""
     import socket
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    thing = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     try:
         # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 0))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
+        thing.connect(('10.255.255.255', 0))
+        ipaddress = thing.getsockname()[0]
+    except Exception:                # pylint: disable=W0703
+        ipaddress = '127.0.0.1'
     finally:
-        s.close()
+        thing.close()
 
-    return ip
+    return ipaddress
 
 
 def configure_notification_driver(filename):

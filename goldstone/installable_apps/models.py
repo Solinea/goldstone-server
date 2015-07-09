@@ -27,18 +27,19 @@ class Application(models.Model):
     manufacturer = models.CharField(max_length=80)
 
     url_root = \
-        models.CharField(max_length=40,
+        models.CharField(unique=True,
+                         max_length=40,
                          help_text="The urlconf is rooted here. "
                          "Don't use leading or trailing slashes.")
 
-    notes = models.TextField(help_text="Instructions, release notes, etc.")
+    notes = models.TextField(blank=True,
+                             help_text="Instructions, release notes, etc.")
 
     installed_date = CreationDateTimeField()
     updated_date = ModificationDateTimeField()
 
     class Meta:              # pylint: disable=W0232,C1001,C0111
-        unique_together = (("name", "manufacturer"),
-                           ("name", "url_root"))
+        unique_together = ("name", "manufacturer")
 
     def __unicode__(self):
         """Return a useful string."""

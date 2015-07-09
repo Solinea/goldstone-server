@@ -128,6 +128,7 @@ install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/require
 install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
 install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
 install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
+install -m 640 %{_sourcedir}/app_fabfile.py %{buildroot}/opt/goldstone/app_fabfile.py
 install -m 640 %{_sourcedir}/installer_fabfile.py %{buildroot}/opt/goldstone/fabfile.py
 install -m 640 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
 install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
