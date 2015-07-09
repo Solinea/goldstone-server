@@ -1245,9 +1245,6 @@ GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView2.prototype.flat
  */
 
 /*
-This view makes up the "Events" tab of nodeReportView.js
-It is sub-classed from GoldstoneBaseView.
-
 Much of the functionality is encompassed by the jQuery
 dataTables plugin which is documented at
 http://datatables.net/reference/api/
@@ -4171,6 +4168,9 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "paging": true,
             "searching": true,
             "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
             "columnDefs": [{
                     "data": "@timestamp",
                     "type": "date",

@@ -15,9 +15,6 @@
  */
 
 /*
-This view makes up the "Events" tab of nodeReportView.js
-It is sub-classed from GoldstoneBaseView.
-
 Much of the functionality is encompassed by the jQuery
 dataTables plugin which is documented at
 http://datatables.net/reference/api/

@@ -55,6 +55,9 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "paging": true,
             "searching": true,
             "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
             "columnDefs": [{
                     "data": "@timestamp",
                     "type": "date",
