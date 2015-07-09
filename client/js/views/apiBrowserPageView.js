@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-/*
-The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
-from this view, and with the triggerChange function, kick off responding
-processes in the LogAnalysisView that is instantiated from within this view.
-
-instantiated in goldstoneRouter as
-    new EventsBrowserPageView({
-        el: ".launcher-container"
-    });
-*/
-
 var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
     renderCharts: function() {

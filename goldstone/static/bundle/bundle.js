@@ -3548,7 +3548,7 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 // define collection and link to model
 
 /*
-instantiated in logSearchView.js as:
+instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 
@@ -4244,7 +4244,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     // here begins the combiation of additional params
                     // to construct the final url for the dataTable fetch
                     if (searchQuery) {
-                        settings.url += "&uri__regexp=.*" +
+                        settings.url += "&_all__regexp=.*" +
                             searchQuery + ".*";
                     }
 
@@ -4332,18 +4332,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/*
-The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
-from this view, and with the triggerChange function, kick off responding
-processes in the LogAnalysisView that is instantiated from within this view.
-
-instantiated in goldstoneRouter as
-    new EventsBrowserPageView({
-        el: ".launcher-container"
-    });
-*/
 
 var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
@@ -6052,18 +6040,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
  * limitations under the License.
  */
 
-/*
-The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
-from this view, and with the triggerChange function, kick off responding
-processes in the LogAnalysisView that is instantiated from within this view.
-
-instantiated in goldstoneRouter as
-    new EventsBrowserPageView({
-        el: ".launcher-container"
-    });
-*/
-
 var EventsBrowserPageView = GoldstoneBasePageView2.extend({
 
     renderCharts: function() {
@@ -7280,7 +7256,7 @@ openstack syslog severity levels:
 7       DEBUG: debug-level messages
 /*
 
-/* instantiated in logSearchView.js as:
+/* instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 
@@ -7867,7 +7843,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         // here begins the combiation of additional params
                         // to construct the final url for the dataTable fetch
                         if (searchQuery) {
-                            settings.url += "&log_message__regexp=.*" +
+                            settings.url += "&_all__regexp=.*" +
                                 searchQuery + ".*";
                         }
 
@@ -8037,12 +8013,12 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
 /*
 The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+within this LogSearchPageView. The global lookback/refresh listeners are listenTo()'d
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
 instantiated in goldstoneRouter as
-    new LogSearchView({
+    new LogSearchPageView({
         el: ".launcher-container"
     });
 */
@@ -11371,7 +11347,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         this.logsReportCollection = new LogAnalysisCollection({});
 
-        this.logAnalysisView = new LogSearchView({
+        this.logAnalysisView = new LogSearchPageView({
             collection: this.logAnalysisCollection,
             width: $('#logsReport').width(),
             height: 300,

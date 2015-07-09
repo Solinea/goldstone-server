@@ -26,7 +26,7 @@ openstack syslog severity levels:
 7       DEBUG: debug-level messages
 /*
 
-/* instantiated in logSearchView.js as:
+/* instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 

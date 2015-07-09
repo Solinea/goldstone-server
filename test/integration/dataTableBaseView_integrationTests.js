@@ -177,7 +177,7 @@ describe('dataTableBaseView.js', function() {
             var test1 = this.testView.pruneUndefinedValues([]);
             expect(test1).to.deep.equal([]);
             test1 = this.testView.pruneUndefinedValues([1, 2, 3]);
-            expect(test1).to.deep.equal([1, 2, 3]);
+            expect(test1).to.deep.equal([3, 2, 1]);
             test1 = this.testView.pruneUndefinedValues([, , 3]);
             expect(test1).to.deep.equal([3]);
             test1 = this.testView.pruneUndefinedValues([1, , ]);
@@ -185,17 +185,17 @@ describe('dataTableBaseView.js', function() {
             test1 = this.testView.pruneUndefinedValues([, 2, ]);
             expect(test1).to.deep.equal([2]);
             test1 = this.testView.pruneUndefinedValues([1, , 3]);
-            expect(test1).to.deep.equal([1, 3]);
+            expect(test1).to.deep.equal([3, 1]);
             test1 = this.testView.pruneUndefinedValues([1, 2, ]);
-            expect(test1).to.deep.equal([1, 2]);
+            expect(test1).to.deep.equal([2, 1]);
             test1 = this.testView.pruneUndefinedValues([, 2, 3]);
-            expect(test1).to.deep.equal([2, 3]);
+            expect(test1).to.deep.equal([3, 2]);
             test1 = this.testView.pruneUndefinedValues([, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
             expect(test1).to.deep.equal([99]);
             test1 = this.testView.pruneUndefinedValues([1, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
-            expect(test1).to.deep.equal([1, 99]);
+            expect(test1).to.deep.equal([99, 1]);
             test1 = this.testView.pruneUndefinedValues([1, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 5, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
-            expect(test1).to.deep.equal([1, 5, 99]);
+            expect(test1).to.deep.equal([99, 5, 1]);
         });
         it('sorts arrays', function() {
             var test1 = this.testView.sortRemainingKeys([]);
