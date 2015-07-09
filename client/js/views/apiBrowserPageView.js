@@ -41,11 +41,18 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
             yAxisLabel: 'Number of Events'
         });
 
-        this.apiBrowserTableCollection = new ApiBrowserTableCollection({});
+        // instantiated only for access to url generation functions
+        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });
+        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+        this.apiBrowserTableCollection.addRange = function() {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: 'Api Browser',
-            collection: this.apiBrowserTableCollection,
+            collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
             width: $('#api-browser-table').width()
@@ -53,7 +60,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, /*this.apiBrowserTableCollection,*/ this.apiBrowserTable];
     },
 
     triggerChange: function(change) {

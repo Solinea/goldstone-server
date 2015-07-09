@@ -161,18 +161,18 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         };
     },
 
+    addOTableParams: function(options) {
+        return options;
+    },
+
     oTableParamGenerator: function(data) {
         result = this.oTableParamGeneratorBase(data);
 
         // hook to add additional paramaters to the options hash
-        result = this.addParams(result);
-
+        result = this.addOTableParams(result);
         return result;
     },
 
-    addParams: function(options) {
-        return options;
-    },
 
     // invoked on subclass
     drawSearchTable: function(location, data) {
@@ -238,6 +238,44 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     },
 
+    drawSearchTableServerSide: function(location) {
+        var self = this;
+        this.hideSpinner();
+
+        // lookback listeners not already added,
+        // see note in processListenersForServerSide
+        this.processListenersForServerSide();
+
+        var oTableParams = this.oTableParamGenerator();
+
+        // removes initial placeholder message
+        $(this.el).find('.reports-info-container').remove();
+
+        // inserts table column headers
+        $(this.el).find('.data-table-header-container').remove();
+        $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
+
+        oTable = $(location).DataTable(oTableParams);
+
+    },
+
+    processListenersForServerSide: function() {
+        /*
+        listeners are added in the BaseView only for views that are linked to
+        collections. Since this is a server-side-processing dataTable, it has
+        not been linked. Therefore, add a listener so that when the
+        globalLookback selector is changed, invoke the update function
+        */
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            this.update();
+        });
+    },
+
+    // add headers on subclass
+    serverSideTableHeadings: _.template(''),
+
     template: _.template(
 
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
@@ -249,7 +287,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     dataTableTemplate: _.template(
         '<table id="reports-result-table" class="table table-hover">' +
-        '<thead>' +
+        '<thead class="data-table-thead">' +
         '<tr class="header data-table-header-container">' +
 
         // necessary <th> is appended here by jQuery in this.dataPrep()
