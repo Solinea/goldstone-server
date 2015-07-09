@@ -18,6 +18,27 @@
 Much of the functionality is encompassed by the jQuery
 dataTables plugin which is documented at
 http://datatables.net/reference/api/
+
+EXAMPLE SERVERSIDE DATATABLE IMPLEMENTATION ON APIBROWSERPAGEVIEW:
+------------------------------------------------------------------
+
+// instantiated only for access to url generation functions
+    this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        skipFetch: true
+    });
+    this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+    this.apiBrowserTableCollection.addRange = function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    };
+
+    this.apiBrowserTable = new ApiBrowserDataTableView({
+        chartTitle: 'Api Browser',
+        collectionMixin: this.apiBrowserTableCollection,
+        el: '#api-browser-table',
+        infoIcon: 'fa-table',
+        width: $('#api-browser-table').width()
+    });
+
 */
 
 var DataTableBaseView = GoldstoneBaseView2.extend({
@@ -270,7 +291,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         });
     },
 
-    // add headers on subclass
+    // specify <tr>'s' and <th>'s on subclass
     serverSideTableHeadings: _.template(''),
 
     template: _.template(

@@ -48,7 +48,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, /*this.apiBrowserTableCollection,*/ this.apiBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
     },
 
     triggerChange: function(change) {
