@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- /*
+/*
 instantiated on eventsBrowserPageView as:
 
 this.eventsBrowserVizCollection = new EventsHistogramCollection({});
@@ -55,9 +55,9 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         // for each array index in the 'data' key
         _.each(data.per_interval, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the
-            // object keyed by timestamp
+            console.log(item);
+            // adds the 'time' param based on the object keyed by timestamp
+            // and the 200-500 statuses
             tempObj.time = parseInt(_.keys(item)[0], 10);
             tempObj.count = item[tempObj.time].count;
             // iterate through each item in the array

@@ -20,13 +20,14 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
 
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
-        this.apiBrowserView = new ChartSet({
+        this.apiBrowserView = new ApiBrowserView({
             chartTitle: 'Api Calls vs Time',
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: 'Number of Events'
+            yAxisLabel: 'Api Calls by Range',
+            marginLeft: 60
         });
 
         // instantiated only for access to url generation functions
