@@ -50,3 +50,33 @@ def applications(_):
     result = DateTimeEncoder().encode(result)
 
     return Response(result)
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+@api_view()
+def verify(_):
+    """Verify the integrity of the installable apps table, and report on any
+    rows with invalid url_roots.
+
+    The Django 1.6 hooks for running code at project startup, or after a
+    database syncdb, aren't sufficient to reliably run this when Goldstone
+    starts. So we let the client decide when to check the table, and how to
+    report table problems.
+
+    To fix bad rows, either the Goldstone admin should delete the table row(s),
+    or install the missing application(s).
+
+    This returns a 200 if the table is OK, or a 400 if there's >= one bad
+    table row. The response text will contain the bad rows' names.
+
+    """
+    from .models import Application
+    from rest_framework.response import Response
+    from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+
+    # Verify the table. The call returns the bad rows that were found, so we
+    # return 400 if the result isn't empty.
+    result = Application.objects.check_table()
+    status = HTTP_400_BAD_REQUEST if result else HTTP_200_OK
+
+    return Response(DateTimeEncoder().encode(result), status=status)

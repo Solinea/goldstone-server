@@ -35,19 +35,24 @@ class ApiPerfAggView(DateHistogramAggView):
 
         This overrides the Elasticsearch defaults to add nested aggregations.
 
-        \n\nQuery string parameters:\n
+        ---
 
-        <b>start_time</b>: The desired start time, in UTC\n
-        <b>end_time</b>: The desired end time, in UTC\n
-        <b>interval</b>: The desired interval, as nnni. nnn is a number, i is
-                         one of: smhwd.  E.g., 3600s.\n
-        <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
-                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
-        <b>component</b>: The OpenStack service to query: nova, neutron,
-                          keystone, glance, or cinder.
+        parameters:
+           - name: component
+             description: The OpenStack service to query.
+             enum: [nova, neutron, keystone, glance, cinder]
+             paramType: query
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d or
+                          3m.
+             required: true
+             paramType: query
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt,
+                          lte, or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
 
         """
 

@@ -23,14 +23,24 @@ from fabric.operations import prompt
 import os
 import sys
 
-from goldstone.installable_apps.models import Application
-
 # The Goldstone install dir
 INSTALL_DIR = '/opt/goldstone'
 
 # The Goldstone settings path, relative to the Goldstone root where we're
 # executing from.
 PROD_SETTINGS = "goldstone.settings.production"
+
+
+# The start of the settings.base.INSTALLED_APPS definition.
+INSTALLED_APPS_START = "INSTALLED_APPS = ("
+
+# The line we add to INSTALLED_APPS.
+INSTALLED_APP = "    '%s',\n"
+
+# The line we add to the end of urls.py.
+URLS_PY = "\n# Include the {0} application.\n" \
+          "from {0} import urlpatterns as {0}_urlpatterns\n" \
+          "urlpatterns += {0}_urlpatterns\n"
 
 
 @contextmanager
@@ -149,9 +159,9 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Switch to the right environment (because we're going to read from the
     # database), and verify the Application table.
     with _django_env(settings, install_dir):
-        from goldstone.installable_apps import startup
+        from goldstone.installable_apps.models import Application
 
-        startup(error_handler=handler)
+        Application.objects.check_table(error_handler=handler)
 
     # Print a nice summary.
     if variables.errors_found:
@@ -181,14 +191,18 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
           "\tversion: %s\n" \
           "\tmanufacturer: %s\n" \
           "\turl_root: %s\n" \
-          "\tnotes: %s\n\n"
+          "\tnotes: %s\n"
 
     def url_root_check(url_root):
         """Return True if the url_root is legal, raise exception otherwise."""
         import re
 
+        # This is a closure, so this import is in the caller's environment,
+        # which specified the settings and installation directory.
+        from goldstone.installable_apps.models import Application
+
         # Regex that defines an illegal URL root.
-        URL_ROOT = r'^http://|/.*|.*/|/.*/$'
+        URL_ROOT = r'^http://|https://|/.*|.*/|/.*/$'
 
         if re.match(URL_ROOT, url_root):
             raise ValueError("url_root must not start with http:// or a /, "
@@ -200,25 +214,15 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                              'that\'s currently using it.' %
                              url_root)
 
-        return True
+        return url_root
 
     # Switch to the right environment because we're going to access the
     # database.
     with _django_env(settings, install_dir):
+        from goldstone.installable_apps.models import Application
+
         # First, get some information from the user.
         fastprint("\nGathering information about %s ...\n" % name)
-
-        app_name = prompt(" application name?", default=name)
-        if app_name != name:
-            response = \
-                confirm('"%s" differs from the name you used when you invoked '
-                        'this command. Are you sure you want to use it as '
-                        'the application\'s name?' %
-                        app_name)
-            if response:
-                name = app_name
-            else:
-                sys.exit()
 
         version = prompt(" version?")
         manufacturer = prompt(" manufacturer?")
@@ -226,39 +230,210 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         notes = prompt(" notes?")
 
         # Remember if this app already exists from this manufacturer.
-        replacement = \
-            Application.objects.filter(name=name,
-                                       manufacturer=manufacturer).exists()
-        row_to_update = \
-            Application.objects.get(url_root=url_root) if replacement else None
+        replacement = Application.objects.filter(name=name).exists()
 
         # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
         # include line.
-        installedapp = "'goldstone.%s'," % name
-        urlpattern = \
-            "url(r'^{0}/', include('goldstone.{0}.urls')),".format(name)
+        installedapp = INSTALLED_APP % name
+        urlpatterns = URLS_PY.format(name)
+
+        # Create the different messages we display for an update vs. an insert.
+        row_action = red("replace an existing row in") if replacement \
+            else "add a row to"
+
+        if replacement:
+            base_urls = "We won't change INSTALLED_APPS or urls.py, so the " \
+                        "previous version's entries will be reused.\n"
+        else:
+            base_urls = "We'll add this line to Goldstone\'s " \
+                        "INSTALLED_APPS:\n\t%s" % \
+                        installedapp
+            base_urls += "We'll add this to the end of Goldstone\'s " \
+                         "URLconf:%s\n" % \
+                         urlpatterns
 
         # Tell the user what we're about to do.
-        fastprint("\n\nWe're going to ")
-        if replacement:
-            fastprint(red("replace an existing row in the installable "
-                          "applications table, named %s.\n"))
-        else:
-            fastprint("add a row to the installable applications table.\n")
+        fastprint(
+            "\nPlease confirm the following.\nWe'll " +
+            row_action +
+            " the installable applications table. It will contain:\n" +
+            ROW % (name, version, manufacturer, url_root, notes) +
+            base_urls)
 
-        fastprint("The data written to the table row will be:\n")
-        fastprint(ROW % (name, version, manufacturer, url_root, notes))
+        # Get permission to proceed.
+        if confirm('Proceed?'):
+            if replacement:
+                row = Application.objects.get(name=name)
+                row.version = version
+                row.manufacturer = manufacturer
+                row.url_root = url_root
+                row.notes = notes
+                row.save()
+            else:
+                # Installing a new app. We'll track where we are, in case an
+                # exception occurs.
+                try:
+                    # First, add the new row.
+                    step = 0
+                    Application.objects.create(name=name,
+                                               version=version,
+                                               manufacturer=manufacturer,
+                                               url_root=url_root,
+                                               notes=notes)
 
-        if replacement:
-            fastprint("We're not going to change INSTALLED_APPS or urls.py, "
-                      "because the previous version must\'ve caused them to "
-                      "be edited already.\n")
-        else:
-            fastprint("We're going to add this line to the end of "
-                      "INSTALLED_APPS:\n\t%s\n" %
-                      installedapp)
-            fastprint("We're going to add this line to the end of "
-                      "Goldstone\'s urlconf patterns:\n\t%s\n" %
-                      urlpattern)
+                    # Now add the app to INSTALLED_APPS. SED is scary, so we'll
+                    # use Python instead.
+                    step = 1
 
-        # Get the user's OK to proceed.
+                    filepath = os.path.join(install_dir,
+                                            "goldstone/settings/base.py")
+
+                    with open(filepath) as f:
+                        filedata = f.read()
+
+                    # Find the end of the INSTALLED_APPS tuple and insert the
+                    # line there.
+                    insert = filedata.index(INSTALLED_APPS_START)
+                    insert = filedata.index(')', insert)
+
+                    filedata = \
+                        filedata[:insert] + \
+                        installedapp + \
+                        filedata[insert:]
+
+                    # Update the file.
+                    step = 2
+
+                    with open(filepath, 'w') as f:
+                        f.write(filedata)
+
+                    # Now add the app to the end of the URLconf.
+                    step = 3
+
+                    filepath = os.path.join(install_dir, "goldstone/urls.py")
+
+                    with open(filepath, 'a') as f:
+                        f.write(urlpatterns)
+
+                except Exception as exc:       # pylint: disable=W0703
+                    # Ooops! Tell the user what happened, because they're going
+                    # to have to unwind things manually.
+                    if step == 0:
+                        message = "%s while updating the Application table. " \
+                                  "It's probably OK, but check to make sure."
+                    elif step == 1:
+                        message = "%s while reading base.py. The " \
+                                  "Application table was modified. You must " \
+                                  "manually delete the row we added."
+                    elif step == 2:
+                        message = "%s while writing base.py. The " \
+                                  "Application table was modified. You must " \
+                                  "manually delete the row we added."
+                    elif step == 3:
+                        message = "%s while writing urls.py. The " \
+                                  "Application table and settings/base.py " \
+                                  "were updated. You must manually delete " \
+                                  "the row we added, and the " \
+                                  "INSTALLED_APPS addition."
+                    else:
+                        # We should never get here.
+                        raise
+
+                    abort(red(message % exc))
+
+
+@task
+def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+    """Remove an installable application.
+
+    :param name: The application's installation name
+    :type name: str
+    :keyword settings: The path of the Django settings file to use.
+    :type settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
+    """
+    from django.core.exceptions import ObjectDoesNotExist
+
+    # Switch to the right environment because we're going to access the
+    # database.
+    with _django_env(settings, install_dir):
+        from goldstone.installable_apps.models import Application
+
+        # Get the app row.
+        try:
+            row = Application.objects.get(name=name)
+        except ObjectDoesNotExist:
+            fastprint("The app \"%s\" isn't found in the table.\n" % name)
+            sys.exit()
+
+        # Tell the user what we're about to do.
+        if confirm('We will remove the %s application. Proceed?' % name):
+            # We'll track where we are, in case an exception occurs.
+            try:
+                # First, delete the row.
+                step = 0
+                row.delete()
+
+                # Now vemove the app from INSTALLED_APPS. SED is scary, so
+                # we'll use Python instead.
+                step = 1
+
+                filepath = os.path.join(install_dir,
+                                        "goldstone/settings/base.py")
+
+                with open(filepath) as f:
+                    filedata = f.read()
+
+                # Find the INSTALLED_APPS tuple. Then find the start of the
+                # line for this app, and the line after it.
+                insert = filedata.index(INSTALLED_APPS_START)
+                insert = filedata.index(INSTALLED_APP % name, insert)
+                nextline = filedata.index('\n', insert) + 1
+
+                # Delete the line.
+                filedata = filedata[:insert] + filedata[nextline:]
+
+                # Update the file.
+                step = 2
+
+                with open(filepath, 'w') as f:
+                    f.write(filedata)
+
+                # Now delete the app from the URLconf.
+                step = 3
+
+                filepath = os.path.join(install_dir, "goldstone/urls.py")
+
+                with open(filepath, 'r') as f:
+                    filedata = f.read()
+
+                insert = filedata.index(URLS_PY.format(name))
+
+                with open(filepath, 'w') as f:
+                    f.write(filedata[:insert])
+
+            except Exception as exc:       # pylint: disable=W0703
+                # Ooops! Tell the user what happened, because they're going
+                # to have to unwind things manually.
+                if step == 0:
+                    message = "%s while updating the Application table. " \
+                              "It's probably OK, but check to make sure."
+                elif step == 1:
+                    message = "%s while reading base.py. The " \
+                              "Application table was modified. You must " \
+                              "manually edit settings/base.py and urls.py."
+                elif step == 2:
+                    message = "%s while writing base.py. The " \
+                              "Application table was modified. You must " \
+                              "manually edit settings/base.py and urls.py."
+                elif step == 3:
+                    message = "%s while writing urls.py. The " \
+                              "Application table and settings/base.py " \
+                              "were updated. You must manually edit urls.py."
+                else:
+                    # We should never get here.
+                    raise
+
+                abort(red(message % exc))

@@ -12,16 +12,72 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField, \
     ModificationDateTimeField
 
+logger = logging.getLogger(__name__)
+
+
+def _error(row):
+    """Log an error for a problem found in an installable application row.
+
+    :param row: An installable app that should exist, but doesn't.
+    :type row: Application
+
+    """
+
+    logger.error('Installable application %s has an "%s" url_root that '
+                 'isn\'t in Goldstone\'s URLconf. Delete it, or install '
+                 'the missing application.',
+                 row,
+                 row.url_root)
+
+
+class ApplicationManager(models.Manager):
+    """Add additional table-level functionality to the Application manager."""
+
+    def check_table(self, error_handler=_error):
+        """Find and report Application table inconsistencies.
+
+        :keyword error_handler: A callable that takes one argument, an
+                                Application row. This is called when a row
+                                has a problem.
+        :type error_handler: Callable
+        :return: A list of bad rows. The list will be empty if all rows were
+                 OK.  The error_handler was called on each one.
+        :rtype: list of str
+
+        """
+        from django.core.urlresolvers import resolve, Resolver404
+
+        result = []
+
+        # For every Application row...
+        for row in self.model.objects.all():
+            # Create the application's root relative URL. The url_root column
+            # should be only the root without leading or trailing slashes, or
+            # an "http://", but we'll be liberal in what we accept.
+            url = row.url_root.replace("http://", '').replace("https://", '')
+            url = '/' + url.strip('/') + '/'
+
+            # Test this url root
+            try:
+                resolve(url)
+            except Resolver404:
+                # This URL root doesn't exist. Process the error and iterate.
+                result.append(str(row))
+                error_handler(row)
+
+        return result
+
 
 class Application(models.Model):
-    """Information about optional applications that are installed on-site by
-    the user."""
+    """Optional applications that are installed on-site by the user."""
 
-    name = models.CharField(max_length=60)
+    name = models.CharField(unique=True, max_length=60)
     version = models.CharField(max_length=20,
                                help_text='Don\'t include a leading "V".')
     manufacturer = models.CharField(max_length=80)
@@ -38,8 +94,7 @@ class Application(models.Model):
     installed_date = CreationDateTimeField()
     updated_date = ModificationDateTimeField()
 
-    class Meta:              # pylint: disable=W0232,C1001,C0111
-        unique_together = ("name", "manufacturer")
+    objects = ApplicationManager()
 
     def __unicode__(self):
         """Return a useful string."""

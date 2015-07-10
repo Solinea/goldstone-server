@@ -17,5 +17,6 @@ from . import views
 
 urlpatterns = patterns(
     '',
+    url(r'^verify/$', views.verify),
     url(r'^$', views.applications),
 )
