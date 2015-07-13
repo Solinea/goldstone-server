@@ -184,13 +184,14 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     :type install_dir: str
 
     """
+    from importlib import import_module
 
     # Used to describe a new or updated row's data.
-    ROW = "\tname: %s\n" \
-          "\tversion: %s\n" \
-          "\tmanufacturer: %s\n" \
-          "\turl_root: %s\n" \
-          "\tnotes: %s\n"
+    ROW = "\tname: {name}\n" \
+          "\tversion: {version}\n" \
+          "\tmanufacturer: {manufacturer}\n" \
+          "\turl_root: {url_root}\n" \
+          "\tnotes: {notes}\n"
 
     def url_root_check(url_root):
         """Return url_root if it is legal, otherwise raise an exception."""
@@ -214,18 +215,41 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
         return url_root
 
+    # For importing or inputting environmental values from the application.
+    # Each entry is (symbol, validator).
+    APP_SYMBOLS = [("version", None),
+                   ("manufacturer", None),
+                   ("url_root", url_root_check),
+                   ("notes", None),
+                   ]
+
     # Switch to the right environment because we're going to access the
     # database.
     with _django_env(settings, install_dir):
         from goldstone.installable_apps.models import Application
 
-        # First, get some information from the user.
-        fastprint("\nGathering information about %s ...\n" % name)
+        # Gather the package installation information from the package or the
+        # user. Remember, the package has already been installed into Python's
+        # execution environment.
+        fastprint("\nCollecting information about %s ...\n" % name)
 
-        version = prompt(" version?")
-        manufacturer = prompt(" manufacturer?")
-        url_root = prompt(" url_root?", validate=url_root_check)
-        notes = prompt(" notes?")
+        try:
+            the_app = import_module(name)
+        except ImportError:
+            abort("Can't import the module. Have you installed it?")
+
+        app_symbols = {"name": name}
+
+        # For every symbol that we recommended be in the application, use its
+        # dunder alias' value if it's defined. Otherwise, prompt the terminal
+        # for it.
+        for app_symbol, validate in APP_SYMBOLS:
+            app_symbols[app_symbol] = \
+                the_app.__dict__.get("__" + app_symbol + "__")
+
+            if app_symbols[app_symbol] is None:
+                app_symbols[app_symbol] = \
+                    prompt(" %s?" % app_symbol, validate=validate)
 
         # Remember if this app already exists from this manufacturer.
         replacement = Application.objects.filter(name=name).exists()
@@ -233,7 +257,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
         # include line.
         installedapp = INSTALLED_APP % name
-        urlpatterns = URLS_PY.format(name, url_root)
+        urlpatterns = URLS_PY.format(name, app_symbols["url_root"])
 
         # Create the different messages we display for an update vs. an insert.
         row_action = red("replace an existing row in") if replacement \
@@ -243,7 +267,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
             base_urls = "We won't change INSTALLED_APPS or urls.py, so the " \
                         "previous version's entries will be reused.\n"
         else:
-            base_urls = "We'll add this line to Goldstone\'s " \
+            base_urls = "We'll add this to Goldstone\'s " \
                         "INSTALLED_APPS:\n\t%s" % \
                         installedapp
             base_urls += "We'll add this to the end of Goldstone\'s " \
@@ -252,20 +276,20 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
         # Tell the user what we're about to do.
         fastprint(
-            "\nPlease confirm the following.\nWe'll " +
+            "\nPlease confirm this...:\nWe'll " +
             row_action +
-            " the installable applications table. It will contain:\n" +
-            ROW % (name, version, manufacturer, url_root, notes) +
+            " the installable-applications table. It will contain:\n" +
+            ROW.format(**app_symbols) +
             base_urls)
 
         # Get permission to proceed.
         if confirm('Proceed?'):
             if replacement:
                 row = Application.objects.get(name=name)
-                row.version = version
-                row.manufacturer = manufacturer
-                row.url_root = url_root
-                row.notes = notes
+                row.version = app_symbols["version"]
+                row.manufacturer = app_symbols["manufacturer"]
+                row.url_root = app_symbols["url_root"]
+                row.notes = app_symbols["notes"]
                 row.save()
             else:
                 # Installing a new app. We'll track where we are, in case an
@@ -273,11 +297,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 try:
                     # First, add the new row.
                     step = 0
-                    Application.objects.create(name=name,
-                                               version=version,
-                                               manufacturer=manufacturer,
-                                               url_root=url_root,
-                                               notes=notes)
+                    Application.objects.create(**app_symbols)
 
                     # Now add the app to INSTALLED_APPS. SED is scary, so we'll
                     # use Python instead.
