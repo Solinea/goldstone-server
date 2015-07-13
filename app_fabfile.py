@@ -39,8 +39,8 @@ INSTALLED_APP = "    '%s',     # Don't edit this line!\n"
 
 # The line we add to the end of urls.py.
 URLS_PY = "\n# Include the {0} application.  Don't edit this entry!\n" \
-          "from {0} import urlpatterns as {0}_urlpatterns\n" \
-          "urlpatterns += {0}_urlpatterns\n"
+          "import {0}\n" \
+          "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
 
 
 @contextmanager
@@ -233,7 +233,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
         # include line.
         installedapp = INSTALLED_APP % name
-        urlpatterns = URLS_PY.format(name)
+        urlpatterns = URLS_PY.format(name, url_root)
 
         # Create the different messages we display for an update vs. an insert.
         row_action = red("replace an existing row in") if replacement \
@@ -405,7 +405,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 with open(filepath, 'r') as f:
                     filedata = f.read()
 
-                insert = filedata.index(URLS_PY.format(name))
+                insert = filedata.index(URLS_PY.format(name, row.url_root))
 
                 with open(filepath, 'w') as f:
                     f.write(filedata[:insert])
