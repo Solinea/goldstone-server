@@ -40,14 +40,15 @@ def applications(_):
     from .models import Application
     from rest_framework.response import Response
 
-    # Fetch the table rows as a dict, delete each row's pk, and convert them to
-    # JSON.
+    # Fetch the table rows as dicts.
     result = list(Application.objects.all().values())
 
+    # Delete each row's pk, and convert the datetimes to JSON.
     for entry in result:
         del entry["id"]
-
-    result = DateTimeEncoder().encode(result)
+        entry["updated_date"] = DateTimeEncoder().encode(entry["updated_date"])
+        entry["installed_date"] = \
+            DateTimeEncoder().encode(entry["installed_date"])
 
     return Response(result)
 
@@ -79,4 +80,4 @@ def verify(_):
     result = Application.objects.check_table()
     status = HTTP_400_BAD_REQUEST if result else HTTP_200_OK
 
-    return Response(DateTimeEncoder().encode(result), status=status)
+    return Response(result, status=status)

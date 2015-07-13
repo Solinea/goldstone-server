@@ -35,10 +35,10 @@ PROD_SETTINGS = "goldstone.settings.production"
 INSTALLED_APPS_START = "INSTALLED_APPS = ("
 
 # The line we add to INSTALLED_APPS.
-INSTALLED_APP = "    '%s',\n"
+INSTALLED_APP = "    '%s',     # Don't edit this line!\n"
 
 # The line we add to the end of urls.py.
-URLS_PY = "\n# Include the {0} application.\n" \
+URLS_PY = "\n# Include the {0} application.  Don't edit this entry!\n" \
           "from {0} import urlpatterns as {0}_urlpatterns\n" \
           "urlpatterns += {0}_urlpatterns\n"
 
@@ -47,8 +47,8 @@ URLS_PY = "\n# Include the {0} application.\n" \
 def _django_env(proj_settings, install_dir):
     """Load a new context into DJANGO_SETTINGS_MODULE.
 
-    We can't import installer_fabfile._django_env because installer_fabfile.py
-    is cleverly renamed to fabfile.py during installation. Aliases are bad.
+    We can't use installer_fabfile._django_env, because installer_fabfile.py
+    is renamed to fabfile.py during installation.
 
     """
 
@@ -70,7 +70,7 @@ def _django_env(proj_settings, install_dir):
 class Variables(object):
     """Used for verify_apps local variables.
 
-    Python 2 doesn't have the nonlocal statement.
+    We need this because Python 2 doesn't have the nonlocal statement.
 
     """
 
@@ -101,15 +101,14 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         """
 
         # We display this message only once.
-        EXPLANATION = "\n\nThe installable application table has at least " \
+        EXPLANATION = "\n\nThe installable-application table has at least " \
                       "one bad row.\n\n" \
                       "Each row contains an application's root URL segment, " \
                       "which Goldstone's client uses to communicate with " \
-                      "the installed app. If it's bad, the app is " \
-                      "unusable.\n\n" \
+                      "the app. If it's bad, the app is unusable.\n\n" \
                       "This row's root URL segment is bad. Either the row " \
-                      "is corrupted, or the application it's for was " \
-                      "deleted from Goldstone.\n\n" \
+                      "is corrupted, or the application was deleted from " \
+                      "Goldstone.\n\n" \
                       "Solinea recommends that bad rows be deleted, so that " \
                       "the table accurately reflects what's installed in " \
                       "Goldstone.\n"
@@ -194,9 +193,8 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
           "\tnotes: %s\n"
 
     def url_root_check(url_root):
-        """Return True if the url_root is legal, raise exception otherwise."""
+        """Return url_root if it is legal, otherwise raise an exception."""
         import re
-
         # This is a closure, so this import is in the caller's environment,
         # which specified the settings and installation directory.
         from goldstone.installable_apps.models import Application
@@ -320,21 +318,20 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     # to have to unwind things manually.
                     if step == 0:
                         message = "%s while updating the Application table. " \
-                                  "It's probably OK, but check to make sure."
+                                  "It's probably OK, but check it."
                     elif step == 1:
                         message = "%s while reading base.py. The " \
                                   "Application table was modified. You must " \
-                                  "manually delete the row we added."
+                                  "edit settings/base.py and urls.py."
                     elif step == 2:
                         message = "%s while writing base.py. The " \
                                   "Application table was modified. You must " \
-                                  "manually delete the row we added."
+                                  "edit settings/base.py and urls.py."
                     elif step == 3:
                         message = "%s while writing urls.py. The " \
                                   "Application table and settings/base.py " \
-                                  "were updated. You must manually delete " \
-                                  "the row we added, and the " \
-                                  "INSTALLED_APPS addition."
+                                  "were updated. You must manually edit " \
+                                  "urls.py."
                     else:
                         # We should never get here.
                         raise
@@ -368,7 +365,6 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
             fastprint("The app \"%s\" isn't found in the table.\n" % name)
             sys.exit()
 
-        # Tell the user what we're about to do.
         if confirm('We will remove the %s application. Proceed?' % name):
             # We'll track where we are, in case an exception occurs.
             try:
@@ -376,7 +372,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 step = 0
                 row.delete()
 
-                # Now vemove the app from INSTALLED_APPS. SED is scary, so
+                # Now remove the app from INSTALLED_APPS. SED is scary, so
                 # we'll use Python instead.
                 step = 1
 
@@ -419,7 +415,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # to have to unwind things manually.
                 if step == 0:
                     message = "%s while updating the Application table. " \
-                              "It's probably OK, but check to make sure."
+                              "It's probably OK, but check it."
                 elif step == 1:
                     message = "%s while reading base.py. The " \
                               "Application table was modified. You must " \

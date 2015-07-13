@@ -14,6 +14,7 @@
 # limitations under the License.
 import logging
 
+from django.core.urlresolvers import resolve    # Defined here for easy mocking
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField, \
     ModificationDateTimeField
@@ -47,11 +48,11 @@ class ApplicationManager(models.Manager):
                                 has a problem.
         :type error_handler: Callable
         :return: A list of bad rows. The list will be empty if all rows were
-                 OK.  The error_handler was called on each one.
+                 OK.  The error_handler was called on each bad row.
         :rtype: list of str
 
         """
-        from django.core.urlresolvers import resolve, Resolver404
+        from django.core.urlresolvers import Resolver404
 
         result = []
 
