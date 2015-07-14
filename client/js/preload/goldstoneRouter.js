@@ -37,6 +37,7 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "api_perf/report": "apiPerfReport",
+        "apps/opentrail": "openTrail",
         "cinder/report": "cinderReport",
         // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
         "client/newpasswordenter/?*uidToken": "newPasswordView",
@@ -194,6 +195,9 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     novaReport: function() {
         this.switchView(NovaReportView);
+    },
+    openTrail: function() {
+        this.switchView(OpenTrailPageView);
     },
     password: function() {
         this.switchView(PasswordResetView);
