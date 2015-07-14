@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-var LoginPageView = GoldstoneBaseView.extend({
+var LoginPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
         this.render();
         this.addHandlers();
+    },
+
+    checkForInstalledApps: function() {
+        $.ajax({
+            type: 'get',
+            url: '/applications/'
+        }).done(function(success) {
+            localStorage.setItem('apps', JSON.stringify(success));
+        }).fail(function(fail) {
+            console.log('failed to initialize installed apps');
+        });
     },
 
     addHandlers: function() {
@@ -48,12 +54,14 @@ var LoginPageView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/login/', input, function() {
-        })
+        $.post('/accounts/login/', input, function() {})
             .done(function(success) {
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
+
+                // must follow storing token otherwise call will fail with 401
+                self.checkForInstalledApps();
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
@@ -76,11 +84,6 @@ var LoginPageView = GoldstoneBaseView.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '#';
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     },
 
     template: _.template('' +

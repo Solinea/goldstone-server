@@ -3918,26 +3918,52 @@ var OpenTrailView = DataTableBaseView.extend({
     },
 
     checkForInstalledApp: function() {
-        apps = localStorage.getItem('apps');
-        if (apps === [] || apps === null) {
+        apps = JSON.parse(localStorage.getItem('apps'));
+
+        // if never initialized:
+        if (apps === null || Array.isArray(apps) && apps.length === 0) {
             this.instanceSpecificInitFailure();
         }
+
+        // if initialized successfully:
+        if (apps !== null && apps.length > 0) {
+
+            var openTrailSuccess = false;
+
+            _.each(apps, function(item) {
+                if (item.name === "opentrail") {
+                    openTrailSuccess = true;
+                }
+            });
+
+            if(openTrailSuccess === true) {
+                this.instanceSpecificInitSuccess();
+            } else {
+                this.instanceSpecificInitFailure();
+            }
+        }
+
     },
 
     instanceSpecificInitSuccess: function() {
-        console.log('init with success');
+        this.render(this.successMessage);
     },
 
     instanceSpecificInitFailure: function() {
-        console.log('init with failure');
         this.render(this.failureMessage);
-
     },
 
     failureMessage: _.template('' +
         '<br>' +
         '<h3><div class="text-center">' +
         'Please contact <a href="/#help">Goldstone customer service</a> for assistance with installing OpenTrail.' +
+        '</div></h3>'
+    ),
+
+    successMessage: _.template('' +
+        '<br>' +
+        '<h3><div class="text-center">' +
+        'OpenTrail is installed successfully' +
         '</div></h3>'
     ),
 
@@ -7715,16 +7741,22 @@ var LogSearchView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var LoginPageView = GoldstoneBaseView.extend({
+var LoginPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
         this.render();
         this.addHandlers();
+    },
+
+    checkForInstalledApps: function() {
+        $.ajax({
+            type: 'get',
+            url: '/applications/'
+        }).done(function(success) {
+            localStorage.setItem('apps', JSON.stringify(success));
+        }).fail(function(fail) {
+            console.log('failed to initialize installed apps');
+        });
     },
 
     addHandlers: function() {
@@ -7749,12 +7781,14 @@ var LoginPageView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/login/', input, function() {
-        })
+        $.post('/accounts/login/', input, function() {})
             .done(function(success) {
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
+
+                // must follow storing token otherwise call will fail with 401
+                self.checkForInstalledApps();
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
@@ -7777,11 +7811,6 @@ var LoginPageView = GoldstoneBaseView.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '#';
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     },
 
     template: _.template('' +

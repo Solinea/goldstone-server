@@ -36,26 +36,52 @@ var OpenTrailView = DataTableBaseView.extend({
     },
 
     checkForInstalledApp: function() {
-        apps = localStorage.getItem('apps');
-        if (apps === [] || apps === null) {
+        apps = JSON.parse(localStorage.getItem('apps'));
+
+        // if never initialized:
+        if (apps === null || Array.isArray(apps) && apps.length === 0) {
             this.instanceSpecificInitFailure();
         }
+
+        // if initialized successfully:
+        if (apps !== null && apps.length > 0) {
+
+            var openTrailSuccess = false;
+
+            _.each(apps, function(item) {
+                if (item.name === "opentrail") {
+                    openTrailSuccess = true;
+                }
+            });
+
+            if(openTrailSuccess === true) {
+                this.instanceSpecificInitSuccess();
+            } else {
+                this.instanceSpecificInitFailure();
+            }
+        }
+
     },
 
     instanceSpecificInitSuccess: function() {
-        console.log('init with success');
+        this.render(this.successMessage);
     },
 
     instanceSpecificInitFailure: function() {
-        console.log('init with failure');
         this.render(this.failureMessage);
-
     },
 
     failureMessage: _.template('' +
         '<br>' +
         '<h3><div class="text-center">' +
         'Please contact <a href="/#help">Goldstone customer service</a> for assistance with installing OpenTrail.' +
+        '</div></h3>'
+    ),
+
+    successMessage: _.template('' +
+        '<br>' +
+        '<h3><div class="text-center">' +
+        'OpenTrail is installed successfully' +
         '</div></h3>'
     ),
 
