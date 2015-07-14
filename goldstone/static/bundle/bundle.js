@@ -9586,6 +9586,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 .range(ns.colorArray.distinct['2R']);
         }
 
+        this.populateInfoButton();
     },
 
     collectionPrep: function(data) {
@@ -10169,6 +10170,31 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         } else {
             this.appendLegend(legendSpecs.spawn);
         }
+    },
+
+    populateInfoButton: function() {
+        var self = this;
+        // chart info button popover generator
+        var infoButtonText = new InfoButtonText().get('infoText');
+        var htmlGen = function() {
+            var result = infoButtonText[this.defaults.infoCustom];
+            result = result ? result : 'Set in InfoButtonText.js';
+            return result;
+        };
+
+        $(this.el).find('#chart-button-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('toggle');
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('hide');
+            });
     },
 
     appendLegend: function(legendSpecs) {
