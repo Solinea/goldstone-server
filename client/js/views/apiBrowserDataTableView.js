@@ -18,7 +18,7 @@
 the jQuery dataTables plugin is documented at
 http://datatables.net/reference/api/
 
-instantiated on eventsBrowserPageView as:
+instantiated on apiBrowserPageView as:
 
     this.eventsBrowserTable = new EventsBrowserDataTableView({
         el: '.events-browser-table',

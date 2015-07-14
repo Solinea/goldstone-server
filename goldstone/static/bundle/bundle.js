@@ -1288,6 +1288,10 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         'name': 0
     },
 
+    update: function() {
+        console.log('MUST DEFINE UPDATE IN SUBCLASS');
+    },
+
     // search for headingsToPin anywhere in column heading
     // exact match only
     isPinnedHeading: function(item) {
@@ -2937,7 +2941,6 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         // for each array index in the 'data' key
         _.each(data.per_interval, function(item) {
             var tempObj = {};
-            console.log(item);
             // adds the 'time' param based on the object keyed by timestamp
             // and the 200-500 statuses
             tempObj.time = parseInt(_.keys(item)[0], 10);
@@ -4152,7 +4155,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
 the jQuery dataTables plugin is documented at
 http://datatables.net/reference/api/
 
-instantiated on eventsBrowserPageView as:
+instantiated on apiBrowserPageView as:
 
     this.eventsBrowserTable = new EventsBrowserDataTableView({
         el: '.events-browser-table',

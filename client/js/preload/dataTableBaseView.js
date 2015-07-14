@@ -58,6 +58,10 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         'name': 0
     },
 
+    update: function() {
+        console.log('MUST DEFINE UPDATE IN SUBCLASS');
+    },
+
     // search for headingsToPin anywhere in column heading
     // exact match only
     isPinnedHeading: function(item) {
