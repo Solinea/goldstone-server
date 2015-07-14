@@ -230,6 +230,9 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+# User-installed application tasks are inserted after this line.
+
+
 # Database row settings.
 OS_NAME_MAX_LENGTH = 60
 OS_USERNAME_MAX_LENGTH = 60

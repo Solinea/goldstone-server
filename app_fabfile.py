@@ -42,6 +42,16 @@ URLS_PY = "\n# Include the {0} application.  Don't edit this entry!\n" \
           "import {0}\n" \
           "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
 
+# Used for searching and inserting into CELERYBEAT_SCHEDULE. Don't terminate
+# these strings with \n.
+CELERYBEAT_SCHEDULE = "CELERYBEAT_SCHEDULE = {"
+CELERYBEAT_APPS = \
+    "# User-installed application tasks are inserted after this line."
+CELERYBEAT_APP_INCLUDE = \
+    "# Tasks for {0}.\n" \
+    "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
+    "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n\n"
+
 
 @contextmanager
 def _django_env(proj_settings, install_dir):
@@ -172,9 +182,115 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         print(green("\nAll apps are good!"))
 
 
+def _install_app_info(name):
+    """Gather the package installation information from the package and display
+    our intentions to the user.
+
+    The package has already been installed into Python's execution environment.
+
+    This is called from install_app, so its execution environment will be in
+    effect.
+
+    :param name: The name of the application being installed
+    :type name: str
+    :return: The application's database table values, and some values related
+             to the installation environment
+    :rtype: (dict, dict)
+
+    """
+    from importlib import import_module
+    import re
+    from goldstone.installable_apps.models import Application
+
+    # Regex that defines an illegal URL root.
+    URL_ROOT = r'^http://|https://|/.*|.*/|/.*/$'
+
+    # For importing or inputting environmental values from the application.
+    APP_SYMBOLS = ["version", "manufacturer", "url_root", "notes"]
+
+    # Used to describe a new or updated Application row.
+    ROW = "\tname: {name}\n" \
+          "\tversion: {version}\n" \
+          "\tmanufacturer: {manufacturer}\n" \
+          "\turl_root: {url_root}\n" \
+          "\tnotes: {notes}\n"
+
+    fastprint("\nCollecting information about %s ..." % name)
+
+    try:
+        the_app = import_module(name)
+    except ImportError:
+        abort("Can't import the module. Have you installed it?")
+
+    app_db = {"name": name}
+    app_install = {}
+
+    # Read the required application symbols.
+    for app_symbol in APP_SYMBOLS:
+        dunder = "__" + app_symbol + "__"
+        app_db[app_symbol] = the_app.__dict__.get(dunder)
+
+        if app_db[app_symbol] is None:
+            abort("The application didn't define the %s variable!" %
+                  dunder)
+
+    # Verify that url_root is in the correct format, and it's not being
+    # used (or if it is, it's being used by this app already).
+    if re.match(URL_ROOT, app_db["url_root"]):
+        raise ValueError("url_root must not start with http:// or a /, "
+                         "and must not end with a slash.")
+
+    if Application.objects.filter(url_root=app_db["url_root"])\
+            .exclude(name=name).exists():
+        raise ValueError('url_root "%s" is already used.  Choose a '
+                         'different URL root, or delete the app '
+                         'that\'s currently using it.' %
+                         app_db["url_root"])
+
+    # Remember if this app already exists.
+    app_install["replacement"] = Application.objects.filter(name=name).exists()
+
+    # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
+    # include line.
+    app_install["installedapp"] = INSTALLED_APP % name
+    app_install["urlpatterns"] = URLS_PY.format(name, app_db["url_root"])
+
+    # Create the different messages we display for an update vs. an insert.
+    if app_install["replacement"]:
+        row_action = red("We'll replace an existing row in")
+        base_urls = red("\nWe won't change settings/base.py or urls.py, so "
+                        "the previous version's entries will be reused.\n")
+    else:
+        row_action = red("We'll add a row to")
+        base_urls = \
+            red("\nWe'll add this to Goldstone\'s INSTALLED_APPS:\n") + \
+            "\t{0}\n".format(app_install["installedapp"]) + \
+            red("We'll add this to Goldstone\'s URLconf:") + \
+            "{0}\n".format(app_install["urlpatterns"])
+
+    celery_tasks = \
+        red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
+        CELERYBEAT_APP_INCLUDE.format(name)
+
+    # Tell the user what we're about to do.
+    fastprint("\nPlease confirm this:\n\n" +
+              row_action +
+              red(" the installable-applications table. It will contain:\n") +
+              ROW.format(**app_db) +
+              base_urls +
+              celery_tasks)
+
+    return (app_db, app_install)
+
+
 @task
 def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Install an installable application.
+
+    The name is supplied on the command line.
+
+    The version, manufacturer, url_root, notes, and celery tasks are supplied
+    from the application.
 
     :param name: The application's installation name
     :type name: str
@@ -184,112 +300,24 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     :type install_dir: str
 
     """
-    from importlib import import_module
 
-    # Used to describe a new or updated row's data.
-    ROW = "\tname: {name}\n" \
-          "\tversion: {version}\n" \
-          "\tmanufacturer: {manufacturer}\n" \
-          "\turl_root: {url_root}\n" \
-          "\tnotes: {notes}\n"
-
-    def url_root_check(url_root):
-        """Return url_root if it is legal, otherwise raise an exception."""
-        import re
-        # This is a closure, so this import is in the caller's environment,
-        # which specified the settings and installation directory.
-        from goldstone.installable_apps.models import Application
-
-        # Regex that defines an illegal URL root.
-        URL_ROOT = r'^http://|https://|/.*|.*/|/.*/$'
-
-        if re.match(URL_ROOT, url_root):
-            raise ValueError("url_root must not start with http:// or a /, "
-                             "and must not end with a slash.")
-
-        if Application.objects.filter(url_root=url_root).exists():
-            raise ValueError('url_root "%s" is already used.  Choose a '
-                             'different URL root, or delete the app '
-                             'that\'s currently using it.' %
-                             url_root)
-
-        return url_root
-
-    # For importing or inputting environmental values from the application.
-    # Each entry is (symbol, validator).
-    APP_SYMBOLS = [("version", None),
-                   ("manufacturer", None),
-                   ("url_root", url_root_check),
-                   ("notes", None),
-                   ]
-
-    # Switch to the right environment because we're going to access the
-    # database.
+    # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
         from goldstone.installable_apps.models import Application
 
         # Gather the package installation information from the package or the
         # user. Remember, the package has already been installed into Python's
         # execution environment.
-        fastprint("\nCollecting information about %s ...\n" % name)
-
-        try:
-            the_app = import_module(name)
-        except ImportError:
-            abort("Can't import the module. Have you installed it?")
-
-        app_symbols = {"name": name}
-
-        # For every symbol that we recommended be in the application, use its
-        # dunder alias' value if it's defined. Otherwise, prompt the terminal
-        # for it.
-        for app_symbol, validate in APP_SYMBOLS:
-            app_symbols[app_symbol] = \
-                the_app.__dict__.get("__" + app_symbol + "__")
-
-            if app_symbols[app_symbol] is None:
-                app_symbols[app_symbol] = \
-                    prompt(" %s?" % app_symbol, validate=validate)
-
-        # Remember if this app already exists from this manufacturer.
-        replacement = Application.objects.filter(name=name).exists()
-
-        # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
-        # include line.
-        installedapp = INSTALLED_APP % name
-        urlpatterns = URLS_PY.format(name, app_symbols["url_root"])
-
-        # Create the different messages we display for an update vs. an insert.
-        row_action = red("replace an existing row in") if replacement \
-            else "add a row to"
-
-        if replacement:
-            base_urls = "We won't change INSTALLED_APPS or urls.py, so the " \
-                        "previous version's entries will be reused.\n"
-        else:
-            base_urls = "We'll add this to Goldstone\'s " \
-                        "INSTALLED_APPS:\n\t%s" % \
-                        installedapp
-            base_urls += "We'll add this to the end of Goldstone\'s " \
-                         "URLconf:%s\n" % \
-                         urlpatterns
-
-        # Tell the user what we're about to do.
-        fastprint(
-            "\nPlease confirm this...:\nWe'll " +
-            row_action +
-            " the installable-applications table. It will contain:\n" +
-            ROW.format(**app_symbols) +
-            base_urls)
+        app_db, app_install = _install_app_info(name)
 
         # Get permission to proceed.
         if confirm('Proceed?'):
-            if replacement:
+            if app_install["replacement"]:
                 row = Application.objects.get(name=name)
-                row.version = app_symbols["version"]
-                row.manufacturer = app_symbols["manufacturer"]
-                row.url_root = app_symbols["url_root"]
-                row.notes = app_symbols["notes"]
+                row.version = app_db["version"]
+                row.manufacturer = app_db["manufacturer"]
+                row.url_root = app_db["url_root"]
+                row.notes = app_db["notes"]
                 row.save()
             else:
                 # Installing a new app. We'll track where we are, in case an
@@ -297,10 +325,11 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 try:
                     # First, add the new row.
                     step = 0
-                    Application.objects.create(**app_symbols)
+                    Application.objects.create(**app_db)
 
-                    # Now add the app to INSTALLED_APPS. SED is scary, so we'll
-                    # use Python instead.
+                    # Now add the app to INSTALLED_APPS and
+                    # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
+                    # instead.
                     step = 1
 
                     filepath = os.path.join(install_dir,
@@ -316,7 +345,20 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
                     filedata = \
                         filedata[:insert] + \
-                        installedapp + \
+                        app_install["installedapp"] + \
+                        filedata[insert:]
+
+                    # Now find CELERYBEAT_SCHEDULE, and the start of the
+                    # user-installed apps section. We do both to maximize the
+                    # probability of doing this correctly.
+                    insert = filedata.index(CELERYBEAT_SCHEDULE)
+                    insert = filedata.index(CELERYBEAT_APPS, insert)
+
+                    # Insert at the start of the next line.
+                    insert = filedata.index('\n', insert) + 1
+                    filedata = \
+                        filedata[:insert] + \
+                        CELERYBEAT_APP_INCLUDE.format(name) + \
                         filedata[insert:]
 
                     # Update the file.
@@ -331,7 +373,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     filepath = os.path.join(install_dir, "goldstone/urls.py")
 
                     with open(filepath, 'a') as f:
-                        f.write(urlpatterns)
+                        f.write(app_install["urlpatterns"])
 
                 except Exception as exc:       # pylint: disable=W0703
                     # Ooops! Tell the user what happened, because they're going
@@ -350,8 +392,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     elif step == 3:
                         message = "%s while writing urls.py. The " \
                                   "Application table and settings/base.py " \
-                                  "were updated. You must manually edit " \
-                                  "urls.py."
+                                  "were updated. You must edit urls.py."
                     else:
                         # We should never get here.
                         raise
@@ -382,7 +423,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         try:
             row = Application.objects.get(name=name)
         except ObjectDoesNotExist:
-            fastprint("The app \"%s\" isn't found in the table.\n" % name)
+            fastprint("The app \"%s\" isn't in the table.\n" % name)
             sys.exit()
 
         if confirm('We will remove the %s application. Proceed?' % name):
@@ -406,10 +447,27 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # line for this app, and the line after it.
                 insert = filedata.index(INSTALLED_APPS_START)
                 insert = filedata.index(INSTALLED_APP % name, insert)
-                nextline = filedata.index('\n', insert) + 1
+                end = filedata.index('\n', insert) + 1
 
                 # Delete the line.
-                filedata = filedata[:insert] + filedata[nextline:]
+                filedata = filedata[:insert] + filedata[end:]
+
+                # Now find CELERYBEAT_SCHEDULE, and the start of the
+                # user-installed apps section. We do both to maximize the
+                # probability of doing this correctly. Then, find the beginning
+                # of the line that starts this app's task entries, and the
+                # beginning of the line after the end of this app's task
+                # entries.
+                insert = filedata.index(CELERYBEAT_SCHEDULE)
+                insert = filedata.index(CELERYBEAT_APPS, insert)
+
+                insert = filedata.index(CELERYBEAT_APP_INCLUDE.format(name),
+                                        insert)
+                end = insert
+                for _ in range(CELERYBEAT_APP_INCLUDE.count('\n')):
+                    end = filedata.index('\n', end) + 1
+
+                filedata = filedata[:insert] + filedata[end:]
 
                 # Update the file.
                 step = 2
@@ -447,7 +505,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 elif step == 3:
                     message = "%s while writing urls.py. The " \
                               "Application table and settings/base.py " \
-                              "were updated. You must manually edit urls.py."
+                              "were updated. You must edit urls.py."
                 else:
                     # We should never get here.
                     raise
