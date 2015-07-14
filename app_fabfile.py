@@ -183,8 +183,8 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 
 def _install_app_info(name):
-    """Gather the package installation information from the package and display
-    our intentions to the user.
+    """Gather the package installation information, and display our intentions
+    to the user.
 
     The package has already been installed into Python's execution environment.
 
