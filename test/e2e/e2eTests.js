@@ -36,7 +36,7 @@ casper.options.viewportSize = {
     height: 779
 };
 
-// 15 second timeout limit on individual tests
+// 30 second timeout limit on individual tests
 casper.options.waitTimeout = 30000;
 
 /*
@@ -57,7 +57,80 @@ casper.test.tearDown(function() {
 begin tests
 */
 
-casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
+casper.test.begin('Back to login page to login', 5, function suite(test) {
+
+    casper.start('http://localhost:8000/#login', function() {
+
+        this.echo('token present at start of tests?' + this.evaluate(function() {
+            var a = localStorage.getItem('userToken');
+            return 'Token = ' + a;
+        }), "WARN_BAR");
+
+        this.echo('cleared token? ' + this.evaluate(function() {
+            localStorage.removeItem('userToken');
+            var a = localStorage.getItem('userToken');
+            return 'Cleared token = ' + a;
+        }), "WARN_BAR");
+
+        test.assertTitle("goldstone", "title is goldstone");
+        test.assertExists('form.login-form');
+        this.echo('page url after redirect: ' + this.evaluate(function() {
+            return document.location.href;
+        }), "GREEN_BAR");
+    });
+
+
+    casper.then(function() {
+
+        test.assertExists('form [name="username"]', "username login field is found");
+        test.assertExists('form [name="password"]', "password field on login form is found");
+
+        // fill in form to initiate auth
+        this.echo('login form values pre-fill: ' + this.evaluate(function() {
+            return $('form [name="username"]').val() +
+                ' ' +
+                $('form [name="password"]').val();
+        }), "GREEN_BAR");
+
+        // fills in form with "field: value"
+        // 'true/false' is whether to submit form
+        this.fill('form.login-form', {
+            'username': "gsadmin",
+            'password': "solinea"
+        }, true);
+    });
+
+    // wait for redirect to 'discover' to signify
+    // successful login:
+    casper.waitForResource(function testResource(resource) {
+        return casper.getCurrentUrl().indexOf("discover") > -1;
+    }, function onReceived() {
+        this.echo('login and redirect to /discover successful!', "GREEN_BAR");
+        this.echo('page url after redirect: ' + this.evaluate(function() {
+            return document.location.href;
+        }), "GREEN_BAR");
+
+        this.echo('token present?: ' + this.evaluate(function() {
+            var a = localStorage.getItem('userToken');
+            return a;
+        }), "WARN_BAR");
+
+        test.assertUrlMatch(/discover/, "Redirected to discover page post-login");
+    }, function onTimeout() {
+        this.echo('timed out on redirect to /discover', "WARN_BAR");
+    });
+
+    casper.waitForSelector('#goldstone-discover-r2-c1 svg rect.parent', function() {
+        this.echo('svg chart loaded');
+    });
+
+    casper.run(function() {
+        test.done();
+    });
+
+});
+
+casper.test.begin('Login Page loads and I can use reset password link', 4, function suite(test) {
 
     casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
@@ -101,7 +174,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
             }));
         }, function timeout() {
             this.echo(".alert.alert-info didn't change within 1000ms", "WARN_BAR");
-        }, 500);
+        }, 1000);
 
         // what does the form say after submission?
         this.echo('password form email value post-submit: ', "GREEN_BAR");
@@ -111,69 +184,6 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
         test.done();
     });
 });
-
-casper.test.begin('Back to login page to login', 5, function suite(test) {
-
-    casper.start('http://localhost:8000/#login', function() {
-        test.assertTitle("goldstone", "title is goldstone");
-        test.assertExists('form.login-form');
-        this.echo('page url after redirect: ' + this.evaluate(function() {
-            return document.location.href;
-        }), "GREEN_BAR");
-    });
-
-    casper.then(function() {
-
-        test.assertExists('form [name="username"]', "username login field is found");
-        test.assertExists('form [name="password"]', "password field on login form is found");
-
-        // fill in form to initiate auth
-        this.echo('login form values pre-fill: ' + this.evaluate(function() {
-            return $('form [name="username"]').val() +
-                ' ' +
-                $('form [name="password"]').val();
-        }), "GREEN_BAR");
-
-        // fills in form with "field: value"
-        // 'true/false' is whether to submit form
-        this.fill('form.login-form', {
-            'username': "gsadmin",
-            'password': "solinea"
-        }, true);
-
-        // what does the form say after submission?
-        this.echo('login form values post-submit: ', "GREEN_BAR");
-        this.echo('username: ' + this.getFormValues('form').username, "GREEN_BAR");
-        this.echo('password: ' + this.getFormValues('form').password, "GREEN_BAR");
-
-    });
-
-    // wait for redirect to 'discover' to signify
-    // successful login:
-    casper.waitForResource(function testResource(resource) {
-        return casper.getCurrentUrl().indexOf("discover") > -1;
-    }, function onReceived() {
-        this.echo('login and redirect to /discover successful!', "GREEN_BAR");
-        this.echo('page url after redirect: ' + this.evaluate(function() {
-            return document.location.href;
-        }), "GREEN_BAR");
-
-        this.echo('localStorage?: ' + this.evaluate(function() {
-            var a = localStorage.getItem('userToken');
-            return a;
-        }), "WARN_BAR");
-
-        test.assertUrlMatch(/discover/, "Redirected to discover page post-login");
-    }, function onTimeout() {
-        this.echo('timed out on redirect to /discover', "WARN_BAR");
-    });
-
-    casper.run(function() {
-        test.done();
-    });
-
-});
-
 
 casper.test.begin('/settings page updates user personal settings / password', 10, function suite(test) {
 
@@ -606,9 +616,9 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     casper.then(function() {
         // checks for a timestamp of any sort which means data is received
         // or checks for 'No Data Returned' otherwise
-        /*
-        EVENT TIMELINE E2E TESTS
-        */
+
+        // EVENT TIMELINE E2E TESTS
+
 
         // Event timeline graph loads
         test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
@@ -620,9 +630,9 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     });
 
     casper.then(function() {
-        /*
-        NODE AVAILABILITY E2E TESTS
-        */
+
+        // NODE AVAILABILITY E2E TESTS
+
 
         // Node Availability graph loads
         test.assertExists('div#goldstone-discover-r1-c2', 'Node Availability Section should load');
@@ -644,9 +654,9 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     });
 
     casper.then(function() {
-        /*
-        CLOUD TOPOLOGY E2E TESTS
-        */
+
+        // CLOUD TOPOLOGY E2E TESTS
+
 
         // Cloud Topology graph loads
         test.assertExists('div#goldstone-discover-r2-c1', 'Cloud Topology Section should load');
@@ -1316,9 +1326,17 @@ casper.test.begin('Now that user is logged out, checking that unauthorized api c
             return document.location.href;
         }), "GREEN_BAR");
 
+        //
+        this.echo('should be no token left after tests. ' + this.evaluate(function() {
+            var a = localStorage.getItem('userToken');
+            return 'Token = ' + a;
+        }), "WARN_BAR");
+
     });
 
     casper.run(function() {
         test.done();
     });
 });
+/*
+ */
