@@ -47,9 +47,10 @@ class ApplicationManager(models.Manager):
                                 Application row. This is called when a row
                                 has a problem.
         :type error_handler: Callable
-        :return: A list of bad rows. The list will be empty if all rows were
-                 OK.  The error_handler was called on each bad row.
-        :rtype: list of str
+        :return: The total number of apps in the table (taken after checking
+                 the table), and the bad rows that were found. The
+                 error_handler was called on each bad row.
+        :rtype: (int, list of str)
 
         """
         from django.core.urlresolvers import Resolver404
@@ -72,7 +73,7 @@ class ApplicationManager(models.Manager):
                 result.append(str(row))
                 error_handler(row)
 
-        return result
+        return (self.model.objects.count(), result)
 
 
 class Application(models.Model):

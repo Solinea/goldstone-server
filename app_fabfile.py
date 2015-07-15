@@ -170,16 +170,16 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     with _django_env(settings, install_dir):
         from goldstone.installable_apps.models import Application
 
-        Application.objects.check_table(error_handler=handler)
+        count, _ = Application.objects.check_table(error_handler=handler)
 
-    # Print a nice summary.
+    # Display a summary.
     if variables.errors_found:
         if variables.all_errors_fixed:
             print(cyan("\nBad apps found and fixed!"))
         else:
             print(red("\nBad apps found and not fixed."))
-    else:
-        print(green("\nAll apps are good!"))
+
+    print(green("\n%s apps in the table." % count))
 
 
 def _install_app_info(name):

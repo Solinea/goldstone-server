@@ -75,9 +75,9 @@ def verify(_):
     from rest_framework.response import Response
     from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
-    # Verify the table. The call returns the bad rows that were found, so we
+    # Verify the table. The call returns bad rows found in the table, so we
     # return 400 if the result isn't empty.
-    result = Application.objects.check_table()
+    _, result = Application.objects.check_table()
     status = HTTP_400_BAD_REQUEST if result else HTTP_200_OK
 
     return Response(result, status=status)
