@@ -36,19 +36,19 @@ var OpenTrailView = DataTableBaseView.extend({
     },
 
     checkForInstalledApp: function() {
-        apps = JSON.parse(localStorage.getItem('apps'));
+        var addons = JSON.parse(localStorage.getItem('addons'));
 
         // if never initialized:
-        if (apps === null || Array.isArray(apps) && apps.length === 0) {
+        if (addons === null || Array.isArray(addons) && addons.length === 0) {
             this.instanceSpecificInitFailure();
         }
 
         // if initialized successfully:
-        if (apps !== null && apps.length > 0) {
+        if (addons !== null && addons.length > 0) {
 
             var openTrailSuccess = false;
 
-            _.each(apps, function(item) {
+            _.each(addons, function(item) {
                 if (item.name === "opentrail") {
                     openTrailSuccess = true;
                 }

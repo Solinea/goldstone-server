@@ -24,9 +24,9 @@ var LoginPageView = GoldstoneBaseView2.extend({
     checkForInstalledApps: function() {
         $.ajax({
             type: 'get',
-            url: '/applications/'
+            url: '/addons/'
         }).done(function(success) {
-            localStorage.setItem('apps', JSON.stringify(success));
+            localStorage.setItem('addons', JSON.stringify(success));
         }).fail(function(fail) {
             console.log('failed to initialize installed apps');
         });
