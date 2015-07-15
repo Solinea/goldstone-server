@@ -77,6 +77,8 @@ def daily_index(prefix=""):
 
 
 class RedisConnection(object):
+    """Return a connection to our redis server."""
+
     conn = None
 
     def __init__(self,
@@ -88,6 +90,8 @@ class RedisConnection(object):
 
 
 class TopologyData(object):
+    """A base class used by models that are really Elasticsearch entries, and
+    not db tables."""
 
     _DOC_TYPE = ""
     _INDEX_PREFIX = ""
@@ -104,6 +108,7 @@ class TopologyData(object):
 
     @classmethod
     def _sort_arg(cls, key, order):
+        """Return key as key or -key, depending on the sort order."""
 
         if order in ["+", "asc"]:
             return key              # translates to [{key: {'order': 'asc'}}]
@@ -119,6 +124,7 @@ class TopologyData(object):
         try:
             self.search.sort(self._sort_arg(sort_key, sort_order))
             self.search = self.search[0:count]
+
             logger.debug("[get] search = %s", self.search.to_dict())
             # pylint: disable=W0212
             logger.debug("[get] index = %s", self.search._index)
