@@ -1,4 +1,4 @@
-"""Installable apps admin."""
+"""User add-ons URLconf."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import Application
-from django.contrib import admin
+from django.conf.urls import url, patterns
+from . import views
 
-admin.site.register(Application)
+urlpatterns = patterns(
+    '',
+    url(r'^verify/$', views.verify),
+    url(r'^$', views.addons),
+)

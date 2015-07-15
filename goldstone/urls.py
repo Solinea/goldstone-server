@@ -35,7 +35,7 @@ urlpatterns += patterns(
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^api_perf/', include('goldstone.api_perf.urls')),
-    url(r'^applications/', include('goldstone.installable_apps.urls')),
+    url(r'^addons/', include('goldstone.addons.urls')),
     url(r'^cinder/', include('goldstone.cinder.urls')),
     url(r'^core/', include('goldstone.core.urls')),
     url(r'^glance/', include('goldstone.glance.urls')),

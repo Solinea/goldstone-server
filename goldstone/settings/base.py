@@ -77,7 +77,7 @@ INSTALLED_APPS = (
     'goldstone.drfes',
     'goldstone.glance',
     'goldstone.glogging',
-    'goldstone.installable_apps',
+    'goldstone.addons',
     'goldstone.keystone',
     'goldstone.neutron',
     'goldstone.nova',
@@ -230,7 +230,7 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
-# User-installed application tasks are inserted after this line.
+# User-installed add-on tasks are inserted after this line.
 
 
 # Database row settings.

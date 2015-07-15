@@ -1,4 +1,4 @@
-"""Dynamic application models."""
+"""User add-on models."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def _error(row):
-    """Log an error for a problem found in an installable application row.
+    """Log an error for a problem found in an add0on row.
 
-    :param row: An installable app that should exist, but doesn't.
-    :type row: Application
+    :param row: An add-on that should exist, but doesn't.
+    :type row: Addon
 
     """
 
-    logger.error('Installable application %s has an "%s" url_root that '
-                 'isn\'t in Goldstone\'s URLconf. Delete it, or install '
-                 'the missing application.',
+    logger.error('Add-on %s has an "%s" url_root that isn\'t in Goldstone\'s '
+                 'URLconf. Delete it, or install the missing add-on.',
                  row,
                  row.url_root)
 
@@ -41,11 +40,10 @@ class ApplicationManager(models.Manager):
     """Add additional table-level functionality to the Application manager."""
 
     def check_table(self, error_handler=_error):
-        """Find and report Application table inconsistencies.
+        """Find and report Addon table inconsistencies.
 
-        :keyword error_handler: A callable that takes one argument, an
-                                Application row. This is called when a row
-                                has a problem.
+        :keyword error_handler: A callable that takes one argument, an Addon
+                                row. This is called when a row has a problem.
         :type error_handler: Callable
         :return: The total number of apps in the table (taken after checking
                  the table), and the bad rows that were found. The
@@ -57,11 +55,11 @@ class ApplicationManager(models.Manager):
 
         result = []
 
-        # For every Application row...
+        # For every Addon row...
         for row in self.model.objects.all():
-            # Create the application's root relative URL. The url_root column
-            # should be only the root without leading or trailing slashes, or
-            # an "http://", but we'll be liberal in what we accept.
+            # Create the add-on's root URL. The url_root column should be only
+            # the root without leading or trailing slashes, or an "http://",
+            # but we'll be liberal in what we accept.
             url = row.url_root.replace("http://", '').replace("https://", '')
             url = '/' + url.strip('/') + '/'
 
@@ -76,8 +74,8 @@ class ApplicationManager(models.Manager):
         return (self.model.objects.count(), result)
 
 
-class Application(models.Model):
-    """Optional applications that are installed on-site by the user."""
+class Addon(models.Model):
+    """Optional add-ons (applications) that are installed by the user."""
 
     name = models.CharField(unique=True, max_length=60)
     version = models.CharField(max_length=20,

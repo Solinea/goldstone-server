@@ -1,8 +1,8 @@
-"""Installable applications unit tests.
+"""User add-on unit tests.
 
 Tests:
-    /applications/
-    /applications/verify/
+    /addons/
+    /addons/verify/
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -24,24 +24,24 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD
-from .models import Application
+from .models import Addon
 
 # URLs for the tests.
-APP_URL = "/applications/"
+APP_URL = "/addons/"
 VERIFY_URL = APP_URL + "verify/"
 
 
-class Applications(Setup):
-    """The returning of information about optional installed applications."""
+class Addons(Setup):
+    """The returning of information about user-installed add-ons."""
 
     def setUp(self):
         """Run before every test."""
 
-        super(Applications, self).setUp()
-        Application.objects.all().delete()
+        super(Addons, self).setUp()
+        Addon.objects.all().delete()
 
     def test_none(self):
-        """No installable applications are installed."""
+        """No add-ons are installed."""
 
         # The test runner should have emptied the table before the test.
 
@@ -56,19 +56,19 @@ class Applications(Setup):
         self.assertContains(response, "[]", status_code=HTTP_200_OK)
 
     def test_some(self):
-        """Some installable apps are installed."""
+        """Some add-ons are installed."""
 
-        # Create two application rows.
-        app1 = Application.objects.create(name="test1",
-                                          version="1.001",
-                                          manufacturer="Foonly, Inc.",
-                                          url_root="dolphin",
-                                          notes="test application")
-        app2 = Application.objects.create(name="test2",
-                                          version="2.a(4)",
-                                          manufacturer="Solinea",
-                                          url_root="test2",
-                                          notes="another test application")
+        # Create two Addon rows.
+        app1 = Addon.objects.create(name="test1",
+                                    version="1.001",
+                                    manufacturer="Foonly, Inc.",
+                                    url_root="dolphin",
+                                    notes="test application")
+        app2 = Addon.objects.create(name="test2",
+                                    version="2.a(4)",
+                                    manufacturer="Solinea",
+                                    url_root="test2",
+                                    notes="another test application")
 
         # Create a user.
         token = create_and_login()
@@ -103,17 +103,17 @@ class Applications(Setup):
         self.assertIn(app2, content)
 
 
-class ApplicationsVerify(Setup):
+class AddonsVerify(Setup):
     """Test the /verify/ API."""
 
     def setUp(self):
         """Run before every test."""
 
-        super(ApplicationsVerify, self).setUp()
-        Application.objects.all().delete()
+        super(AddonsVerify, self).setUp()
+        Addon.objects.all().delete()
 
     def test_none(self):
-        """No installable applications are installed."""
+        """No add-ons are installed."""
 
         # The test runner should have emptied the table before the test.
 
@@ -128,19 +128,19 @@ class ApplicationsVerify(Setup):
         self.assertContains(response, "[]", status_code=HTTP_200_OK)
 
     def test_allbad(self):
-        """Some installable apps are installed, and they all are bad."""
+        """Some add-ons are installed, and they all are bad."""
 
-        # Create two application rows.
-        app1 = Application.objects.create(name="test1",
-                                          version="1.001",
-                                          manufacturer="Foonly, Inc.",
-                                          url_root="dolphin",
-                                          notes="test application")
-        app2 = Application.objects.create(name="test2",
-                                          version="2.a(4)",
-                                          manufacturer="Solinea",
-                                          url_root="test2",
-                                          notes="another test application")
+        # Create two Addon rows.
+        app1 = Addon.objects.create(name="test1",
+                                    version="1.001",
+                                    manufacturer="Foonly, Inc.",
+                                    url_root="dolphin",
+                                    notes="test application")
+        app2 = Addon.objects.create(name="test2",
+                                    version="2.a(4)",
+                                    manufacturer="Solinea",
+                                    url_root="test2",
+                                    notes="another test application")
 
         # Create a user.
         token = create_and_login()
@@ -159,7 +159,7 @@ class ApplicationsVerify(Setup):
         self.assertIn(str(app2), content)
 
     def test_somebad(self):
-        """Some installable apps are installed, and some are bad."""
+        """Some add-ons are installed, and some are bad."""
 
         def side_effect(*args, **_):
             """Raise an exception for Django's URL resolver, sometimes."""
@@ -168,22 +168,22 @@ class ApplicationsVerify(Setup):
             if args[0] != "/test3/":
                 raise Resolver404
 
-        # Create three application rows.
-        app1 = Application.objects.create(name="test1",
-                                          version="1.001",
-                                          manufacturer="Foonly, Inc.",
-                                          url_root="dolphin",
-                                          notes="test application")
-        app2 = Application.objects.create(name="test2",
-                                          version="2.a(4)",
-                                          manufacturer="Solinea",
-                                          url_root="test2",
-                                          notes="another test application")
-        Application.objects.create(name="test3",
-                                   version="45",
-                                   manufacturer="Mozilla",
-                                   url_root="test3",
-                                   notes="the real mccoy")
+        # Create three Addon rows.
+        app1 = Addon.objects.create(name="test1",
+                                    version="1.001",
+                                    manufacturer="Foonly, Inc.",
+                                    url_root="dolphin",
+                                    notes="test application")
+        app2 = Addon.objects.create(name="test2",
+                                    version="2.a(4)",
+                                    manufacturer="Solinea",
+                                    url_root="test2",
+                                    notes="another test application")
+        Addon.objects.create(name="test3",
+                             version="45",
+                             manufacturer="Mozilla",
+                             url_root="test3",
+                             notes="the real mccoy")
 
         # Make the thrid "good" by mocking out the Django URL resolver.
         mock_resolver = Mock()
@@ -192,7 +192,7 @@ class ApplicationsVerify(Setup):
         # Create a user.
         token = create_and_login()
 
-        with patch("goldstone.installable_apps.models.resolve", mock_resolver):
+        with patch("goldstone.addons.models.resolve", mock_resolver):
             response = self.client.get(
                 VERIFY_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -208,24 +208,24 @@ class ApplicationsVerify(Setup):
         self.assertIn(str(app2), content)
 
     def test_allgood(self):
-        """Some installable apps are installed, and all are good."""
+        """Some add-ons are installed, and all are good."""
 
-        # Create three application rows.
-        Application.objects.create(name="test1",
-                                   version="1.001",
-                                   manufacturer="Foonly, Inc.",
-                                   url_root="dolphin",
-                                   notes="test application")
-        Application.objects.create(name="test2",
-                                   version="2.a(4)",
-                                   manufacturer="Solinea",
-                                   url_root="test2",
-                                   notes="another test application")
-        Application.objects.create(name="test3",
-                                   version="45",
-                                   manufacturer="Mozilla",
-                                   url_root="test3",
-                                   notes="the real mccoy")
+        # Create three Addon rows.
+        Addon.objects.create(name="test1",
+                             version="1.001",
+                             manufacturer="Foonly, Inc.",
+                             url_root="dolphin",
+                             notes="test application")
+        Addon.objects.create(name="test2",
+                             version="2.a(4)",
+                             manufacturer="Solinea",
+                             url_root="test2",
+                             notes="another test application")
+        Addon.objects.create(name="test3",
+                             version="45",
+                             manufacturer="Mozilla",
+                             url_root="test3",
+                             notes="the real mccoy")
 
         # Make all of them "good" apps by mocking out the Django URL resolver.
         mock_resolver = Mock()
@@ -233,7 +233,7 @@ class ApplicationsVerify(Setup):
         # Create a user.
         token = create_and_login()
 
-        with patch("goldstone.installable_apps.models.resolve", mock_resolver):
+        with patch("goldstone.addons.models.resolve", mock_resolver):
             response = self.client.get(
                 VERIFY_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)

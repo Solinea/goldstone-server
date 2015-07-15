@@ -1,4 +1,4 @@
-"""Fabric file for Goldstone installable applications."""
+"""Fabric file for Goldstone installable applications (add-ons)."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ INSTALLED_APPS_START = "INSTALLED_APPS = ("
 INSTALLED_APP = "    '%s',     # Don't edit this line!\n"
 
 # The line we add to the end of urls.py.
-URLS_PY = "\n# Include the {0} application.  Don't edit this entry!\n" \
+URLS_PY = "\n# Include the {0} add-on.  Don't edit this entry!\n" \
           "import {0}\n" \
           "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
 
@@ -46,7 +46,7 @@ URLS_PY = "\n# Include the {0} application.  Don't edit this entry!\n" \
 # these strings with \n.
 CELERYBEAT_SCHEDULE = "CELERYBEAT_SCHEDULE = {"
 CELERYBEAT_APPS = \
-    "# User-installed application tasks are inserted after this line."
+    "# User-installed add-on tasks are inserted after this line."
 CELERYBEAT_APP_INCLUDE = \
     "# Tasks for {0}.\n" \
     "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
@@ -89,7 +89,7 @@ class Variables(object):
 
 @task
 def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Verify each Application table row, and help the user fix bad rows.
+    """Verify each Addon table row, and help the user fix bad rows.
 
     :keyword settings: The path of the Django settings file to use.
     :type settings: str
@@ -103,28 +103,27 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # pylint: disable=W0201
 
     def handler(row):
-        """Process an error for an installable application.
+        """Process an error for an user add-on.
 
-        :param row: An installable app that should exist, but doesn't.
-        :type row: Application
+        :param row: An add-on that should exist, but doesn't.
+        :type row: Addon
 
         """
 
         # We display this message only once.
-        EXPLANATION = "\n\nThe installable-application table has at least " \
-                      "one bad row.\n\n" \
-                      "Each row contains an application's root URL segment, " \
+        EXPLANATION = "\n\nThe Addon table has at least one bad row.\n\n" \
+                      "Each row contains an add-on's root URL segment, " \
                       "which Goldstone's client uses to communicate with " \
                       "the app. If it's bad, the app is unusable.\n\n" \
                       "This row's root URL segment is bad. Either the row " \
-                      "is corrupted, or the application was deleted from " \
+                      "is corrupted, or the add-on was deleted from " \
                       "Goldstone.\n\n" \
                       "Solinea recommends that bad rows be deleted, so that " \
                       "the table accurately reflects what's installed in " \
                       "Goldstone.\n"
 
         # This is displayed for each row.
-        ROW = "\nHere is a bad row in the installable application table:\n\n" \
+        ROW = "\nHere is a bad row in the add-on table:\n\n" \
               "\tname: {name}\n" \
               "\tversion: {version}\n" \
               "\tmanufacturer: {manufacturer}\n" \
@@ -166,11 +165,11 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     variables.all_errors_fixed = True
 
     # Switch to the right environment (because we're going to read from the
-    # database), and verify the Application table.
+    # database), and verify the Addon table.
     with _django_env(settings, install_dir):
-        from goldstone.installable_apps.models import Application
+        from goldstone.addons.models import Addon
 
-        count, _ = Application.objects.check_table(error_handler=handler)
+        count, _ = Addon.objects.check_table(error_handler=handler)
 
     # Display a summary.
     if variables.errors_found:
@@ -191,24 +190,24 @@ def _install_app_info(name):
     This is called from install_app, so its execution environment will be in
     effect.
 
-    :param name: The name of the application being installed
+    :param name: The name of the application (add-on) being installed
     :type name: str
-    :return: The application's database table values, and some values related
+    :return: The add-on's database table values, and some values related
              to the installation environment
     :rtype: (dict, dict)
 
     """
     from importlib import import_module
     import re
-    from goldstone.installable_apps.models import Application
+    from goldstone.addons.models import Addon
 
     # Regex that defines an illegal URL root.
     URL_ROOT = r'^http://|https://|/.*|.*/|/.*/$'
 
-    # For importing or inputting environmental values from the application.
+    # For importing or inputting environmental values from the add-on.
     APP_SYMBOLS = ["version", "manufacturer", "url_root", "notes"]
 
-    # Used to describe a new or updated Application row.
+    # Used to describe a new or updated Addon row.
     ROW = "\tname: {name}\n" \
           "\tversion: {version}\n" \
           "\tmanufacturer: {manufacturer}\n" \
@@ -225,14 +224,13 @@ def _install_app_info(name):
     app_db = {"name": name}
     app_install = {}
 
-    # Read the required application symbols.
+    # Read the required add-on symbols.
     for app_symbol in APP_SYMBOLS:
         dunder = "__" + app_symbol + "__"
         app_db[app_symbol] = the_app.__dict__.get(dunder)
 
         if app_db[app_symbol] is None:
-            abort("The application didn't define the %s variable!" %
-                  dunder)
+            abort("The add-on didn't define the %s variable!" % dunder)
 
     # Verify that url_root is in the correct format, and it's not being
     # used (or if it is, it's being used by this app already).
@@ -240,7 +238,7 @@ def _install_app_info(name):
         raise ValueError("url_root must not start with http:// or a /, "
                          "and must not end with a slash.")
 
-    if Application.objects.filter(url_root=app_db["url_root"])\
+    if Addon.objects.filter(url_root=app_db["url_root"])\
             .exclude(name=name).exists():
         raise ValueError('url_root "%s" is already used.  Choose a '
                          'different URL root, or delete the app '
@@ -248,7 +246,7 @@ def _install_app_info(name):
                          app_db["url_root"])
 
     # Remember if this app already exists.
-    app_install["replacement"] = Application.objects.filter(name=name).exists()
+    app_install["replacement"] = Addon.objects.filter(name=name).exists()
 
     # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
     # include line.
@@ -275,7 +273,7 @@ def _install_app_info(name):
     # Tell the user what we're about to do.
     fastprint("\nPlease confirm this:\n\n" +
               row_action +
-              red(" the installable-applications table. It will contain:\n") +
+              red(" the addon table. It will contain:\n") +
               ROW.format(**app_db) +
               base_urls +
               celery_tasks)
@@ -285,14 +283,14 @@ def _install_app_info(name):
 
 @task
 def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Install an installable application.
+    """Install a user add-on.
 
     The name is supplied on the command line.
 
     The version, manufacturer, url_root, notes, and celery tasks are supplied
-    from the application.
+    from the add-on.
 
-    :param name: The application's installation name
+    :param name: The add-on's installation name
     :type name: str
     :keyword settings: The path of the Django settings file to use.
     :type settings: str
@@ -303,7 +301,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
-        from goldstone.installable_apps.models import Application
+        from goldstone.addons.models import Addon
 
         # Gather the package installation information from the package or the
         # user. Remember, the package has already been installed into Python's
@@ -313,7 +311,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         # Get permission to proceed.
         if confirm('Proceed?'):
             if app_install["replacement"]:
-                row = Application.objects.get(name=name)
+                row = Addon.objects.get(name=name)
                 row.version = app_db["version"]
                 row.manufacturer = app_db["manufacturer"]
                 row.url_root = app_db["url_root"]
@@ -325,7 +323,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 try:
                     # First, add the new row.
                     step = 0
-                    Application.objects.create(**app_db)
+                    Addon.objects.create(**app_db)
 
                     # Now add the app to INSTALLED_APPS and
                     # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
@@ -379,19 +377,19 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     # Ooops! Tell the user what happened, because they're going
                     # to have to unwind things manually.
                     if step == 0:
-                        message = "%s while updating the Application table. " \
+                        message = "%s while updating the Addon table. " \
                                   "It's probably OK, but check it."
                     elif step == 1:
                         message = "%s while reading base.py. The " \
-                                  "Application table was modified. You must " \
+                                  "Addon table was modified. You must " \
                                   "edit settings/base.py and urls.py."
                     elif step == 2:
                         message = "%s while writing base.py. The " \
-                                  "Application table was modified. You must " \
+                                  "Addon table was modified. You must " \
                                   "edit settings/base.py and urls.py."
                     elif step == 3:
                         message = "%s while writing urls.py. The " \
-                                  "Application table and settings/base.py " \
+                                  "Addon table and settings/base.py " \
                                   "were updated. You must edit urls.py."
                     else:
                         # We should never get here.
@@ -402,9 +400,9 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 @task
 def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Remove an installable application.
+    """Remove a user add-on.
 
-    :param name: The application's installation name
+    :param name: The add-on's installation name
     :type name: str
     :keyword settings: The path of the Django settings file to use.
     :type settings: str
@@ -417,16 +415,16 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Switch to the right environment because we're going to access the
     # database.
     with _django_env(settings, install_dir):
-        from goldstone.installable_apps.models import Application
+        from goldstone.addons.models import Addon
 
         # Get the app row.
         try:
-            row = Application.objects.get(name=name)
+            row = Addon.objects.get(name=name)
         except ObjectDoesNotExist:
             fastprint("The app \"%s\" isn't in the table.\n" % name)
             sys.exit()
 
-        if confirm('We will remove the %s application. Proceed?' % name):
+        if confirm('We will remove the %s add-on. Proceed?' % name):
             # We'll track where we are, in case an exception occurs.
             try:
                 # First, delete the row.
@@ -492,19 +490,19 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Ooops! Tell the user what happened, because they're going
                 # to have to unwind things manually.
                 if step == 0:
-                    message = "%s while updating the Application table. " \
+                    message = "%s while updating the Addon table. " \
                               "It's probably OK, but check it."
                 elif step == 1:
                     message = "%s while reading base.py. The " \
-                              "Application table was modified. You must " \
+                              "Addon table was modified. You must " \
                               "manually edit settings/base.py and urls.py."
                 elif step == 2:
                     message = "%s while writing base.py. The " \
-                              "Application table was modified. You must " \
+                              "Addon table was modified. You must " \
                               "manually edit settings/base.py and urls.py."
                 elif step == 3:
                     message = "%s while writing urls.py. The " \
-                              "Application table and settings/base.py " \
+                              "Addon table and settings/base.py " \
                               "were updated. You must edit urls.py."
                 else:
                     # We should never get here.

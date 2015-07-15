@@ -1,4 +1,4 @@
-"""Installable applications views."""
+"""User add-ons views."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,8 @@
 # limitations under the License.
 import json
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Addon
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -35,13 +37,11 @@ class DateTimeEncoder(json.JSONEncoder):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 @api_view()
-def applications(_):
-    """Return information about the installed optional applications."""
-    from .models import Application
-    from rest_framework.response import Response
+def addons(_):
+    """Return information about the installed add-ons."""
 
     # Fetch the table rows as dicts.
-    result = list(Application.objects.all().values())
+    result = list(Addon.objects.all().values())
 
     # Delete each row's pk, and convert the datetimes to JSON.
     for entry in result:
@@ -65,19 +65,17 @@ def verify(_):
     report table problems.
 
     To fix bad rows, either the Goldstone admin should delete the table row(s),
-    or install the missing application(s).
+    or install the missing add-on(s).
 
     This returns a 200 if the table is OK, or a 400 if there's >= one bad
     table row. The response text will contain the bad rows' names.
 
     """
-    from .models import Application
-    from rest_framework.response import Response
     from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
     # Verify the table. The call returns bad rows found in the table, so we
     # return 400 if the result isn't empty.
-    _, result = Application.objects.check_table()
+    _, result = Addon.objects.check_table()
     status = HTTP_400_BAD_REQUEST if result else HTTP_200_OK
 
     return Response(result, status=status)
