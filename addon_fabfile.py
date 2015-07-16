@@ -1,4 +1,4 @@
-"""Fabric file for Goldstone installable applications (add-ons)."""
+"""Fabric file for Goldstone add-ons (installable Django applications)."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,7 @@ def _django_env(proj_settings, install_dir):
 
 
 class Variables(object):
-    """Used for verify_apps local variables.
+    """Used for verify_addons local variables.
 
     We need this because Python 2 doesn't have the nonlocal statement.
 
@@ -88,7 +88,7 @@ class Variables(object):
 
 
 @task
-def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Verify each Addon table row, and help the user fix bad rows.
 
     :keyword settings: The path of the Django settings file to use.
@@ -114,7 +114,7 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         EXPLANATION = "\n\nThe Addon table has at least one bad row.\n\n" \
                       "Each row contains an add-on's root URL segment, " \
                       "which Goldstone's client uses to communicate with " \
-                      "the app. If it's bad, the app is unusable.\n\n" \
+                      "the add-on. If it's bad, the add-on is unusable.\n\n" \
                       "This row's root URL segment is bad. Either the row " \
                       "is corrupted, or the add-on was deleted from " \
                       "Goldstone.\n\n" \
@@ -174,20 +174,20 @@ def verify_apps(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Display a summary.
     if variables.errors_found:
         if variables.all_errors_fixed:
-            print(cyan("\nBad apps found and fixed!"))
+            print(cyan("\nBad add-ons found and fixed!"))
         else:
-            print(red("\nBad apps found and not fixed."))
+            print(red("\nBad add-ons found and not fixed."))
 
-    print(green("\n%s apps in the table." % count))
+    print(green("\n%s add-ons in the table." % count))
 
 
-def _install_app_info(name):
+def _install_addon_info(name):
     """Gather the package installation information, and display our intentions
     to the user.
 
     The package has already been installed into Python's execution environment.
 
-    This is called from install_app, so its execution environment will be in
+    This is called from install_addon, so its execution environment will be in
     effect.
 
     :param name: The name of the application (add-on) being installed
@@ -221,40 +221,40 @@ def _install_app_info(name):
     except ImportError:
         abort("Can't import the module. Have you installed it?")
 
-    app_db = {"name": name}
-    app_install = {}
+    addon_db = {"name": name}
+    addon_install = {}
 
     # Read the required add-on symbols.
     for app_symbol in APP_SYMBOLS:
         dunder = "__" + app_symbol + "__"
-        app_db[app_symbol] = the_app.__dict__.get(dunder)
+        addon_db[app_symbol] = the_app.__dict__.get(dunder)
 
-        if app_db[app_symbol] is None:
+        if addon_db[app_symbol] is None:
             abort("The add-on didn't define the %s variable!" % dunder)
 
     # Verify that url_root is in the correct format, and it's not being
-    # used (or if it is, it's being used by this app already).
-    if re.match(URL_ROOT, app_db["url_root"]):
+    # used (or if it is, it's being used by this add-on already).
+    if re.match(URL_ROOT, addon_db["url_root"]):
         raise ValueError("url_root must not start with http:// or a /, "
                          "and must not end with a slash.")
 
-    if Addon.objects.filter(url_root=app_db["url_root"])\
+    if Addon.objects.filter(url_root=addon_db["url_root"])\
             .exclude(name=name).exists():
         raise ValueError('url_root "%s" is already used.  Choose a '
                          'different URL root, or delete the app '
                          'that\'s currently using it.' %
-                         app_db["url_root"])
+                         addon_db["url_root"])
 
-    # Remember if this app already exists.
-    app_install["replacement"] = Addon.objects.filter(name=name).exists()
+    # Remember if this add-on already exists.
+    addon_install["replacement"] = Addon.objects.filter(name=name).exists()
 
     # Concoct the settings.base.INSTALLED_APPS line, and the urls.py
     # include line.
-    app_install["installedapp"] = INSTALLED_APP % name
-    app_install["urlpatterns"] = URLS_PY.format(name, app_db["url_root"])
+    addon_install["installedapp"] = INSTALLED_APP % name
+    addon_install["urlpatterns"] = URLS_PY.format(name, addon_db["url_root"])
 
     # Create the different messages we display for an update vs. an insert.
-    if app_install["replacement"]:
+    if addon_install["replacement"]:
         row_action = red("We'll replace an existing row in")
         base_urls = red("\nWe won't change settings/base.py or urls.py, so "
                         "the previous version's entries will be reused.\n")
@@ -262,9 +262,9 @@ def _install_app_info(name):
         row_action = red("We'll add a row to")
         base_urls = \
             red("\nWe'll add this to Goldstone\'s INSTALLED_APPS:\n") + \
-            "\t{0}\n".format(app_install["installedapp"]) + \
+            "\t{0}\n".format(addon_install["installedapp"]) + \
             red("We'll add this to Goldstone\'s URLconf:") + \
-            "{0}\n".format(app_install["urlpatterns"])
+            "{0}\n".format(addon_install["urlpatterns"])
 
     celery_tasks = \
         red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
@@ -274,15 +274,15 @@ def _install_app_info(name):
     fastprint("\nPlease confirm this:\n\n" +
               row_action +
               red(" the addon table. It will contain:\n") +
-              ROW.format(**app_db) +
+              ROW.format(**addon_db) +
               base_urls +
               celery_tasks)
 
-    return (app_db, app_install)
+    return (addon_db, addon_install)
 
 
 @task
-def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Install a user add-on.
 
     The name is supplied on the command line.
@@ -306,26 +306,26 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         # Gather the package installation information from the package or the
         # user. Remember, the package has already been installed into Python's
         # execution environment.
-        app_db, app_install = _install_app_info(name)
+        addon_db, addon_install = _install_addon_info(name)
 
         # Get permission to proceed.
         if confirm('Proceed?'):
-            if app_install["replacement"]:
+            if addon_install["replacement"]:
                 row = Addon.objects.get(name=name)
-                row.version = app_db["version"]
-                row.manufacturer = app_db["manufacturer"]
-                row.url_root = app_db["url_root"]
-                row.notes = app_db["notes"]
+                row.version = addon_db["version"]
+                row.manufacturer = addon_db["manufacturer"]
+                row.url_root = addon_db["url_root"]
+                row.notes = addon_db["notes"]
                 row.save()
             else:
-                # Installing a new app. We'll track where we are, in case an
+                # Installing a new add-on. We'll track where we are, in case an
                 # exception occurs.
                 try:
                     # First, add the new row.
                     step = 0
-                    Addon.objects.create(**app_db)
+                    Addon.objects.create(**addon_db)
 
-                    # Now add the app to INSTALLED_APPS and
+                    # Now add the add-on to INSTALLED_APPS and
                     # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
                     # instead.
                     step = 1
@@ -343,7 +343,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
                     filedata = \
                         filedata[:insert] + \
-                        app_install["installedapp"] + \
+                        addon_install["installedapp"] + \
                         filedata[insert:]
 
                     # Now find CELERYBEAT_SCHEDULE, and the start of the
@@ -365,13 +365,13 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     with open(filepath, 'w') as f:
                         f.write(filedata)
 
-                    # Now add the app to the end of the URLconf.
+                    # Now add the add-on to the end of the URLconf.
                     step = 3
 
                     filepath = os.path.join(install_dir, "goldstone/urls.py")
 
                     with open(filepath, 'a') as f:
-                        f.write(app_install["urlpatterns"])
+                        f.write(addon_install["urlpatterns"])
 
                 except Exception as exc:       # pylint: disable=W0703
                     # Ooops! Tell the user what happened, because they're going
@@ -399,7 +399,7 @@ def install_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 
 @task
-def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Remove a user add-on.
 
     :param name: The add-on's installation name
@@ -417,11 +417,11 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
 
-        # Get the app row.
+        # Get the add-on's row.
         try:
             row = Addon.objects.get(name=name)
         except ObjectDoesNotExist:
-            fastprint("The app \"%s\" isn't in the table.\n" % name)
+            fastprint("The add-on \"%s\" isn't in the table.\n" % name)
             sys.exit()
 
         if confirm('We will remove the %s add-on. Proceed?' % name):
@@ -431,7 +431,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 step = 0
                 row.delete()
 
-                # Now remove the app from INSTALLED_APPS. SED is scary, so
+                # Now remove the add-on from INSTALLED_APPS. SED is scary, so
                 # we'll use Python instead.
                 step = 1
 
@@ -442,7 +442,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     filedata = f.read()
 
                 # Find the INSTALLED_APPS tuple. Then find the start of the
-                # line for this app, and the line after it.
+                # line for this add-on, and the line after it.
                 insert = filedata.index(INSTALLED_APPS_START)
                 insert = filedata.index(INSTALLED_APP % name, insert)
                 end = filedata.index('\n', insert) + 1
@@ -453,8 +453,8 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Now find CELERYBEAT_SCHEDULE, and the start of the
                 # user-installed apps section. We do both to maximize the
                 # probability of doing this correctly. Then, find the beginning
-                # of the line that starts this app's task entries, and the
-                # beginning of the line after the end of this app's task
+                # of the line that starts this add-on's task entries, and the
+                # beginning of the line after the end of this add-on's task
                 # entries.
                 insert = filedata.index(CELERYBEAT_SCHEDULE)
                 insert = filedata.index(CELERYBEAT_APPS, insert)
@@ -473,7 +473,7 @@ def remove_app(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 with open(filepath, 'w') as f:
                     f.write(filedata)
 
-                # Now delete the app from the URLconf.
+                # Now delete the add-on from the URLconf.
                 step = 3
 
                 filepath = os.path.join(install_dir, "goldstone/urls.py")
