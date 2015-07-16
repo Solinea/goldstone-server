@@ -54,6 +54,9 @@ var GoldstoneBaseView2 = Backbone.View.extend({
         if (this.options.el) {
             this.el = this.options.el;
         }
+        if (this.options.collectionMixin) {
+            this.collectionMixin = this.options.collectionMixin;
+        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
         this.collection = this.options.collection || undefined;

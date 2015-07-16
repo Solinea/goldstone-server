@@ -16,12 +16,12 @@ from django.conf import settings
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
-from elasticsearch_dsl import A
+from elasticsearch_dsl import String, Date, Integer, A
 from elasticsearch_dsl.query import Q, QueryString
-from polymorphic import PolymorphicModel
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 from picklefield.fields import PickledObjectField
+from polymorphic import PolymorphicModel
 
 # Get_glance_client is defined here for easy unit test mocking.
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
@@ -45,7 +45,6 @@ CONSUMES = settings.R_EDGE.CONSUMES
 CONTAINS = settings.R_EDGE.CONTAINS
 DEFINES = settings.R_EDGE.DEFINES
 INSTANCE_OF = settings.R_EDGE.INSTANCE_OF
-MANAGES = settings.R_EDGE.MANAGES
 MEMBER_OF = settings.R_EDGE.MEMBER_OF
 OWNS = settings.R_EDGE.OWNS
 ROUTES_TO = settings.R_EDGE.ROUTES_TO
@@ -113,6 +112,45 @@ class EventData(DailyIndexDocType):
         # Return all document types.
         doc_type = ''
 
+
+class ApiPerfData(DailyIndexDocType):
+    """API performance record model."""
+
+    INDEX_PREFIX = 'goldstone-'
+    SORT = '-@timestamp'
+
+    # Field declarations.  The types are generated dynamically, so PyCharm
+    # thinks the imports are unresolved references.
+    response_status = Integer()
+    creation_time = Date()
+    component = String()
+    uri = String()
+    response_length = Integer()
+    response_time = Integer()
+
+    class Meta:          # pylint: disable=C0111,W0232,C1001
+        doc_type = 'api_stats'
+
+    @classmethod
+    def stats_agg(cls):
+
+        return A('extended_stats', field='response_time')
+
+    @classmethod
+    def range_agg(cls):
+
+        return A('range',
+                 field='response_status',
+                 keyed=True,
+                 ranges=[{"from": 200, "to": 299},
+                         {"from": 300, "to": 399},
+                         {"from": 400, "to": 499},
+                         {"from": 500, "to": 599}])
+
+
+######################################
+# Resource graph types and instances #
+######################################
 
 class PolyResource(PolymorphicModel):
     """The base type for resources.

@@ -17,9 +17,12 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests - serviceStatusView.js
 
-describe('logSearchView.js spec', function() {
+// basic sanity check.
+// base object is tested in apiPerfReportView_integrationTests.js
+
+describe('ApiBrowserPageView.js spec', function() {
     beforeEach(function() {
-        $('body').html('<div class="testContainer"></div>' +
+        $('body').html('<div class="test-container"></div>' +
             '<div style="width:10%;" class="col-xl-1 pull-right">&nbsp;' +
             '</div>' +
             '<div class="col-xl-2 pull-right">' +
@@ -58,21 +61,20 @@ describe('logSearchView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.respondWith([200, {
             "Content-Type": "application/json"
-        }, '{absolutely: "nothing"}']);
+        }, 'OK']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
-
+        // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
         app = {};
         app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new LogSearchPageView({
-            el: '.testContainer',
+        this.testView = new ApiBrowserPageView({
+            el: '.test-container'
         });
     });
     afterEach(function() {
@@ -80,40 +82,8 @@ describe('logSearchView.js spec', function() {
         this.server.restore();
     });
     describe('view is constructed', function() {
-        it('should exist', function() {
-            assert.isDefined(this.testView, 'this.testView has been defined');
-            expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.testContainer');
-            expect($(this.testView.el).text()).to.equal(' Logs vs Time×CloseLog Severity FiltersUncheck log-type to hide from displayExitLog Events Search Results102550100 records per pageSearch:Processing...TimestampSyslog SeverityComponentHostMessage');
-        });
-        it('view responds to global selector changes', function() {
-            this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
-            expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(0);
-
-            app.globalLookbackRefreshSelectors.trigger('globalLookbackChange');
-            expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(1);
-
-            app.globalLookbackRefreshSelectors.trigger('globalRefreshChange');
-            expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(2);
-
-            $('#global-refresh-range').val('-1');
-            this.testView.getGlobalLookbackRefresh();
-            this.testView.scheduleInterval();
-            expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(3);
-
-            this.getGlobalLookbackRefresh_spy.restore();
-        });
-        it('view won\'t refresh if global refresh is set to off', function() {
-            var test1 = this.testView.defaults.scheduleInterval;
-            $('#global-refresh-range').val('-1');
-            this.testView.getGlobalLookbackRefresh();
-            this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.equal(test1);
-            $('#global-refresh-range').val('30');
-            this.testView.getGlobalLookbackRefresh();
-            this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.not.equal(test1);
+        it('sanity check', function() {
+            this.testView.triggerChange('lookbackSelectorChanged');
         });
     });
-
 });

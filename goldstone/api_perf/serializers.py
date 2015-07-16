@@ -15,6 +15,8 @@
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 
+# TODO: Scheduled for deletion.
+
 class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
     """Custom serializer to manipulate the aggregation that comes back from ES.
     """

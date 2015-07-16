@@ -75,7 +75,12 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         if (this.addPageSize) {
             this.url += this.addPageSize(this.pageSize);
         }
-        this.fetch();
+
+        // a gate to make sure this doesn't fire if
+        // this collection is being used as a mixin
+        if (this.options.skipFetch === undefined) {
+            this.fetch();
+        }
     },
 
     // add the following to instances to add to url genration scheme

@@ -17,7 +17,7 @@
 // define collection and link to model
 
 /*
-instantiated in logSearchView.js as:
+instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 

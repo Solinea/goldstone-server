@@ -16,17 +16,17 @@
 
 /*
 The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+within this LogSearchPageView. The global lookback/refresh listeners are listenTo()'d
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
 instantiated in goldstoneRouter as
-    new LogSearchView({
+    new LogSearchPageView({
         el: ".launcher-container"
     });
 */
 
-var LogSearchView = GoldstoneBasePageView.extend({
+var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
@@ -61,7 +61,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Log Analysis',
+            chartTitle: 'Logs vs Time',
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
         }).el);

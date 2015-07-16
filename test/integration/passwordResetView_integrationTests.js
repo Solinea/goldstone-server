@@ -17,7 +17,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('passwordResetView.js spec', function() {
+describe('newPasswordView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="test-container"></div>');
@@ -29,7 +29,7 @@ describe('passwordResetView.js spec', function() {
         }, '[]']);
         data = [];
 
-        this.testView = new PasswordResetView({
+        this.testView = new NewPasswordView({
             el: '.test-container'
         });
 
@@ -42,9 +42,17 @@ describe('passwordResetView.js spec', function() {
         it('renders view', function() {
             this.testView.render();
         });
-        it('triggers login form submit', function() {
-            $('input.form-control').val('tester@this.com');
-            $('form.password-reset-form').submit();
+    });
+    describe('basic view functionality', function() {
+        it('resets fields', function() {
+            $('#password').val('123');
+            $('#confirm_password').val('123');
+            expect($('#password').val()).to.equal('123');
+            expect($('#confirm_password').val()).to.equal('123');
+            this.testView.clearFields();
+            expect($('#password').val()).to.equal('');
+            expect($('#confirm_password').val()).to.equal('');
+
         });
     });
 });
