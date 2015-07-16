@@ -107,7 +107,15 @@ class LogEventView(ElasticListAPIView):
              paramType: query
            - name: name__prefix
              description: The desired service name prefix. E.g.,
-                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.
+             paramType: query
+           - name: page
+             description: The desired result page number
+             type: integer
+             paramType: query
+           - name: page_size
+             description: The number of results on each page
+             type: integer
              paramType: query
 
     """
@@ -119,22 +127,26 @@ class LogEventView(ElasticListAPIView):
         model = LogEvent
 
 
-class LogEventAggView(ElasticListAPIView):
+class LogEventSummarizeView(ElasticListAPIView):
     """Return a Logstash aggregation.
 
     ---
 
     GET:
         parameters:
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m.
+             paramType: query
            - name: "@timestamp__range"
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
                           {'gte':1430164651890}. You can also use AND, e.g.,
                           {'gte':1430164651890, 'lt':1455160000000}
              paramType: query
-           - name: name__prefix
-             description: The desired service name prefix. E.g.,
-                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+           - name: per_host
+             description: Return results aggregated per-host?
+             type: boolean
              paramType: query
 
     """
