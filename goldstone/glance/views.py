@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyView
 from .models import ImagesData
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class ImagesDataViewSet(JsonReadOnlyViewSet):
+class ImagesDataView(JsonReadOnlyView):
     """Return Images data.
 
     \n\nQuery string parameters:\n

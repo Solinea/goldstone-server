@@ -12,24 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from rest_framework.routers import DefaultRouter
-from .views import VolumesDataViewSet, \
-    BackupsDataViewSet, SnapshotsDataViewSet, ServicesDataViewSet, \
-    VolumeTypesDataViewSet, TransfersDataViewSet
+from django.conf.urls import url, patterns
+from .views import VolumesDataView, \
+    BackupsDataView, SnapshotsDataView, ServicesDataView, \
+    VolumeTypesDataView, TransfersDataView
 
-# Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^backups', BackupsDataViewSet, base_name='cinder-backups')
-router.register(r'^services', ServicesDataViewSet, base_name='cinder-services')
-router.register(r'^snapshots',
-                SnapshotsDataViewSet,
-                base_name='cinder-snapshots')
-router.register(r'^transfers',
-                TransfersDataViewSet,
-                base_name='cinder-transfers')
-router.register(r'^volumes', VolumesDataViewSet, base_name='cinder-volumes')
-router.register(r'^volume_types',
-                VolumeTypesDataViewSet,
-                base_name='cinder-volume-types')
-
-urlpatterns = router.urls
+# Views handled by DjangoRestFramework Views.
+urlpatterns = patterns(
+    '',
+    url(r'^backups', BackupsDataView.as_view(), name='cinder-backups'),
+    url(r'^services', ServicesDataView.as_view(), name='cinder-services'),
+    url(r'^snapshots', SnapshotsDataView.as_view(), name='cinder-snapshots'),
+    url(r'^transfers', TransfersDataView.as_view(), name='cinder-transfers'),
+    url(r'^volumes', VolumesDataView.as_view(), name='cinder-volumes'),
+    url(r'^volume_types',
+        VolumeTypesDataView.as_view(),
+        name='cinder-volume-types'),
+)

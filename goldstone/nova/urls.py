@@ -13,42 +13,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import url, patterns
-from rest_framework.routers import DefaultRouter
+from .views import AgentsDataView, AggregatesDataView, AvailZonesDataView, \
+    CloudpipesDataView, FlavorsDataView, FloatingIpPoolsDataView, \
+    HostsDataView, HypervisorsDataView, NetworksDataView, SecGroupsDataView, \
+    ServersDataView, ServicesDataView, SpawnsAggView
 
-from .views import AgentsDataViewSet, \
-    AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
-    FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
-    HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
-    ServersDataViewSet, ServicesDataViewSet, SpawnsAggView
-
-# Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^agents', AgentsDataViewSet, base_name='nova-agents')
-router.register(r'^aggregates',
-                AggregatesDataViewSet,
-                base_name='nova-aggregates')
-router.register(r'^availability_zones',
-                AvailZonesDataViewSet,
-                base_name='nova-availability-zones')
-router.register(r'^cloudpipes',
-                CloudpipesDataViewSet,
-                base_name='nova-cloudpipes')
-router.register(r'^flavors', FlavorsDataViewSet, base_name='nova-flavors')
-router.register(r'^floating_ip_pools',
-                FloatingIpPoolsDataViewSet,
-                base_name='nova-floating-ip-pools')
-router.register(r'^hosts', HostsDataViewSet, base_name='nova-hosts')
-router.register(r'^hypervisors',
-                HypervisorsDataViewSet,
-                base_name='nova-hypervisors')
-router.register(r'^networks', NetworksDataViewSet, base_name='nova-networks')
-router.register(r'^security_groups',
-                SecGroupsDataViewSet,
-                base_name='nova-security-groups')
-router.register(r'^servers', ServersDataViewSet, base_name='nova-servers')
-router.register(r'^services', ServicesDataViewSet, base_name='nova-services')
-
-urlpatterns = router.urls
+# Views handled by DjangoRestFramework Views.
+urlpatterns = patterns(
+    '',
+    url(r'^agents', AgentsDataView.as_view(), name='nova-agents'),
+    url(r'^aggregates', AggregatesDataView.as_view(), name='nova-aggregates'),
+    url(r'^availability_zones',
+        AvailZonesDataView.as_view(),
+        name='nova-availability-zones'),
+    url(r'^cloudpipes', CloudpipesDataView.as_view(), name='nova-cloudpipes'),
+    url(r'^flavors', FlavorsDataView.as_view(), name='nova-flavors'),
+    url(r'^floating_ip_pools',
+        FloatingIpPoolsDataView.as_view(),
+        name='nova-floating-ip-pools'),
+    url(r'^hosts', HostsDataView.as_view(), name='nova-hosts'),
+    url(r'^hypervisors',
+        HypervisorsDataView.as_view(),
+        name='nova-hypervisors'),
+    url(r'^networks', NetworksDataView.as_view(), name='nova-networks'),
+    url(r'^security_groups',
+        SecGroupsDataView.as_view(),
+        name='nova-security-groups'),
+    url(r'^servers', ServersDataView.as_view(), name='nova-servers'),
+    url(r'^services', ServicesDataView.as_view(), name='nova-services'),
+    )
+# router.register(r'^agents', AgentsDataView, base_name='nova-agents')
+# router.register(r'^aggregates',
+#                 AggregatesDataView,
+#                 base_name='nova-aggregates')
+# router.register(r'^availability_zones',
+#                 AvailZonesDataView,
+#                 base_name='nova-availability-zones')
+# router.register(r'^cloudpipes',
+#                 CloudpipesDataView,
+#                 base_name='nova-cloudpipes')
+# router.register(r'^flavors', FlavorsDataView, base_name='nova-flavors')
+# router.register(r'^floating_ip_pools',
+#                 FloatingIpPoolsDataView,
+#                 base_name='nova-floating-ip-pools')
+# router.register(r'^hosts', HostsDataView, base_name='nova-hosts')
+# router.register(r'^hypervisors',
+#                 HypervisorsDataView,
+#                 base_name='nova-hypervisors')
+# router.register(r'^networks', NetworksDataView, base_name='nova-networks')
+# router.register(r'^security_groups',
+#                 SecGroupsDataView,
+#                 base_name='nova-security-groups')
+# router.register(r'^servers', ServersDataView, base_name='nova-servers')
+# router.register(r'^services', ServicesDataView, base_name='nova-services')
 
 # Other views.
 urlpatterns += patterns(

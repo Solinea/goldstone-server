@@ -25,17 +25,23 @@ from goldstone.nova.serializers import SpawnsAggSerializer
 from .models import SpawnsData, AgentsData, AggregatesData, AvailZonesData, \
     CloudpipesData, NetworksData, SecGroupsData, ServersData, ServicesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData
-from goldstone.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyView
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class AgentsDataViewSet(JsonReadOnlyViewSet):
+class AgentsDataView(JsonReadOnlyView):
     """Return Agents data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -44,13 +50,19 @@ class AgentsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class AggregatesDataViewSet(JsonReadOnlyViewSet):
+class AggregatesDataView(JsonReadOnlyView):
     """Return Aggregates data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -60,13 +72,19 @@ class AggregatesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class AvailZonesDataViewSet(JsonReadOnlyViewSet):
+class AvailZonesDataView(JsonReadOnlyView):
     """Return Availability Zones data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -75,13 +93,19 @@ class AvailZonesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class CloudpipesDataViewSet(JsonReadOnlyViewSet):
+class CloudpipesDataView(JsonReadOnlyView):
     """Return Cloudpipes data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -90,13 +114,19 @@ class CloudpipesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class FlavorsDataViewSet(JsonReadOnlyViewSet):
+class FlavorsDataView(JsonReadOnlyView):
     """Return Flavors data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -105,13 +135,19 @@ class FlavorsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class FloatingIpPoolsDataViewSet(JsonReadOnlyViewSet):
+class FloatingIpPoolsDataView(JsonReadOnlyView):
     """Return Floating IP Pool data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -120,13 +156,19 @@ class FloatingIpPoolsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class HostsDataViewSet(JsonReadOnlyViewSet):
+class HostsDataView(JsonReadOnlyView):
     """Return hosts data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -136,13 +178,19 @@ class HostsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class HypervisorsDataViewSet(JsonReadOnlyViewSet):
+class HypervisorsDataView(JsonReadOnlyView):
     """Return Hypervisor data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -151,13 +199,19 @@ class HypervisorsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class NetworksDataViewSet(JsonReadOnlyViewSet):
+class NetworksDataView(JsonReadOnlyView):
     """Return Networks data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -166,13 +220,19 @@ class NetworksDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class SecGroupsDataViewSet(JsonReadOnlyViewSet):
+class SecGroupsDataView(JsonReadOnlyView):
     """Return SecurityGroups data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -181,14 +241,19 @@ class SecGroupsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class ServersDataViewSet(JsonReadOnlyViewSet):
+class ServersDataView(JsonReadOnlyView):
     """Return Servers data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
-
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
     """
 
     model = ServersData
@@ -197,13 +262,19 @@ class ServersDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class ServicesDataViewSet(JsonReadOnlyViewSet):
+class ServicesDataView(JsonReadOnlyView):
     """Return Services data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -214,18 +285,23 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
 
 # Our API documentation extracts this docstring, hence the use of markup.
 class SpawnsAggView(DateHistogramAggView):
-    """Return aggregated ata about nova spawns.
+    """Return aggregated data about nova spawns.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>start_time</b>: The desired start time, in UTC\n
-    <b>end_time</b>: The desired end time, in UTC\n
-    <b>interval</b>: The desired interval, as nnni. nnn is a number, i is
-                     one of: smhwd.  E.g., 3600s.\n
-    <b>@timestamp__range</b>: Another way to specify a time range. Value is
-                              xxx:nnn. Xxx is one of: gte, gt, lte, or lt.
-                              Nnn is an epoch number. E.g.,
-                              gte:1430164651890.\n
+    GET:
+        parameters:
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m.
+             required: true
+             paramType: query
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
 
     """
 
