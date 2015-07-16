@@ -16,6 +16,8 @@ from elasticsearch_dsl import String, Date, Integer, A
 from goldstone.drfes.models import DailyIndexDocType
 
 
+# Scheduled for deletion.
+
 class ApiPerfData(DailyIndexDocType):
     """API performance record model.
 

@@ -41,10 +41,16 @@ describe('dataTableBaseView.js', function() {
             infoIcon: 'fa-table',
             width: 300
         });
+
+        this.update_spy = sinon.spy(this.testView, "update");
+        this.gglr_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
+
     });
     afterEach(function() {
         $('body').html('');
         this.server.restore();
+        this.update_spy.restore();
+        this.gglr_spy.restore();
     });
 
     describe('unit testing flattenObj', function() {
@@ -177,7 +183,7 @@ describe('dataTableBaseView.js', function() {
             var test1 = this.testView.pruneUndefinedValues([]);
             expect(test1).to.deep.equal([]);
             test1 = this.testView.pruneUndefinedValues([1, 2, 3]);
-            expect(test1).to.deep.equal([1, 2, 3]);
+            expect(test1).to.deep.equal([3, 2, 1]);
             test1 = this.testView.pruneUndefinedValues([, , 3]);
             expect(test1).to.deep.equal([3]);
             test1 = this.testView.pruneUndefinedValues([1, , ]);
@@ -185,17 +191,17 @@ describe('dataTableBaseView.js', function() {
             test1 = this.testView.pruneUndefinedValues([, 2, ]);
             expect(test1).to.deep.equal([2]);
             test1 = this.testView.pruneUndefinedValues([1, , 3]);
-            expect(test1).to.deep.equal([1, 3]);
+            expect(test1).to.deep.equal([3, 1]);
             test1 = this.testView.pruneUndefinedValues([1, 2, ]);
-            expect(test1).to.deep.equal([1, 2]);
+            expect(test1).to.deep.equal([2, 1]);
             test1 = this.testView.pruneUndefinedValues([, 2, 3]);
-            expect(test1).to.deep.equal([2, 3]);
+            expect(test1).to.deep.equal([3, 2]);
             test1 = this.testView.pruneUndefinedValues([, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
             expect(test1).to.deep.equal([99]);
             test1 = this.testView.pruneUndefinedValues([1, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
-            expect(test1).to.deep.equal([1, 99]);
+            expect(test1).to.deep.equal([99, 1]);
             test1 = this.testView.pruneUndefinedValues([1, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 5, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 99]);
-            expect(test1).to.deep.equal([1, 5, 99]);
+            expect(test1).to.deep.equal([99, 5, 1]);
         });
         it('sorts arrays', function() {
             var test1 = this.testView.sortRemainingKeys([]);
@@ -211,6 +217,25 @@ describe('dataTableBaseView.js', function() {
             expect(test1).to.deep.equal(['apple', 'apple', 'banana', 'cat']);
             test1 = this.testView.sortRemainingKeys(['apple', '1banana', 'cat']);
             expect(test1).to.deep.equal(['1banana', 'apple', 'cat']);
+        });
+        it('processes listeners server side', function() {
+
+            expect(this.gglr_spy.callCount).to.equal(0);
+            expect(this.update_spy.callCount).to.equal(0);
+            this.testView.processListenersForServerSide();
+            // update nor getGlobalLookbackRefresh should have been called
+            expect(this.gglr_spy.callCount).to.equal(0);
+            expect(this.update_spy.callCount).to.equal(0);
+            // triggering 'lookbackSelectorChanged' should fire both functions
+            this.testView.trigger('lookbackSelectorChanged');
+            expect(this.gglr_spy.callCount).to.be.above(0);
+            expect(this.update_spy.callCount).to.be.above(0);
+        });
+        it('draws search table server side', function() {
+            // sanity check
+            expect($('.reports-info-container').length).to.equal(1);
+            this.testView.drawSearchTableServerSide();
+            expect($('.reports-info-container').length).to.equal(0);
         });
     });
 });

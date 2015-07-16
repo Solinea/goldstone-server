@@ -330,7 +330,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         this.logsReportCollection = new LogAnalysisCollection({});
 
-        this.logAnalysisView = new LogSearchView({
+        this.logAnalysisView = new LogSearchPageView({
             collection: this.logAnalysisCollection,
             width: $('#logsReport').width(),
             height: 300,

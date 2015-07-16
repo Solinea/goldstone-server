@@ -35,12 +35,13 @@ class ReadOnlyElasticSerializer(Serializer):
         raise NotImplementedError('Not used.')
 
     def to_representation(self, instance):
-        """Convert a record to a representation suitable for rendering.
+        """Return a record in a form that is suitable for rendering.
 
-        :type instance: Result
         :param instance: An instance from an ES search response
-        :rtype: dict
+        :type instance: Result
         :return: the response minus exclusions as a dict
+        :rtype: dict
+
         """
 
         obj = instance.to_dict()

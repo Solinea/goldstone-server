@@ -18,6 +18,8 @@ from goldstone.api_perf.serializers import ApiPerfAggSerializer
 from goldstone.drfes.views import DateHistogramAggView
 
 
+# TODO: Scheduled for deletion.
+
 class ApiPerfAggView(DateHistogramAggView):
     """Aggregated API performance data."""
 

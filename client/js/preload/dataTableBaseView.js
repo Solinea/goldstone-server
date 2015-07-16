@@ -15,12 +15,30 @@
  */
 
 /*
-This view makes up the "Events" tab of nodeReportView.js
-It is sub-classed from GoldstoneBaseView.
-
 Much of the functionality is encompassed by the jQuery
 dataTables plugin which is documented at
 http://datatables.net/reference/api/
+
+EXAMPLE SERVERSIDE DATATABLE IMPLEMENTATION ON APIBROWSERPAGEVIEW:
+------------------------------------------------------------------
+
+// instantiated only for access to url generation functions
+    this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        skipFetch: true
+    });
+    this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+    this.apiBrowserTableCollection.addRange = function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    };
+
+    this.apiBrowserTable = new ApiBrowserDataTableView({
+        chartTitle: 'Api Browser',
+        collectionMixin: this.apiBrowserTableCollection,
+        el: '#api-browser-table',
+        infoIcon: 'fa-table',
+        width: $('#api-browser-table').width()
+    });
+
 */
 
 var DataTableBaseView = GoldstoneBaseView2.extend({
@@ -38,6 +56,10 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
     // keys will be pinned in descending value order due to 'unshift' below
     headingsToPin: {
         'name': 0
+    },
+
+    update: function() {
+        console.log('MUST DEFINE UPDATE IN SUBCLASS');
     },
 
     // search for headingsToPin anywhere in column heading
@@ -69,7 +91,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 i--;
             }
         }
-        return arr;
+        return arr.reverse();
     },
 
     dataPrep: function(tableData) {
@@ -144,9 +166,8 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return finalResults;
     },
 
-    oTableParamGenerator: function(data) {
+    oTableParamGeneratorBase: function(data) {
         return {
-            // false = show scroll bars rather than take up extra width
             "scrollX": "100%",
             "info": true,
             "processing": false,
@@ -158,11 +179,30 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             ],
             "ordering": true,
             "data": data,
-            "serverSide": false,
+            "serverSide": false
         };
     },
 
+    addOTableParams: function(options) {
+        return options;
+    },
+
+    oTableParamGenerator: function(data) {
+        result = this.oTableParamGeneratorBase(data);
+
+        // hook to add additional paramaters to the options hash
+        result = this.addOTableParams(result);
+        return result;
+    },
+
+
+    // invoked on subclass
     drawSearchTable: function(location, data) {
+
+        // variables to capture current state of dataTable
+        var currentTop; // capture top edge of screen
+        var recordsPerPage; // capture records per page
+        var currentSearchBox; // capture search box contents
 
         this.hideSpinner();
 
@@ -178,10 +218,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
         if ($.fn.dataTable.isDataTable(location)) {
 
-            // if dataTable already exists:
-            oTable = $(location).DataTable();
+            // first use jquery to store current top edge of visible screen
+            currentTop = $(document).scrollTop();
+            recordsPerPage = $(this.el).find('[name="reports-result-table_length"]').val();
+            currentSearchBox = $(this.el).find('[type="search"]').val();
 
+            // if dataTable already exists:
             // complete remove it from memory and the dom
+            oTable = $(location).DataTable();
             oTable.destroy({
                 remove: true
             });
@@ -196,7 +240,63 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         var oTableParams = this.oTableParamGenerator(data);
         oTable = $(location).DataTable(oTableParams);
 
+        // restore recordsPerPage
+        if (recordsPerPage !== undefined) {
+            oTable.page.len(recordsPerPage);
+        }
+
+        // lowercase dataTable returns reference to instantiated table
+        oTable = $(location).dataTable();
+
+        // restore currentSearchBox
+        if (currentSearchBox !== undefined) {
+            oTable.fnFilter(currentSearchBox);
+        }
+
+        // restore top edge of screen to couteract 'screen jump'
+        if (currentTop !== undefined) {
+            $(document).scrollTop(currentTop);
+        }
+
     },
+
+    drawSearchTableServerSide: function(location) {
+        var self = this;
+        this.hideSpinner();
+
+        // lookback listeners not already added,
+        // see note in processListenersForServerSide
+        this.processListenersForServerSide();
+
+        var oTableParams = this.oTableParamGenerator();
+
+        // removes initial placeholder message
+        $(this.el).find('.reports-info-container').remove();
+
+        // inserts table column headers
+        $(this.el).find('.data-table-header-container').remove();
+        $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
+
+        oTable = $(location).DataTable(oTableParams);
+
+    },
+
+    processListenersForServerSide: function() {
+        /*
+        listeners are added in the BaseView only for views that are linked to
+        collections. Since this is a server-side-processing dataTable, it has
+        not been linked. Therefore, add a listener so that when the
+        globalLookback selector is changed, invoke the update function
+        */
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            this.update();
+        });
+    },
+
+    // specify <tr>'s' and <th>'s on subclass
+    serverSideTableHeadings: _.template(''),
 
     template: _.template(
 
@@ -209,7 +309,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     dataTableTemplate: _.template(
         '<table id="reports-result-table" class="table table-hover">' +
-        '<thead>' +
+        '<thead class="data-table-thead">' +
         '<tr class="header data-table-header-container">' +
 
         // necessary <th> is appended here by jQuery in this.dataPrep()
