@@ -22,15 +22,20 @@ from rest_framework.response import Response
 class LogDataView(ElasticListAPIView):
     """Return logging data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
-                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 
@@ -44,15 +49,20 @@ class LogDataView(ElasticListAPIView):
 class LogAggView(ElasticListAPIView):
     """Return a Logstash aggregation.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
-                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 
@@ -85,15 +95,20 @@ class LogAggView(ElasticListAPIView):
 class LogEventView(ElasticListAPIView):
     """Return events from Logstash data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
-                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 
@@ -107,15 +122,20 @@ class LogEventView(ElasticListAPIView):
 class LogEventAggView(ElasticListAPIView):
     """Return a Logstash aggregation.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: A time range, as {'xxx':nnn}. Xxx is gte,
-                              gt, lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 

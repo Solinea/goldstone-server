@@ -20,10 +20,16 @@ from .models import ImagesData
 class ImagesDataView(JsonReadOnlyView):
     """Return Images data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 

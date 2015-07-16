@@ -21,10 +21,16 @@ from .models import ServicesData, VolumesData, \
 class VolumesDataView(JsonReadOnlyView):
     """Return Volume data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -37,10 +43,16 @@ class VolumesDataView(JsonReadOnlyView):
 class BackupsDataView(JsonReadOnlyView):
     """Return Backups data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -53,10 +65,16 @@ class BackupsDataView(JsonReadOnlyView):
 class SnapshotsDataView(JsonReadOnlyView):
     """Return Snapshots data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = SnapshotsData
@@ -67,10 +85,16 @@ class SnapshotsDataView(JsonReadOnlyView):
 class ServicesDataView(JsonReadOnlyView):
     """Return Services data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = ServicesData
@@ -82,10 +106,16 @@ class ServicesDataView(JsonReadOnlyView):
 class VolumeTypesDataView(JsonReadOnlyView):
     """Return VolumeTypes data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = VolTypesData
@@ -96,10 +126,16 @@ class VolumeTypesDataView(JsonReadOnlyView):
 class TransfersDataView(JsonReadOnlyView):
     """Return Transfers data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = TransfersData

@@ -21,10 +21,16 @@ from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
 class EndpointsDataView(JsonReadOnlyView):
     """Return Endpoints data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -36,10 +42,16 @@ class EndpointsDataView(JsonReadOnlyView):
 class RolesDataView(JsonReadOnlyView):
     """Return Roles data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -51,10 +63,16 @@ class RolesDataView(JsonReadOnlyView):
 class ServicesDataView(JsonReadOnlyView):
     """Return Services data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -66,10 +84,16 @@ class ServicesDataView(JsonReadOnlyView):
 class TenantsDataView(JsonReadOnlyView):
     """Return Tenants data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -81,10 +105,16 @@ class TenantsDataView(JsonReadOnlyView):
 class UsersDataView(JsonReadOnlyView):
     """Return Users data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
