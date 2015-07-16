@@ -39,22 +39,24 @@ var GoldstoneRouter = Backbone.Router.extend({
         "api_perf/report": "apiPerfReport",
         "addons/opentrail": "openTrail",
         "cinder/report": "cinderReport",
-        // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
-        "glance/report": "glanceReport",
         "help": "help",
-        "intelligence/search": "logSearch",
-        "intelligence/events": "eventsBrowser",
-        "keystone/report": "keystoneReport",
         "login": "login",
-        "metric": "metricViewer",
-        "metric/": "metricViewer",
-        "metric/:numCharts": "metricViewer",
-        "neutron/report": "neutronReport",
-        "nova/report": "novaReport",
+        "metrics/api_perf": "apiPerfReport",
+        "metrics/cinder_report": "cinderReport",
+        "metrics/glance_report": "glanceReport",
+        "metrics/keystone_report": "keystoneReport",
+        "metrics/metric_report": "metricViewer",
+        "metrics/metric_report/": "metricViewer",
+        "metrics/metric_report/:numCharts": "metricViewer",
+        "metrics/neutron_report": "neutronReport",
+        "metrics/nova_report": "novaReport",
         "password": "password",
         "report/node/:nodeId": "nodeReport",
+        "reports/logbrowser": "logSearch",
+        "reports/eventbrowser": "eventsBrowser",
+        "reports/apibrowser": "apiBrowser",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -141,6 +143,9 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     */
 
+    apiBrowser: function() {
+        this.switchView(ApiBrowserPageView);
+    },
     apiPerfReport: function() {
         this.switchView(ApiPerfReportView);
     },
@@ -166,7 +171,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LoginPageView);
     },
     logSearch: function() {
-        this.switchView(LogSearchView);
+        this.switchView(LogSearchPageView);
     },
     metricViewer: function(numCharts) {
         if (numCharts === null || numCharts === undefined) {

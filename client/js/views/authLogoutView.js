@@ -48,6 +48,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.setLogoutButtonHandler();
     },
 
+    // subscribed to gsRouter 'switching view' in router.html
     viewSwitchTriggered: function() {
         this.makeVisibleIfTokenPresent();
     },

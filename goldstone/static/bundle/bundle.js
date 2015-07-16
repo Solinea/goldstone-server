@@ -562,6 +562,9 @@ var GoldstoneBaseView2 = Backbone.View.extend({
         if (this.options.el) {
             this.el = this.options.el;
         }
+        if (this.options.collectionMixin) {
+            this.collectionMixin = this.options.collectionMixin;
+        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
         this.collection = this.options.collection || undefined;
@@ -1163,7 +1166,12 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         if (this.addPageSize) {
             this.url += this.addPageSize(this.pageSize);
         }
-        this.fetch();
+
+        // a gate to make sure this doesn't fire if
+        // this collection is being used as a mixin
+        if (this.options.skipFetch === undefined) {
+            this.fetch();
+        }
     },
 
     // add the following to instances to add to url genration scheme
@@ -1237,12 +1245,30 @@ GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView2.prototype.flat
  */
 
 /*
-This view makes up the "Events" tab of nodeReportView.js
-It is sub-classed from GoldstoneBaseView.
-
 Much of the functionality is encompassed by the jQuery
 dataTables plugin which is documented at
 http://datatables.net/reference/api/
+
+EXAMPLE SERVERSIDE DATATABLE IMPLEMENTATION ON APIBROWSERPAGEVIEW:
+------------------------------------------------------------------
+
+// instantiated only for access to url generation functions
+    this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        skipFetch: true
+    });
+    this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+    this.apiBrowserTableCollection.addRange = function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    };
+
+    this.apiBrowserTable = new ApiBrowserDataTableView({
+        chartTitle: 'Api Browser',
+        collectionMixin: this.apiBrowserTableCollection,
+        el: '#api-browser-table',
+        infoIcon: 'fa-table',
+        width: $('#api-browser-table').width()
+    });
+
 */
 
 var DataTableBaseView = GoldstoneBaseView2.extend({
@@ -1260,6 +1286,10 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
     // keys will be pinned in descending value order due to 'unshift' below
     headingsToPin: {
         'name': 0
+    },
+
+    update: function() {
+        console.log('MUST DEFINE UPDATE IN SUBCLASS');
     },
 
     // search for headingsToPin anywhere in column heading
@@ -1291,7 +1321,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
                 i--;
             }
         }
-        return arr;
+        return arr.reverse();
     },
 
     dataPrep: function(tableData) {
@@ -1366,9 +1396,8 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         return finalResults;
     },
 
-    oTableParamGenerator: function(data) {
+    oTableParamGeneratorBase: function(data) {
         return {
-            // false = show scroll bars rather than take up extra width
             "scrollX": "100%",
             "info": true,
             "processing": false,
@@ -1380,11 +1409,30 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
             ],
             "ordering": true,
             "data": data,
-            "serverSide": false,
+            "serverSide": false
         };
     },
 
+    addOTableParams: function(options) {
+        return options;
+    },
+
+    oTableParamGenerator: function(data) {
+        result = this.oTableParamGeneratorBase(data);
+
+        // hook to add additional paramaters to the options hash
+        result = this.addOTableParams(result);
+        return result;
+    },
+
+
+    // invoked on subclass
     drawSearchTable: function(location, data) {
+
+        // variables to capture current state of dataTable
+        var currentTop; // capture top edge of screen
+        var recordsPerPage; // capture records per page
+        var currentSearchBox; // capture search box contents
 
         this.hideSpinner();
 
@@ -1400,10 +1448,14 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
         if ($.fn.dataTable.isDataTable(location)) {
 
-            // if dataTable already exists:
-            oTable = $(location).DataTable();
+            // first use jquery to store current top edge of visible screen
+            currentTop = $(document).scrollTop();
+            recordsPerPage = $(this.el).find('[name="reports-result-table_length"]').val();
+            currentSearchBox = $(this.el).find('[type="search"]').val();
 
+            // if dataTable already exists:
             // complete remove it from memory and the dom
+            oTable = $(location).DataTable();
             oTable.destroy({
                 remove: true
             });
@@ -1418,7 +1470,63 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         var oTableParams = this.oTableParamGenerator(data);
         oTable = $(location).DataTable(oTableParams);
 
+        // restore recordsPerPage
+        if (recordsPerPage !== undefined) {
+            oTable.page.len(recordsPerPage);
+        }
+
+        // lowercase dataTable returns reference to instantiated table
+        oTable = $(location).dataTable();
+
+        // restore currentSearchBox
+        if (currentSearchBox !== undefined) {
+            oTable.fnFilter(currentSearchBox);
+        }
+
+        // restore top edge of screen to couteract 'screen jump'
+        if (currentTop !== undefined) {
+            $(document).scrollTop(currentTop);
+        }
+
     },
+
+    drawSearchTableServerSide: function(location) {
+        var self = this;
+        this.hideSpinner();
+
+        // lookback listeners not already added,
+        // see note in processListenersForServerSide
+        this.processListenersForServerSide();
+
+        var oTableParams = this.oTableParamGenerator();
+
+        // removes initial placeholder message
+        $(this.el).find('.reports-info-container').remove();
+
+        // inserts table column headers
+        $(this.el).find('.data-table-header-container').remove();
+        $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
+
+        oTable = $(location).DataTable(oTableParams);
+
+    },
+
+    processListenersForServerSide: function() {
+        /*
+        listeners are added in the BaseView only for views that are linked to
+        collections. Since this is a server-side-processing dataTable, it has
+        not been linked. Therefore, add a listener so that when the
+        globalLookback selector is changed, invoke the update function
+        */
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            this.update();
+        });
+    },
+
+    // specify <tr>'s' and <th>'s on subclass
+    serverSideTableHeadings: _.template(''),
 
     template: _.template(
 
@@ -1431,7 +1539,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
 
     dataTableTemplate: _.template(
         '<table id="reports-result-table" class="table table-hover">' +
-        '<thead>' +
+        '<thead class="data-table-thead">' +
         '<tr class="header data-table-header-container">' +
 
         // necessary <th> is appended here by jQuery in this.dataPrep()
@@ -1483,22 +1591,24 @@ var GoldstoneRouter = Backbone.Router.extend({
         "api_perf/report": "apiPerfReport",
         "addons/opentrail": "openTrail",
         "cinder/report": "cinderReport",
-        // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
-        "glance/report": "glanceReport",
         "help": "help",
-        "intelligence/search": "logSearch",
-        "intelligence/events": "eventsBrowser",
-        "keystone/report": "keystoneReport",
         "login": "login",
-        "metric": "metricViewer",
-        "metric/": "metricViewer",
-        "metric/:numCharts": "metricViewer",
-        "neutron/report": "neutronReport",
-        "nova/report": "novaReport",
+        "metrics/api_perf": "apiPerfReport",
+        "metrics/cinder_report": "cinderReport",
+        "metrics/glance_report": "glanceReport",
+        "metrics/keystone_report": "keystoneReport",
+        "metrics/metric_report": "metricViewer",
+        "metrics/metric_report/": "metricViewer",
+        "metrics/metric_report/:numCharts": "metricViewer",
+        "metrics/neutron_report": "neutronReport",
+        "metrics/nova_report": "novaReport",
         "password": "password",
         "report/node/:nodeId": "nodeReport",
+        "reports/logbrowser": "logSearch",
+        "reports/eventbrowser": "eventsBrowser",
+        "reports/apibrowser": "apiBrowser",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -1585,6 +1695,9 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     */
 
+    apiBrowser: function() {
+        this.switchView(ApiBrowserPageView);
+    },
     apiPerfReport: function() {
         this.switchView(ApiPerfReportView);
     },
@@ -1610,7 +1723,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LoginPageView);
     },
     logSearch: function() {
-        this.switchView(LogSearchView);
+        this.switchView(LogSearchPageView);
     },
     metricViewer: function(numCharts) {
         if (numCharts === null || numCharts === undefined) {
@@ -2738,6 +2851,154 @@ var InfoButtonText = GoldstoneBaseModel.extend({
  */
 
 /*
+
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+
+this.eventsBrowserTable = new EventsBrowserDataTableView({
+    chartTitle: 'Events Browser',
+    collection: this.eventsBrowserTableCollection,
+    el: '#events-browser-table',
+    infoIcon: 'fa-table',
+    width: $('#events-browser-table').width()
+});
+
+*/
+
+// define collection and link to model
+var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/apiperf/search/',
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '&page_size=' + n;
+    },
+
+    preProcessData: function(data) {
+        if(data && data.results) {
+            return data.results;
+        }
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+instantiated on eventsBrowserPageView as:
+
+this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+this.eventsBrowserView = new ChartSet({
+    chartTitle: 'Events Histogram',
+    collection: this.eventsBrowserVizCollection,
+    el: '#events-histogram-visualization',
+    infoIcon: 'fa-tasks',
+    width: $('#events-histogram-visualization').width(),
+    yAxisLabel: 'Number of Events'
+});
+ */
+
+// define collection and link to model
+
+var ApiHistogramCollection = GoldstoneBaseCollection.extend({
+    instanceSpecificInit: function() {
+        this.urlGenerator();
+    },
+
+    urlBase: '/core/apiperf/summarize/',
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 's';
+    },
+
+    preProcessData: function(data) {
+        var self = this;
+        // initialize container for formatted results
+        finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.per_interval, function(item) {
+            var tempObj = {};
+            // adds the 'time' param based on the object keyed by timestamp
+            // and the 200-500 statuses
+            tempObj.time = parseInt(_.keys(item)[0], 10);
+            tempObj.count = item[tempObj.time].count;
+            // iterate through each item in the array
+            // _.each(item[tempObj.time], function(obj){
+            //     var key = _.keys(obj);
+            //     var value = _.values(obj)[0];
+
+            //     // copy key/value pairs to tempObj
+            //     tempObj[key] = value;
+            // });
+
+            // initialize counter
+            // var count = 0;
+            // _.each(tempObj, function(val, key) {
+            //     // add up the values of each nested object
+            //     if(key !== 'time') {
+            //         count += val;
+            //     }
+            // });
+
+            // set 'count' equal to the counter
+            // tempObj.count = count;
+
+            // add the tempObj to the final results array
+            finalResult.push(tempObj);
+        });
+
+        // returning inside the 'parse' function adds to collection
+        // and triggers 'sync'
+        return finalResult;
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
@@ -3314,7 +3575,7 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 // define collection and link to model
 
 /*
-instantiated in logSearchView.js as:
+instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 
@@ -4041,6 +4302,644 @@ var OpenTrailPageView = GoldstoneBasePageView2.extend({
  * limitations under the License.
  */
 
+/*
+the jQuery dataTables plugin is documented at
+http://datatables.net/reference/api/
+
+instantiated on apiBrowserPageView as:
+
+    this.eventsBrowserTable = new EventsBrowserDataTableView({
+        el: '.events-browser-table',
+        chartTitle: 'Events Browser',
+        infoIcon: 'fa-table',
+        width: $('.events-browser-table').width()
+    });
+
+*/
+
+var ApiBrowserDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        this.drawSearchTableServerSide('#reports-result-table');
+    },
+
+    update: function() {
+        // this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+        var oTable;
+
+        if ($.fn.dataTable.isDataTable("#reports-result-table")) {
+            oTable = $("#reports-result-table").DataTable();
+            oTable.ajax.reload();
+        }
+    },
+
+    oTableParamGeneratorBase: function() {
+        var self = this;
+        return {
+            "scrollX": "100%",
+            "processing": false,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
+            "columnDefs": [{
+                    "data": "@timestamp",
+                    "type": "date",
+                    "targets": 0,
+                    "render": function(data, type, full, meta) {
+                        return moment(data).format();
+                    }
+                }, {
+                    "data": "host",
+                    "targets": 1
+                }, {
+                    "data": "client_ip",
+                    "targets": 2
+                }, {
+                    "data": "uri",
+                    "targets": 3
+                }, {
+                    "data": "response_status",
+                    "targets": 4
+                }, {
+                    "data": "response_time",
+                    "targets": 5
+                }, {
+                    "data": "response_length",
+                    "targets": 6
+                }, {
+                    "data": "component",
+                    "targets": 7
+                }, {
+                    "data": "type",
+                    "targets": 8
+                }, {
+                    "data": "doc_type",
+                    "visible": false,
+                    "searchable": true
+                }, {
+                    "data": "id",
+                    "visible": false,
+                    "searchable": true
+                },
+
+            ],
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
+                    self.collectionMixin.urlGenerator();
+                    // the pageSize and searchQuery are jQuery values
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
+
+                    // the paginationStart is taken from the dataTables
+                    // generated serverSide query string that will be
+                    // replaced by this.defaults.url after the required
+                    // components are parsed out of it
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
+                        "&page=" + computeStartPage;
+
+                    // here begins the combiation of additional params
+                    // to construct the final url for the dataTable fetch
+                    if (searchQuery) {
+                        settings.url += "&_all__regexp=.*" +
+                            searchQuery + ".*";
+                    }
+
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        // generalize if sorting is implemented server-side
+                        var columnLabelHash = {
+                            0: '@timestamp',
+                            1: 'syslog_severity',
+                            2: 'component',
+                            3: 'host',
+                            4: 'log_message'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        // uncomment when ordering is in place.
+                        // settings.url = settings.url + "&ordering=" +
+                        //     ascDec + columnLabelHash[orderByColumn];
+                    }
+
+
+
+                },
+                dataSrc: "results",
+                dataFilter: function(data) {
+                    data = self.serverSideDataPrep(data);
+                    return data;
+                },
+            },
+        };
+    },
+
+    serverSideDataPrep: function(data) {
+        data = JSON.parse(data);
+        var result = {
+            results: data.results,
+            recordsTotal: data.count,
+            recordsFiltered: data.count
+        };
+        result = JSON.stringify(result);
+        return result;
+    },
+
+    serverSideTableHeadings: _.template('' +
+        '<tr class="header">' +
+        '<th>timestamp</th>' +
+        '<th>host</th>' +
+        '<th>client ip</th>' +
+        '<th>uri</th>' +
+        '<th>status</th>' +
+        '<th>response time</th>' +
+        '<th>length</th>' +
+        '<th>component</th>' +
+        '<th>type</th>' +
+        '</tr>'
+    )
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var ApiBrowserPageView = GoldstoneBasePageView2.extend({
+
+    renderCharts: function() {
+
+        this.apiBrowserVizCollection = new ApiHistogramCollection({});
+
+        this.apiBrowserView = new ApiBrowserView({
+            chartTitle: 'Api Calls vs Time',
+            collection: this.apiBrowserVizCollection,
+            el: '#api-histogram-visualization',
+            infoIcon: 'fa-tasks',
+            width: $('#api-histogram-visualization').width(),
+            yAxisLabel: 'Api Calls by Range',
+            marginLeft: 60
+        });
+
+        // instantiated only for access to url generation functions
+        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });
+        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+        this.apiBrowserTableCollection.addRange = function() {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        };
+
+        this.apiBrowserTable = new ApiBrowserDataTableView({
+            chartTitle: 'Api Browser',
+            collectionMixin: this.apiBrowserTableCollection,
+            el: '#api-browser-table',
+            infoIcon: 'fa-table',
+            width: $('#api-browser-table').width()
+        });
+
+        // triggered on GoldstoneBasePageView2, itereates through array
+        // and calls stopListening() and off() for memory management
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+            this.apiBrowserTable.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    template: _.template('' +
+
+        '<div class="row">' +
+        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="api-browser-table" class="col-md-12"></div>' +
+        '</div>'
+    )
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var ApiBrowserView = ChartSet.extend({
+
+    // instanceSpecificInit: function() {
+    //     this.data = [];
+    //     this.processOptions();
+
+    //     this.renderChartBorders();
+    //     this.makeChart();
+    // },
+
+    // processOptions: function() {
+
+    //     this.collection = this.options.collection ? this.options.collection : undefined;
+    //     this.chartTitle = this.options.chartTitle || null;
+    //     if (this.options.el) {
+    //         this.el = this.options.el;
+    //     }
+    //     this.width = this.options.width || 300;
+    //     this.height = this.options.height || 400;
+    //     this.infoIcon = this.options.infoIcon;
+    //     this.infoText = this.options.infoText;
+    //     this.marginLeft = this.options.marginLeft || 50;
+    //     this.marginRight = this.options.marginRight || 120;
+    //     this.marginTop = this.options.marginTop || 20;
+    //     this.marginBottom = this.options.marginBottom || 80;
+    //     this.yAxisLabel = this.options.yAxisLabel;
+    //     this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
+    //     this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
+    //     this.colorArray = new GoldstoneColors().get('colorSets');
+    //     this.shapeArray = ['rect', 'circle'];
+    //     this.shapeCounter = 0;
+    //     this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
+    //     this.xParam = this.options.xParam;
+    //     this.yParam = this.options.yParam;
+    // },
+
+    // resetXParam: function(param) {
+    //     param = param || 'time';
+    //     this.xParam = param;
+    // },
+
+    // resetYParam: function(param) {
+    //     param = param || 'count';
+    //     this.yParam = param;
+    // },
+
+    // renderChartBorders: function() {
+    //     this.$el.append(new ChartHeaderView({
+    //         chartTitle: this.chartTitle,
+    //         infoText: this.infoText,
+    //         infoIcon: this.infoIcon,
+    //     }).el);
+    // },
+
+    // makeChart: function() {
+    //     this.processListeners();
+    //     this.svgAdder(this.width, this.height);
+    //     this.initializePopovers();
+    //     this.chartAdder();
+
+    //     this.setXDomain();
+    //     this.setYDomain();
+
+    //     this.setXAxis();
+    //     this.setYAxis();
+    //     this.callXAxis();
+    //     this.callYAxis();
+
+    //     this.setYAxisLabel();
+    //     this.setSpinner();
+    // },
+
+    // update: function() {
+    //     this.setData(this.collection.toJSON());
+    //     this.updateWithNewData();
+    // },
+
+    // updateWithNewData: function() {
+    //     this.setXDomain();
+    //     this.setYDomain();
+    //     this.resetAxes();
+    //     this.bindShapeToData(this.shape);
+    //     this.shapeUpdate(this.shape);
+    //     this.shapeEnter(this.shape);
+    //     this.shapeExit(this.shape);
+    //     this.hideSpinner();
+    // },
+
+    // initializePopovers: function() {
+    //     var self = this;
+    //     this.tip = d3.tip()
+    //         .attr('class', 'd3-tip')
+    //         .offset([-10, 0])
+    //         .html(function(d) {
+    //             return self.popoverTimeLabel + ": " + moment(+d.time).format() +
+    //                 "<br>" +
+    //                 self.popoverUnitLabel + ": " + d.count;
+    //         });
+
+    //     this.svg.call(this.tip);
+    // },
+
+    // setData: function(newData) {
+    //     this.data = newData;
+    // },
+
+    // svgAdder: function() {
+    //     this.svg = d3.select(this.el).append('svg')
+    //         .attr('width', this.width)
+    //         .attr('height', this.height);
+    // },
+
+    // chartAdder: function() {
+    //     this.chart = this.svg
+    //         .append('g')
+    //         .attr('class', 'chart')
+    //         .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+    // },
+
+    // setXDomain: function() {
+    //     var param = this.xParam || 'time';
+    //     var self = this;
+    //     this.x = d3.time.scale()
+    //     // protect against invalid data and NaN for initial
+    //     // setting of domain with unary conditional
+    //     .domain(self.data.length ? d3.extent(this.data, function(d) {
+    //         return d[param];
+    //     }) : [1, 1])
+    //         .range([0, (this.width - this.marginLeft - this.marginRight)]);
+    // },
+
+    // setYDomain: function() {
+    //     var param = this.yParam || 'count';
+    //     var self = this;
+    //     // protect against invalid data and NaN for initial
+    //     // setting of domain with unary conditional
+    //     this.y = d3.scale.linear()
+    //         .domain([0, self.data.length ? d3.max(this.data, function(d) {
+    //             return d[param];
+    //         }) : 0])
+    //         .range([(this.height - this.marginTop - this.marginBottom), 0]);
+    // },
+
+    // setYAxisLabel: function() {
+    //     this.svg.append("text")
+    //         .attr("class", "axis.label")
+    //         .attr("transform", "rotate(-90)")
+    //         .attr("x", 0 - (this.height / 2))
+    //         .attr("y", -5)
+    //         .attr("dy", "1.5em")
+    //         .text(this.yAxisLabel)
+    //         .style("text-anchor", "middle");
+    // },
+
+    // bindShapeToData: function(shape, binding) {
+    //     this[shape] = this.chart.selectAll(shape)
+    //         .data(this.data, function(d) {
+    //             return binding ? d[binding] : d.time;
+    //         });
+    // },
+
+    // shapeUpdate: function(shape) {
+    //     var xParam = this.xParam || 'time';
+    //     var yParam = this.yParam || 'count';
+    //     var self = this;
+    //     this[shape]
+    //         .transition()
+    //         .attr('cx', function(d) {
+    //             return self.x(d[xParam]);
+    //         })
+    //         .attr('cy', function(d) {
+    //             return self.y(d[yParam]);
+    //         })
+    //         .attr('r', 10)
+    //         .attr('x', function(d) {
+    //             return self.x(d[xParam]);
+    //         })
+    //         .attr('y', function(d) {
+    //             return self.y(d[yParam]);
+    //         })
+    //         .attr('height', function(d) {
+    //             return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
+    //         })
+    //         .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length);
+    // },
+
+    // shapeEnter: function(shape) {
+    //     var xParam = this.xParam || 'time';
+    //     var yParam = this.yParam || 'count';
+    //     var self = this;
+    //     this[shape]
+    //         .enter()
+    //         .append(shape)
+    //         .attr("fill", this.colorArray.distinct[3][1])
+    //         .style('fill-opacity', 1e-6)
+    //         .attr('class', 'chart-rect')
+    //         .attr('id', 'chart-rect')
+    //         .attr('x', function(d) {
+    //             return self.x(d[xParam]);
+    //         })
+    //         .attr('y', function(d) {
+    //             return (self.y(d[yParam]));
+    //         })
+    //         .attr('height', function(d) {
+    //             return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
+    //         })
+    //         .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length)
+    //         .attr('cx', function(d) {
+    //             return self.x(d[xParam]);
+    //         })
+    //         .attr('cy', function(d) {
+    //             return (self.y(d[yParam]));
+    //         })
+    //         .attr('r', 10)
+    //         .on('mouseover', function(d) {
+    //             self.mouseoverAction(d);
+    //         })
+    //         .on('mouseout', function(d) {
+    //             self.mouseoutAction(d);
+    //         })
+    //         .transition()
+    //         .style('fill-opacity', 1);
+    // },
+
+    // mouseoverAction: function(d) {
+    //     this.tip.show(d);
+    // },
+
+    // mouseoutAction: function(d) {
+    //     this.tip.hide();
+    // },
+
+    // shapeExit: function(shape) {
+    //     this[shape]
+    //         .exit()
+    //         .transition()
+    //         .style('fill-opacity', 1e-6)
+    //         .remove();
+    // },
+
+    // switchShape: function() {
+    //     this.svgClearer(this.shape);
+    //     this.shape = this.shapeArray[this.shapeCounter++ % 2];
+    //     this.bindShapeToData(this.shape);
+    //     this.shapeUpdate(this.shape);
+    //     this.shapeEnter(this.shape);
+    //     this.shapeExit(this.shape);
+    // },
+
+    // areaSetter: function() {
+    //     var self = this;
+    //     this.area = d3.svg.area()
+    //         .interpolate("basis")
+    //         .tension(0.85)
+    //         .x(function(d) {
+    //             return self.x(d.time);
+    //         })
+    //         .y0(function(d) {
+    //             return self.y(0);
+    //         })
+    //         .y1(function(d) {
+    //             return self.y(d.count);
+    //         });
+    // },
+
+    // pathAdder: function(datum) {
+    //     var self = this;
+    //     this.chart.append("path")
+    //         .datum(datum)
+    //         .attr("class", "area")
+    //         .attr("id", "minMaxArea")
+    //         .attr("d", this.area)
+    //         .attr("fill", this.colorArray.distinct[3][1])
+    //         .style("opacity", 0.8);
+    // },
+
+    // svgClearer: function(attribute) {
+    //     var selector = this.chart;
+    //     selector.selectAll(attribute)
+    //         .data([])
+    //         .exit()
+    //         .transition()
+    //         .style("fill-opacity", 1e-6)
+    //         .remove();
+    // },
+
+    // setXAxis: function() {
+    //     this.xAxis = d3.svg.axis()
+    //         .scale(this.x)
+    //         .ticks(4)
+    //     // format: day month H:M:S
+    //     .tickFormat(d3.time.format("%e %b %X"))
+    //         .orient("bottom");
+    // },
+
+    // setYAxis: function() {
+    //     this.yAxis = d3.svg.axis()
+    //         .scale(this.y)
+    //         .ticks(5)
+    //         .orient("left");
+    // },
+
+    // callXAxis: function() {
+    //     this.svg
+    //         .append('g')
+    //         .attr("class", "x axis")
+    //         .attr('transform', 'translate(' + (this.marginLeft) + ',' + (this.height - this.marginBottom) + ')')
+    //         .call(this.xAxis);
+    // },
+
+    // callYAxis: function() {
+    //     this.svg
+    //         .append('g')
+    //         .attr("class", "y axis")
+    //         .attr('transform', 'translate(' + (this.marginLeft) + ',' + this.marginTop + ')')
+    //         .call(this.yAxis);
+    // },
+
+    // resetAxes: function() {
+    //     var self = this;
+    //     d3.select(this.el).select('.axis.x')
+    //         .transition()
+    //         .call(this.xAxis.scale(self.x));
+
+    //     self.svg.select('.axis.y')
+    //         .transition()
+    //         .call(this.yAxis.scale(self.y));
+    // },
+
+    // addToLegend: function(selector, legendText) {
+    //     d3.select(this.el).select(selector)
+    //         .attr('data-legend', legendText);
+    // },
+
+    // appendLegend: function() {
+    //     this.svg.append("g")
+    //         .attr("class", "legend")
+    //         .attr("transform", "translate(" + this.marginLeft + ",10)")
+    //         .call(d3.legend);
+    // }
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
@@ -4546,6 +5445,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.setLogoutButtonHandler();
     },
 
+    // subscribed to gsRouter 'switching view' in router.html
     viewSwitchTriggered: function() {
         this.makeVisibleIfTokenPresent();
     },
@@ -5645,9 +6545,17 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         return result;
     },
 
-    // keys will be pinned in descending value order
+    // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'id': 6, 'type': 7, 'timestamp': 8, 'user_name': 5, 'user_type': 4, 'tenant_name': 3, 'tenant_type': 2, 'instance_name': 1, 'instance_type': 0,
+        'timestamp': 0,
+        'type': 1,
+        'id': 2,
+        'user_name': 3,
+        'user_type': 4,
+        'tenant_name': 5,
+        'tenant_type': 6,
+        'instance_name': 7,
+        'instance_type': 8
     }
 });
 ;
@@ -5667,18 +6575,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
  * limitations under the License.
  */
 
-/*
-The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
-from this view, and with the triggerChange function, kick off responding
-processes in the LogAnalysisView that is instantiated from within this view.
-
-instantiated in goldstoneRouter as
-    new EventsBrowserPageView({
-        el: ".launcher-container"
-    });
-*/
-
 var EventsBrowserPageView = GoldstoneBasePageView2.extend({
 
     renderCharts: function() {
@@ -5686,7 +6582,7 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events Histogram',
+            chartTitle: 'Events vs Time',
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -6895,7 +7791,7 @@ openstack syslog severity levels:
 7       DEBUG: debug-level messages
 /*
 
-/* instantiated in logSearchView.js as:
+/* instantiated in logSearchPageView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 
@@ -7482,7 +8378,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         // here begins the combiation of additional params
                         // to construct the final url for the dataTable fetch
                         if (searchQuery) {
-                            settings.url += "&log_message__regexp=.*" +
+                            settings.url += "&_all__regexp=.*" +
                                 searchQuery + ".*";
                         }
 
@@ -7652,17 +8548,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
 /*
 The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+within this LogSearchPageView. The global lookback/refresh listeners are listenTo()'d
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
 instantiated in goldstoneRouter as
-    new LogSearchView({
+    new LogSearchPageView({
         el: ".launcher-container"
     });
 */
 
-var LogSearchView = GoldstoneBasePageView.extend({
+var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
@@ -7697,7 +8593,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Log Analysis',
+            chartTitle: 'Logs vs Time',
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
         }).el);
@@ -8844,6 +9740,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 .range(ns.colorArray.distinct['2R']);
         }
 
+        this.populateInfoButton();
     },
 
     collectionPrep: function(data) {
@@ -9427,6 +10324,31 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         } else {
             this.appendLegend(legendSpecs.spawn);
         }
+    },
+
+    populateInfoButton: function() {
+        var self = this;
+        // chart info button popover generator
+        var infoButtonText = new InfoButtonText().get('infoText');
+        var htmlGen = function() {
+            var result = infoButtonText[this.defaults.infoCustom];
+            result = result ? result : 'Set in InfoButtonText.js';
+            return result;
+        };
+
+        $(this.el).find('#chart-button-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('toggle');
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('hide');
+            });
     },
 
     appendLegend: function(legendSpecs) {
@@ -10989,7 +11911,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         this.logsReportCollection = new LogAnalysisCollection({});
 
-        this.logAnalysisView = new LogSearchView({
+        this.logAnalysisView = new LogSearchPageView({
             collection: this.logAnalysisCollection,
             width: $('#logsReport').width(),
             height: 300,
