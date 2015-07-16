@@ -42,30 +42,6 @@ urlpatterns = patterns(
     url(r'^servers', ServersDataView.as_view(), name='nova-servers'),
     url(r'^services', ServicesDataView.as_view(), name='nova-services'),
     )
-# router.register(r'^agents', AgentsDataView, base_name='nova-agents')
-# router.register(r'^aggregates',
-#                 AggregatesDataView,
-#                 base_name='nova-aggregates')
-# router.register(r'^availability_zones',
-#                 AvailZonesDataView,
-#                 base_name='nova-availability-zones')
-# router.register(r'^cloudpipes',
-#                 CloudpipesDataView,
-#                 base_name='nova-cloudpipes')
-# router.register(r'^flavors', FlavorsDataView, base_name='nova-flavors')
-# router.register(r'^floating_ip_pools',
-#                 FloatingIpPoolsDataView,
-#                 base_name='nova-floating-ip-pools')
-# router.register(r'^hosts', HostsDataView, base_name='nova-hosts')
-# router.register(r'^hypervisors',
-#                 HypervisorsDataView,
-#                 base_name='nova-hypervisors')
-# router.register(r'^networks', NetworksDataView, base_name='nova-networks')
-# router.register(r'^security_groups',
-#                 SecGroupsDataView,
-#                 base_name='nova-security-groups')
-# router.register(r'^servers', ServersDataView, base_name='nova-servers')
-# router.register(r'^services', ServicesDataView, base_name='nova-services')
 
 # Other views.
 urlpatterns += patterns(
