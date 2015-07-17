@@ -77,7 +77,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
         list = JSON.parse(list);
         _.each(list, function(item) {
             result += '<li><a href="' + item.url_root +
-            '"><i class="fa fa-star"></i> ' + item.name +
+            '/"><i class="fa fa-star"></i> ' + item.name +
             '</a>';
         });
         return _.template(result);
