@@ -27,8 +27,14 @@ var LoginPageView = GoldstoneBaseView2.extend({
             url: '/addons/'
         }).done(function(success) {
             localStorage.setItem('addons', JSON.stringify(success));
+
+            // triggers view in addonMenuView.js
+            app.addonMenuView.trigger('installedAppsUpdated');
         }).fail(function(fail) {
             console.log('failed to initialize installed apps');
+
+            // triggers view in addonMenuView.js
+            app.addonMenuView.trigger('installedAppsUpdated');
         });
     },
 

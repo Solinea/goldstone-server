@@ -47,6 +47,10 @@
                 el: ".logout-icon-container"
             });
 
+            app.addonMenuView = new AddonMenuView({
+                el: ".addon-menu-view-container"
+            });
+
             // append global selectors to page
             app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
             $('.global-range-refresh-container').append(app.globalLookbackRefreshSelectors.el);
