@@ -167,28 +167,10 @@
     <script src="{% static 'bundle/bundle.js' %}"></script>
 
     <script>
-    // the main container for views under the Backbone Router schema
-    app = {};
-
-    $(function(){
-
-        /*
-        LogoutIcon encapsulates the initialization of the $(document) listner
-        for ajaxSend events and uses xhr.setRequestHeader to append the Auth
-        token on all subsequent api calls. It also serves to handle 401 auth
-        errors, removing any existing token, and redirecting to the login page.
-
-        authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-        router.html. Following that, only if there is a token
-        present (expired or not), it will use css to show/hide the logout icon
-        in the top-right corner of the page.
-        */
-
-        app.authLogoutIcon = new LogoutIcon({
-            el: ".logout-icon-container"
-        });
-
-    });
+    /* all goldstone JavsScript libraries loaded prior to here
+    localStorage pruned in authLogoutIcon instance
+    instantiated on router.html
+    */
     </script>
 
     {% block localjs %}
