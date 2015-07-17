@@ -5433,6 +5433,10 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
+
+        // prune old unused localStorage keys
+        this.pruneLocalStorage();
+
         // if auth token present, hijack all subsequent ajax requests
         // with an auth header containing the locally stored token
         this.setAJAXSendRequestHeaderParams();
@@ -5443,6 +5447,24 @@ var LogoutIcon = GoldstoneBaseView.extend({
         // clicking logout button > expire token via /accounts/logout
         // then clear token from localStorage and redirect to /login
         this.setLogoutButtonHandler();
+    },
+
+    pruneLocalStorage: function() {
+        var temp = {};
+
+        if(app === undefined || app.localStorageKeys === undefined) {
+            return;
+        }
+
+        _.each(app.localStorageKeys, function(item) {
+            temp[item] = localStorage.getItem(item);
+        });
+        localStorage.clear();
+        _.each(app.localStorageKeys, function(item) {
+            if(temp[item] !== null) {
+                localStorage.setItem(item, temp[item]);
+            }
+        });
     },
 
     // subscribed to gsRouter 'switching view' in router.html
