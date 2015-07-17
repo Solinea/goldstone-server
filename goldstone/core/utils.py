@@ -16,10 +16,9 @@ import logging
 
 import elasticsearch
 from rest_framework import status, serializers
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework import mixins
 from rest_framework.views import exception_handler
-from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
 
 logger = logging.getLogger(__name__)
@@ -46,8 +45,8 @@ class JsonReadOnlySerializer(serializers.Serializer):
         return self.to_representation(self.instance)
 
 
-class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
-    """A base ViewSet that renders a JSON response only for "list" actions;
+class JsonReadOnlyView(ListAPIView):
+    """A base View that renders a JSON response only for "list" actions;
     i.e., GET requests for a collection of objects.
 
     This must be subclassed.
@@ -109,7 +108,7 @@ class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
             return [[]]
 
     def list(self, request, *args, **kwargs):
-        """Implement the GET request for a collection."""
+        """Implement the collection GET request."""
 
         # Extract a zone or region provided in the request, if present.
         request_zone = request.query_params.get('zone')

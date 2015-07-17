@@ -39,15 +39,20 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 class ReportDataListView(ElasticListAPIView):
     """Return events from Logstash data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
-                              lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 
@@ -65,14 +70,19 @@ class ReportNamesAggView(SimpleAggView):
     scope can be limited to a specific host, time range, etc. by using
     query params such has host=xyz or @timestamp__range={'gt': 0}.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
-                              lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: host
+             description: A host.
+             paramType: query
 
     """
 
@@ -94,15 +104,20 @@ class ReportNamesAggView(SimpleAggView):
 class MetricDataListView(ElasticListAPIView):
     """Return events from Logstash data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>name__prefix</b>: The desired service name prefix. E.g.,
-                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
-    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
-                              lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: name__prefix
+             description: The desired service name prefix. E.g.,
+                          nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+             paramType: query
 
     """
 
@@ -120,14 +135,19 @@ class MetricNamesAggView(SimpleAggView):
     scope can be limited to a specific host, time range, etc. by using
     query params such has host=xyz or @timestamp__range={'gt': 0}.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
-                              lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: host
+             description: A host.
+             paramType: query
 
     """
 
@@ -143,14 +163,19 @@ class MetricNamesAggView(SimpleAggView):
 class MetricAggView(DateHistogramAggView):
     """Return metric aggregations.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>host</b>: A host.\n
-    <b>@timestamp__range</b>: The time range, as {'xxx':nnn}. Xxx is gte, gt,
-                              lte, or lt.  Nnn is an epoch number.  E.g.,
-                              {'gte': 1430164651890}. You can also use AND,
-                              e.g., {'gte': 1430164651890, 'lt':
-                              1455160000000}\n\n
+    GET:
+        parameters:
+           - name: "@timestamp__range"
+             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
+                          or lt.  Nnn is an epoch number.  E.g.,
+                          {'gte':1430164651890}. You can also use AND, e.g.,
+                          {'gte':1430164651890, 'lt':1455160000000}
+             paramType: query
+           - name: host
+             description: A host.
+             paramType: query
 
     """
 
@@ -181,14 +206,14 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.\n\n
 
-    A resource has the following structure:\n
+    A resource has this structure:\n
 
     {"rsrcType": "cloud|region|zone|service|volume|etc.",\n
      "label": "string",\n
      "info": {"key": "value" [, "key": "value", ...]}, (optional)\n
      "lifeStage": "new|existing|absent", (optional)\n
      "enabled": True|False, (optional)\n
-     "children": [rsrcType] (optional)\n
+     "children": [rsrcType] (optional)
     }
 
      """
@@ -367,7 +392,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
     serializer_class = PassthruSerializer
 
     def get(self, request, unique_id, *args, **kwargs):
-        """<b>unique_id</b> is a resource type's unique id.\n\n
+        """Return the nodes having a particular resource type.
 
         The response payload is a list of resource graph nodes:
 
@@ -384,6 +409,13 @@ class ResourceTypeRetrieve(RetrieveAPIView):
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
+
+        ---
+
+        parameters:
+            - name: unique_id
+              description: A resource type's unique id.
+              paramType: query
 
         """
 
@@ -523,9 +555,7 @@ class ResourcesRetrieve(RetrieveAPIView):
     serializer_class = PassthruSerializer
 
     def get(self, request, uuid, *args, **kwargs):
-        """<b>uuid</b> is a resource's UUID.\n\n
-
-        The response payload is:
+        """The response payload is:
 
         {"native_id": str, "native_name": str, "attributes": dict}\n\n
 
@@ -535,6 +565,13 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
+
+        ---
+
+        parameters:
+            - name: uuid
+              description: A resource type's unique id.
+              paramType: query
 
         """
         from django.core.exceptions import ObjectDoesNotExist
