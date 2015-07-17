@@ -12,19 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyView
 from .models import ServicesData, VolumesData, \
     BackupsData, SnapshotsData, VolTypesData, TransfersData
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class VolumesDataViewSet(JsonReadOnlyViewSet):
+class VolumesDataView(JsonReadOnlyView):
     """Return Volume data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -34,13 +40,19 @@ class VolumesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class BackupsDataViewSet(JsonReadOnlyViewSet):
+class BackupsDataView(JsonReadOnlyView):
     """Return Backups data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -50,13 +62,19 @@ class BackupsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class SnapshotsDataViewSet(JsonReadOnlyViewSet):
+class SnapshotsDataView(JsonReadOnlyView):
     """Return Snapshots data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = SnapshotsData
@@ -64,13 +82,19 @@ class SnapshotsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class ServicesDataViewSet(JsonReadOnlyViewSet):
+class ServicesDataView(JsonReadOnlyView):
     """Return Services data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = ServicesData
@@ -79,13 +103,19 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class VolumeTypesDataViewSet(JsonReadOnlyViewSet):
+class VolumeTypesDataView(JsonReadOnlyView):
     """Return VolumeTypes data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = VolTypesData
@@ -93,13 +123,19 @@ class VolumeTypesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class TransfersDataViewSet(JsonReadOnlyViewSet):
+class TransfersDataView(JsonReadOnlyView):
     """Return Transfers data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
     model = TransfersData

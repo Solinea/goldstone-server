@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from rest_framework.routers import DefaultRouter
-from .views import ImagesDataViewSet
+from django.conf.urls import url, patterns
+from .views import ImagesDataView
 
-# Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^images', ImagesDataViewSet, base_name='glance-images')
-
-urlpatterns = router.urls
+# Views handled by DjangoRestFramework Views.
+urlpatterns = patterns(
+    '',
+    url(r'^images', ImagesDataView.as_view(), name='glance-images'),
+    )

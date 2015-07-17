@@ -12,19 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyView
 from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
     UsersData
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class EndpointsDataViewSet(JsonReadOnlyViewSet):
+class EndpointsDataView(JsonReadOnlyView):
     """Return Endpoints data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -33,13 +39,19 @@ class EndpointsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class RolesDataViewSet(JsonReadOnlyViewSet):
+class RolesDataView(JsonReadOnlyView):
     """Return Roles data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -48,13 +60,19 @@ class RolesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class ServicesDataViewSet(JsonReadOnlyViewSet):
+class ServicesDataView(JsonReadOnlyView):
     """Return Services data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -63,13 +81,19 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class TenantsDataViewSet(JsonReadOnlyViewSet):
+class TenantsDataView(JsonReadOnlyView):
     """Return Tenants data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 
@@ -78,13 +102,19 @@ class TenantsDataViewSet(JsonReadOnlyViewSet):
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
-class UsersDataViewSet(JsonReadOnlyViewSet):
+class UsersDataView(JsonReadOnlyView):
     """Return Users data.
 
-    \n\nQuery string parameters:\n
+    ---
 
-    <b>zone</b>: The desired zone.\n
-    <b>region</b>: The desired region.\n\n
+    GET:
+        parameters:
+           - name: region
+             description: The desired region.
+             paramType: query
+           - name: zone
+             description: The desired zone.
+             paramType: query
 
     """
 

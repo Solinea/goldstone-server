@@ -44,6 +44,10 @@ class DataViewTests(SimpleTestCase):
             self.assertGreaterEqual(len(results), 1)
             self.assertIsInstance(results[0], list)
 
+    # Disabling pylint's docstring check, because the remaining methods are
+    # cookie-cutter.
+    # pylint: disable=C0111
+
     def test_get_volumes(self):
 
         self._evaluate(self.client.get(
