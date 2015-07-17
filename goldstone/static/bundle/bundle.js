@@ -1589,7 +1589,6 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "api_perf/report": "apiPerfReport",
-        // "addons/opentrail": "openTrail",
         "cinder/report": "cinderReport",
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
@@ -1753,9 +1752,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     novaReport: function() {
         this.switchView(NovaReportView);
     },
-    // openTrail: function() {
-    //     this.switchView(OpenTrailPageView);
-    // },
     password: function() {
         this.switchView(PasswordResetView);
     },
@@ -4365,7 +4361,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
         list = JSON.parse(list);
         _.each(list, function(item) {
             result += '<li><a href="' + item.url_root +
-            '"><i class="fa fa-star"></i> ' + item.name +
+            '/"><i class="fa fa-star"></i> ' + item.name +
             '</a>';
         });
         return _.template(result);
