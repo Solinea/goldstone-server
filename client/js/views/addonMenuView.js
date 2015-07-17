@@ -36,42 +36,6 @@ app.addonMenuView = new AddonMenuView({
 });
 */
 
-/*
-localStorage test payload:
-
-localStorage.setItem('addons', JSON.stringify( [{
-        "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-        "url_root": "yourapp",
-        "name": "yourapp",
-        "notes": "Release notes, configuration tips, or other miscellany.",
-        "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
-        "version": "0.0",
-        "manufacturer": "Your Company, Inc."
-    },
-    {
-        "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-        "url_root": "theirapp",
-        "name": "theirapp",
-        "notes": "Release notes, configuration tips, or other miscellany.",
-        "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
-        "version": "0.0",
-        "manufacturer": "Your Company, Inc."
-    },
-    {
-        "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-        "url_root": "ourapp",
-        "name": "ourapp",
-        "notes": "Release notes, configuration tips, or other miscellany.",
-        "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
-        "version": "0.0",
-        "manufacturer": "Your Company, Inc."
-    }
-]))
-
-app.addonMenuView.trigger('installedAppsUpdated')
-
-*/
-
 var AddonMenuView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
@@ -83,7 +47,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
     processListeners: function() {
         var self = this;
 
-        // this trigger is fired in loginPageView after logging in
+        // this trigger is fired by loginPageView after logging in
         this.listenTo(this, 'installedAppsUpdated', function() {
             self.refreshAddonsMenu();
         });

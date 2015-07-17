@@ -47,6 +47,8 @@
                 el: ".logout-icon-container"
             });
 
+            // contains the machinery for appending/maintaining
+            // 'add-ons' dropdown menu
             app.addonMenuView = new AddonMenuView({
                 el: ".addon-menu-view-container"
             });
@@ -67,6 +69,13 @@
                 // in authLogoutIconView
                 this.viewSwitchTriggered();
             });
+
+            // subscribe the addonMenuView item to the router object
+            // which will emit a trigger when a view is switched out
+            app.addonMenuView.listenTo(app.gsRouter, 'switchingView', function() {
+                this.refreshAddonsMenu();
+            });
+
         });
 
     </script>
