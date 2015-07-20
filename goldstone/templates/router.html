@@ -20,10 +20,6 @@
 {% endblock %}
 {% block localjs %}
     <script>
-        // the main container for views under the Backbone Router schema
-        app = {};
-        app.localStorageKeys = ['addons', 'userToken'];
-
         // assign "ajax-loader-solinea-blue" spinner gif
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
@@ -39,13 +35,7 @@
             router.html. Following that, only if there is a token
             present (expired or not), it will use css to show/hide the logout icon
             in the top-right corner of the page.
-
-            finally, authLogoutIcon prunes old unused keys in localStorage
             */
-
-            app.authLogoutIcon = new LogoutIcon({
-                el: ".logout-icon-container"
-            });
 
             // contains the machinery for appending/maintaining
             // 'add-ons' dropdown menu
