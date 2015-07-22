@@ -65,6 +65,10 @@
             // subscribe the addonMenuView item to the router object
             // which will emit a trigger when a view is switched out
             goldstone.addonMenuView.listenTo(goldstone.gsRouter, 'switchingView', function() {
+
+                // calling refreshAddonsMenu without passing true will update the
+                // add-ons drop-down menu, but will not again re-register the
+                // url routes with Backbone router.
                 this.refreshAddonsMenu();
             });
 

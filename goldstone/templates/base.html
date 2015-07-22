@@ -158,6 +158,10 @@
 </div>
 <!-- script tags are concatenated into the following files -->
 <!-- which are ordered so that dependencies come first -->
+<script>
+    // the main container for views under the Backbone Router schema
+    var goldstone = goldstone || {};
+</script>
 <script src="{% static 'bundle/libs.js' %}"></script>
 <script src="{% static 'bundle/bundle.js' %}"></script>
 <script>
@@ -166,8 +170,6 @@ localStorage pruned in authLogoutIcon instance
 instantiated on router.html
 */
 
-// the main container for views under the Backbone Router schema
-goldstone = goldstone || {};
 
 $(function(){
 

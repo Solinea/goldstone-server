@@ -16,7 +16,7 @@
 
 /*
 This view will be invoked upon initial site load, as it is
-baked into router.html, but not for every page load.
+baked into router.html, but not for every backbone router view load.
 
 After ajaxSend Listener is bound to $(document), it will be triggered on all
 subsequent $.ajaxSend calls.
