@@ -91,6 +91,10 @@
                 <li class="dropdown addon-menu-view-container">
                    <!-- dynamically inserted by addonMenuView -->
                 </li>
+                <!-- additional menu bar space for addon devs -->
+                <li class="dropdown addon-additional-menu-hook">
+                   <!-- dynamically inserted by addonMenuView -->
+                </li>
             </ul>
             <!-- logout icon -->
             <ul class="nav navbar-nav navbar pull-right">
@@ -164,12 +168,18 @@
 </script>
 <script src="{% static 'bundle/libs.js' %}"></script>
 <script src="{% static 'bundle/bundle.js' %}"></script>
-<script>
-/* all goldstone JavsScript libraries loaded prior to here
-localStorage pruned in authLogoutIcon instance
-instantiated on router.html
-*/
 
+<!-- append addon script tags via fab routine here -->
+<!-- example script tag: -->
+<!-- <script src="{% static 'addons/yourapp/main.js' %}"></script> -->
+
+
+<!-- append addon script tags via fab routine prior to here -->
+
+<script>
+/* all goldstone and addon JavsScript libraries loaded prior to here.
+localStorage keys are pruned in authLogoutIcon, instantiated below.
+*/
 
 $(function(){
 
