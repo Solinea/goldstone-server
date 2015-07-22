@@ -58,15 +58,15 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        if(app === undefined || app.localStorageKeys === undefined) {
+        if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
             return;
         }
 
-        _.each(app.localStorageKeys, function(item) {
+        _.each(goldstone.localStorageKeys, function(item) {
             temp[item] = localStorage.getItem(item);
         });
         localStorage.clear();
-        _.each(app.localStorageKeys, function(item) {
+        _.each(goldstone.localStorageKeys, function(item) {
             if(temp[item] !== null) {
                 localStorage.setItem(item, temp[item]);
             }

@@ -25,6 +25,9 @@
 
         $(document).ready(function () {
 
+            // define the router
+            goldstone.gsRouter = new GoldstoneRouter();
+
             /*
             LogoutIcon encapsulates the initialization of the $(document) listner
             for ajaxSend events and uses xhr.setRequestHeader to append the Auth
@@ -39,22 +42,21 @@
 
             // contains the machinery for appending/maintaining
             // 'add-ons' dropdown menu
-            app.addonMenuView = new AddonMenuView({
+            goldstone.addonMenuView = new AddonMenuView({
                 el: ".addon-menu-view-container"
             });
 
             // append global selectors to page
-            app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
-            $('.global-range-refresh-container').append(app.globalLookbackRefreshSelectors.el);
+            goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
             // kick off the router
-            app.gsRouter = new GoldstoneRouter();
             Backbone.history.start();
 
             // subscribe the authLogoutIcon to the router
             // object which will emit a trigger when a
             // view is switched out.
-            app.authLogoutIcon.listenTo(app.gsRouter, 'switchingView', function() {
+            goldstone.authLogoutIcon.listenTo(goldstone.gsRouter, 'switchingView', function() {
                 // viewSwitchTriggered defined
                 // in authLogoutIconView
                 this.viewSwitchTriggered();
@@ -62,7 +64,7 @@
 
             // subscribe the addonMenuView item to the router object
             // which will emit a trigger when a view is switched out
-            app.addonMenuView.listenTo(app.gsRouter, 'switchingView', function() {
+            goldstone.addonMenuView.listenTo(goldstone.gsRouter, 'switchingView', function() {
                 this.refreshAddonsMenu();
             });
 

@@ -167,7 +167,7 @@ instantiated on router.html
 */
 
 // the main container for views under the Backbone Router schema
-app = {};
+goldstone = goldstone || {};
 
 $(function(){
 
@@ -185,8 +185,8 @@ $(function(){
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    app.localStorageKeys = ['addons', 'userToken'];
-    app.authLogoutIcon = new LogoutIcon({
+    goldstone.localStorageKeys = ['addons', 'userToken'];
+    goldstone.authLogoutIcon = new LogoutIcon({
         el: ".logout-icon-container"
     });
 

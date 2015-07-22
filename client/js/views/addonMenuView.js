@@ -31,7 +31,7 @@ there is a truthy value present in localStorage.userToken
 
 /*
 instantiated on router.html as:
-app.addonMenuView = new AddonMenuView({
+goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });
 */
