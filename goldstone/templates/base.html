@@ -173,36 +173,10 @@
 
 <!-- append addon script tags via fab routine prior to here -->
 
-<script>
-/* all goldstone and addon JavsScript libraries loaded prior to here.
-localStorage keys are pruned in authLogoutIcon, instantiated below.
-*/
+<!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
+<!-- django is loading router.html which extends this html template and -->
+<!-- fills in block localjs with a number of post-dom-ready function calls -->
 
-$(function(){
-
-    /*
-    LogoutIcon encapsulates the initialization of the $(document) listner
-    for ajaxSend events and uses xhr.setRequestHeader to append the Auth
-    token on all subsequent api calls. It also serves to handle 401 auth
-    errors, removing any existing token, and redirecting to the login page.
-
-    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-    router.html. Following that, only if there is a token
-    present (expired or not), it will use css to show/hide the logout icon
-    in the top-right corner of the page.
-
-    finally, authLogoutIcon prunes old unused keys in localStorage
-    */
-
-    goldstone.localStorageKeys = ['addons', 'userToken'];
-    goldstone.authLogoutIcon = new LogoutIcon({
-        el: ".logout-icon-container"
-    });
-
-});
-
-
-</script>
 {% block localjs %}
 {% endblock %}
 </body>

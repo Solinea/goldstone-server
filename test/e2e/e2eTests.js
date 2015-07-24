@@ -130,7 +130,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
 
 });
 
-casper.test.begin('Login Page loads and I can use reset password link', 4, function suite(test) {
+casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
     casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
