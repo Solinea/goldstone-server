@@ -1,7 +1,7 @@
 # Goldstone Server Hacking Guide
 
 
-This document explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
+This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
 
 [TOC]
 
@@ -49,7 +49,7 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
 
 ## Configure VirtualBox Networking
 
-This section assumes that you will be using the pre-built RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition. 
+This section assumes you will be using the pre-built RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition.
 
 In order to operate with the downloaded RDO image, you may need to make a change to the definition of the vboxnet0 host-only network.  Open the VirtualBox app and navigate to the  "Host-only Networks" panel of the "Network" section of the "Preferences" menu item.
 
@@ -67,26 +67,26 @@ If you prefer to configure your own OpenStack, you will need to follow the instr
 
 ## Configure boot2docker VM Port Forwarding
 
-This section assumes that you are using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the source IP address to match your VM.  
+This section assumes you are using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the source IP address to match your VM.
 
-Expand the "Advanced" section of the Network settings for the boot2docker-vm, and click on the "Port Forwarding" button.  Then configure forwarders as described in the table below.
+Execute these commands in your terminal window. Change "boot2docker-vm" to the name of your boot2docker virtual machine, if it's something different:
 
-|Name|Protocol|Host IP|Host Port|Guest IP|Guest Port|
-|----|--------|-------|---------|--------|----------|
-|es_9200_RDO|TCP|172.24.4.1|9200||9200|
-|es_9200_local|TCP|127.0.0.1|9200||9200|
-|es_9300_RDO|TCP|172.24.4.1|9300||9300|
-|es_9300_local|TCP|127.0.0.1|9300||9300|
-|logstash_syslog_RDO|TCP|172.24.4.1|5514||5514|
-|logstash_syslog_local|TCP|127.0.0.1|5514||5514|
-|logstash_metrics_RDO|UDP|172.24.4.1|5516||5516|
-|logstash_metrics_local|UDP|127.0.0.1|5516||5516|
-|postgres_RDO|TCP|172.24.4.1|5432||5432|
-|postgres_local|TCP|127.0.0.1|5432||5432|
-|redis_local|TCP|127.0.0.1|6379||6379|
-|ssh|TCP|127.0.0.1|2022||22|
+```
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9200_RDO,tcp,172.24.4.1,9200,,9200"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9200_local,tcp,,9200,,9200"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9300_RDO,tcp,172.24.4.1,9300,,9300"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9300_local,tcp,,9300,,9300"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_syslog_local,tcp,,5514,,5514"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_metrics_RDO,tcp,172.24.4.1,5516,,5516"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_metrics_local,tcp,,5516,,5516"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "postgres_RDO,tcp,172.24.4.1,5432,,5432"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "postgres_local,tcp,,5432,,5432"
+VBoxManage modifyvm "boot2docker-vm" --natpf1 "redis_local,tcp,,6379,,6379"
+```
 
-Here is a snapshot of the final result.
+To verify that port forwarding has been correctly configured, go to boot2docker-vm's Network settings, expand the "Advanced" section, and click on the "Port Forwarding" button.  It should
+look like this:
 
 ![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
