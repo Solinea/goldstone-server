@@ -42,6 +42,26 @@ URLS_PY = "\n# Include the {0} add-on.  Don't edit this entry!\n" \
           "import {0}\n" \
           "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
 
+# The path, under the add-on's Python installation directory, where we find its
+# JavaScript files.
+STATIC_SOURCE = "static"
+
+# The path, under INSTALL_DIR, in which we create a *directory* for the
+# add-on's JavaScript files. So, the JavaScript files will be found in
+# INSTALL_DIR/STATIC_ADDONS_HOME/<addon name>/*.js.
+STATIC_ADDONS_HOME = "goldstone/static/addons"
+
+# An add-on's script tag is inserted into base.html, after these lines.
+STATIC_START = \
+    '<!-- append addon script tags via "fab install_addon" command here ' \
+    '-->\n' \
+    '<!-- example script tag: -->\n' \
+    '<!-- <script src="{% static \'addons/yourapp/main.js\' %}"></script> ' \
+    '-->\n'
+
+# The add-on's script tag template.
+STATIC_TAG = '<script src="{%% static \'addons/%s/main.js\' %%}"></script>\n'
+
 # Used for searching and inserting into CELERYBEAT_SCHEDULE. Don't terminate
 # these strings with \n.
 CELERYBEAT_SCHEDULE = "CELERYBEAT_SCHEDULE = {"
@@ -181,17 +201,18 @@ def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     print(green("\n%s add-ons in the table." % count))
 
 
-def _install_addon_info(name):
+def _install_addon_info(name, install_dir):           # pylint: disable=R0914
     """Gather the package installation information, and display our intentions
     to the user.
 
     The package has already been installed into Python's execution environment.
 
-    This is called from install_addon, so its execution environment will be in
-    effect.
+    Install_addon calls this, so its execution environment is in effect.
 
     :param name: The name of the application (add-on) being installed
     :type name: str
+    :param install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
     :return: The add-on's database table values, and some values related
              to the installation environment
     :rtype: (dict, dict)
@@ -221,8 +242,12 @@ def _install_addon_info(name):
     except ImportError:
         abort("Can't import the module. Have you installed it?")
 
+    # Initialize the return values.
     addon_db = {"name": name}
-    addon_install = {}
+    addon_install = {"static_source":
+                     os.path.join(the_app.__path__[0], STATIC_SOURCE),
+                     "static_dest":
+                     os.path.join(install_dir, STATIC_ADDONS_HOME, name)}
 
     # Read the required add-on symbols.
     for app_symbol in APP_SYMBOLS:
@@ -256,8 +281,9 @@ def _install_addon_info(name):
     # Create the different messages we display for an update vs. an insert.
     if addon_install["replacement"]:
         row_action = red("We'll replace an existing row in")
-        base_urls = red("\nWe won't change settings/base.py or urls.py, so "
-                        "the previous version's entries will be reused.\n")
+        base_urls = red("\nWe won't change anything else.\n\n")
+        celery_tasks = ''
+        javascript_changes = ''
     else:
         row_action = red("We'll add a row to")
         base_urls = \
@@ -266,9 +292,16 @@ def _install_addon_info(name):
             red("We'll add this to Goldstone\'s URLconf:") + \
             "{0}\n".format(addon_install["urlpatterns"])
 
-    celery_tasks = \
-        red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
-        CELERYBEAT_APP_INCLUDE.format(name)
+        celery_tasks = \
+            red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
+            CELERYBEAT_APP_INCLUDE.format(name)
+
+        javascript_changes = \
+            "We'll copy {0}/*.* to {1}/*.*, and add this line to " \
+            "base.html:\n".format(addon_install["static_source"],
+                                  addon_install["static_dest"])
+        javascript_changes = \
+            red(javascript_changes) + STATIC_TAG % name + '\n'
 
     # Tell the user what we're about to do.
     fastprint("\nPlease confirm this:\n\n" +
@@ -276,19 +309,93 @@ def _install_addon_info(name):
               red(" the addon table. It will contain:\n") +
               ROW.format(**addon_db) +
               base_urls +
-              celery_tasks)
+              celery_tasks +
+              javascript_changes)
 
     return (addon_db, addon_install)
+
+
+def _install_addon_javascript(name, addon_install, install_dir):
+    """Install an add-on's JavaScript files, and insert a script tag into
+    base.html.
+
+    :param name: The add-on name
+    :type name: str
+    :param addon_install: An "addon_install" dict for an add-on. :-)
+    :type addon_install: dict
+    :param install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
+    """
+    from shutil import copytree
+
+    # Move the add-on's JavaScript files.
+    copytree(addon_install["static_source"], addon_install["static_dest"])
+
+    # Create the script tag line, and read base.html.
+    tag = STATIC_TAG % name
+    filepath = os.path.join(install_dir, "goldstone/templates/base.html")
+
+    with open(filepath) as f:
+        filedata = f.read()
+
+    # Go to the start of the line after the the add-on-script-tag-section's
+    # herald. Because the herald is multiple lines, we must advance N newlines
+    # to get past it.
+    insert = filedata.index(STATIC_START)
+    for _ in range(STATIC_START.count('\n')):
+        insert = filedata.index('\n', insert) + 1
+
+    # Insert the script tag line right after the herald.
+    filedata = filedata[:insert] + tag + filedata[insert:]
+
+    # Update the file.
+    with open(filepath, 'w') as f:
+        f.write(filedata)
+
+
+def _remove_addon_javascript(name, install_dir):
+    """Remove an add-on's JavaScript files, and its base.html script tag.
+
+    :param name: The add-on name
+    :type name: str
+    :param install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
+    """
+    from shutil import rmtree
+
+    # Delete the add-on's JavaScript files. We re-create the "static_dest"
+    # path.
+    static_dest = os.path.join(install_dir, STATIC_ADDONS_HOME, name)
+    rmtree(static_dest)
+
+    # Create the script tag line, and read base.html.
+    tag = STATIC_TAG % name
+    filepath = os.path.join(install_dir, "goldstone/templates/base.html")
+
+    with open(filepath) as f:
+        filedata = f.read()
+
+    # Find the add-on script tag section, then find the add-on's static tag
+    # line, then find the line after it. Then remove the script tag line.
+    insert = filedata.index(STATIC_START)
+    insert = filedata.index(tag, insert)
+    end = filedata.index('\n', insert) + 1
+
+    filedata = filedata[:insert] + filedata[end:]
+
+    # Update the file.
+    with open(filepath, 'w') as f:
+        f.write(filedata)
 
 
 @task
 def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Install a user add-on.
 
-    The name is supplied on the command line.
-
-    The version, manufacturer, url_root, notes, and celery tasks are supplied
-    from the add-on.
+    The name is supplied on the command line. The version, manufacturer,
+    url_root, notes, and celery tasks are supplied from the add-on.
 
     :param name: The add-on's installation name
     :type name: str
@@ -302,14 +409,15 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
+        from rest_framework.authtoken.models import Token
 
         # Gather the package installation information from the package or the
         # user. Remember, the package has already been installed into Python's
         # execution environment.
-        addon_db, addon_install = _install_addon_info(name)
+        addon_db, addon_install = _install_addon_info(name, install_dir)
 
         # Get permission to proceed.
-        if confirm('Proceed?'):
+        if confirm('Proceed?', default=False):
             if addon_install["replacement"]:
                 row = Addon.objects.get(name=name)
                 row.version = addon_db["version"]
@@ -322,13 +430,17 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # exception occurs.
                 try:
                     # First, add the new row.
-                    step = 0
+                    error = "%s while updating the Addon table. It's " \
+                            "probably OK, but check it."
+
                     Addon.objects.create(**addon_db)
 
                     # Now add the add-on to INSTALLED_APPS and
                     # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
                     # instead.
-                    step = 1
+                    error = "%s while reading base.py. The Addon table was " \
+                            "modified. You must edit settings/base.py and " \
+                            "urls.py, and copy the static files."
 
                     filepath = os.path.join(install_dir,
                                             "goldstone/settings/base.py")
@@ -360,42 +472,42 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                         filedata[insert:]
 
                     # Update the file.
-                    step = 2
+                    error = "%s while writing base.py. The Addon table was " \
+                            "modified. You must edit settings/base.py and " \
+                            "urls.py, and copy the static files."
 
                     with open(filepath, 'w') as f:
                         f.write(filedata)
 
                     # Now add the add-on to the end of the URLconf.
-                    step = 3
+                    error = "%s while writing urls.py. The Addon table and " \
+                            "settings/base.py were updated. You must edit " \
+                            "urls.py, and copy the static files."
 
                     filepath = os.path.join(install_dir, "goldstone/urls.py")
 
                     with open(filepath, 'a') as f:
                         f.write(addon_install["urlpatterns"])
 
+                    # Now move the client's JavaScript files, and insert the
+                    # script tag.
+                    error = "%s while copying the static files. You best " \
+                            "check them, and base.html's script tag."
+
+                    _install_addon_javascript(name, addon_install, install_dir)
+
+                    # Finally, expire all user tokens to force users to
+                    # re-login, which will reset their client-side localStorage
+                    # 'addons' object.
+                    error = "%s while trying to invalidate user tokens. You " \
+                            "must clear the Token table."
+
+                    Token.objects.all().delete()
+
                 except Exception as exc:       # pylint: disable=W0703
                     # Ooops! Tell the user what happened, because they're going
                     # to have to unwind things manually.
-                    if step == 0:
-                        message = "%s while updating the Addon table. " \
-                                  "It's probably OK, but check it."
-                    elif step == 1:
-                        message = "%s while reading base.py. The " \
-                                  "Addon table was modified. You must " \
-                                  "edit settings/base.py and urls.py."
-                    elif step == 2:
-                        message = "%s while writing base.py. The " \
-                                  "Addon table was modified. You must " \
-                                  "edit settings/base.py and urls.py."
-                    elif step == 3:
-                        message = "%s while writing urls.py. The " \
-                                  "Addon table and settings/base.py " \
-                                  "were updated. You must edit urls.py."
-                    else:
-                        # We should never get here.
-                        raise
-
-                    abort(red(message % exc))
+                    abort(red(error % exc))
 
 
 @task
@@ -416,6 +528,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # database.
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
+        from rest_framework.authtoken.models import Token
 
         # Get the add-on's row.
         try:
@@ -424,16 +537,21 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
             fastprint("The add-on \"%s\" isn't in the table.\n" % name)
             sys.exit()
 
-        if confirm('We will remove the %s add-on. Proceed?' % name):
+        if confirm('We will remove the %s add-on. Proceed?' % name,
+                   default=False):
             # We'll track where we are, in case an exception occurs.
             try:
                 # First, delete the row.
-                step = 0
+                error = "%s while updating the Addon table. Check it."
+
                 row.delete()
 
                 # Now remove the add-on from INSTALLED_APPS. SED is scary, so
                 # we'll use Python instead.
-                step = 1
+                error = "%s while reading base.py. The Addon table was " \
+                        "modified. You must manually edit settings/base.py " \
+                        "and urls.py, and remove the base.html script tag, " \
+                        "and delete the add-on's JavaScript directory."
 
                 filepath = os.path.join(install_dir,
                                         "goldstone/settings/base.py")
@@ -468,13 +586,19 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 filedata = filedata[:insert] + filedata[end:]
 
                 # Update the file.
-                step = 2
+                error = "%s while writing base.py. The Addon table was " \
+                        "modified. You must manually edit settings/base.py " \
+                        "and urls.py, and remove the base.html script tag, " \
+                        "and delete the add-on's JavaScript directory."
 
                 with open(filepath, 'w') as f:
                     f.write(filedata)
 
                 # Now delete the add-on from the URLconf.
-                step = 3
+                error = "%s while writing urls.py. The Addon table and " \
+                        "settings/base.py were updated. You must edit " \
+                        "urls.py, and remove the base.html script tag, and " \
+                        "delete the add-on's JavaScript directory."
 
                 filepath = os.path.join(install_dir, "goldstone/urls.py")
 
@@ -486,26 +610,22 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 with open(filepath, 'w') as f:
                     f.write(filedata[:insert])
 
+                # Now remove the client's JavaScript files, and its base.html
+                # script tag
+                error = "%s while removing JavaScript files. You must " \
+                        "delete the add-on's JavaScript directory."
+
+                _remove_addon_javascript(name, install_dir)
+
+                # Finally, expire all user tokens to force users to re-login,
+                # which will reset their client-side localStorage 'addons'
+                # object.
+                error = "%s while trying to invalidate user tokens. You " \
+                        "must clear the Token table."
+
+                Token.objects.all().delete()
+
             except Exception as exc:       # pylint: disable=W0703
                 # Ooops! Tell the user what happened, because they're going
                 # to have to unwind things manually.
-                if step == 0:
-                    message = "%s while updating the Addon table. " \
-                              "It's probably OK, but check it."
-                elif step == 1:
-                    message = "%s while reading base.py. The " \
-                              "Addon table was modified. You must " \
-                              "manually edit settings/base.py and urls.py."
-                elif step == 2:
-                    message = "%s while writing base.py. The " \
-                              "Addon table was modified. You must " \
-                              "manually edit settings/base.py and urls.py."
-                elif step == 3:
-                    message = "%s while writing urls.py. The " \
-                              "Addon table and settings/base.py " \
-                              "were updated. You must edit urls.py."
-                else:
-                    # We should never get here.
-                    raise
-
-                abort(red(message % exc))
+                abort(red(error % exc))

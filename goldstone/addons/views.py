@@ -35,7 +35,7 @@ class DateTimeEncoder(json.JSONEncoder):
             return super(DateTimeEncoder, self).default(obj)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 @api_view()
 def addons(_):
     """Return information about the installed add-ons."""
@@ -53,7 +53,7 @@ def addons(_):
     return Response(result)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 @api_view()
 def verify(_):
     """Verify the integrity of the installable apps table, and report on any
