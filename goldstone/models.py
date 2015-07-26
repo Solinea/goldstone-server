@@ -108,7 +108,7 @@ class TopologyData(object):
 
     @classmethod
     def _sort_arg(cls, key, order):
-        """Return key as key or -key, depending on the sort order."""
+        """Return key as, key or -key, depending on the sort order."""
 
         if order in ["+", "asc"]:
             return key              # translates to [{key: {'order': 'asc'}}]

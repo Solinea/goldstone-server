@@ -19,7 +19,7 @@ from .models import Addon
 
 
 class DateTimeEncoder(json.JSONEncoder):
-    """A JSON encoder that understand Python datetime objects."""
+    """A JSON encoder that understands Python datetime objects."""
 
     def default(self, obj):                       # pylint: disable=E0202
         """Return a JSON-encoded form of obj."""
