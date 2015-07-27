@@ -228,16 +228,26 @@ $ npm install
 $ grunt
 ```
 
-In order for the e2e tests to run, you *must* have the server running and access to live data.
+In order for the e2e tests to run, you *must* have the
+server running and access to live data.
+
+**In addition, the e2e testing suite is required to log in in order to received
+an auth token that is required for successful api calls.**
+You will need to enable a login, with tenant admin rights, for
+the username/password combo of "gsadmin / solinea".
 
 At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
-  
+
     grunt (default task): lint / test / watch.
     grunt watch: watch for changes that will trigger unit/integration/e2e tests
     grunt lint: lint only (no watch).
     grunt test: unit/integration/e2e test only (no watch).
     grunt lintAndTest: lint and test only (no watch).
     grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
+
+As the JavaScript files are concatenated and read from a common file `bundle.js`,
+you will need to make sure the `grunt watch` task is live and running in order
+to see changes to JavaScript files reflected in the client.
 
 ## Coding Guidelines
 

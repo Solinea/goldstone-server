@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'goldstone.drfes',
     'goldstone.glance',
     'goldstone.glogging',
+    'goldstone.addons',
     'goldstone.keystone',
     'goldstone.neutron',
     'goldstone.nova',
@@ -228,6 +229,9 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
     },
 }
+
+# User-installed add-on tasks are inserted after this line.
+
 
 # Database row settings.
 OS_NAME_MAX_LENGTH = 60

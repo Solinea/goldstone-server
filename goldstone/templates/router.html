@@ -23,25 +23,63 @@
         // assign "ajax-loader-solinea-blue" spinner gif
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-        $(document).ready(function () {
-            // app is a global {} namespace defined in base.html
+        $(function () {
+
+            /*
+            authLogoutIcon encapsulates the initialization of the $(document)
+            listener for ajaxSend events and uses xhr.setRequestHeader to append
+            the Auth token on all subsequent api calls. It also serves to handle
+            401 auth errors, removing any existing token, and redirecting to
+            the login page.
+
+            authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
+            router.html. Following that, only if there is a token
+            present (expired or not), it will use css to show/hide the logout
+            icon in the top-right corner of the page.
+
+            finally, authLogoutIcon prunes old unused keys in localStorage
+            */
+
+            goldstone.localStorageKeys = ['addons', 'userToken'];
+            goldstone.authLogoutIcon = new LogoutIcon({
+                el: ".logout-icon-container"
+            });
+
+            // define the router
+            goldstone.gsRouter = new GoldstoneRouter();
+
+            // contains the machinery for appending/maintaining
+            // 'add-ons' dropdown menu
+            goldstone.addonMenuView = new AddonMenuView({
+                el: ".addon-menu-view-container"
+            });
 
             // append global selectors to page
-            app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
-            $('.global-range-refresh-container').append(app.globalLookbackRefreshSelectors.el);
+            goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
-            // kick off the router
-            app.gsRouter = new GoldstoneRouter();
+            // start the backbone router that will handle /# calls
             Backbone.history.start();
 
             // subscribe the authLogoutIcon to the router
             // object which will emit a trigger when a
             // view is switched out.
-            app.authLogoutIcon.listenTo(app.gsRouter, 'switchingView', function() {
+            goldstone.authLogoutIcon.listenTo(goldstone.gsRouter, 'switchingView', function() {
                 // viewSwitchTriggered defined
                 // in authLogoutIconView
                 this.viewSwitchTriggered();
             });
+
+            // subscribe the addonMenuView item to the router object
+            // which will emit a trigger when a view is switched out
+            goldstone.addonMenuView.listenTo(goldstone.gsRouter, 'switchingView', function() {
+
+                // calling refreshAddonsMenu without passing true as an argument
+                // will update the add-ons drop-down menu, but will not again
+                // re-register the url routes with Backbone router.
+                this.refreshAddonsMenu();
+            });
+
         });
 
     </script>

@@ -69,7 +69,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         var self = this;
 
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange();
 
@@ -77,7 +77,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
 
             // reset the setInterval counter

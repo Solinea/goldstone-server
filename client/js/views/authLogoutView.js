@@ -15,8 +15,8 @@
  */
 
 /*
-This view will be re-invoked upon every page refresh or redirect, as it is
-baked into base.html.
+This view will be invoked upon initial site load, as it is
+baked into router.html, but not for every backbone router view load.
 
 After ajaxSend Listener is bound to $(document), it will be triggered on all
 subsequent $.ajaxSend calls.
@@ -27,6 +27,9 @@ errors, removing any existing token, and redirecting to the login page.
 
 The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
+
+On router.html, this view is subscribed to the gsRouter object
+which will emit a trigger when a view is switched out.
 */
 
 var LogoutIcon = GoldstoneBaseView.extend({
@@ -36,6 +39,10 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
+
+        // prune old unused localStorage keys
+        this.pruneLocalStorage();
+
         // if auth token present, hijack all subsequent ajax requests
         // with an auth header containing the locally stored token
         this.setAJAXSendRequestHeaderParams();
@@ -48,7 +55,25 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.setLogoutButtonHandler();
     },
 
-    // subscribed to gsRouter 'switching view' in router.html
+    pruneLocalStorage: function() {
+        var temp = {};
+
+        if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
+            return;
+        }
+
+        _.each(goldstone.localStorageKeys, function(item) {
+            temp[item] = localStorage.getItem(item);
+        });
+        localStorage.clear();
+        _.each(goldstone.localStorageKeys, function(item) {
+            if(temp[item] !== null) {
+                localStorage.setItem(item, temp[item]);
+            }
+        });
+    },
+
+    // subscribed to gsRouter 'switching view' on router.html
     viewSwitchTriggered: function() {
         this.makeVisibleIfTokenPresent();
     },

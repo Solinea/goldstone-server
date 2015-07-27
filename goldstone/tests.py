@@ -108,8 +108,7 @@ class TenantInit(Setup):
 
 
 class ESConnectionTests(SimpleTestCase):
-    """Test the ES connection.
-    """
+    """Test the ES connection."""
 
     @patch.object(connections, 'get_connection')
     @patch.object(connections, 'configure')
@@ -141,11 +140,8 @@ class ESConnectionTests(SimpleTestCase):
     @patch.object(Connections, 'get_connection')
     def test_es_indices(self, m_conn):
         """To avoid ES calls, we mock out the get_connection call, then set
-        up additional mocks for the resulting ES connection.
+        up additional mocks for the resulting ES connection."""
 
-        :param m_conn:
-        :return:
-        """
         m_es = mock.Mock(Elasticsearch, name='es')
         m_indices = mock.MagicMock(IndicesClient, name='indices')
         m_es.indices = m_indices

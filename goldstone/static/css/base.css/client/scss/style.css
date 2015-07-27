@@ -15,6 +15,61 @@
  */
  /* Sticky footer styles
 -------------------------------------------------- */
+/* line 1, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu {
+  position: relative;
+}
+
+/* line 4, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  -webkit-border-radius: 0 6px 6px 6px;
+  -moz-border-radius: 0 6px 6px 6px;
+  border-radius: 0 6px 6px 6px;
+}
+
+/* line 13, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu:hover > .dropdown-menu {
+  display: block;
+}
+
+/* line 16, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu > a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+
+/* line 29, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu:hover > a:after {
+  border-left-color: #ffffff;
+}
+
+/* line 32, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu.pull-left {
+  float: none;
+}
+
+/* line 35, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu.pull-left > .dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  -webkit-border-radius: 6px 0 6px 6px;
+  -moz-border-radius: 6px 0 6px 6px;
+  border-radius: 6px 0 6px 6px;
+}
+
 /* line 1, ../../../../../../client/scss/bootstrap_dark_override.scss */
 #chart-panel-header {
   background-color: #252525;
@@ -282,7 +337,7 @@ svg.e {
   color: #eee;
 }
 
-/* line 35, ../../../../../../client/scss/style.scss */
+/* line 36, ../../../../../../client/scss/style.scss */
 html,
 body {
   background-color: #252525;
@@ -292,7 +347,7 @@ body {
 }
 
 /* Wrapper for page content to push down footer */
-/* line 44, ../../../../../../client/scss/style.scss */
+/* line 45, ../../../../../../client/scss/style.scss */
 #wrap {
   min-height: 100%;
   height: auto;
@@ -303,7 +358,7 @@ body {
 }
 
 /* Set the fixed height of the footer here */
-/* line 54, ../../../../../../client/scss/style.scss */
+/* line 55, ../../../../../../client/scss/style.scss */
 #footer {
   height: 60px;
   background-color: #ccc;
@@ -312,39 +367,39 @@ body {
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
-/* line 63, ../../../../../../client/scss/style.scss */
+/* line 64, ../../../../../../client/scss/style.scss */
 #wrap > .container {
   padding: 60px 15px 0;
 }
 
-/* line 67, ../../../../../../client/scss/style.scss */
+/* line 68, ../../../../../../client/scss/style.scss */
 .container .credit {
   margin: 20px 0;
 }
 
-/* line 71, ../../../../../../client/scss/style.scss */
+/* line 72, ../../../../../../client/scss/style.scss */
 #footer > .container {
   padding-left: 15px;
   padding-right: 15px;
 }
 
-/* line 76, ../../../../../../client/scss/style.scss */
+/* line 77, ../../../../../../client/scss/style.scss */
 #global-lookback-range, #global-refresh-range {
   margin-top: 5px;
 }
 
-/* line 80, ../../../../../../client/scss/style.scss */
+/* line 81, ../../../../../../client/scss/style.scss */
 #goldstone-text {
   font-family: 'Homenaje', sans-serif;
   font-size: x-large;
 }
 
-/* line 85, ../../../../../../client/scss/style.scss */
+/* line 86, ../../../../../../client/scss/style.scss */
 code {
   font-size: 80%;
 }
 
-/* line 89, ../../../../../../client/scss/style.scss */
+/* line 90, ../../../../../../client/scss/style.scss */
 .ajax-loader {
   position: absolute;
   left: 50%;
@@ -356,65 +411,65 @@ code {
   display: block;
 }
 
-/* line 98, ../../../../../../client/scss/style.scss */
+/* line 99, ../../../../../../client/scss/style.scss */
 .row {
   margin-bottom: 20px;
 }
 
 /* Datatable font sizes */
-/* line 103, ../../../../../../client/scss/style.scss */
+/* line 104, ../../../../../../client/scss/style.scss */
 .table-hover th {
   font-size: 10px;
 }
 
-/* line 106, ../../../../../../client/scss/style.scss */
+/* line 107, ../../../../../../client/scss/style.scss */
 .table-hover td {
   font-size: 10px;
 }
 
-/* line 110, ../../../../../../client/scss/style.scss */
+/* line 111, ../../../../../../client/scss/style.scss */
 .infoButton {
   width: 17em;
   margin-left: 1em;
 }
 
-/* line 115, ../../../../../../client/scss/style.scss */
+/* line 116, ../../../../../../client/scss/style.scss */
 #multi-rsrc-table_wrapper > .dataTables_scroll {
   min-height: 500px;
 }
 
-/* line 119, ../../../../../../client/scss/style.scss */
+/* line 120, ../../../../../../client/scss/style.scss */
 .node:not(.data-leaf) {
   cursor: pointer;
   stroke: #3182bd;
   stroke-width: 1.5px;
 }
 
-/* line 125, ../../../../../../client/scss/style.scss */
+/* line 126, ../../../../../../client/scss/style.scss */
 .data-leaf {
   cursor: context-menu;
 }
 
-/* line 129, ../../../../../../client/scss/style.scss */
+/* line 130, ../../../../../../client/scss/style.scss */
 .node text {
   font-size: 12px;
   stroke-width: 0;
 }
 
-/* line 134, ../../../../../../client/scss/style.scss */
+/* line 135, ../../../../../../client/scss/style.scss */
 .icon text {
   font-size: 12px;
   stroke-width: 0;
 }
 
-/* line 139, ../../../../../../client/scss/style.scss */
+/* line 140, ../../../../../../client/scss/style.scss */
 .link {
   fill: none;
   stroke: #9ecae1;
   stroke-width: 1.5px;
 }
 
-/* line 146, ../../../../../../client/scss/style.scss */
+/* line 147, ../../../../../../client/scss/style.scss */
 .axis path, .axis line {
   fill: none;
   stroke-width: 1.5px;
@@ -422,36 +477,36 @@ code {
   shape-rendering: crispEdges;
 }
 
-/* line 154, ../../../../../../client/scss/style.scss */
+/* line 155, ../../../../../../client/scss/style.scss */
 .axis text, .legend-items {
   fill: #bbb;
   font: 10px sans-serif;
 }
 
-/* line 159, ../../../../../../client/scss/style.scss */
+/* line 160, ../../../../../../client/scss/style.scss */
 text:not(.zoomable), .axis.label {
   font: 14px sans-serif;
   fill: #bbb;
 }
 
-/* line 165, ../../../../../../client/scss/style.scss */
+/* line 166, ../../../../../../client/scss/style.scss */
 #goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text {
   font-size: 10px;
 }
 
-/* line 170, ../../../../../../client/scss/style.scss */
+/* line 171, ../../../../../../client/scss/style.scss */
 .legend rect {
   opacity: 0.0;
 }
 
 /* nodeAvail viz css */
-/* line 176, ../../../../../../client/scss/style.scss */
+/* line 177, ../../../../../../client/scss/style.scss */
 .invisible-axis path {
   fill: none;
   stroke: none;
 }
 
-/* line 181, ../../../../../../client/scss/style.scss */
+/* line 182, ../../../../../../client/scss/style.scss */
 .swim.axis.invisible-axis .tick line {
   fill: none;
   stroke: none;
