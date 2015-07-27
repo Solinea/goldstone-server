@@ -607,9 +607,15 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     filedata = f.read()
 
                 insert = filedata.index(URLS_PY.format(name, row.url_root))
+                end = insert
+
+                for _ in range(URLS_PY.count('\n')):
+                    end = filedata.index('\n', end) + 1
+
+                filedata = filedata[:insert] + filedata[end:]
 
                 with open(filepath, 'w') as f:
-                    f.write(filedata[:insert])
+                    f.write(filedata)
 
                 # Now remove the client's JavaScript files, and its base.html
                 # script tag
