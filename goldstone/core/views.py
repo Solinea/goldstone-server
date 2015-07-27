@@ -597,7 +597,7 @@ class ResourcesRetrieve(RetrieveAPIView):
 # API Performance views #
 #########################
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ApiPerfSummarizeView(DateHistogramAggView):
     """Return an aggregation summary of API performance.
 
@@ -645,7 +645,7 @@ class ApiPerfSummarizeView(DateHistogramAggView):
         return Response(serializer.data)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ApiPerfSearchView(ElasticListAPIView):
     """Return API performance records from Logstash data.
 
@@ -692,7 +692,7 @@ class ApiPerfSearchView(ElasticListAPIView):
 # Event views #
 ###############
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class EventSummarizeView(DateHistogramAggView):
     """Return an aggregation summary of events from Logstash data.
 
@@ -756,7 +756,7 @@ class EventSummarizeView(DateHistogramAggView):
         return Response(serializer.data)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class EventSearchView(ElasticListAPIView):
     """Return events from Logstash data.
 
