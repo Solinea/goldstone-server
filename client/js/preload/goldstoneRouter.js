@@ -36,6 +36,8 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
+        "api_perf/report": "apiPerfReport",
+        "cinder/report": "cinderReport",
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
@@ -77,33 +79,33 @@ var GoldstoneRouter = Backbone.Router.extend({
         // logout icon
         this.trigger('switchingView');
 
-        if (app.currentLauncherView) {
+        if (goldstone.currentLauncherView) {
 
-            // app.currentView is instantiated below
-            if (app.currentView.onClose) {
+            // goldstone.currentView is instantiated below
+            if (goldstone.currentView.onClose) {
 
                 // this is defined in goldstoneBaseView and
                 // removes any setIntervals which would continue
                 // to trigger events even after removing the view
-                app.currentView.onClose();
+                goldstone.currentView.onClose();
             }
 
             // Backbone's remove() calls this.$el.remove() and
             // this.stopListening() which removes any events that
             // are subscribed to with listenTo()
-            app.currentView.off();
-            app.currentView.remove();
-            app.currentLauncherView.remove();
+            goldstone.currentView.off();
+            goldstone.currentView.remove();
+            goldstone.currentLauncherView.remove();
         }
 
         // instantiate wrapper view that can be removed upon page
         // change and store the current launcher and view so it
         // can be remove()'d
-        app.currentLauncherView = new LauncherView({});
+        goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
         // .router-content-container is a div set in router.html
-        $('.router-content-container').append(app.currentLauncherView.el);
+        $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates
         // the .el to bind to
@@ -128,7 +130,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         }
 
         // instantiate the desired page view
-        app.currentView = new view(options);
+        goldstone.currentView = new view(options);
 
     },
 

@@ -16,6 +16,7 @@
 
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
+
 goldstone.namespace = function(name) {
     "use strict";
     var parts = name.split('.');

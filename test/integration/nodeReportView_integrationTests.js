@@ -69,9 +69,8 @@ describe('NodeReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
-        app = {};
-        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+        // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";app = {};
+        goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new NodeReportView({
             el: '.test-container',
@@ -143,10 +142,10 @@ describe('NodeReportView.js spec', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(0);
 
-            app.globalLookbackRefreshSelectors.trigger('globalRefreshChange');
+            goldstone.globalLookbackRefreshSelectors.trigger('globalRefreshChange');
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(1);
 
-            app.globalLookbackRefreshSelectors.trigger('globalLookbackChange');
+            goldstone.globalLookbackRefreshSelectors.trigger('globalLookbackChange');
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(2);
 
             $('#global-refresh-range').val('-1');

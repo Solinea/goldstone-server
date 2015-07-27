@@ -16,6 +16,7 @@
 
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
+
 goldstone.namespace = function(name) {
     "use strict";
     var parts = name.split('.');
@@ -880,13 +881,13 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         var self = this;
         // wire up listenTo on global selectors
         // important: use obj.listenTo(obj, change, callback);
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
             self.clearScheduledInterval();
             self.scheduleInterval();
@@ -1043,13 +1044,13 @@ var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
         var self = this;
         // wire up listenTo on global selectors
         // important: use obj.listenTo(obj, change, callback);
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.clearScheduledInterval();
             self.scheduleInterval();
             self.triggerChange('lookbackSelectorChanged');
         });
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
             self.clearScheduledInterval();
             self.scheduleInterval();
@@ -1588,6 +1589,8 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
+        "api_perf/report": "apiPerfReport",
+        "cinder/report": "cinderReport",
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
@@ -1629,33 +1632,33 @@ var GoldstoneRouter = Backbone.Router.extend({
         // logout icon
         this.trigger('switchingView');
 
-        if (app.currentLauncherView) {
+        if (goldstone.currentLauncherView) {
 
-            // app.currentView is instantiated below
-            if (app.currentView.onClose) {
+            // goldstone.currentView is instantiated below
+            if (goldstone.currentView.onClose) {
 
                 // this is defined in goldstoneBaseView and
                 // removes any setIntervals which would continue
                 // to trigger events even after removing the view
-                app.currentView.onClose();
+                goldstone.currentView.onClose();
             }
 
             // Backbone's remove() calls this.$el.remove() and
             // this.stopListening() which removes any events that
             // are subscribed to with listenTo()
-            app.currentView.off();
-            app.currentView.remove();
-            app.currentLauncherView.remove();
+            goldstone.currentView.off();
+            goldstone.currentView.remove();
+            goldstone.currentLauncherView.remove();
         }
 
         // instantiate wrapper view that can be removed upon page
         // change and store the current launcher and view so it
         // can be remove()'d
-        app.currentLauncherView = new LauncherView({});
+        goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
         // .router-content-container is a div set in router.html
-        $('.router-content-container').append(app.currentLauncherView.el);
+        $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates
         // the .el to bind to
@@ -1680,7 +1683,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         }
 
         // instantiate the desired page view
-        app.currentView = new view(options);
+        goldstone.currentView = new view(options);
 
     },
 
@@ -4152,6 +4155,160 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
  */
 
 /*
+This view will be re-invoked upon initial page load, and every full page
+refresh, as it is baked into router.html .
+*/
+
+/*
+instantiated on router.html as:
+goldstone.addonMenuView = new AddonMenuView({
+    el: ".addon-menu-view-container"
+});
+*/
+
+var AddonMenuView = GoldstoneBaseView2.extend({
+
+    instanceSpecificInit: function() {
+        this.el = this.options.el;
+        this.processListeners();
+
+        // passing true will also dynamically generate new routes in
+        // Backbone router corresponding with the .routes param in the
+        // addon's .js file.
+        this.refreshAddonsMenu(true);
+    },
+
+    processListeners: function() {
+        var self = this;
+
+        // this trigger is fired by loginPageView after user logs in
+        this.listenTo(this, 'installedAppsUpdated', function() {
+
+            // calling refreshAddonsMenu without passing true will update the
+            // add-ons drop-down menu, but will not again re-register the
+            // url routes with Backbone router.
+            self.refreshAddonsMenu(true);
+        });
+    },
+
+    refreshAddonsMenu: function(addNewRoute) {
+        var addons = localStorage.getItem('addons');
+
+        // the 'else' case will be triggered due to any of the various ways that
+        // local storage might return a missing key, or a null set.
+        if (addons && addons !== null && addons !== "null" && addons !== "[]" && addons !== []) {
+
+            // clear list before re-rendering in case app list has changed
+            this.$el.html('');
+
+            // render appends the 'Add-ons' main menu-bar dropdown
+            this.render();
+
+            // the individual dropdowns and dropdown submenus are constructed
+            // as a html string, and then appended into the menu drop-down list
+            var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
+            $(this.el).find('.addon-menu-li-elements').html(extraMenuItems());
+        } else {
+
+            // in the case that the addons key in localStorage
+            // is falsy, just remove the dropdown and links
+            this.$el.html('');
+        }
+    },
+
+    generateDropdownElementsPerAddon: function(addNewRoute) {
+        var self = this;
+        var list = localStorage.getItem('addons');
+        list = JSON.parse(list);
+        var result = '';
+
+        // for each object in the array of addons in 'list', do the following:
+        _.each(list, function(item) {
+
+            // create a sub-menu labelled with the addon's 'name' property
+            result += '<li class="dropdown-submenu">' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<ul class="dropdown-menu" role="menu">';
+
+            // addons will be loaded into localStorage after the redirect
+            // to /#login, but a full page refresh is required before the
+            // newly appended js script tags are loaded.
+            if (goldstone[item.url_root]) {
+
+                // for each sub-array in the array of 'routes' in
+                // the addon's javascript file, do the following:
+                _.each(goldstone[item.url_root].routes, function(route) {
+
+                    // append a drop-down <li> tag for each item with a link
+                    // pointing to index 0 of the route, and a menu label
+                    // derived from index 1 of the item
+                    result += '<li><a href="#' + route[0] +
+                        '">' + route[1] +
+                        '</a>';
+
+                    // dynamically add a new route for each item
+                    // the 'addNewRoute === true' condition prevents the route from
+                    // being added again when it is re-triggered by the listener
+                    // on gsRouter 'switchingView'
+                    if (addNewRoute === true) {
+                        // ignored for menu updates beyond the first one
+                        self.addNewRoute(route);
+                    }
+                });
+
+                // cap the dropdown sub-menu with closing tags before
+                // continuing the iteration through the addons localStorage entry.
+                result += '</ul></li>';
+            } else {
+                goldstone.raiseInfo('Refresh browser to complete ' +
+                    'addon installation process.');
+                result += '<li>Refresh browser to complete addon' +
+                ' installation process';
+            }
+
+        });
+
+        // return backbone template of html string that will construct
+        // the drop down menu and submenus of the add-ons menu item
+        return _.template(result);
+    },
+
+    addNewRoute: function(routeToAdd) {
+
+        // .route will dynamically add a new route where the url is
+        // index 0 of the passed in route array, and the view to load is
+        // index 2 of the passed in route array.
+        goldstone.gsRouter.route(routeToAdd[0], function() {
+            this.switchView(routeToAdd[2]);
+        });
+    },
+
+    template: _.template('' +
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
+        '<i class = "fa fa-briefcase"></i> Add-ons<b class="caret"></b></a>' +
+        '<ul class="dropdown-menu addon-menu-li-elements">' +
+        '</ul>'
+    )
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 the jQuery dataTables plugin is documented at
 http://datatables.net/reference/api/
 
@@ -5261,8 +5418,8 @@ var ApiPerfView = GoldstoneBaseView.extend({
  */
 
 /*
-This view will be re-invoked upon every page refresh or redirect, as it is
-baked into base.html.
+This view will be invoked upon initial site load, as it is
+baked into router.html, but not for every backbone router view load.
 
 After ajaxSend Listener is bound to $(document), it will be triggered on all
 subsequent $.ajaxSend calls.
@@ -5273,6 +5430,9 @@ errors, removing any existing token, and redirecting to the login page.
 
 The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
+
+On router.html, this view is subscribed to the gsRouter object
+which will emit a trigger when a view is switched out.
 */
 
 var LogoutIcon = GoldstoneBaseView.extend({
@@ -5282,6 +5442,10 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
+
+        // prune old unused localStorage keys
+        this.pruneLocalStorage();
+
         // if auth token present, hijack all subsequent ajax requests
         // with an auth header containing the locally stored token
         this.setAJAXSendRequestHeaderParams();
@@ -5294,7 +5458,25 @@ var LogoutIcon = GoldstoneBaseView.extend({
         this.setLogoutButtonHandler();
     },
 
-    // subscribed to gsRouter 'switching view' in router.html
+    pruneLocalStorage: function() {
+        var temp = {};
+
+        if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
+            return;
+        }
+
+        _.each(goldstone.localStorageKeys, function(item) {
+            temp[item] = localStorage.getItem(item);
+        });
+        localStorage.clear();
+        _.each(goldstone.localStorageKeys, function(item) {
+            if(temp[item] !== null) {
+                localStorage.setItem(item, temp[item]);
+            }
+        });
+    },
+
+    // subscribed to gsRouter 'switching view' on router.html
     viewSwitchTriggered: function() {
         this.makeVisibleIfTokenPresent();
     },
@@ -8421,13 +8603,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         var self = this;
         // wire up listenTo on global selectors
         // important: use obj.listenTo(obj, change, callback);
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
 
             // also triggers 'lookbackSelectorChanged' in order to reset
@@ -8537,16 +8719,28 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var LoginPageView = GoldstoneBaseView.extend({
+var LoginPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
         this.render();
         this.addHandlers();
+    },
+
+    checkForInstalledApps: function() {
+        $.ajax({
+            type: 'get',
+            url: '/addons/'
+        }).done(function(success) {
+            localStorage.setItem('addons', JSON.stringify(success));
+
+            // triggers view in addonMenuView.js
+            goldstone.addonMenuView.trigger('installedAppsUpdated');
+        }).fail(function(fail) {
+            console.log('failed to initialize installed apps');
+
+            // triggers view in addonMenuView.js
+            goldstone.addonMenuView.trigger('installedAppsUpdated');
+        });
     },
 
     addHandlers: function() {
@@ -8571,12 +8765,14 @@ var LoginPageView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/login/', input, function() {
-        })
+        $.post('/accounts/login/', input, function() {})
             .done(function(success) {
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
+
+                // must follow storing token otherwise call will fail with 401
+                self.checkForInstalledApps();
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
@@ -8599,11 +8795,6 @@ var LoginPageView = GoldstoneBaseView.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '#';
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     },
 
     template: _.template('' +
@@ -11496,7 +11687,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         var self = this;
 
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange();
 
@@ -11504,7 +11695,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
+        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
 
             // reset the setInterval counter

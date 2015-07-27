@@ -36,8 +36,7 @@ describe('glanceReportView.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        app = {};
-        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+        goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new GlanceReportView({
             el: '.test-container',

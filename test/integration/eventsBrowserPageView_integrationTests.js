@@ -70,8 +70,7 @@ describe('EventsBrowserPageView.js spec', function() {
         expect($('#spinner').length).to.equal(0);
 
         // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
-        app = {};
-        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+        goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new EventsBrowserPageView({
             el: '.test-container'
