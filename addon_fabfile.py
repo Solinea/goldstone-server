@@ -14,6 +14,7 @@
 # limitations under the License.
 from __future__ import print_function
 from contextlib import contextmanager
+from shutil import copytree, rmtree
 
 from fabric.api import task
 from fabric.colors import green, cyan, red
@@ -327,9 +328,10 @@ def _install_addon_javascript(name, addon_install, install_dir):
     :type install_dir: str
 
     """
-    from shutil import copytree
 
-    # Move the add-on's JavaScript files.
+    # Delete the destination directory if it already exisets, and then copy the
+    # add-on's JavaScript files to it.
+    rmtree(addon_install["static_dest"], ignore_errors=True)
     copytree(addon_install["static_source"], addon_install["static_dest"])
 
     # Create the script tag line, and read base.html.
@@ -363,12 +365,11 @@ def _remove_addon_javascript(name, install_dir):
     :type install_dir: str
 
     """
-    from shutil import rmtree
 
-    # Delete the add-on's JavaScript files. We re-create the "static_dest"
-    # path.
+    # Delete the add-on's JavaScript files, if they exist. We re-create the
+    # "static_dest" path.
     static_dest = os.path.join(install_dir, STATIC_ADDONS_HOME, name)
-    rmtree(static_dest)
+    rmtree(static_dest, ignore_errors=True)
 
     # Create the script tag line, and read base.html.
     tag = STATIC_TAG % name
@@ -505,8 +506,8 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     Token.objects.all().delete()
 
                 except Exception as exc:       # pylint: disable=W0703
-                    # Ooops! Tell the user what happened, because they're going
-                    # to have to unwind things manually.
+                    # Oops!  Tell the user what happened, because they'll have
+                    # to unwind things manually.
                     abort(red(error % exc))
 
 
@@ -626,6 +627,6 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 Token.objects.all().delete()
 
             except Exception as exc:       # pylint: disable=W0703
-                # Ooops! Tell the user what happened, because they're going
-                # to have to unwind things manually.
+                # Oops! Tell the user what happened, because they'll have to
+                # unwind things manually.
                 abort(red(error % exc))
