@@ -4227,34 +4227,45 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-            '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
-            '<ul class="dropdown-menu" role="menu">';
+                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<ul class="dropdown-menu" role="menu">';
 
-            // for each sub-array in the array of 'routes' in
-            // the addon's javascript file, do the following:
-            _.each(goldstone[item.url_root].routes, function(route) {
+            // addons will be loaded into localStorage after the redirect
+            // to /#login, but a full page refresh is required before the
+            // newly appended js script tags are loaded.
+            if (goldstone[item.url_root]) {
 
-                // append a drop-down <li> tag for each item with a link
-                // pointing to index 0 of the route, and a menu label
-                // derived from index 1 of the item
-                result += '<li><a href="#' + route[0] +
-                    '">' + route[1] +
-                    '</a>';
+                // for each sub-array in the array of 'routes' in
+                // the addon's javascript file, do the following:
+                _.each(goldstone[item.url_root].routes, function(route) {
 
-                // dynamically add a new route for each item
-                // the 'addNewRoute === true' condition prevents the route from
-                // being added again when it is re-triggered by the listener
-                // on gsRouter 'switchingView'
-                if (addNewRoute === true) {
-                    console.log('adding new route');
-                    // ignored for menu updates beyond the first one
-                    self.addNewRoute(route);
-                }
-            });
+                    // append a drop-down <li> tag for each item with a link
+                    // pointing to index 0 of the route, and a menu label
+                    // derived from index 1 of the item
+                    result += '<li><a href="#' + route[0] +
+                        '">' + route[1] +
+                        '</a>';
 
-            // cap the dropdown sub-menu with closing tags before
-            // continuing the iteration through the addons localStorage entry.
-            result += '</ul></li>';
+                    // dynamically add a new route for each item
+                    // the 'addNewRoute === true' condition prevents the route from
+                    // being added again when it is re-triggered by the listener
+                    // on gsRouter 'switchingView'
+                    if (addNewRoute === true) {
+                        // ignored for menu updates beyond the first one
+                        self.addNewRoute(route);
+                    }
+                });
+
+                // cap the dropdown sub-menu with closing tags before
+                // continuing the iteration through the addons localStorage entry.
+                result += '</ul></li>';
+            } else {
+                goldstone.raiseInfo('Refresh browser to complete ' +
+                    'addon installation process.');
+                result += '<li>Refresh browser to complete addon' +
+                ' installation process';
+            }
+
         });
 
         // return backbone template of html string that will construct
