@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -58,6 +59,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
+        // localStorageKeys is defined in router.html
         if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
             return;
         }
