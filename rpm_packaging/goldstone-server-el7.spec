@@ -156,6 +156,7 @@ rm -rf %{buildroot}
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
 /opt/goldstone/manage.py
+/opt/goldstone/addon_fabfile.py
 /opt/goldstone/fabfile.py
 /opt/goldstone/README.md
 /opt/goldstone/INSTALL.md
