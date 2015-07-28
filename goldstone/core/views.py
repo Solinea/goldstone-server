@@ -180,7 +180,10 @@ class MetricAggView(DateHistogramAggView):
     """
 
     serializer_class = MetricAggSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval']
+
     STATS_AGG_NAME = 'stats'
     UNIT_AGG_NAME = 'units'
 
@@ -597,7 +600,7 @@ class ResourcesRetrieve(RetrieveAPIView):
 # API Performance views #
 #########################
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ApiPerfSummarizeView(DateHistogramAggView):
     """Return an aggregation summary of API performance.
 
@@ -624,7 +627,9 @@ class ApiPerfSummarizeView(DateHistogramAggView):
     """
 
     serializer_class = ApiPerfSummarizeSerializer
-    reserved_params = ["interval", "component", "timestamp__range"]
+
+    # Do not add these query parameters to the Elasticsearch query.
+    reserved_params = ["interval", "timestamp__range"]
 
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
@@ -645,7 +650,7 @@ class ApiPerfSummarizeView(DateHistogramAggView):
         return Response(serializer.data)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ApiPerfSearchView(ElasticListAPIView):
     """Return API performance records from Logstash data.
 
@@ -692,7 +697,7 @@ class ApiPerfSearchView(ElasticListAPIView):
 # Event views #
 ###############
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class EventSummarizeView(DateHistogramAggView):
     """Return an aggregation summary of events from Logstash data.
 
@@ -721,7 +726,10 @@ class EventSummarizeView(DateHistogramAggView):
 
     AGG_FIELD = 'timestamp'
     AGG_NAME = 'per_interval'
+
     serializer_class = EventSummarizeSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval', 'per_type']
 
     class Meta:             # pylint: disable=C1001,W0232,C0111
@@ -756,7 +764,7 @@ class EventSummarizeView(DateHistogramAggView):
         return Response(serializer.data)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class EventSearchView(ElasticListAPIView):
     """Return events from Logstash data.
 

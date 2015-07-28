@@ -153,27 +153,3 @@ class LogAggViewTests(APITestCase):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
         self.assertEqual(response.status_code, 200)  # pylint: disable=E1101
-
-
-class LogEventViewTests(APITestCase):
-    """Test log event views."""
-
-    def setUp(self):
-        """set up for each test."""
-        self.token = create_and_login()
-
-    def test_event_view(self):
-        """Assert that the event view returns a 200."""
-
-        start = arrow.get(0).timestamp * 1000
-        end = arrow.utcnow().timestamp * 1000
-        timestamp_range = \
-            '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
-            str(end) + '"}'
-        url = '/logging/events/search/?' + timestamp_range
-
-        response = self.client.get(
-            url,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101

@@ -223,11 +223,7 @@ class ApiPerfSerializer(EventSerializer):
 
 
 class EventSummarizeSerializer(ReadOnlyElasticSerializer):
-    """Serializer for event aggregation data, for the "summarize" URL.
-
-    Copied from LogEventAggSerializer, because LEAS is scheduled for deletion.
-
-    """
+    """Serializer for event aggregation data, for the "summarize" URL."""
 
     def to_representation(self, instance):
         """Create serialized representation of aggregate log data.

@@ -306,7 +306,10 @@ class SpawnsAggView(DateHistogramAggView):
     """
 
     serializer_class = SpawnsAggSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval']
+
     SUCCESS_AGG_NAME = 'success'
 
     class Meta:                 # pylint: disable=C1001,W0232

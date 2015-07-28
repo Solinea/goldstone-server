@@ -13,13 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from .views import LogDataView, LogAggView, LogEventView, LogEventSummarizeView
+from .views import LogDataView, LogAggView
 
 urlpatterns = patterns(
     '',
     url(r'^search/', LogDataView.as_view()),
     url(r'^summarize/', LogAggView.as_view()),
-    # These next two are pending removal.
-    url(r'^events/summarize/', LogEventSummarizeView.as_view()),
-    url(r'^events/search/', LogEventView.as_view())
 )

@@ -71,7 +71,6 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'south',
     'goldstone.accounts',
-    'goldstone.api_perf',
     'goldstone.cinder',
     'goldstone.core',
     'goldstone.drfes',
@@ -170,8 +169,6 @@ ES_GOLDSTONE_RETENTION = 30
 ES_LOGSTASH_RETENTION = 30
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
-API_PERF_QUERY_INTERVAL = crontab(minute='*/5')
-API_PERF_QUERY_TIMEOUT = 30
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 

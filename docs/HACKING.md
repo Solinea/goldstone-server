@@ -22,7 +22,7 @@ Install various prerequisite packages:
 
 Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
 
-The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.   
+The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.
 
     $ mkdir ~/devel
     $ cd ~/devel
@@ -44,8 +44,8 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
    Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
-    
-   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/3a8a3a8d4068057246c36bdd00bbd2977cb1c0ec/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/62c5c5c5e16a8402682e70bb327f627775cb819b/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`. 
+
+   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/3a8a3a8d4068057246c36bdd00bbd2977cb1c0ec/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/62c5c5c5e16a8402682e70bb327f627775cb819b/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`.
 
 ## Configure VirtualBox Networking
 
@@ -90,13 +90,13 @@ look like this:
 
 ![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
-## Activate the Virtualenv 
+## Activate the Virtualenv
 
-Once all of the initial setup has been completed, you can activate the virtualenv by running the workon command. 
+Once all of the initial setup has been completed, you can activate the virtualenv by running the workon command.
 
     $ workon goldstone-server
 
-This command will start the required VMs, docker containers, and celery processes.  Running `deactivate` will stop everything.  
+This command will start the required VMs, docker containers, and celery processes.  Running `deactivate` will stop everything.
 
 The first time you enter the virtualenv, you should also install the project requirements, and some additional utilities.
 
@@ -111,14 +111,14 @@ If the requirements files change, you should rerun the `pip install` commands.
 
 ## Initialize Goldstone Server
 
-This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch. 
+This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch.
 
 To initialize Goldstone Server, use the goldstone_init fabric task:
 
     $ cd $PROJECT_HOME/goldstone-server
     $ fab goldstone_init
 
-You will be prompted for the settings to use (select local_docker), passwords for the Django admin and goldstone user, and your OpenStack cloud settings. 
+You will be prompted for the settings to use (select local_docker), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
 
 ## Verify the Development Environment
 
@@ -157,8 +157,8 @@ Assuming the testing went well, you're ready to start the application:
 When startup is complete, you should be able to see the Goldstone application at http://127.0.0.1:8000.  Log in with the credentials you created during initialization.
 
 ![enter image description here](https://lh3.googleusercontent.com/p75_NPl7u54OxhqHYhDujVVqzRy7y0k-ZZtsjCYQV3o=w1057-h633-no)
-  
-  
+
+
 ## Testing
 
 ### Backend Testing
@@ -238,12 +238,11 @@ the username/password combo of "gsadmin / solinea".
 
 At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
 
-    grunt (default task): lint / test / watch.
+    grunt (default task): lint / unit testing (no e2e tests) / watch.
     grunt watch: watch for changes that will trigger unit/integration/e2e tests
     grunt lint: lint only (no watch).
     grunt test: unit/integration/e2e test only (no watch).
     grunt lintAndTest: lint and test only (no watch).
-    grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
 As the JavaScript files are concatenated and read from a common file `bundle.js`,
 you will need to make sure the `grunt watch` task is live and running in order
