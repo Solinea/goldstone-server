@@ -67,6 +67,8 @@ class LogAggView(ElasticListAPIView):
     """
 
     serializer_class = LogAggSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval', 'per_host']
 
     class Meta:     # pylint: disable=C1001,W0232

@@ -180,7 +180,10 @@ class MetricAggView(DateHistogramAggView):
     """
 
     serializer_class = MetricAggSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval']
+
     STATS_AGG_NAME = 'stats'
     UNIT_AGG_NAME = 'units'
 
@@ -624,7 +627,9 @@ class ApiPerfSummarizeView(DateHistogramAggView):
     """
 
     serializer_class = ApiPerfSummarizeSerializer
-    reserved_params = ["interval", "component", "timestamp__range"]
+
+    # Do not add these query parameters to the Elasticsearch query.
+    reserved_params = ["interval", "timestamp__range"]
 
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
@@ -721,7 +726,10 @@ class EventSummarizeView(DateHistogramAggView):
 
     AGG_FIELD = 'timestamp'
     AGG_NAME = 'per_interval'
+
     serializer_class = EventSummarizeSerializer
+
+    # Do not add these query parameters to the Elasticsearch query.
     reserved_params = ['interval', 'per_type']
 
     class Meta:             # pylint: disable=C1001,W0232,C0111
