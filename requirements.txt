@@ -16,6 +16,7 @@
 
 Django==1.6.11
 South==1.0.2
+amqp==1.4.6
 arrow==0.4.4
 celery[redis]==3.1.18
 django-admin-bootstrapped==2.3.3
