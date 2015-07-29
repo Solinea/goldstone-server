@@ -9,7 +9,7 @@ module.exports = function(config) {
         frameworks: ['mocha', 'chai', 'sinon'],
 
         //preload .js files
-        files: clientIncludes.lib.concat(clientIncludes.clientWildcards).concat(clientIncludes.test),
+        files: clientIncludes.lib.concat(clientIncludes.clientWildcards).concat(clientIncludes.opentrailWildcards).concat(clientIncludes.test).concat(clientIncludes.otTest),
 
         exclude: [
             'karma.conf.js'

@@ -61,6 +61,21 @@ module.exports = function(grunt) {
                 options: {
                     message: "SASS/CSS compile complete"
                 }
+            },
+            concat_message_openTrail: {
+                options: {
+                    message: "OpenTrail concat is finished"
+                }
+            },
+            copy_message_openTrail: {
+                options: {
+                    message: "OpenTrail files copied to external repo"
+                }
+            },
+            copy_message_openTrailTest: {
+                options: {
+                    message: "OpenTrail tests copied to external repo"
+                }
             }
         },
 
@@ -70,6 +85,7 @@ module.exports = function(grunt) {
             karmaConfig: 'karma.conf.js',
             client: clientIncludeOrder.clientWildcards,
             test: [clientIncludeOrder.test, clientIncludeOrder.e2e],
+            openTrail: clientIncludeOrder.opentrailWildcards,
             options: {
                 globals: {
                     eqeqeq: true
@@ -146,6 +162,14 @@ module.exports = function(grunt) {
             css: {
                 files: clientIncludeOrder.scssWatch,
                 tasks: ['scss']
+            },
+            opentrail: {
+                files: clientIncludeOrder.opentrailWildcards,
+                tasks: ['clean:ot', 'concat-ot', 'lint', 'copy-ot']
+            },
+            opentrailTest: {
+                files: clientIncludeOrder.otTest,
+                tasks: ['lint', 'karma', 'clean:otTest', 'copy-otTest']
             }
         },
 
@@ -173,8 +197,52 @@ module.exports = function(grunt) {
                 nonull: true,
                 src: clientIncludeOrder.clientWildcards,
                 dest: clientIncludeOrder.clientBundle
+            },
+            ot: {
+                nonull: true,
+                options: {
+                    separator: '\n'
+                },
+                src: clientIncludeOrder.opentrailWildcards,
+                dest: clientIncludeOrder.otBundle
             }
         },
+
+        copy: {
+            ot: {
+                files: [{
+                    src: [clientIncludeOrder.opentrailWildcards],
+                    dest: clientIncludeOrder.otCopy,
+                    flatten: true,
+                    expand: true,
+                    nonull: true
+                }]
+            },
+            otTest: {
+                files: [{
+                    src: [clientIncludeOrder.otTest],
+                    dest: clientIncludeOrder.otTestCopy,
+                    flatten: true,
+                    expand: true,
+                    nonull: true
+                }]
+            }
+        },
+
+        clean: {
+            ot: {
+                src: [clientIncludeOrder.otCopy.concat('/*.js')],
+                options: {
+                    force: true
+                }
+            },
+            otTest: {
+                src: [clientIncludeOrder.otTestCopy.concat('/*.js')],
+                options: {
+                    force: true
+                }
+            }
+        }
 
     });
 
@@ -183,6 +251,9 @@ module.exports = function(grunt) {
     grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
     grunt.registerTask('casper', ['casperjs:e2e']);
     grunt.registerTask('clib', ['concat:lib', 'notify:concat_message_lib']);
+    grunt.registerTask('concat-ot', ['concat:ot', 'notify:concat_message_openTrail']);
+    grunt.registerTask('copy-ot', ['copy:ot', 'notify:copy_message_openTrail']);
+    grunt.registerTask('copy-otTest', ['copy:otTest', 'notify:copy_message_openTrailTest']);
     grunt.registerTask('e', ['casperjs:e2e']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);

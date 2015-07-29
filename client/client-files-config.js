@@ -34,21 +34,33 @@ module.exports = {
         'client/js/collections/*.js',
         'client/js/views/*.js'
     ],
+    opentrailWildcards: [
+        'client/js/addons/opentrail/head/header.js',
+        'client/js/addons/opentrail/*.js',
+        'client/js/addons/opentrail/tail/routes.js',
+    ],
     lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
     test: [
         'test/unit/*.js',
-        'test/integration/*.js'
+        'test/integration/*.js',
+        'test/openTrail/*.js'
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
+    testOpenTrail: 'test/openTrail/*.js',
     e2e: ['test/e2e/*.js'],
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
+    otBundle: '../django-opentrail/opentrail/static/main.js',
+    otTest: 'test/openTrail/*.js',
+    otCopy: '../django-opentrail/client-dev/',
+    otTestCopy: '../django-opentrail/client-test/',
     coverageReportTargets: {
         'client/js/preload/*.js': ['coverage'],
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
-        'client/js/views/*.js': ['coverage']
+        'client/js/views/*.js': ['coverage'],
+        'client/js/addons/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
     scssWatch: 'client/scss/*.scss',
