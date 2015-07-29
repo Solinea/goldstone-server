@@ -144,3 +144,7 @@ TAGS
 
 # mkdocs site
 docs/site/
+
+# OpenTrail
+client/js/addons/opentrail/
+test/openTrail/
