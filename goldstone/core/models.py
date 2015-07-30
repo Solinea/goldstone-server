@@ -249,7 +249,24 @@ class PolyResource(PolymorphicModel):
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type (not instance!)."""
+        """Return the edges leaving this type (not instance!).
+
+        :return: Entries in the form of:
+                 TO: The destination type
+                 MATCHING_FN: Callable(from_attr_dict, to_attr_dict).  If
+                              there's a match between the from_node's and
+                              to_node's attribute dicts, we draw a Resource
+                              graph edge. Note: This must be prepared for
+                              absent keys, and not throw exceptions.
+                 EDGE_ATTTRIBUTES: This edge's attributes:
+                     TYPE: The type of this edge
+                     MIN: A resource graph node has a minimum number of this
+                          edge ntype
+                     MAX: A resource graph node has a maximum number of this
+                          edge type
+        :rtype: list of dict
+
+        """
 
         return []
 
@@ -301,9 +318,32 @@ class PolyResource(PolymorphicModel):
         return LogEvent.search().query(name_query)
 
 
-#
-# These classes represent entities within a Keystone integration.
-#
+############################################
+# These classes represent add-on entities. #
+############################################
+
+
+class Addon(PolyResource):
+    """The root node for user-installed Goldstone add-ons."""
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        return [x.cloud_attributes for x in Addon.objects.all()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"integration_name": "Add-on", "name": "Add-on"}
+
+
+###################################################################
+# These classes represent entities within a Keystone integration. #
+###################################################################
+
 # TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Domain, Group, Token,
 # Credential, Role, Region, Endpoint, Service.
 
@@ -631,9 +671,9 @@ class Project(PolyResource):
         return {"integration_name": "Keystone", "name": "Project"}
 
 
-#
-# These classes represent entities within a Nova integration.
-#
+###############################################################
+# These classes represent entities within a Nova integration. #
+###############################################################
 
 class AvailabilityZone(PolyResource):
     """An OpenStack Availability Zone."""
@@ -1243,9 +1283,9 @@ class NovaLimits(PolyResource):
         return {"integration_name": "Nova", "name": "Limits"}
 
 
-#
-# These classes represent entities within a Glance integration.
-#
+#################################################################
+# These classes represent entities within a Glance integration. #
+#################################################################
 
 class Image(PolyResource):
     """An OpenStack Image."""
@@ -1284,9 +1324,9 @@ class Image(PolyResource):
         return {"integration_name": "Glance", "name": "Image"}
 
 
-#
-# These classes represent entities within a Cinder integration.
-#
+#################################################################
+# These classes represent entities within a Cinder integration. #
+#################################################################
 
 class QuotaSet(PolyResource):
     """An OpenStack Quota Set."""
@@ -1505,9 +1545,10 @@ class Limits(PolyResource):
         return {"integration_name": "Cinder", "name": "Limits"}
 
 
-#
-# These classes represent entities within a Neutron integration.
-#
+##################################################################
+# These classes represent entities within a Neutron integration. #
+##################################################################
+
 # TODO: Fill in MeteringLabelRule, MeteringLabel, NeutronQuota, RemoteGroup,
 # SecurityRules, SecurityGroup., LBVIP, LBPool, HealthMonitor, FloatingIP,
 # FloatingIPPool, FixedIP, LBMember, Subnet, Network, Router.

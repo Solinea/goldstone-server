@@ -231,6 +231,11 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.MeteringLabel'>"},
+                    {u'display_attributes': {u'name': u'Metering Label Rule',
+                                             u'integration_name': u'Neutron'},
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.MeteringLabelRule'>"},
                     {u'display_attributes': {u'name': u'Token',
                                              u'integration_name': u'Keystone'},
                      u'present': False,
@@ -317,6 +322,11 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Interface'>"},
+                    {u'display_attributes': {u'name': u'Add-on',
+                                             u'integration_name': u'Add-on'},
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Addon'>"},
                     ]
 
         # Create the nodes for the test.

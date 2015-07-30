@@ -51,15 +51,21 @@ class Setup(SimpleTestCase):
         """Do explicit database reseting.
 
         SimpleTestCase doesn't always reset the database to as much of an
-        initial state as we expect. And we want to reset the resource graph.
+        initial state as we expect. And we need reset the resource and resource
+        type graphs.
 
         """
+        from goldstone.addons.models import Addon
         from goldstone.core.models import PolyResource
         from goldstone.core import resource
         from goldstone.tenants.models import Tenant
 
         get_user_model().objects.all().delete()
         Tenant.objects.all().delete()
+
+        Addon.objects.all().delete()
+
+        resource.types = resource.Types()
 
         PolyResource.objects.non_polymorphic().all().delete()
         resource.instances.graph.clear()

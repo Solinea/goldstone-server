@@ -71,7 +71,7 @@ CELERYBEAT_APPS = \
 CELERYBEAT_APP_INCLUDE = \
     "# Tasks for {0}.\n" \
     "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
-    "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n\n"
+    "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n"
 
 
 @contextmanager
@@ -298,7 +298,7 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
             CELERYBEAT_APP_INCLUDE.format(name)
 
         javascript_changes = \
-            "We'll copy {0}/*.* to {1}/*.*, and add this line to " \
+            "\nWe'll copy {0}/*.* to {1}/*.*, and add this line to " \
             "base.html:\n".format(addon_install["static_source"],
                                   addon_install["static_dest"])
         javascript_changes = \
