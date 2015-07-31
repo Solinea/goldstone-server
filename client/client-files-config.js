@@ -52,6 +52,7 @@ module.exports = {
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
     otBundle: '../django-opentrail/opentrail/static/main.js',
+    otBundleGoldstone: 'goldstone/static/addons/opentrail/main.js',
     otTest: 'test/openTrail/*.js',
     otCopy: '../django-opentrail/client-dev/',
     otTestCopy: '../django-opentrail/client-test/',

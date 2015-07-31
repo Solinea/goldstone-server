@@ -37,7 +37,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
     },
 
     update: function() {
-        // this.drawSearchTable('#reports-result-table', this.collection.toJSON());
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
