@@ -307,6 +307,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>')
 
 });

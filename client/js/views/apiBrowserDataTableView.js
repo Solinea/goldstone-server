@@ -97,7 +97,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "id",
                     "visible": false,
                     "searchable": true
-                },
+                }
 
             ],
             "serverSide": true,
@@ -173,8 +173,8 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 dataFilter: function(data) {
                     data = self.serverSideDataPrep(data);
                     return data;
-                },
-            },
+                }
+            }
         };
     },
 

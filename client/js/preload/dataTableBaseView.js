@@ -103,7 +103,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof(tableData[0]) === "object") {
+        if (typeof (tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys

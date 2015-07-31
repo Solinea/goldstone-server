@@ -47,7 +47,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
             nextUrl = dp.slice(dp.indexOf('/logging'));
             this.fetch({
                 url: nextUrl,
-                remove: false,
+                remove: false
             });
         }
 
@@ -69,5 +69,5 @@ var LogAnalysisCollection = Backbone.Collection.extend({
         this.fetch({
             remove: true
         });
-    },
+    }
 });

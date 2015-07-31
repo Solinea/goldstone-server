@@ -134,7 +134,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
             // if lookback is left blank, default to 1
             'intervalValue': $(menu).find('.modal-interval-value').val() || 1,
-            'intervalUnit': $(menu).find('.interval-dropdown-options').val(),
+            'intervalUnit': $(menu).find('.interval-dropdown-options').val()
         });
     },
 
@@ -217,7 +217,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 collection: this.metricChart,
                 height: 320,
                 el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width(),
+                width: $('.metric-chart-instance' + this.options.instance).width()
             });
         }
     },
@@ -320,6 +320,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // add div that will contain svg for d3 chart
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
         '</div>'
-    ),
+    )
 
 });

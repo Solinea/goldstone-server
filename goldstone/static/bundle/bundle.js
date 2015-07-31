@@ -288,7 +288,7 @@ var GoldstoneBaseView = Backbone.View.extend({
 
             if ($(this.el).find('#chart-button-info').length) {
                 $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this),
+                    content: this.htmlGen.apply(this)
                 });
             }
 
@@ -552,7 +552,7 @@ var GoldstoneBaseView2 = Backbone.View.extend({
         this.$el.prepend(new ChartHeaderView({
             chartTitle: this.chartTitle,
             infoText: this.infoText,
-            infoIcon: this.infoIcon,
+            infoIcon: this.infoIcon
         }).el);
     },
 
@@ -1115,7 +1115,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         options = options || {};
-        this.options = _.clone(options); 
+        this.options = _.clone(options);
         this.url = this.options.url || null;
         this.instanceSpecificInit();
     },
@@ -1334,7 +1334,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof(tableData[0]) === "object") {
+        if (typeof (tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -1833,7 +1833,7 @@ var ChartSet = GoldstoneBaseView2.extend({
         this.$el.append(new ChartHeaderView({
             chartTitle: this.chartTitle,
             infoText: this.infoText,
-            infoIcon: this.infoIcon,
+            infoIcon: this.infoIcon
         }).el);
     },
 
@@ -2552,7 +2552,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 }
 
                 console.log('define feature set in utilizationCpuView.js');
-                return;
+                return null;
 
             })
             .attr("text-anchor", function(d) {
@@ -3105,7 +3105,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
 
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
 
         this.urlUpdate(this.computeLookback());
         // don't add {remove:false} to the initial fetch
@@ -3359,7 +3359,7 @@ var HypervisorCollection = Backbone.Collection.extend({
         };
 
         var result = {
-            "date": day,
+            "date": day
         };
 
         for (var i = 0; i < 5; i++) {
@@ -3379,26 +3379,26 @@ var HypervisorCollection = Backbone.Collection.extend({
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412818619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412823619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412828619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
-            },
+                "VM4": 9.13
+            }
 
         ]
     }
@@ -3602,7 +3602,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
             nextUrl = dp.slice(dp.indexOf('/logging'));
             this.fetch({
                 url: nextUrl,
-                remove: false,
+                remove: false
             });
         }
 
@@ -3624,7 +3624,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
         this.fetch({
             remove: true
         });
-    },
+    }
 });
 ;
 /**
@@ -3654,7 +3654,7 @@ var MetricViewCollection = GoldstoneBaseCollection.extend({
         this.statistic = this.options.statistic;
         this.standardDev = this.options.standardDev;
         this.fetchWithReset();
-    },
+    }
 });
 ;
 /**
@@ -3699,7 +3699,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
                 url: nextUrl,
-                remove: false,
+                remove: false
             });
         } else {
             ns.urlCollectionCount--;
@@ -3831,7 +3831,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
     model: NodeAvailModel,
 
     initialize: function(options) {
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
 
         // fetchInProgress = true will block further fetches
         this.defaults.fetchInProgress = false;
@@ -4012,7 +4012,7 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
             this.defaults.nodeName + "&page_size=300" +
-            "&@timestamp__range={'gte':" + twentyAgo +"}";
+            "&@timestamp__range={'gte':" + twentyAgo + "}";
 
         // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 
@@ -4391,7 +4391,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "id",
                     "visible": false,
                     "searchable": true
-                },
+                }
 
             ],
             "serverSide": true,
@@ -4467,8 +4467,8 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 dataFilter: function(data) {
                     data = self.serverSideDataPrep(data);
                     return data;
-                },
-            },
+                }
+            }
         };
     },
 
@@ -4977,7 +4977,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova',
+            componentParam: 'nova'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -4997,7 +4997,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron',
+            componentParam: 'neutron'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -5016,7 +5016,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone',
+            componentParam: 'keystone'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -5035,7 +5035,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance',
+            componentParam: 'glance'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -5054,7 +5054,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder',
+            componentParam: 'cinder'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -5397,7 +5397,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>')
 
 });
 ;
@@ -5656,7 +5656,7 @@ var CinderReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder',
+            componentParam: 'cinder'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -6983,7 +6983,7 @@ var GlanceReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance',
+            componentParam: 'glance'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -7201,13 +7201,13 @@ var HelpView = GoldstoneBaseView.extend({
         '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
         'goldstone-users forum</a>, or ' +
         '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
-        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' + 
+        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' +
         'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
 
         '<a name="license"></a><h3>License</h3>' +
         'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
         'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
-        'https://www.apache.org/licenses/LICENSE-2.0</a>.' 
+        'https://www.apache.org/licenses/LICENSE-2.0</a>.'
     )
 
 });
@@ -7767,7 +7767,7 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone',
+            componentParam: 'keystone'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -8628,7 +8628,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         $('.log-analysis-container').append(new ChartHeaderView({
             chartTitle: 'Logs vs Time',
             infoText: 'searchLogAnalysis',
-            infoIcon: 'fa-dashboard',
+            infoIcon: 'fa-dashboard'
         }).el);
 
         return this;
@@ -9210,7 +9210,7 @@ var MetricView = ApiPerfView.extend({
     },
 
     template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>')
 
 });
 ;
@@ -9259,7 +9259,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
             grid: {
-                view: {},
+                view: {}
             }
         });
 
@@ -9479,7 +9479,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
             // if lookback is left blank, default to 1
             'intervalValue': $(menu).find('.modal-interval-value').val() || 1,
-            'intervalUnit': $(menu).find('.interval-dropdown-options').val(),
+            'intervalUnit': $(menu).find('.interval-dropdown-options').val()
         });
     },
 
@@ -9562,7 +9562,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 collection: this.metricChart,
                 height: 320,
                 el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width(),
+                width: $('.metric-chart-instance' + this.options.instance).width()
             });
         }
     },
@@ -9665,7 +9665,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // add div that will contain svg for d3 chart
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
         '</div>'
-    ),
+    )
 
 });
 ;
@@ -9845,7 +9845,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.vcpus_used,
-                    Physical: item.vcpus,
+                    Physical: item.vcpus
                 });
             });
 
@@ -9903,7 +9903,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.local_gb_used,
-                    Total: item.local_gb,
+                    Total: item.local_gb
                 });
             });
 
@@ -9961,7 +9961,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.memory_mb_used,
-                    Physical: item.memory_mb,
+                    Physical: item.memory_mb
                 });
             });
 
@@ -10334,7 +10334,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             metric: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Value', 0],
+                ['Value', 0]
             ],
             mem: [
                 // uncomment if supplying virtual stat again
@@ -10569,7 +10569,7 @@ var NeutronReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron',
+            componentParam: 'neutron'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -10991,7 +10991,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 // Visual swim lanes
                 var swimlanes = {
                     // ping: "Ping Only",
-                    unadmin: "",
+                    unadmin: ""
                 };
                 var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
                 swimlanes[middle] = "";
@@ -11338,7 +11338,7 @@ TODO: probably change this to d.timestamp
 
         circle.exit().remove();
 
-        return true;
+        return;
     },
 
     redraw: function() {
@@ -11787,12 +11787,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         $('#service-status-title-bar').append(new ChartHeaderView({
             chartTitle: 'Service Status Report',
-            infoText: 'serviceStatus',
+            infoText: 'serviceStatus'
         }).el);
 
         $('#utilization-title-bar').append(new ChartHeaderView({
             chartTitle: 'Utilization',
-            infoText: 'utilization',
+            infoText: 'utilization'
         }).el);
 
         // PENDING
@@ -11958,7 +11958,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             specificHost: this.node_uuid,
-            urlRoot: "/logging/summarize/?",
+            urlRoot: "/logging/summarize/?"
         });
     },
 
@@ -12078,7 +12078,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova',
+            componentParam: 'nova'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -12340,7 +12340,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         var self = this;
 
         // triggered whenever this.collection finishes fetching
-        this.listenTo(this.collection,'sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
 
             // removes spinner that was appended
             // during chart-load
@@ -12401,7 +12401,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof(tableData[0]) === "object") {
+        if (typeof (tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -12499,7 +12499,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
             ],
             "ordering": true,
             "data": data,
-            "serverSide": false,
+            "serverSide": false
         };
         oTable = $(location).DataTable(oTableParams);
 
@@ -12847,7 +12847,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         $.ajax({
             type: type,
             url: url,
-            data: data,
+            data: data
         }).done(function(success) {
             goldstone.raiseInfo(message + ' update successful');
         })
@@ -13599,7 +13599,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $.ajax({
             type: type,
             url: url,
-            data: data,
+            data: data
         })
             .done(function(success) {
                 self.dataErrorMessage(message + ' update successful');
@@ -13697,7 +13697,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     initialize: function(options) {
 
         this.options = options || {};
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
         this.el = options.el;
 
         this.defaults.blueSpinnerGif = options.blueSpinnerGif;
@@ -14166,7 +14166,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
             icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
                 'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
-            ],
+            ]
 
         }).forEach(function(icon, classes) {
             // Acutally attach the icons to the classes
@@ -14317,14 +14317,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             $(ns.chartHeader[0]).append(new ChartHeaderView({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
-                infoText: ns.chartHeader[2],
+                infoText: ns.chartHeader[2]
             }).el);
         }
 
         // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl,
+                el: ns.multiRsrcViewEl
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');

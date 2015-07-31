@@ -63,7 +63,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         $('.log-analysis-container').append(new ChartHeaderView({
             chartTitle: 'Logs vs Time',
             infoText: 'searchLogAnalysis',
-            infoIcon: 'fa-dashboard',
+            infoIcon: 'fa-dashboard'
         }).el);
 
         return this;

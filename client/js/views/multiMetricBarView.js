@@ -174,7 +174,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.vcpus_used,
-                    Physical: item.vcpus,
+                    Physical: item.vcpus
                 });
             });
 
@@ -232,7 +232,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.local_gb_used,
-                    Total: item.local_gb,
+                    Total: item.local_gb
                 });
             });
 
@@ -290,7 +290,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.memory_mb_used,
-                    Physical: item.memory_mb,
+                    Physical: item.memory_mb
                 });
             });
 
@@ -663,7 +663,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             metric: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Value', 0],
+                ['Value', 0]
             ],
             mem: [
                 // uncomment if supplying virtual stat again
