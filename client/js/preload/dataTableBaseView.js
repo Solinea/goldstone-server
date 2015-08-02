@@ -277,7 +277,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         $(this.el).find('.data-table-header-container').remove();
         $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
 
-        oTable = $(location).DataTable(oTableParams);
+        self.oTable = $(location).DataTable(oTableParams);
 
     },
 

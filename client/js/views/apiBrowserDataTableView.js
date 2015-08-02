@@ -32,7 +32,7 @@ instantiated on apiBrowserPageView as:
 var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        ApiBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
         this.drawSearchTableServerSide('#reports-result-table');
     },
 

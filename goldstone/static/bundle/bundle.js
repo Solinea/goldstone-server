@@ -1508,7 +1508,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         $(this.el).find('.data-table-header-container').remove();
         $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
 
-        oTable = $(location).DataTable(oTableParams);
+        self.oTable = $(location).DataTable(oTableParams);
 
     },
 
@@ -4326,7 +4326,7 @@ instantiated on apiBrowserPageView as:
 var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        ApiBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
@@ -6527,7 +6527,7 @@ instantiated on eventsBrowserPageView as:
 var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
 
@@ -9749,7 +9749,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     dataErrorMessage: function(message, errorMessage) {
 
-        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+        MultiMetricBarView.__super__.dataErrorMessage.apply(this, arguments);
 
         var self = this;
 

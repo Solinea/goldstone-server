@@ -79,7 +79,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     dataErrorMessage: function(message, errorMessage) {
 
-        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+        MultiMetricBarView.__super__.dataErrorMessage.apply(this, arguments);
 
         var self = this;
 
