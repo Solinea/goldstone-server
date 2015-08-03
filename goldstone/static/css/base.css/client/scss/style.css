@@ -308,33 +308,63 @@ svg.e {
   left: 100%;
 }
 
-/* line 2, ../../../../../../client/scss/data-tables.scss */
+/* line 6, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table td, #log-search-table td, #events-report-table td, #multi-rsrc-table td, #single-rsrc-table td, #reports-result-table td {
   font-size: 12px;
   color: #eee;
 }
-/* line 5, ../../../../../../client/scss/data-tables.scss */
+/* line 9, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table td th, #log-search-table td th, #events-report-table td th, #multi-rsrc-table td th, #single-rsrc-table td th, #reports-result-table td th {
   font-size: 10px;
 }
-/* line 10, ../../../../../../client/scss/data-tables.scss */
+/* line 14, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-trash-o, #log-search-table .fa-trash-o, #events-report-table .fa-trash-o, #multi-rsrc-table .fa-trash-o, #single-rsrc-table .fa-trash-o, #reports-result-table .fa-trash-o {
+  color: #bb201c;
+}
+/* line 18, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-play, #log-search-table .fa-play, #events-report-table .fa-play, #multi-rsrc-table .fa-play, #single-rsrc-table .fa-play, #reports-result-table .fa-play {
+  color: #6BA757;
+}
+/* line 22, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-check, #log-search-table .fa-check, #events-report-table .fa-check, #multi-rsrc-table .fa-check, #single-rsrc-table .fa-check, #reports-result-table .fa-check {
+  color: #6BA757;
+}
+/* line 26, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-asterisk, #log-search-table .fa-asterisk, #events-report-table .fa-asterisk, #multi-rsrc-table .fa-asterisk, #single-rsrc-table .fa-asterisk, #reports-result-table .fa-asterisk {
+  color: #bb201c;
+}
+/* line 30, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table tr:hover td, #log-search-table tr:hover td, #events-report-table tr:hover td, #multi-rsrc-table tr:hover td, #single-rsrc-table tr:hover td, #reports-result-table tr:hover td {
   background-color: #252525;
 }
 
-/* line 16, ../../../../../../client/scss/data-tables.scss */
+/* line 36, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table tr:nth-child(even), #log-search-table tr:nth-child(even), #events-report-table tr:nth-child(even), #multi-rsrc-table tr:nth-child(even), #single-rsrc-table tr:nth-child(even), #reports-result-table tr:nth-child(even) {
   background-color: #252525;
 }
 
-/* line 21, ../../../../../../client/scss/data-tables.scss */
+/* line 41, ../../../../../../client/scss/data-tables.scss */
 .dataTables_info {
   color: #eee;
 }
 
-/* line 26, ../../../../../../client/scss/data-tables.scss */
+/* line 46, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table_length > label, #log-search-table_length > label, #events-report-table_length > label, #multi-rsrc-table_length > label {
   color: #eee;
+}
+
+/* line 53, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused td, .table tbody tr.paused th {
+  color: #aaa !important;
+  border-top: 1px solid;
+  background-color: rgba(220, 220, 220, 0.5);
+}
+
+/* line 60, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused:hover td,
+.table tbody tr.paused:hover th {
+  color: #aaa !important;
+  background-color: rgba(220, 220, 220, 0.5) !important;
 }
 
 /* line 36, ../../../../../../client/scss/style.scss */
