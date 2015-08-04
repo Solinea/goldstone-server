@@ -34,8 +34,12 @@ def update_addon_nodes():
     # For every node of this type in the persistent resource graph...
     for entry in Addon.objects.all():
         if entry.native_name not in actual_names:
-            # This node isn't in the cloud anymore, so delete it from the
+            # This node isn't in the Addon table anymore, so delete it from the
             # persistent data.
+            # TODO: What about inferior nodes, which were imported from the
+            # add-on's models?
+            # TODO: What about resource types that were imported from the
+            # add-on?
             entry.delete()
 
     # For every Addon table row, add it to the persistent resource graph if
