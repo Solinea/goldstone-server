@@ -125,7 +125,7 @@ class Types(Graph):
 
         """
         from importlib import import_module
-        from inspect import getmro
+        from inspect import getmro, getmembers, isclass
 
         super(Types, self).__init__()
 
@@ -143,27 +143,39 @@ class Types(Graph):
 
         # Now the add-on resource types.
         for row in AddonTable.objects.all():
-            the_app = import_module("%s.models" % row.name)
-            addon_types = [x for x in dir(the_app)
-                           if PolyResource in getmro(x)]
+            try:
+                the_app = import_module("%s.models" % row.name)
+                addon_classes = [x[1] for x in getmembers(the_app, isclass)]
+                addon_types = [x for x in addon_classes
+                               if PolyResource in getmro(x) and
+                               x != PolyResource]
 
-            for source_type in addon_types():
-                if hasattr(source_type, "root"):
-                    # This is the add-on root. Make an edge from the Addon type
-                    # to this type.
-                    self.graph.add_edge(Addon,
-                                        source_type,
-                                        attr_dict={TYPE: INSTANCE_OF,
-                                                   MIN: 0,
-                                                   MAX: sys.maxint})
+                # Addon_types is the add-on's model classes that are derived
+                # from PolyResource, except for PolyResource itself.
+                # (PolyResource shows up in the class list if it's imported
+                # from another module.)
+                for source_type in addon_types:
+                    self.graph.add_node(source_type)
 
-                for control_dict in source_type.outgoing_edges():
-                    # (If an edge connects nodes not yet in the graph, the
-                    # nodes are automatically added.)
-                    self.graph.add_edge(
-                        source_type,
-                        control_dict[TO],
-                        attr_dict=control_dict[EDGE_ATTRIBUTES])
+                    # If this is the add-on's root, make an edge from the Addon
+                    # type to it.
+                    if hasattr(source_type, "root"):
+                        self.graph.add_edge(Addon,
+                                            source_type,
+                                            attr_dict={TYPE: INSTANCE_OF,
+                                                       MIN: 0,
+                                                       MAX: sys.maxint})
+
+                    # Add edges from this node to others.
+                    for control_dict in source_type.outgoing_edges():
+                        self.graph.add_edge(
+                            source_type,
+                            control_dict[TO],
+                            attr_dict=control_dict[EDGE_ATTRIBUTES])
+            except Exception:
+                logger.exception("Problem adding %s to the resource type "
+                                 "graph! Skipping...", row)
+                continue
 
     @classmethod
     def get_type(cls, unique_id):
