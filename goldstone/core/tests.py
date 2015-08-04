@@ -24,7 +24,7 @@ from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase
 
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
-    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server
+    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
 
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
@@ -34,13 +34,13 @@ from .utils import custom_exception_handler, process_resource_type, parse
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
 NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server]
+              Hypervisor, Project, Network, Server, Addon]
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
 
 
-def _load_persistent_rg(startnodes, startedges):
+def load_persistent_rg(startnodes, startedges):
     """Create PolyResource database rows.
 
     :param startnodes: The nodes to add.
@@ -199,7 +199,7 @@ class UpdateEdges(SimpleTestCase):
         # Test data. Each entry is (Type, native_id).
         NODES = [(Host, "deadbeef")]
 
-        _load_persistent_rg(NODES, [])
+        load_persistent_rg(NODES, [])
 
         # Get the Host instance and do the test.
         node = Host.objects.all()[0]
@@ -227,7 +227,7 @@ class UpdateEdges(SimpleTestCase):
                  (Hypervisor, "1"),
                  (Hypervisor, "2")]
 
-        _load_persistent_rg(NODES, [])
+        load_persistent_rg(NODES, [])
 
         # Set up the host attributes.
         node = Host.objects.all()[0]
@@ -264,7 +264,7 @@ class UpdateEdges(SimpleTestCase):
                  (Hypervisor, "1"),
                  (Hypervisor, "2")]
 
-        _load_persistent_rg(NODES, [])
+        load_persistent_rg(NODES, [])
 
         # Set up the host attributes.
         node = Host.objects.all()[0]
@@ -302,7 +302,7 @@ class UpdateEdges(SimpleTestCase):
                  (Cloudpipe, "deadbeef"),
                  (Port, "deadbeef")]
 
-        _load_persistent_rg(NODES, [])
+        load_persistent_rg(NODES, [])
 
         # Set up the host attributes.
         node = Host.objects.all()[0]
@@ -340,7 +340,7 @@ class UpdateEdges(SimpleTestCase):
                  (Port, "cad"),
                  (Network, "cad")]
 
-        _load_persistent_rg(NODES, [])
+        load_persistent_rg(NODES, [])
 
         # Set up the project attributes.
         node = Project.objects.all()[0]
@@ -441,7 +441,7 @@ class ProcessResourceType(SimpleTestCase):
         EDGES = [((Image, "a"), (Image, "ab")), ((Image, "abc"), (Image, "a"))]
 
         # Create the PolyResource database rows.
-        _load_persistent_rg(NODES, EDGES)
+        load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -486,7 +486,7 @@ class ProcessResourceType(SimpleTestCase):
                  ]
 
         # Create the PolyResource database rows.
-        _load_persistent_rg(NODES, EDGES)
+        load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
         ggc.return_value = {"client": self.EmptyClientObject(),
@@ -569,7 +569,7 @@ class ProcessResourceType(SimpleTestCase):
                  ]
 
         # Create the PolyResource database rows.
-        _load_persistent_rg(NODES, EDGES)
+        load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -628,7 +628,7 @@ class ProcessResourceType(SimpleTestCase):
                  ]
 
         # Create the PolyResource database rows.
-        _load_persistent_rg(NODES, EDGES)
+        load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance and other services.
         cloud = self.EmptyClientObject()
@@ -688,7 +688,7 @@ class ProcessResourceType(SimpleTestCase):
                  ]
 
         # Create the PolyResource database rows.
-        _load_persistent_rg(NODES, EDGES)
+        load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return some glance services, two of
         # which have duplicate OpenStack ids.

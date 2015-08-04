@@ -24,6 +24,7 @@ def update_addon_nodes():
        - updated from the Addon table if they are already in the graph.
 
     """
+    from django.forms.models import model_to_dict
     from goldstone.addons.models import Addon as AddonTable
     from goldstone.core.models import PolyResource, Addon
 
@@ -47,12 +48,9 @@ def update_addon_nodes():
             # The node doesn't exist. Create it.
             Addon.objects.create(native_id=row.name,
                                  native_name=row.name,
-                                 cloud_attributes=row.to_dict())
+                                 cloud_attributes=model_to_dict(row))
 
     # New add-on nodes have been added. Now fill in / update all nodes'
     # outgoing edges.
-    #
-    # TODO: Perhaps make this a table Manager method, to hide the loop &
-    # optimize it.
     for node in PolyResource.objects.all():
         node.update_edges()

@@ -26,7 +26,7 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
     RemoteGroup, SecurityRules, SecurityGroup, Port, LBVIP, LBPool, \
     HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember, Subnet, \
-    Network, Router, Addon
+    Network, Router, Addon, PolyResource
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
@@ -125,6 +125,7 @@ class Types(Graph):
 
         """
         from importlib import import_module
+        from inspect import getmro
 
         super(Types, self).__init__()
 
@@ -143,7 +144,8 @@ class Types(Graph):
         # Now the add-on resource types.
         for row in AddonTable.objects.all():
             the_app = import_module("%s.models" % row.name)
-            addon_types = getattr(the_app, "resource_types")
+            addon_types = [x for x in dir(the_app)
+                           if PolyResource in getmro(x)]
 
             for source_type in addon_types():
                 if hasattr(source_type, "root"):
@@ -237,7 +239,6 @@ class Instances(Graph):
         the db table.
 
         """
-        from .models import PolyResource
 
         def get_uuid(uuid):
             """Return the graph node having this UUID.
