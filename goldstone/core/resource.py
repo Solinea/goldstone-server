@@ -150,10 +150,8 @@ class Types(Graph):
                                if PolyResource in getmro(x) and
                                x != PolyResource]
 
-                # Addon_types is the add-on's model classes that are derived
-                # from PolyResource, except for PolyResource itself.
-                # (PolyResource shows up in the class list if it's imported
-                # from another module.)
+                # Addon_types contains the add-on's model classes that are
+                # derived from PolyResource, excluding PolyResource itself.
                 for source_type in addon_types:
                     self.graph.add_node(source_type)
 
@@ -172,7 +170,7 @@ class Types(Graph):
                             source_type,
                             control_dict[TO],
                             attr_dict=control_dict[EDGE_ATTRIBUTES])
-            except Exception:
+            except Exception:         # pylint: disable=W0703
                 logger.exception("Problem adding %s to the resource type "
                                  "graph! Skipping...", row)
                 continue

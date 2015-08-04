@@ -29,7 +29,6 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
-INSTANCE_OF = settings.R_EDGE.INSTANCE_OF
 OWNS = settings.R_EDGE.OWNS
 
 
@@ -37,6 +36,7 @@ class ButterfingerBar(PolyResource):
     """A Butterfinger."""
 
     pass
+
 
 class SnickersBar(PolyResource):
     """A Snickers."""

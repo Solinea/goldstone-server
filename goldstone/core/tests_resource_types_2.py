@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.test import SimpleTestCase
 from functools import partial
 from mock import patch
 
@@ -445,7 +444,7 @@ class ResourceAddonTypes(Setup):
         for entry in DATA:
             AddonTable.objects.create(**entry)
 
-        # Do the test 
+        # Do the test
         with patch('goldstone.core.resource.logger') as handler:
             types = Types()
             # Logger.exception, not logger, was called, so we can't use the
@@ -469,7 +468,7 @@ class ResourceAddonTypes(Setup):
         for entry in DATA:
             AddonTable.objects.create(**entry)
 
-        # Do the test 
+        # Do the test
         with patch('goldstone.core.resource.logger') as handler:
             types = Types()
             # Logger.exception, not logger, was called, so we can't use the

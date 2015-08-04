@@ -38,10 +38,8 @@ def update_addon_nodes():
             # persistent data.
             entry.delete()
 
-    # For every Addon table entry, add it to the persistent Resource graph if
+    # For every Addon table row, add it to the persistent resource graph if
     # it's not there.
-    #
-    # For every Addon row...
     for row in AddonTable.objects.all():
         # Try to find its corresponding persistent Resource graph node.
         if not Addon.objects.filter(native_name=row.name).exists():
@@ -50,7 +48,6 @@ def update_addon_nodes():
                                  native_name=row.name,
                                  cloud_attributes=model_to_dict(row))
 
-    # New add-on nodes have been added. Now fill in / update all nodes'
-    # outgoing edges.
+    # Now fill in / update all nodes' outgoing edges.
     for node in PolyResource.objects.all():
         node.update_edges()
