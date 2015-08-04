@@ -11,20 +11,12 @@ $paused_grey: rgba(220, 220, 220, 0.5);
     }
   }
 
-  .fa-trash-o {
+  .fa-trash-o, .fa-asterisk {
     color: $red;
   }
 
-  .fa-play {
+  .fa-play, .fa-check {
     color: $green;
-  }
-
-  .fa-check {
-    color: $green;
-  }
-
-  .fa-asterisk {
-    color: $red;
   }
 
   tr:hover td {
