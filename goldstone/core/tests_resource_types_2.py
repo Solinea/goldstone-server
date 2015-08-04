@@ -12,15 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.test import SimpleTestCase
 from functools import partial
+from mock import patch
 
 from .models import ServerGroup, Server, Interface, Volume, QOSSpec, \
     VolumeType, Snapshot
+from .resource import Types, RESOURCE_TYPES
 from .tests_resource_types_1 import do_test, dictassign
+from goldstone.addons.models import Addon as AddonTable
+from goldstone.test_utils import Setup
 
 
-class ResourceTypesTests(SimpleTestCase):
+class ResourceTypesTests(Setup):
     """Test each entry in Types.EDGES, in particular the matching_fn
     functions."""
 
@@ -421,3 +424,57 @@ class ResourceTypesTests(SimpleTestCase):
                 Volume,
                 VOLUME,
                 partial(dictassign, VOLUME, "snapshot_id"))
+
+
+class ResourceAddonTypes(Setup):
+    """Test processsing of add-on resource types."""
+
+    def test_no_types(self):
+        """No types to add."""
+
+        # Test data. The add-on name will fake out import_module so that it
+        # imports the desired test models file.
+        DATA = [{"name": "goldstone.core.test_addons_nomodels",
+                 "version": "42",
+                 "manufacturer": "Lynbrook Senior High School",
+                 "url_root": "lynbrook"},
+                ]
+
+        # Load up the Addon table.
+        for entry in DATA:
+            AddonTable.objects.create(**entry)
+
+        # Do the test
+        with patch('goldstone.core.resource.logger') as handler:
+            types = Types()
+            # Logger.exception, not logger, was called, so we can't use the
+            # called attribute!
+            self.assertEqual(handler.mock_calls, [])
+
+        self.assertEqual(len(types.graph.nodes()), len(RESOURCE_TYPES))
+
+    def test_types(self):
+        """Types to add, one root and two others."""
+
+        # Test data. The add-on name will fake out import_module so that it
+        # imports the desired test models file.
+        DATA = [{"name": "goldstone.core.test_addons_models",
+                 "version": "42",
+                 "manufacturer": "Lynbrook Senior High School",
+                 "url_root": "lynbrook"},
+                ]
+
+        # Load up the Addon table.
+        for entry in DATA:
+            AddonTable.objects.create(**entry)
+
+        # Do the test
+        with patch('goldstone.core.resource.logger') as handler:
+            types = Types()
+            # Logger.exception, not logger, was called, so we can't use the
+            # called attribute!
+            self.assertEqual(handler.mock_calls, [])
+
+        # The "+3" is the number of PolyResource-derived classes in the test's
+        # models.py.
+        self.assertEqual(len(types.graph.nodes()), len(RESOURCE_TYPES) + 3)

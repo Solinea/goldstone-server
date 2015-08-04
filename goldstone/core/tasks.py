@@ -43,23 +43,28 @@ def delete_indices(prefix,
 @celery_app.task()
 def update_persistent_graph():
     """Update the Resource graph's persistent data from the current OpenStack
-    cloud state.
+    cloud state, and add-on state.
 
     Nodes are:
-       - deleted if they are no longer in the OpenStack cloud.
-       - added if they are in the OpenStack cloud, but not in the graph.
-       - updated from the cloud if they are already in the graph.
+       - deleted if they are no longer in the OpenStack cloud, or in the Addon
+         table.
+       - added if they are in the OpenStack cloud or Addon table, but not in
+         the graph.
+       - updated from the cloud or Addon table if they are already in the
+         graph.
 
     """
+    from goldstone.addons.utils import update_addon_nodes
     from goldstone.cinder.utils import update_cinder_nodes
     from goldstone.glance.utils import update_glance_nodes
     from goldstone.keystone.utils import update_keystone_nodes
     from goldstone.nova.utils import update_nova_nodes
 
+    update_addon_nodes()
+    update_cinder_nodes()
     update_glance_nodes()
     update_keystone_nodes()
     update_nova_nodes()
-    update_cinder_nodes()
 
 
 @celery_app.task()

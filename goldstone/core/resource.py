@@ -16,6 +16,9 @@ from datetime import datetime, timedelta
 from django.conf import settings
 import logging
 import networkx
+import sys
+
+from goldstone.addons.models import Addon as AddonTable
 from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Endpoint, Service, Project, AvailabilityZone, Aggregate, \
     Flavor, Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server, \
@@ -23,12 +26,12 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
     RemoteGroup, SecurityRules, SecurityGroup, Port, LBVIP, LBPool, \
     HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember, Subnet, \
-    Network, Router
+    Network, Router, Addon, PolyResource
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project, AvailabilityZone,
-                  Aggregate, Flavor, Keypair, Host,
+                  Aggregate, Flavor, Keypair, Host, Addon,
                   Hypervisor, Cloudpipe, ServerGroup, Server, Interface,
                   NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType,
                   Volume, Limits, MeteringLabelRule, MeteringLabel,
@@ -40,6 +43,9 @@ RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
 TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
+INSTANCE_OF = settings.R_EDGE.INSTANCE_OF
+MAX = settings.R_ATTRIBUTE.MAX
+MIN = settings.R_ATTRIBUTE.MIN
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +105,17 @@ class Graph(object):
 
 
 class Types(Graph):
-    """A graph of an OpenStack cloud's resource types."""
+    """A graph of an OpenStack cloud's resource types.
+
+    The correct way to import this:
+
+         from goldstone.core import resource
+         foo = resource.types....
+
+    If you use, "from resources import types," it adds instances to the
+    local namespace, and it won't work as you expect.
+
+    """
 
     def __init__(self):
         """Initialize the object.
@@ -108,36 +124,56 @@ class Types(Graph):
                  cloud.
 
         """
+        from importlib import import_module
+        from inspect import getmro, getmembers, isclass
 
         super(Types, self).__init__()
 
-        # Every resource type has an outgoing_edges() class method.
-        #
-        # Each entry in the value of outgoing_edges() is a control_dict.  Each
-        # control_dict is:
-        #
-        #   TO: The destination type
-        #   EDGE_ATTTRIBUTES: This edge's attributes:
-        #       TYPE: The type of this edge
-        #       MIN: A resource graph node has a minimum number of this edge
-        #            type
-        #       MAX: A resource graph node has a maximum number of this edge
-        #            type
-        #       MATCHING_FN: Callable(from_attr_dict, to_attr_dict).  If
-        #                    there's a match between the from_node's and
-        #                    to_node's attribute dicts, we draw a Resource
-        #                    graph edge. Note: This must be prepared for absent
-        #                    ekeys, and not throw exceptions.
-        #
-        # For every control_dict in every outgoing_edges list of every
-        # resource type...
+        # Add the built-in Goldstone resource types. For every control_dict in
+        # every outgoing_edges() list of every resource type...
         for source_type in RESOURCE_TYPES:
+            self.graph.add_node(source_type)
+
             for control_dict in source_type.outgoing_edges():
                 # (If an edge connects nodes not yet in the graph, the
                 # nodes are automatically added.)
                 self.graph.add_edge(source_type,
                                     control_dict[TO],
                                     attr_dict=control_dict[EDGE_ATTRIBUTES])
+
+        # Now the add-on resource types.
+        for row in AddonTable.objects.all():
+            try:
+                the_app = import_module("%s.models" % row.name)
+                addon_classes = [x[1] for x in getmembers(the_app, isclass)]
+                addon_types = [x for x in addon_classes
+                               if PolyResource in getmro(x) and
+                               x != PolyResource]
+
+                # Addon_types contains the add-on's model classes that are
+                # derived from PolyResource, excluding PolyResource itself.
+                for source_type in addon_types:
+                    self.graph.add_node(source_type)
+
+                    # If this is the add-on's root, make an edge from the Addon
+                    # type to it.
+                    if hasattr(source_type, "root"):
+                        self.graph.add_edge(Addon,
+                                            source_type,
+                                            attr_dict={TYPE: INSTANCE_OF,
+                                                       MIN: 0,
+                                                       MAX: sys.maxint})
+
+                    # Add edges from this node to others.
+                    for control_dict in source_type.outgoing_edges():
+                        self.graph.add_edge(
+                            source_type,
+                            control_dict[TO],
+                            attr_dict=control_dict[EDGE_ATTRIBUTES])
+            except Exception:         # pylint: disable=W0703
+                logger.exception("Problem adding %s to the resource type "
+                                 "graph! Skipping...", row)
+                continue
 
     @classmethod
     def get_type(cls, unique_id):
@@ -156,7 +192,10 @@ class Types(Graph):
 
         return None
 
-# This is Goldstone's resource type graph.
+# This is Goldstone's resource type graph. Since the webserver is restarted
+# after adding or removing an add-on, we don't have to support dynamic add-on
+# insertion. When the webserver is restarted after adding an add-on, the
+# resource type graph will be re-built and the add-on's types will be included.
 types = Types()                      # pylint: disable=C0103
 
 
@@ -210,7 +249,6 @@ class Instances(Graph):
         the db table.
 
         """
-        from .models import PolyResource
 
         def get_uuid(uuid):
             """Return the graph node having this UUID.

@@ -35,7 +35,7 @@ from .utils import parse, query_filter_map
 TYPE = settings.R_ATTRIBUTE.TYPE
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ReportDataListView(ElasticListAPIView):
     """Return events from Logstash data.
 
@@ -62,7 +62,7 @@ class ReportDataListView(ElasticListAPIView):
         model = ReportData
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ReportNamesAggView(SimpleAggView):
     """Return report name aggregations.
 
@@ -100,7 +100,7 @@ class ReportNamesAggView(SimpleAggView):
         return queryset.query(~Q(Prefix(name='os.service')))
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class MetricDataListView(ElasticListAPIView):
     """Return events from Logstash data.
 
