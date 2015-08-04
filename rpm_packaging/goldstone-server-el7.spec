@@ -45,6 +45,7 @@ fi
 . /opt/goldstone/bin/activate
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 cd /opt/goldstone
+pip install --upgrade pip==1.7.1
 pip install -r requirements.txt
 
 # Get all the ownerships back in shape.  No guarantee that we can su to apache,
