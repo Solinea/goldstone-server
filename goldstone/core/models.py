@@ -271,7 +271,7 @@ class PolyResource(PolymorphicModel):
         return []
 
     def update_edges(self):
-        """Update this persistent instance's edges to match what's in the
+        """Update this persistent instance's edges with what's in the
         persistent resource graph."""
 
         outgoing = []
