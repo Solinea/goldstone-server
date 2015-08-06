@@ -30,6 +30,10 @@ by modifying the parameters of the globalLookbackRefreshButtonsView
 
 var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
 
+    /*
+    extra options passed in with GoldstoneRouter.switchView will be accessible via this.options
+    */
+
     instanceSpecificInit: function() {
         this.render();
         this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView2

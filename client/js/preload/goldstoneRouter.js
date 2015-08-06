@@ -138,8 +138,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     Define additional view launching functions below.
     Additional params that need to be passed to 'options' can
     be added as an object. The extra options will be extended
-
-
     */
 
     apiBrowser: function() {
