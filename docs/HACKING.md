@@ -18,6 +18,8 @@ Install various prerequisite packages:
     $ brew install pyenv-virtualenvwrapper
     $ boot2docker init
 
+You must have Python 2, at least at the version 2.7.10.
+
 ## Fork and Clone Goldstone Repos
 
 Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
@@ -165,7 +167,7 @@ When startup is complete, you should be able to see the Goldstone application at
 
 Goldstone uses the standard Django testing tools:
 
-* [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.6, Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
+* [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
 * [Django TestCase](https://docs.djangoproject.com/en/1.8/topics/testing/tools/#testcase) for unit testing.
 
 Code coverage reports can be created through the `tox -e cover` command:
