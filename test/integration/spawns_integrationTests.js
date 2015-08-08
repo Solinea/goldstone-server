@@ -191,8 +191,8 @@ describe('apiPerfView.js spec', function() {
                 total: 456,
                 stackedBarPrep: [1, 2, 3, 4]
             });
-            expect(test1).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 256<br>Physical: 16<br>Used: 6<br>');
-            expect(test2).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 356<br>Physical: 26<br>Used: 16<br>');
+            expect(test1).to.include('<br>Virtual: 256<br>Physical: 16<br>Used: 6<br>');
+            expect(test2).to.include('<br>Virtual: 356<br>Physical: 26<br>Used: 16<br>');
             // can handle dates but various kinds of missing data
             var test3 = this.testView.computeHiddenBarText({
                 eventTime: '1425071850093',
@@ -202,7 +202,7 @@ describe('apiPerfView.js spec', function() {
                 total: undefined,
                 stackedBarPrep: [1, 2, 3]
             });
-            expect(test3).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: undefined<br>Physical: undefined<br>Used: undefined<br>');
+            expect(test3).to.include('<br>Virtual: undefined<br>Physical: undefined<br>Used: undefined<br>');
             var test4 = this.testView.computeHiddenBarText({
                 eventTime: '1425071850093',
                 Used: 0,
@@ -211,18 +211,18 @@ describe('apiPerfView.js spec', function() {
                 total: 0,
                 stackedBarPrep: [1, 2, 3]
             });
-            expect(test4).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 0<br>Physical: 0<br>Used: 0<br>');
+            expect(test4).to.include('<br>Virtual: 0<br>Physical: 0<br>Used: 0<br>');
             var test5 = this.testView.computeHiddenBarText({
                 eventTime: '1425071850093'
             });
-            expect(test5).to.equal('2015-02-27T13:17:30-08:00<br>');
+            expect(test5).to.include('<br>');
             var test6 = this.testView.computeHiddenBarText({
                 eventTime: '1425071850093',
                 Used: 'bicycles',
                 Physical: 'discomfort',
                 Virtual: 'indestructable'
             });
-            expect(test6).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: indestructable<br>Physical: discomfort<br>Used: bicycles<br>');
+            expect(test6).to.include('<br>Virtual: indestructable<br>Physical: discomfort<br>Used: bicycles<br>');
         });
     });
 });
