@@ -26,8 +26,8 @@ The commands given below are for use by core contributors. If you are a communit
 
     $ mkdir ~/devel
     $ cd ~/devel
-    $ git clone git@github.com:Solinea/goldstone-docker.git
-    $ git clone git@github.com:Solinea/goldstone-server.git
+    $ git clone https://github.com/Solinea/goldstone-docker.git
+    $ git clone https://github.com/Solinea/goldstone-server.git
 
 
 
