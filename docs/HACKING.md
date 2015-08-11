@@ -15,8 +15,12 @@ Install various prerequisite packages:
     $ brew install git
     $ brew install boot2docker
     $ brew install docker-compose
+    $ brew install postgres
     $ brew install pyenv-virtualenvwrapper
     $ boot2docker init
+
+**_Note: the postgres server does not need to be started.  It is installed in order to support some of the Goldstone dependencies._**
+
 
 ## Fork and Clone Goldstone Repos
 
@@ -33,62 +37,44 @@ The commands given below are for use by core contributors. If you are a communit
 
 ## Configure a Goldstone virtualenv
 
+Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different:
+
+     $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
+
+
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
 
-    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-    export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
-    export WORKON_HOME=$HOME/.virtualenvs
-    export PROJECT_HOME=$HOME/devel
-    source /usr/local/bin/virtualenvwrapper.sh
+    $ export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    $ export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+    $ export WORKON_HOME=$HOME/.virtualenvs
+    $ export PROJECT_HOME=$HOME/devel
+    $ source /usr/local/bin/virtualenvwrapper.sh
 
    Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-   Copy these [postactivate](https://gist.githubusercontent.com/jxstanford/6ee6cc61143113776d0d/raw/3a8a3a8d4068057246c36bdd00bbd2977cb1c0ec/postactivate) and [postdeactivate](https://gist.githubusercontent.com/jxstanford/b73a3cc004c26af496f8/raw/62c5c5c5e16a8402682e70bb327f627775cb819b/postdeactivate) scripts into your  `$WORKON_HOME/goldstone-server/bin`.
+   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
+
+
+## Install the Development OpenStack VM
+
+For convenience, you can [download an OpenStack VM image](https://horizon.hpcloud.com/project/containers/RDO-Images/RDO-kilo.ova/download) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
+
 
 ## Configure VirtualBox Networking
 
-This section assumes you will be using the pre-built RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the network configuration to match your VM definition.
+The recommended developement environment uses a prebuilt OpenStack image.  This section assumes that the image has been downloaded and imported into VirtualBox. The `configure_vbox.sh` script in `$PROJECT_HOME/goldstone-server/bin` sets up the following aspects of networking:
 
-In order to operate with the downloaded RDO image, you may need to make a change to the definition of the vboxnet0 host-only network.  Open the VirtualBox app and navigate to the  "Host-only Networks" panel of the "Network" section of the "Preferences" menu item.
+* Creates a new host-only network
+* Ensures that the OpenStack VM has the correct network interfaces
+* Creates a DHCP server on the host-only network
+* Configures NAT rules for boot2docker VM
 
-![enter image description here](https://lh3.googleusercontent.com/gV6Kh5tnOw1LKFReNVfyxkDp7uwvuG3RgFWn9fqLey8=w934-h634-no)
+If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
-Edit the vboxnet0 entry and set the IP address to 172.24.4.1 and the netmask to 255.255.255.0.
+    $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
 
-![enter image description here](https://lh3.googleusercontent.com/fDkZKCZbOS4XIfB2UHktErbpVRjPRf55Li-UmLj5WP4=w973-h634-no)
-
-## Set Up an OpenStack VM
-
-For convenience, you can download a VM image **[TODO add link when available]** with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page), preconfigured for use with Goldstone Server.  Once downloaded, import the VM into VirtualBox.
-
-If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
-
-## Configure boot2docker VM Port Forwarding
-
-This section assumes you are using the pre-build RDO image with an IP address of 172.24.4.100.  If you are using a different image, you may need to adjust the source IP address to match your VM.
-
-Execute these commands in your terminal window. Change "boot2docker-vm" to the name of your boot2docker virtual machine, if it's something different:
-
-```
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9200_RDO,tcp,172.24.4.1,9200,,9200"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9200_local,tcp,,9200,,9200"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9300_RDO,tcp,172.24.4.1,9300,,9300"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "es_9300_local,tcp,,9300,,9300"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_syslog_local,tcp,,5514,,5514"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_metrics_RDO,tcp,172.24.4.1,5516,,5516"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "logstash_metrics_local,tcp,,5516,,5516"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "postgres_RDO,tcp,172.24.4.1,5432,,5432"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "postgres_local,tcp,,5432,,5432"
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "redis_local,tcp,,6379,,6379"
-```
-
-To verify that port forwarding has been correctly configured, go to boot2docker-vm's Network settings, expand the "Advanced" section, and click on the "Port Forwarding" button.  It should
-look like this:
-
-![enter image description here](https://lh3.googleusercontent.com/Hy1sDfWbYbLvhJjZa7kNSXXImGtri7zIlwPEazNwk3s=w797-h634-no)
 
 ## Activate the Virtualenv
 
@@ -96,7 +82,7 @@ Once all of the initial setup has been completed, you can activate the virtualen
 
     $ workon goldstone-server
 
-This command will start the required VMs, docker containers, and celery processes.  Running `deactivate` will stop everything.
+This command will set your environment to use an isolated python version.  Running `deactivate` will revert to using the system python.  
 
 The first time you enter the virtualenv, you should also install the project requirements, and some additional utilities.
 
@@ -109,6 +95,7 @@ If the requirements files change, you should rerun the `pip install` commands.
 
 **_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
+
 ## Initialize Goldstone Server
 
 This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch.
@@ -118,7 +105,37 @@ To initialize Goldstone Server, use the goldstone_init fabric task:
     $ cd $PROJECT_HOME/goldstone-server
     $ fab goldstone_init
 
-You will be prompted for the settings to use (select local_docker), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
+You will be prompted for the settings to use (select `local_docker`), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
+
+### Re-initializing Goldstone Server
+
+If there have been significant data model changes in Goldstone, you may need to drop and recreate the database, then rerun the goldstone_init task.  To do that, execute the following commands while the postgres docker ontainer is running (the password will be the one you provided when running goldstone_init the last time):
+
+    $ dropdb -U postgres -h 127.0.0.1 goldstone_docker
+    $ createdb -U postgres -h 127.0.0.1 goldstone_docker
+
+
+## Configure the OpenStack VM 
+
+After the goldstone_init task has been completed, it will advise you to run another task to configure the OpenStack server.  For the developer environment, the command looks like this:
+
+    $ fab -H 172.24.4.100 configure_stack
+
+If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
+
+## Starting/Stopping Goldstone Server
+
+There are some convenience scripts in `$PROJECT_HOME/goldstone-server/bin` for starting and stopping the virtual machines and docker containers that support the goldstone test environment.  For developer flexibilty, starting/stopping the django application has been omitted from the scripts.  To start the development environment, execute:
+
+    $ cd $PROJECT_HOME/goldstone-server
+    $ ./bin/start_dev_env.sh
+    $ fab runserver   # select local_docker settings
+
+To stop the development environment, exit the running server (Ctrl-C), then:
+
+    $ cd $PROJECT_HOME/goldstone-server
+    $ ./bin/stop_dev_env.sh
+
 
 ## Verify the Development Environment
 
