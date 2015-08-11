@@ -27,7 +27,7 @@ else
 fi
 
 boot2docker up
-# eval $(boot2docker shellinit)
+eval $(boot2docker shellinit)
 (cd $PROJECT_HOME/goldstone-docker;docker-compose up -d)
 
 echo "starting celery"
