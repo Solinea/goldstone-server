@@ -125,7 +125,7 @@ class Types(Graph):
 
         """
         from importlib import import_module
-        from inspect import getmro, getmembers, isclass
+        from inspect import getmro, getmembers, isclass, isfunction
 
         super(Types, self).__init__()
 
@@ -156,7 +156,8 @@ class Types(Graph):
                     self.graph.add_node(source_type)
 
                     # If this is the add-on's root, make an edge from the Addon
-                    # type to it.
+                    # type to it, and make a node for it in the resource graph
+                    # if it hasn't been done previously.
                     if hasattr(source_type, "root"):
                         self.graph.add_edge(Addon,
                                             source_type,
@@ -170,6 +171,20 @@ class Types(Graph):
                             source_type,
                             control_dict[TO],
                             attr_dict=control_dict[EDGE_ATTRIBUTES])
+
+                # Find the add-on's add_root_node function, and call it.
+                add_root_node = next((x[1]
+                                      for x in getmembers(the_app, isfunction)
+                                      if x[0] == "add_root_node"),
+                                     None)
+                if not add_root_node:
+                    logger.critical("Can't find add_root_node() for %s. "
+                                    "Skipping...",
+                                    row.name)
+                    continue
+
+                add_root_node()
+
             except Exception:         # pylint: disable=W0703
                 logger.exception("Problem adding %s to the resource type "
                                  "graph! Skipping...", row)
