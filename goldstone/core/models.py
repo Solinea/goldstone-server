@@ -181,6 +181,9 @@ class PolyResource(PolymorphicModel):
                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
 
+    class Meta:
+        verbose_name = "polyresource"
+
     @classmethod
     def unique_class_id(cls):
         """Return this class' (not object!) unique id."""
