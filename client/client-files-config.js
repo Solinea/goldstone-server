@@ -42,8 +42,7 @@ module.exports = {
     lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
     test: [
         'test/unit/*.js',
-        'test/integration/*.js',
-        'test/openTrail/*.js'
+        'test/integration/*.js'
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
@@ -61,7 +60,7 @@ module.exports = {
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage'],
-        'client/js/addons/*.js': ['coverage']
+        'client/js/addons/**/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
     scssWatch: 'client/scss/*.scss',

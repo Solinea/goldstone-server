@@ -19,19 +19,19 @@ View is currently implemented for Nova CPU/Memory/Disk Resource Charts
 
 instantiated similar to:
 
-this.vmSpawnChart = new MultiMetricComboCollection({
-    urlPrefix: '/nova/hypervisor/spawns'
+this.cpuResourcesChart = new MultiMetricComboCollection({
+    metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
 });
 
-this.vmSpawnChartView = new MultiMetricBarView({
-    chartTitle: "VM Spawns",
-    collection: this.vmSpawnChart,
-    featureSet: 'mem',
+this.cpuResourcesChartView = new MultiMetricBarView({
+    chartTitle: "CPU Resources",
+    collection: this.cpuResourcesChart,
+    featureSet: 'cpu',
     height: 300,
-    infoCustom: 'novaSpawns',
-    el: '#nova-report-r1-c2',
-    width: $('#nova-report-r1-c2').width(),
-    yAxisLabel: 'Spawn Events'
+    infoCustom: 'novaCpuResources',
+    el: '#nova-report-r2-c1',
+    width: $('#nova-report-r2-c1').width(),
+    yAxisLabel: 'Cores'
 });
 */
 

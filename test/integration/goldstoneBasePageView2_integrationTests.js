@@ -84,6 +84,21 @@ describe('NodeReportView.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
+            this.testView.clearDataErrorMessage();
+            $(this.el).find('.popup-message').show();
+            this.testView.clearDataErrorMessage();
+            this.testView.dataErrorMessage('hellow');
+            this.testView.dataErrorMessage('hellow', {});
+            this.testView.dataErrorMessage('hellow', {
+                responseJSON: {
+                    status_code: 200,
+                    message: 'hoo haw',
+                    detail: 'whoomp'
+                }
+            });
+            expect(this.testView.dataPrep('abc')).to.equal('abc');
+            this.testView.checkReturnedDataSet({});
+            this.testView.checkReturnedDataSet([]);
         });
         it('view responds to global selector changes', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
