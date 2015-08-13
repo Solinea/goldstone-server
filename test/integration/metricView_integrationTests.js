@@ -25,7 +25,7 @@ describe('stackedAreaCollection.js spec', function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -33,7 +33,7 @@ describe('stackedAreaCollection.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection = new MetricViewCollection({
             url: '/snoopy/waves/',

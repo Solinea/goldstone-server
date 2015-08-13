@@ -61,7 +61,8 @@ describe('NovaReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -69,7 +70,7 @@ describe('NovaReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new NovaReportView({
             el: '.test-container',
@@ -84,7 +85,6 @@ describe('NovaReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal(' Nova API PerformanceResponse Time (s) VM SpawnsSpawn Events CPU ResourcesCores Memory ResourcesMB Disk ResourcesGB');
         });
         it('should handle triggers', function(){
             this.testView.triggerChange('lookbackSelectorChanged');

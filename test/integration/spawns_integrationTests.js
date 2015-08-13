@@ -59,6 +59,7 @@ describe('apiPerfView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith("GET", "/something/fancy", [200, {
             "Content-Type": "application/json"
         }, '[]']);
@@ -71,7 +72,7 @@ describe('apiPerfView.js spec', function() {
             urlPrefix: '/nova/hypervisor/spawns/'
         });
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new SpawnsView({
             chartTitle: "Tester API Performance",

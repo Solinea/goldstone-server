@@ -21,12 +21,14 @@ describe('chartSet.js spec', function() {
     beforeEach(function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
 
-        this.testCollection = new GoldstoneBaseCollection({
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        this.testCollection = new GoldstoneBaseCollection({
         });
 
         this.testView = new ChartSet({

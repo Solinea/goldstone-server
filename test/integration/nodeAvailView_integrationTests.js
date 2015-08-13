@@ -58,7 +58,8 @@ describe('nodeAvailView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -71,7 +72,7 @@ describe('nodeAvailView.js spec', function() {
         });
         this.testCollection.reset();
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new NodeAvailView({
             collection: this.testCollection,
@@ -1450,7 +1451,6 @@ describe('nodeAvailView.js spec', function() {
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
             expect($('.popup-message').length).to.equal(1);
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             expect($('.testContainer').find('.popup-message').length).to.equal(1);

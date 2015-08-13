@@ -24,7 +24,8 @@ describe('stackedAreaCollection.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -38,7 +39,7 @@ describe('stackedAreaCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new UtilizationMemView({
             collection: this.testCollection,

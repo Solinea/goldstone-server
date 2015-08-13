@@ -21,6 +21,7 @@ describe('apiHistogramCollection.js spec', function() {
     beforeEach(function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
