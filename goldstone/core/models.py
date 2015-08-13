@@ -181,7 +181,7 @@ class PolyResource(PolymorphicModel):
                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
 
-    class Meta:
+    class Meta:               # pylint: disable=C0111,W0232,C1001
         verbose_name = "polyresource"
 
     @classmethod
