@@ -1,0 +1,9 @@
+.dockerignore
+.git
+.gitignore
+.gitmodules
+.travis.yml
+CLA
+api_docs
+design_docs
+docs
