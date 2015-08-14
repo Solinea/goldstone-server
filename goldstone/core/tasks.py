@@ -51,7 +51,7 @@ def update_persistent_graph():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.addon.utils import update_addon_node
+    from goldstone.addons.utils import update_addon_node
     from goldstone.cinder.utils import update_cinder_nodes
     from goldstone.glance.utils import update_glance_nodes
     from goldstone.keystone.utils import update_keystone_nodes

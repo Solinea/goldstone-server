@@ -525,7 +525,9 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
 
 @task
-def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def remove_addon(name,                       # pylint: disable=R0914,R0915
+                 settings=PROD_SETTINGS,
+                 install_dir=INSTALL_DIR):
     """Remove a user add-on.
 
     :param name: The add-on's installation name
@@ -553,7 +555,6 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
         if confirm('We will remove the %s add-on. Proceed?' % name,
                    default=False):
-            # We'll track where we are, in case an exception occurs.
             try:
                 # First, delete the row.
                 error = "updating the Addon table. Check it."
@@ -601,8 +602,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # user-installed apps section. We do both to maximize the
                 # probability of doing this correctly. Then, find the beginning
                 # of the line that starts this add-on's task entries, and the
-                # beginning of the line after the end of this add-on's task
-                # entries.
+                # beginning of the line after the end of the task entries.
                 insert = filedata.index(CELERYBEAT_SCHEDULE)
                 insert = filedata.index(CELERYBEAT_APPS, insert)
 
@@ -635,8 +635,8 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     filedata = f.read()
 
                 insert = filedata.index(URLS_PY.format(name, row.url_root))
-                end = insert
 
+                end = insert
                 for _ in range(URLS_PY.count('\n')):
                     end = filedata.index('\n', end) + 1
 

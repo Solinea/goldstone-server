@@ -24,7 +24,7 @@ from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
 
 # Get_glance_client is defined here for easy unit test mocking.
-from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
+from goldstone.utils import get_glance_client, get_nova_client, \
     get_cinder_client, get_keystone_client, get_cloud
 
 import sys
@@ -152,6 +152,17 @@ class ApiPerfData(DailyIndexDocType):
 # Resource graph types and instances #
 ######################################
 
+def _utc_now():
+    """Convenient, and possibly necessary.
+
+    :return: timezone aware current UTC datetime
+
+    """
+    import arrow
+
+    return arrow.utcnow().datetime
+
+
 class PolyResource(PolymorphicModel):
     """The base type for resources.
 
@@ -178,7 +189,7 @@ class PolyResource(PolymorphicModel):
 
     created = CreationDateTimeField(editable=False,
                                     blank=True,
-                                    default=utc_now)
+                                    default=_utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
 
     class Meta:               # pylint: disable=C0111,W0232,C1001

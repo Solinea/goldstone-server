@@ -14,7 +14,6 @@
 # limitations under the License.
 import socket
 
-import arrow
 import cinderclient.v2.services
 from keystoneclient.v3 import client as ksclient
 from novaclient.v2 import client as nvclient
@@ -37,24 +36,18 @@ def _patched_cinder_service_repr(self):
 
 
 class GoldstoneBaseException(Exception):
+    """Base exception class for Goldstone-specific exceptions."""
     pass
 
 
 class GoldstoneAuthError(GoldstoneBaseException):
+    """Goldstone account authorization error."""
     pass
 
 
 class NoResourceFound(GoldstoneBaseException):
+    """Goldstone no-resource-found exception."""
     pass
-
-
-def utc_now():
-    """Convenient, and possibly necessary.
-
-    :return: timezone aware current UTC datetime
-
-    """
-    return arrow.utcnow().datetime
 
 
 def to_es_date(date_object):
@@ -214,7 +207,6 @@ get_cinder_client = functools.partial(get_client, 'cinder')
 get_glance_client = functools.partial(get_client, 'glance')
 get_keystone_client = functools.partial(get_client, 'keystone')
 get_nova_client = functools.partial(get_client, 'nova')
-
 # pylint: enable=C0103
 
 
