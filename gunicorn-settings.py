@@ -4,6 +4,8 @@ import multiprocessing
 # listen address
 bind = "0.0.0.0:8000"
 
+chdir = "/app"
+
 # worker processes
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = "sync"
