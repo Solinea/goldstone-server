@@ -32,8 +32,6 @@ RUN buildReqs=' \
 
 USER ${APPUSER}
 
-ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker
-
 EXPOSE 8000
 
 CMD ["gunicorn", "--config=gunicorn-settings.py", "goldstone.wsgi"]
