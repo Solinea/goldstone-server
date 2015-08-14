@@ -9,6 +9,18 @@ ADD . ${APPDIR}
 WORKDIR ${APPDIR}
 
 USER root
+
+ENV DJANGO_SETTINGS_MODULE goldstone.settings.docker
+ENV GOLDSTONE_INSTALL_DIR /app
+ENV DJANGO_ADMIN_USER admin
+ENV DJANGO_ADMIN_PASSWORD goldstone
+ENV DJANGO_ADMIN_EMAIL root@localhost
+ENV GOLDSTONE_TENANT_ADMIN_PASSWORD goldstone
+ENV OS_TENANT_NAME admin
+ENV OS_USERNAME admin
+ENV OS_PASSWORD solinea
+ENV OS_AUTH_URL http://172.24.4.100:5000/v2.0/
+
 RUN buildReqs=' \
     python2.7-dev \
     gcc \
@@ -34,4 +46,5 @@ USER ${APPUSER}
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--config=gunicorn-settings.py", "goldstone.wsgi"]
+COPY ./bin/docker_entrypoint.sh /
+ENTRYPOINT ["/docker_entrypoint.sh"]

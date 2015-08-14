@@ -3,6 +3,7 @@
 .gitignore
 .gitmodules
 .travis.yml
+.tox
 CLA
 api_docs
 design_docs
