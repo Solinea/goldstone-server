@@ -325,7 +325,6 @@ class PolyResource(PolymorphicModel):
 # These classes represent add-on entities. #
 ############################################
 
-
 class Addon(PolyResource):
     """The root node for user-installed Goldstone add-ons."""
 

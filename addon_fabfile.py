@@ -411,6 +411,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
+        from goldstone.addons.utils import update_addon_node
         from rest_framework.authtoken.models import Token
 
         # Gather the package installation information from the package or the
@@ -431,9 +432,19 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Installing a new add-on. We'll track where we are, in case an
                 # exception occurs.
                 try:
-                    # First, add the new row.
-                    error = "updating the Addon table. It's " \
-                            "probably OK, but check it."
+                    # If Goldstone has been running for at least five minutes,
+                    # the Addon node already exists in the PolyResource table.
+                    # But if not, it doesn't. The add-on's APIs may throw
+                    # exceptions if the Addon node doesn't exist, so take this
+                    # opportunity to ensure that it will.
+                    error = "creating the persistent resource graph's Addon " \
+                            "node"
+
+                    update_addon_node()
+
+                    # Add the new row.
+                    error = "updating the Addon table. It's probably OK, " \
+                            "but check it."
 
                     Addon.objects.create(**addon_db)
 
