@@ -20,6 +20,36 @@ root# yum update ; reboot
 root# yum localinstall -y goldstone-server-{version}.rpm
 ```
 
+IMPORTANT: Please confirm that the goldstone-server RPM was installed successfully. We are constantly improving the installation process, but currently there are situations such as external download failures that could result in the RPM installation completing without error, while the Goldstone installation is incomplete.  This is what a success looks like:
+
+```
+Successfully installed Django South arrow celery django-admin-bootstrapped django-extensions django-filter django-picklefield django-polymorphic django-rest-params django-rest-swagger djangorestframework djoser drf-extensions elasticsearch-curator elasticsearch-dsl elasticsearch fabric functools32 lockfile networkx pbr psycopg2 python-cinderclient python-glanceclient python-keystoneclient python-neutronclient python-novaclient urllib3 python-dateutil pytz billiard kombu redis six PyYAML click paramiko decorator argparse PrettyTable requests simplejson Babel pyOpenSSL warlock oslo.utils oslo.i18n iso8601 netaddr oslo.config oslo.serialization stevedore cliff anyjson amqp pycrypto ecdsa cryptography jsonschema jsonpatch netifaces msgpack-python cmd2 pyparsing idna pyasn1 enum34 ipaddress cffi jsonpointer pycparser
+Cleaning up...
+*****************************************************************************
+
+  To continue installation, do the following as root:
+
+      root# cd /opt/goldstone
+      root# . bin/activate
+      root# fab install
+
+  You will be prompted for:
+      - the Django admin (admin) password
+      - the Goldstone admin (gsadmin) password
+      - the OpenStack admin tenant (from your adminrc)
+      - the OpenStack admin user (from your adminrc)
+      - the OpenStack admin password (from your adminrc)
+      - the OpenStack auth URL (from your adminrc)
+
+*****************************************************************************
+  Verifying  : 1438284801:goldstone-server-0.7.1-0.7.1.el7.centos.x86_64                                                                     1/1
+
+Installed:
+  goldstone-server.x86_64 1438284801:0.7.1-0.7.1.el7.centos
+
+Complete!
+```
+
 ## Install and configure Goldstone (as root)
 
 The installation script will check the Goldstone prerequisites. If all checks pass, it will then prompt you for additional configuration information. Execute these commands:
