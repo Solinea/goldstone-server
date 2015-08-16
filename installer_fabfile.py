@@ -755,7 +755,7 @@ def partial_install(django_admin_password,
 
 @task
 def docker_install():
-    """Create Goldstone default tenant and initialize cloud, deriving values 
+    """Create Goldstone default tenant and initialize cloud, deriving values
     from environment variables provided in the Dockerfile.
 
     If env vars are not provided by the container, then the install will be
@@ -783,19 +783,20 @@ def docker_install():
         abort('This Does not appear to be a docker container. Exiting.')
 
     # pull params out of the environment
-    django_admin_user=os.environ.get('DJANGO_ADMIN_USER', 'admin')
-    django_admin_password=os.environ.get('DJANGO_ADMIN_PASSWORD', 'goldstone')
-    django_admin_email=os.environ.get('DJANGO_ADMIN_EMAIL','root@localhost')
-    gs_tenant='default'
-    gs_tenant_owner='None'
-    gs_tenant_admin='gsadmin'
-    gs_tenant_admin_password=os.environ.get('GOLDSTONE_TENANT_ADMIN_PASSWORD',
-                                            'goldstone')
-    stack_tenant=os.environ.get('OS_TENANT_NAME', 'admin')
-    stack_user=os.environ.get('OS_USERNAME', 'admin')
-    stack_password=os.environ.get('OS_PASSWORD', 'solinea')
-    stack_auth_url=os.environ.get('OS_AUTH_URL',
-                                  'http://172.24.4.100:5000/v2.0/')
+    django_admin_user = os.environ.get('DJANGO_ADMIN_USER', 'admin')
+    django_admin_password = os.environ.get(
+        'DJANGO_ADMIN_PASSWORD', 'goldstone')
+    django_admin_email = os.environ.get('DJANGO_ADMIN_EMAIL', 'root@localhost')
+    gs_tenant = 'default'
+    gs_tenant_owner = 'None'
+    gs_tenant_admin = 'gsadmin'
+    gs_tenant_admin_password = os.environ.get(
+        'GOLDSTONE_TENANT_ADMIN_PASSWORD', 'goldstone')
+    stack_tenant = os.environ.get('OS_TENANT_NAME', 'admin')
+    stack_user = os.environ.get('OS_USERNAME', 'admin')
+    stack_password = os.environ.get('OS_PASSWORD', 'solinea')
+    stack_auth_url = os.environ.get(
+        'OS_AUTH_URL', 'http://172.24.4.100:5000/v2.0/')
     django_settings = os.environ.get('DJANGO_SETTTINGS_MODULE',
                                      'goldstone.settings.docker')
     gs_install_dir = os.environ.get('GOLDSTONE_INSTALL_DIR', '/app')
