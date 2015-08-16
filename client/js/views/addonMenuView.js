@@ -99,12 +99,17 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                 // the addon's javascript file, do the following:
                 _.each(goldstone[item.url_root].routes, function(route) {
 
-                    // append a drop-down <li> tag for each item with a link
-                    // pointing to index 0 of the route, and a menu label
-                    // derived from index 1 of the item
-                    result += '<li><a href="#' + route[0] +
-                        '">' + route[1] +
-                        '</a>';
+                    // conditional to skip adding a drop-down entry if
+                    // no drop-down label is supplied.
+                    if (route[1] !== null) {
+
+                        // append a drop-down <li> tag for each item with a link
+                        // pointing to index 0 of the route, and a menu label
+                        // derived from index 1 of the item
+                        result += '<li><a href="#' + route[0] +
+                            '">' + route[1] +
+                            '</a>';
+                    }
 
                     // dynamically add a new route for each item
                     // the 'addNewRoute === true' condition prevents the route from
@@ -114,6 +119,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                         // ignored for menu updates beyond the first one
                         self.addNewRoute(route);
                     }
+
                 });
 
                 // cap the dropdown sub-menu with closing tags before
@@ -123,7 +129,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                 goldstone.raiseInfo('Refresh browser to complete ' +
                     'addon installation process.');
                 result += '<li>Refresh browser to complete addon' +
-                ' installation process';
+                    ' installation process';
             }
 
         });
@@ -138,8 +144,16 @@ var AddonMenuView = GoldstoneBaseView2.extend({
         // .route will dynamically add a new route where the url is
         // index 0 of the passed in route array, and the view to load is
         // index 2 of the passed in route array.
-        goldstone.gsRouter.route(routeToAdd[0], function() {
-            this.switchView(routeToAdd[2]);
+        goldstone.gsRouter.route(routeToAdd[0], function(passedValue) {
+
+            // passedValue will be created by routes with /:foo
+            // passed value = 'foo'
+            if (passedValue) {
+                console.log(passedValue);
+                this.switchView(routeToAdd[2], {'passedValue': passedValue});
+            } else {
+                this.switchView(routeToAdd[2]);
+            }
         });
     },
 

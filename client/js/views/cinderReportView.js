@@ -24,7 +24,7 @@ var CinderReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder',
+            componentParam: 'cinder'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({

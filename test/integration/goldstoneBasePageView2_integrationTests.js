@@ -61,6 +61,7 @@ describe('NodeReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
@@ -69,7 +70,7 @@ describe('NodeReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        // blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new GoldstoneBasePageView2({
@@ -84,6 +85,21 @@ describe('NodeReportView.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
+            this.testView.clearDataErrorMessage();
+            $(this.el).find('.popup-message').show();
+            this.testView.clearDataErrorMessage();
+            this.testView.dataErrorMessage('hellow');
+            this.testView.dataErrorMessage('hellow', {});
+            this.testView.dataErrorMessage('hellow', {
+                responseJSON: {
+                    status_code: 200,
+                    message: 'hoo haw',
+                    detail: 'whoomp'
+                }
+            });
+            expect(this.testView.dataPrep('abc')).to.equal('abc');
+            this.testView.checkReturnedDataSet({});
+            this.testView.checkReturnedDataSet([]);
         });
         it('view responds to global selector changes', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");

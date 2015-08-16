@@ -24,7 +24,8 @@ describe('logAnalysis.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -40,7 +41,7 @@ describe('logAnalysis.js spec', function() {
 
         this.testCollection = new LogAnalysisCollection({});
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new LogAnalysisView({
             collection: this.testCollection,
@@ -192,7 +193,6 @@ describe('logAnalysis.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.checkReturnedDataSet(this.testCollection.toJSON());
             expect($('.popup-message').text()).to.equal('No Data Returned');

@@ -23,7 +23,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         options = options || {};
-        this.options = _.clone(options); 
+        this.options = _.clone(options);
         this.url = this.options.url || null;
         this.instanceSpecificInit();
     },

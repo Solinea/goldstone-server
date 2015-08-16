@@ -49,7 +49,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         $.ajax({
             type: type,
             url: url,
-            data: data,
+            data: data
         }).done(function(success) {
             goldstone.raiseInfo(message + ' update successful');
         })

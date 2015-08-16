@@ -51,7 +51,7 @@ var HypervisorCollection = Backbone.Collection.extend({
         };
 
         var result = {
-            "date": day,
+            "date": day
         };
 
         for (var i = 0; i < 5; i++) {
@@ -71,26 +71,26 @@ var HypervisorCollection = Backbone.Collection.extend({
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412818619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412823619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
+                "VM4": 9.13
             }, {
                 "date": 1412828619263,
                 "VM1": 41.62,
                 "VM2": 22.36,
                 "VM3": 25.58,
-                "VM4": 9.13,
-            },
+                "VM4": 9.13
+            }
 
         ]
     }

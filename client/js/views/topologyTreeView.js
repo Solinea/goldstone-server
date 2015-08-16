@@ -23,7 +23,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     initialize: function(options) {
 
         this.options = options || {};
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
         this.el = options.el;
 
         this.defaults.blueSpinnerGif = options.blueSpinnerGif;
@@ -492,7 +492,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
             icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
                 'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
-            ],
+            ]
 
         }).forEach(function(icon, classes) {
             // Acutally attach the icons to the classes
@@ -643,14 +643,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             $(ns.chartHeader[0]).append(new ChartHeaderView({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
-                infoText: ns.chartHeader[2],
+                infoText: ns.chartHeader[2]
             }).el);
         }
 
         // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl,
+                el: ns.multiRsrcViewEl
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');

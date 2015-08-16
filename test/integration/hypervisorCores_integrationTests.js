@@ -24,7 +24,8 @@ describe('UtilizationMem.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -36,7 +37,7 @@ describe('UtilizationMem.js spec', function() {
             url: '/something/fancy'
         });
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new HypervisorView({
             collection: this.testCollection,

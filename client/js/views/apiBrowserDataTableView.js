@@ -32,12 +32,11 @@ instantiated on apiBrowserPageView as:
 var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        ApiBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
     update: function() {
-        // this.drawSearchTable('#reports-result-table', this.collection.toJSON());
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
@@ -97,7 +96,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "id",
                     "visible": false,
                     "searchable": true
-                },
+                }
 
             ],
             "serverSide": true,
@@ -173,8 +172,8 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 dataFilter: function(data) {
                     data = self.serverSideDataPrep(data);
                     return data;
-                },
-            },
+                }
+            }
         };
     },
 

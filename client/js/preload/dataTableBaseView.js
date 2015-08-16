@@ -103,7 +103,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof(tableData[0]) === "object") {
+        if (typeof (tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -277,7 +277,7 @@ var DataTableBaseView = GoldstoneBaseView2.extend({
         $(this.el).find('.data-table-header-container').remove();
         $(this.el).find('.data-table-thead').append(this.serverSideTableHeadings());
 
-        oTable = $(location).DataTable(oTableParams);
+        self.oTable = $(location).DataTable(oTableParams);
 
     },
 

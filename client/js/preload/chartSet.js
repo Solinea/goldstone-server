@@ -64,7 +64,7 @@ var ChartSet = GoldstoneBaseView2.extend({
         this.$el.append(new ChartHeaderView({
             chartTitle: this.chartTitle,
             infoText: this.infoText,
-            infoIcon: this.infoIcon,
+            infoIcon: this.infoIcon
         }).el);
     },
 

@@ -59,7 +59,8 @@ describe('apiPerfView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith([200, {
+        this.server.autoRespond = true;
+        this.server.respondWith('GET', '/*', [200, {
             "Content-Type": "application/json"
         }, 'OK']);
 
@@ -196,7 +197,6 @@ describe('apiPerfView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');

@@ -17,7 +17,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests - goldstoneBaseCollection.js
 
-describe('goldstoneBaseCollection.js spec', function() {
+describe('apiBrowserTableCollection.js spec', function() {
     beforeEach(function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -25,10 +25,10 @@ describe('goldstoneBaseCollection.js spec', function() {
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
-        this.testCollection = new GoldstoneBaseCollection({
-            url: 'test'
+
+        this.testCollection = new ApiBrowserTableCollection({
         });
-        this.protoFetchSpy = sinon.spy(GoldstoneBaseCollection.prototype, "fetch");
+        this.protoFetchSpy = sinon.spy(ApiBrowserTableCollection.prototype, "fetch");
     });
     afterEach(function() {
         this.server.restore();
@@ -45,7 +45,7 @@ describe('goldstoneBaseCollection.js spec', function() {
             expect(this.protoFetchSpy.callCount).to.equal(0);
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.testCollection.url).to.equal('instanceSpecific');
+            expect(this.testCollection.url).to.include('/core/apiperf/search/?@timestamp__range={');
 
             this.testCollection.addPageSize = function(n) {
                 n = n || 1000;
@@ -54,7 +54,7 @@ describe('goldstoneBaseCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(2);
-            expect(this.testCollection.url).to.equal('instanceSpecific&page_size=1000');
+            expect(this.testCollection.url).to.include('/core/apiperf/search/?@timestamp__range={"gte"');
 
             this.testCollection.addPageNumber = function(n) {
                 n = n || 1;
@@ -63,7 +63,7 @@ describe('goldstoneBaseCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(3);
-            expect(this.testCollection.url).to.equal('instanceSpecific&page=1&page_size=1000');
+            expect(this.testCollection.url).to.include('/core/apiperf/search/?@timestamp__range={"gte"');
 
             this.testCollection.addInterval = function(n) {
                 n = n || 3600;
@@ -72,7 +72,7 @@ describe('goldstoneBaseCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(4);
-            expect(this.testCollection.url).to.equal("instanceSpecific&interval=3600s&page=1&page_size=1000");
+            expect(this.testCollection.url).to.include("&interval=3600s&page=1&page_size=1000");
 
             this.testCollection.addRange = function() {
                 return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -84,26 +84,14 @@ describe('goldstoneBaseCollection.js spec', function() {
             $('body').append('<option id="global-lookback-range" value=60>');
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(5);
-            expect(this.testCollection.url).to.equal('instanceSpecific?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
+            expect(this.testCollection.url).to.equal('/core/apiperf/search/?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
 
             this.clock.restore();
 
         });
-        it('returns preProcessData as a noop', function() {
-            var test1 = this.testCollection.preProcessData('la dee da');
+        it('returns preProcessData', function() {
+            var test1 = this.testCollection.preProcessData({results: "la dee da"});
             expect(test1).to.equal('la dee da');
-            test1 = this.testCollection.preProcessData(123);
-            expect(test1).to.equal(123);
-            test1 = this.testCollection.preProcessData(null);
-            expect(test1).to.equal(null);
-            test1 = this.testCollection.preProcessData({});
-            expect(test1).to.deep.equal({});
-            test1 = this.testCollection.preProcessData([]);
-            expect(test1).to.deep.equal([]);
-            test1 = this.testCollection.preProcessData(new Date());
-            expect(test1).to.deep.equal(new Date());
-            test1 = this.testCollection.preProcessData(undefined);
-            expect(test1).to.equal(undefined);
         });
         it('checks for additonal pages', function() {
             // no reason to call fetch
@@ -146,20 +134,6 @@ describe('goldstoneBaseCollection.js spec', function() {
             };
             test1 = this.testCollection.checkForAdditionalPages(data);
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.protoFetchSpy.args[0][0]).to.deep.equal({
-                url: 'instanceSpecific/laDeDaa',
-                remove: false
-            });
-
-            data = {
-                next: 'cruft/instanceSpecific/laDeDaa'
-            };
-            test1 = this.testCollection.checkForAdditionalPages(data);
-            expect(this.protoFetchSpy.callCount).to.equal(2);
-            expect(this.protoFetchSpy.args[0][0]).to.deep.equal({
-                url: 'instanceSpecific/laDeDaa',
-                remove: false
-            });
         });
     });
 

@@ -40,7 +40,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
                 url: nextUrl,
-                remove: false,
+                remove: false
             });
         } else {
             ns.urlCollectionCount--;

@@ -45,7 +45,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
     model: NodeAvailModel,
 
     initialize: function(options) {
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
 
         // fetchInProgress = true will block further fetches
         this.defaults.fetchInProgress = false;

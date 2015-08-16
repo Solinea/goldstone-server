@@ -58,7 +58,8 @@ describe('reportsReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -66,7 +67,7 @@ describe('reportsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection = new ReportsReportCollection({
             globalLookback: 60,
@@ -89,7 +90,6 @@ describe('reportsReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal('Reports Available Reports list loading or not available Report DataSelecting a report from the dropdown above will populate this area with the report results.');
         });
     });
     describe('collection parses correctly', function() {

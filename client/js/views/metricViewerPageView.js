@@ -43,7 +43,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
             grid: {
-                view: {},
+                view: {}
             }
         });
 

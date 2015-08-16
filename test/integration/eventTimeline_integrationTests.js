@@ -60,7 +60,8 @@ describe('eventTimeline.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -127,7 +128,7 @@ describe('eventTimeline.js spec', function() {
             "log_message": "abrtd: Got signal 15, exiting"
         }]);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new EventTimelineView({
             collection: this.testCollection,
@@ -229,7 +230,6 @@ describe('eventTimeline.js spec', function() {
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
             expect($('.popup-message').length).to.equal(1);
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             expect($('.testContainer').find('.popup-message').length).to.equal(1);
@@ -315,7 +315,6 @@ describe('eventTimeline.js spec', function() {
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'

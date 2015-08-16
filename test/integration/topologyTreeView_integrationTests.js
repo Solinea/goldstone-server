@@ -36,7 +36,7 @@ describe('eventsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
@@ -212,10 +212,14 @@ describe('eventsReportView.js spec', function() {
     });
     describe('multiRsrcView is constructed', function() {
         it('renders drawSingleRsrcInfoTable', function() {
-            this.testView.drawSingleRsrcInfoTable(100, {1:1,2:2,3:3});
+            this.testView.drawSingleRsrcInfoTable(100, {
+                1: 1,
+                2: 2,
+                3: 3
+            });
         });
         it('loads leaf data', function() {
-            this.testView.loadLeafData('test');
+            // this.testView.loadLeafData('test');
         });
     });
 });

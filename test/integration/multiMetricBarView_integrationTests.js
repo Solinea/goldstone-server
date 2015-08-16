@@ -15,21 +15,19 @@
  */
 
 /*global sinon, todo, chai, describe, it, calledOnce*/
-//integration tests - serviceStatusView.js
+//integration tests
 
-// basic sanity check.
-// base object is tested in apiPerfReportView_integrationTests.js
-
-describe('NeutronReportView.js spec', function() {
+describe('multiMetricBarView.js spec', function() {
     beforeEach(function() {
-        $('body').html('<div class="test-container"></div>');
+
+        $('body').html('<div class="testContainer"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
         this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
-        }, '{absolutely: "nothing"}']);
+        }, '[]']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -37,24 +35,33 @@ describe('NeutronReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new NeutronReportView({
-            el: '.test-container',
+        this.testCollection = new MultiMetricComboCollection({
+            metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
         });
+
+        this.testView = new MultiMetricBarView({
+            chartTitle: "VM Spawns",
+            collection: this.testCollection,
+            featureSet: 'mem',
+            height: 300,
+            infoCustom: 'novaSpawns',
+            el: '.testContainer',
+            width: $('.testContainer').width(),
+            yAxisLabel: 'mult met bar view'
+        });
+
+
     });
     afterEach(function() {
         $('body').html('');
         this.server.restore();
     });
-    describe('view is constructed', function() {
-        it('should exist', function() {
-            assert.isDefined(this.testView, 'this.testView has been defined');
-            expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal(' Neutron API PerformanceResponse Time (s)');
-            this.testView.triggerChange('lookbackSelectorChanged');
-            this.testView.triggerChange('lookbackIntervalReached');
-            this.testView.triggerChange();
+    describe('tests methods', function() {
+        it('inits properly', function() {
+            this.testCollection.trigger('sync');
+            // this.testCollection.defaults.urlCollectionCountOrig = 3;
+            // this.testCollection.defaults.urlCollectionCount = 0;
+            // this.testCollection.trigger('sync');
         });
     });
-
 });

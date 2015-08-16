@@ -167,12 +167,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         $('#service-status-title-bar').append(new ChartHeaderView({
             chartTitle: 'Service Status Report',
-            infoText: 'serviceStatus',
+            infoText: 'serviceStatus'
         }).el);
 
         $('#utilization-title-bar').append(new ChartHeaderView({
             chartTitle: 'Utilization',
-            infoText: 'utilization',
+            infoText: 'utilization'
         }).el);
 
         // PENDING
@@ -338,7 +338,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             specificHost: this.node_uuid,
-            urlRoot: "/logging/summarize/?",
+            urlRoot: "/logging/summarize/?"
         });
     },
 

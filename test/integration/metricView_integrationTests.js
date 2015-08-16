@@ -15,21 +15,19 @@
  */
 
 /*global sinon, todo, chai, describe, it, calledOnce*/
-//integration tests - serviceStatusView.js
+//integration tests
 
-// basic sanity check.
-// base object is tested in apiPerfReportView_integrationTests.js
-
-describe('NeutronReportView.js spec', function() {
+describe('stackedAreaCollection.js spec', function() {
     beforeEach(function() {
-        $('body').html('<div class="test-container"></div>');
+
+        $('body').html('<div class=".metric-chart-instance"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
         this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
-        }, '{absolutely: "nothing"}']);
+        }, '[]']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -37,24 +35,28 @@ describe('NeutronReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new NeutronReportView({
-            el: '.test-container',
+        this.testCollection = new MetricViewCollection({
+            url: '/snoopy/waves/',
         });
+
+        this.testView = new MetricView({
+            collection: this.testCollection,
+            height: 320,
+            el: '.metric-chart-instance',
+            width: $('.metric-chart-instance').width()
+        });
+
+        this.testCollection.reset();
+
     });
     afterEach(function() {
         $('body').html('');
         this.server.restore();
     });
-    describe('view is constructed', function() {
-        it('should exist', function() {
-            assert.isDefined(this.testView, 'this.testView has been defined');
-            expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal(' Neutron API PerformanceResponse Time (s)');
-            this.testView.triggerChange('lookbackSelectorChanged');
-            this.testView.triggerChange('lookbackIntervalReached');
-            this.testView.triggerChange();
+    describe('tests methods', function() {
+        it('processesOptions', function() {
+            this.testView.processOptions();
         });
-    });
 
+    });
 });

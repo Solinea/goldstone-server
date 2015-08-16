@@ -24,6 +24,7 @@ describe('loginPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith(404, '{auth_token: 12345}');
         data = [];
 

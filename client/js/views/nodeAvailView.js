@@ -284,7 +284,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 // Visual swim lanes
                 var swimlanes = {
                     // ping: "Ping Only",
-                    unadmin: "",
+                    unadmin: ""
                 };
                 var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
                 swimlanes[middle] = "";
@@ -631,7 +631,7 @@ TODO: probably change this to d.timestamp
 
         circle.exit().remove();
 
-        return true;
+        return;
     },
 
     redraw: function() {
