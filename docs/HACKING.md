@@ -37,7 +37,8 @@ The commands given below are for use by core contributors. If you are a communit
 
 ## Configure a Goldstone virtualenv
 
-Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different:
+Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different):
+
 
      $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
 
