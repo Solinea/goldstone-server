@@ -51,7 +51,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
 
-        this.defaults = _.clone(this.defaults); 
+        this.defaults = _.clone(this.defaults);
 
         this.urlUpdate(this.computeLookback());
         // don't add {remove:false} to the initial fetch

@@ -32,7 +32,7 @@ instantiated on eventsBrowserPageView as:
 var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        DataTableBaseView.__super__.instanceSpecificInit.apply(this, arguments);
+        EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
 

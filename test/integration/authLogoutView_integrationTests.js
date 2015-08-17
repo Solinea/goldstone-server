@@ -24,9 +24,12 @@ describe('LogoutIcon.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith("/ho/hum", [401, {
             "Content-Type": "application/json"
         }, 'test unauthorized']);
+
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new LogoutIcon({
             el: '.test-container'

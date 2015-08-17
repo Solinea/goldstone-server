@@ -97,7 +97,7 @@ var GoldstoneBaseView = Backbone.View.extend({
 
             if ($(this.el).find('#chart-button-info').length) {
                 $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this),
+                    content: this.htmlGen.apply(this)
                 });
             }
 

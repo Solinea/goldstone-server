@@ -19,19 +19,19 @@ View is currently implemented for Nova CPU/Memory/Disk Resource Charts
 
 instantiated similar to:
 
-this.vmSpawnChart = new MultiMetricComboCollection({
-    urlPrefix: '/nova/hypervisor/spawns'
+this.cpuResourcesChart = new MultiMetricComboCollection({
+    metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
 });
 
-this.vmSpawnChartView = new MultiMetricBarView({
-    chartTitle: "VM Spawns",
-    collection: this.vmSpawnChart,
-    featureSet: 'mem',
+this.cpuResourcesChartView = new MultiMetricBarView({
+    chartTitle: "CPU Resources",
+    collection: this.cpuResourcesChart,
+    featureSet: 'cpu',
     height: 300,
-    infoCustom: 'novaSpawns',
-    el: '#nova-report-r1-c2',
-    width: $('#nova-report-r1-c2').width(),
-    yAxisLabel: 'Spawn Events'
+    infoCustom: 'novaCpuResources',
+    el: '#nova-report-r2-c1',
+    width: $('#nova-report-r2-c1').width(),
+    yAxisLabel: 'Cores'
 });
 */
 
@@ -79,7 +79,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     dataErrorMessage: function(message, errorMessage) {
 
-        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+        MultiMetricBarView.__super__.dataErrorMessage.apply(this, arguments);
 
         var self = this;
 
@@ -174,7 +174,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.vcpus_used,
-                    Physical: item.vcpus,
+                    Physical: item.vcpus
                 });
             });
 
@@ -232,7 +232,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.local_gb_used,
-                    Total: item.local_gb,
+                    Total: item.local_gb
                 });
             });
 
@@ -290,7 +290,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 finalData.push({
                     eventTime: i,
                     Used: item.memory_mb_used,
-                    Physical: item.memory_mb,
+                    Physical: item.memory_mb
                 });
             });
 
@@ -663,7 +663,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             metric: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Value', 0],
+                ['Value', 0]
             ],
             mem: [
                 // uncomment if supplying virtual stat again

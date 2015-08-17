@@ -28,11 +28,6 @@ $dark_tip: rgba(200,200,200, 0.8);
 $dark_chart_text: #bbb;
 $dark_datatable_text: #eee;
 
-@import "bootstrap-submenu-shim";
-@import "bootstrap_dark_override";
-@import "popover-and-tip";
-@import "data-tables";
-
 html,
 body {
   background-color: if($theme==dark, $dark_background, null);
@@ -183,3 +178,8 @@ text:not(.zoomable), .axis.label {
   fill: none;
   stroke: none;
 }
+
+@import "bootstrap-submenu-shim";
+@import "bootstrap_dark_override";
+@import "popover-and-tip";
+@import "data-tables";

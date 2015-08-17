@@ -47,7 +47,7 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
             this.defaults.nodeName + "&page_size=300" +
-            "&@timestamp__range={'gte':" + twentyAgo +"}";
+            "&@timestamp__range={'gte':" + twentyAgo + "}";
 
         // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 

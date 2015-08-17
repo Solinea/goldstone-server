@@ -43,7 +43,7 @@ var GoldstoneBaseView2 = Backbone.View.extend({
         this.$el.prepend(new ChartHeaderView({
             chartTitle: this.chartTitle,
             infoText: this.infoText,
-            infoIcon: this.infoIcon,
+            infoIcon: this.infoIcon
         }).el);
     },
 

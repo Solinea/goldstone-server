@@ -24,9 +24,12 @@ describe('ChartHeaderView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '[]']);
+
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);

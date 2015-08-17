@@ -389,6 +389,6 @@ var MetricView = ApiPerfView.extend({
     },
 
     template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>')
 
 });

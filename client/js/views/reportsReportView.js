@@ -67,7 +67,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         var self = this;
 
         // triggered whenever this.collection finishes fetching
-        this.listenTo(this.collection,'sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
 
             // removes spinner that was appended
             // during chart-load
@@ -128,7 +128,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof(tableData[0]) === "object") {
+        if (typeof (tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -226,7 +226,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
             ],
             "ordering": true,
             "data": data,
-            "serverSide": false,
+            "serverSide": false
         };
         oTable = $(location).DataTable(oTableParams);
 

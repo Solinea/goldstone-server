@@ -134,7 +134,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $.ajax({
             type: type,
             url: url,
-            data: data,
+            data: data
         })
             .done(function(success) {
                 self.dataErrorMessage(message + ' update successful');

@@ -45,7 +45,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova',
+            componentParam: 'nova'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -65,7 +65,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron',
+            componentParam: 'neutron'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -84,7 +84,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone',
+            componentParam: 'keystone'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -103,7 +103,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance',
+            componentParam: 'glance'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -122,7 +122,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder',
+            componentParam: 'cinder'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
