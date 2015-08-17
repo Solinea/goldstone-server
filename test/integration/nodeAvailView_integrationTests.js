@@ -58,7 +58,8 @@ describe('nodeAvailView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -71,7 +72,7 @@ describe('nodeAvailView.js spec', function() {
         });
         this.testCollection.reset();
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new NodeAvailView({
             collection: this.testCollection,
@@ -1373,8 +1374,11 @@ describe('nodeAvailView.js spec', function() {
                 warning_count: 171
             };
             var test1 = this.testView.formatTooltip(testData);
-            expect(test1).to.equal('' +
-                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Error: 20<br>Warning: 171<br>Notice: 17<br>Info: 10891<br></div>'
+            expect(test1).to.include('' +
+                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 ('
+            );
+            expect(test1).to.include('' +
+                ')<br>Error: 20<br>Warning: 171<br>Notice: 17<br>Info: 10891<br></div>'
             );
             testData = {
                 alert_count: 0,
@@ -1395,8 +1399,11 @@ describe('nodeAvailView.js spec', function() {
                 warning_count: 0
             };
             var test2 = this.testView.formatTooltip(testData);
-            expect(test2).to.equal('' +
-                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br></div>'
+            expect(test2).to.include('' +
+                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 ('
+            );
+            expect(test2).to.include('' +
+                ')<br></div>'
             );
             testData = {
                 alert_count: 10,
@@ -1417,15 +1424,21 @@ describe('nodeAvailView.js spec', function() {
                 warning_count: 80
             };
             var test3 = this.testView.formatTooltip(testData);
-            expect(test3).to.equal('' +
-                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Emergency: 40<br>Alert: 10<br>Critical: 20<br>Error: 50<br>Warning: 80<br>Notice: 70<br>Info: 60<br>Debug: 30<br></div>'
+            expect(test3).to.include('' +
+                '<div class="text-left">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 ('
+            );
+            expect(test3).to.include('' +
+                ')<br>Emergency: 40<br>Alert: 10<br>Critical: 20<br>Error: 50<br>Warning: 80<br>Notice: 70<br>Info: 60<br>Debug: 30<br></div>'
             );
             testData = {
                 created: 1430366537873,
             };
             var test4 = this.testView.formatTooltip(testData);
-            expect(test4).to.equal('' +
-                '<div class="text-left">Host: undefined<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br></div>'
+            expect(test4).to.include('' +
+                '<div class="text-left">Host: undefined<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 ('
+            );
+            expect(test4).to.include('' +
+                ')<br></div>'
             );
         });
         it('view update appends svg and border elements', function() {
@@ -1438,7 +1451,6 @@ describe('nodeAvailView.js spec', function() {
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
             expect($('.popup-message').length).to.equal(1);
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             expect($('.testContainer').find('.popup-message').length).to.equal(1);

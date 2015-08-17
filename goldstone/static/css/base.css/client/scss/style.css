@@ -15,6 +15,181 @@
  */
  /* Sticky footer styles
 -------------------------------------------------- */
+/* line 31, ../../../../../../client/scss/style.scss */
+html,
+body {
+  background-color: #252525;
+  height: 100%;
+  color: #bbb;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+/* line 40, ../../../../../../client/scss/style.scss */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  /* Negative indent footer by its height */
+  margin: 0 auto -60px;
+  /* Pad bottom by footer height */
+  padding: 0 0 60px;
+}
+
+/* Set the fixed height of the footer here */
+/* line 50, ../../../../../../client/scss/style.scss */
+#footer {
+  height: 60px;
+  background-color: #ccc;
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+/* line 59, ../../../../../../client/scss/style.scss */
+#wrap > .container {
+  padding: 60px 15px 0;
+}
+
+/* line 63, ../../../../../../client/scss/style.scss */
+.container .credit {
+  margin: 20px 0;
+}
+
+/* line 67, ../../../../../../client/scss/style.scss */
+#footer > .container {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* line 72, ../../../../../../client/scss/style.scss */
+#global-lookback-range, #global-refresh-range {
+  margin-top: 5px;
+}
+
+/* line 76, ../../../../../../client/scss/style.scss */
+#goldstone-text {
+  font-family: 'Homenaje', sans-serif;
+  font-size: x-large;
+}
+
+/* line 81, ../../../../../../client/scss/style.scss */
+code {
+  font-size: 80%;
+}
+
+/* line 85, ../../../../../../client/scss/style.scss */
+.ajax-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -32px;
+  /* -1 * image width / 2 */
+  margin-top: -32px;
+  /* -1 * image height / 2 */
+  display: block;
+}
+
+/* line 94, ../../../../../../client/scss/style.scss */
+.row {
+  margin-bottom: 20px;
+}
+
+/* Datatable font sizes */
+/* line 99, ../../../../../../client/scss/style.scss */
+.table-hover th {
+  font-size: 10px;
+}
+
+/* line 102, ../../../../../../client/scss/style.scss */
+.table-hover td {
+  font-size: 10px;
+}
+
+/* line 106, ../../../../../../client/scss/style.scss */
+.infoButton {
+  width: 17em;
+  margin-left: 1em;
+}
+
+/* line 111, ../../../../../../client/scss/style.scss */
+#multi-rsrc-table_wrapper > .dataTables_scroll {
+  min-height: 500px;
+}
+
+/* line 115, ../../../../../../client/scss/style.scss */
+.node:not(.data-leaf) {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+/* line 121, ../../../../../../client/scss/style.scss */
+.data-leaf {
+  cursor: context-menu;
+}
+
+/* line 125, ../../../../../../client/scss/style.scss */
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 130, ../../../../../../client/scss/style.scss */
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 135, ../../../../../../client/scss/style.scss */
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+/* line 142, ../../../../../../client/scss/style.scss */
+.axis path, .axis line {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke: #bbb;
+  shape-rendering: crispEdges;
+}
+
+/* line 150, ../../../../../../client/scss/style.scss */
+.axis text, .legend-items {
+  fill: #bbb;
+  font: 10px sans-serif;
+}
+
+/* line 155, ../../../../../../client/scss/style.scss */
+text:not(.zoomable), .axis.label {
+  font: 14px sans-serif;
+  fill: #bbb;
+}
+
+/* line 161, ../../../../../../client/scss/style.scss */
+#goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text {
+  font-size: 10px;
+}
+
+/* line 166, ../../../../../../client/scss/style.scss */
+.legend rect {
+  opacity: 0.0;
+}
+
+/* nodeAvail viz css */
+/* line 172, ../../../../../../client/scss/style.scss */
+.invisible-axis path {
+  fill: none;
+  stroke: none;
+}
+
+/* line 177, ../../../../../../client/scss/style.scss */
+.swim.axis.invisible-axis .tick line {
+  fill: none;
+  stroke: none;
+}
+
 /* line 1, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
 .dropdown-submenu {
   position: relative;
@@ -308,208 +483,55 @@ svg.e {
   left: 100%;
 }
 
-/* line 2, ../../../../../../client/scss/data-tables.scss */
+/* line 6, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table td, #log-search-table td, #events-report-table td, #multi-rsrc-table td, #single-rsrc-table td, #reports-result-table td {
   font-size: 12px;
   color: #eee;
 }
-/* line 5, ../../../../../../client/scss/data-tables.scss */
+/* line 9, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table td th, #log-search-table td th, #events-report-table td th, #multi-rsrc-table td th, #single-rsrc-table td th, #reports-result-table td th {
   font-size: 10px;
 }
-/* line 10, ../../../../../../client/scss/data-tables.scss */
+/* line 14, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-trash-o, #tenants-single-rsrc-table .fa-asterisk, #log-search-table .fa-trash-o, #log-search-table .fa-asterisk, #events-report-table .fa-trash-o, #events-report-table .fa-asterisk, #multi-rsrc-table .fa-trash-o, #multi-rsrc-table .fa-asterisk, #single-rsrc-table .fa-trash-o, #single-rsrc-table .fa-asterisk, #reports-result-table .fa-trash-o, #reports-result-table .fa-asterisk {
+  color: #bb201c;
+}
+/* line 18, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-play, #tenants-single-rsrc-table .fa-check, #log-search-table .fa-play, #log-search-table .fa-check, #events-report-table .fa-play, #events-report-table .fa-check, #multi-rsrc-table .fa-play, #multi-rsrc-table .fa-check, #single-rsrc-table .fa-play, #single-rsrc-table .fa-check, #reports-result-table .fa-play, #reports-result-table .fa-check {
+  color: #6BA757;
+}
+/* line 22, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table tr:hover td, #log-search-table tr:hover td, #events-report-table tr:hover td, #multi-rsrc-table tr:hover td, #single-rsrc-table tr:hover td, #reports-result-table tr:hover td {
   background-color: #252525;
 }
 
-/* line 16, ../../../../../../client/scss/data-tables.scss */
+/* line 28, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table tr:nth-child(even), #log-search-table tr:nth-child(even), #events-report-table tr:nth-child(even), #multi-rsrc-table tr:nth-child(even), #single-rsrc-table tr:nth-child(even), #reports-result-table tr:nth-child(even) {
   background-color: #252525;
 }
 
-/* line 21, ../../../../../../client/scss/data-tables.scss */
+/* line 33, ../../../../../../client/scss/data-tables.scss */
 .dataTables_info {
   color: #eee;
 }
 
-/* line 26, ../../../../../../client/scss/data-tables.scss */
+/* line 38, ../../../../../../client/scss/data-tables.scss */
 #tenants-single-rsrc-table_length > label, #log-search-table_length > label, #events-report-table_length > label, #multi-rsrc-table_length > label {
   color: #eee;
 }
 
-/* line 36, ../../../../../../client/scss/style.scss */
-html,
-body {
-  background-color: #252525;
-  height: 100%;
-  color: #bbb;
-  /* The html and body elements cannot have any padding or margin. */
+/* line 45, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused td, .table tbody tr.paused th {
+  color: #aaa !important;
+  border-top: 1px solid;
+  background-color: rgba(220, 220, 220, 0.5);
 }
 
-/* Wrapper for page content to push down footer */
-/* line 45, ../../../../../../client/scss/style.scss */
-#wrap {
-  min-height: 100%;
-  height: auto;
-  /* Negative indent footer by its height */
-  margin: 0 auto -60px;
-  /* Pad bottom by footer height */
-  padding: 0 0 60px;
-}
-
-/* Set the fixed height of the footer here */
-/* line 55, ../../../../../../client/scss/style.scss */
-#footer {
-  height: 60px;
-  background-color: #ccc;
-}
-
-/* Custom page CSS
--------------------------------------------------- */
-/* Not required for template or sticky footer method. */
-/* line 64, ../../../../../../client/scss/style.scss */
-#wrap > .container {
-  padding: 60px 15px 0;
-}
-
-/* line 68, ../../../../../../client/scss/style.scss */
-.container .credit {
-  margin: 20px 0;
-}
-
-/* line 72, ../../../../../../client/scss/style.scss */
-#footer > .container {
-  padding-left: 15px;
-  padding-right: 15px;
-}
-
-/* line 77, ../../../../../../client/scss/style.scss */
-#global-lookback-range, #global-refresh-range {
-  margin-top: 5px;
-}
-
-/* line 81, ../../../../../../client/scss/style.scss */
-#goldstone-text {
-  font-family: 'Homenaje', sans-serif;
-  font-size: x-large;
-}
-
-/* line 86, ../../../../../../client/scss/style.scss */
-code {
-  font-size: 80%;
-}
-
-/* line 90, ../../../../../../client/scss/style.scss */
-.ajax-loader {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin-left: -32px;
-  /* -1 * image width / 2 */
-  margin-top: -32px;
-  /* -1 * image height / 2 */
-  display: block;
-}
-
-/* line 99, ../../../../../../client/scss/style.scss */
-.row {
-  margin-bottom: 20px;
-}
-
-/* Datatable font sizes */
-/* line 104, ../../../../../../client/scss/style.scss */
-.table-hover th {
-  font-size: 10px;
-}
-
-/* line 107, ../../../../../../client/scss/style.scss */
-.table-hover td {
-  font-size: 10px;
-}
-
-/* line 111, ../../../../../../client/scss/style.scss */
-.infoButton {
-  width: 17em;
-  margin-left: 1em;
-}
-
-/* line 116, ../../../../../../client/scss/style.scss */
-#multi-rsrc-table_wrapper > .dataTables_scroll {
-  min-height: 500px;
-}
-
-/* line 120, ../../../../../../client/scss/style.scss */
-.node:not(.data-leaf) {
-  cursor: pointer;
-  stroke: #3182bd;
-  stroke-width: 1.5px;
-}
-
-/* line 126, ../../../../../../client/scss/style.scss */
-.data-leaf {
-  cursor: context-menu;
-}
-
-/* line 130, ../../../../../../client/scss/style.scss */
-.node text {
-  font-size: 12px;
-  stroke-width: 0;
-}
-
-/* line 135, ../../../../../../client/scss/style.scss */
-.icon text {
-  font-size: 12px;
-  stroke-width: 0;
-}
-
-/* line 140, ../../../../../../client/scss/style.scss */
-.link {
-  fill: none;
-  stroke: #9ecae1;
-  stroke-width: 1.5px;
-}
-
-/* line 147, ../../../../../../client/scss/style.scss */
-.axis path, .axis line {
-  fill: none;
-  stroke-width: 1.5px;
-  stroke: #bbb;
-  shape-rendering: crispEdges;
-}
-
-/* line 155, ../../../../../../client/scss/style.scss */
-.axis text, .legend-items {
-  fill: #bbb;
-  font: 10px sans-serif;
-}
-
-/* line 160, ../../../../../../client/scss/style.scss */
-text:not(.zoomable), .axis.label {
-  font: 14px sans-serif;
-  fill: #bbb;
-}
-
-/* line 166, ../../../../../../client/scss/style.scss */
-#goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text {
-  font-size: 10px;
-}
-
-/* line 171, ../../../../../../client/scss/style.scss */
-.legend rect {
-  opacity: 0.0;
-}
-
-/* nodeAvail viz css */
-/* line 177, ../../../../../../client/scss/style.scss */
-.invisible-axis path {
-  fill: none;
-  stroke: none;
-}
-
-/* line 182, ../../../../../../client/scss/style.scss */
-.swim.axis.invisible-axis .tick line {
-  fill: none;
-  stroke: none;
+/* line 52, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused:hover td,
+.table tbody tr.paused:hover th {
+  color: #aaa !important;
+  background-color: rgba(220, 220, 220, 0.5) !important;
 }
 
 /*# sourceMappingURL=style.css.map */

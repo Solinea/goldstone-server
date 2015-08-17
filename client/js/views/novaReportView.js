@@ -33,7 +33,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova',
+            componentParam: 'nova'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({

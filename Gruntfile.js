@@ -165,7 +165,7 @@ module.exports = function(grunt) {
             },
             opentrail: {
                 files: clientIncludeOrder.opentrailWildcards,
-                tasks: ['clean:ot', 'concat-ot', 'lint', 'copy-ot']
+                tasks: ['clean:ot', 'concat-ot', 'concat:ot_goldstone', 'lint', 'copy-ot']
             },
             opentrailTest: {
                 files: clientIncludeOrder.otTest,
@@ -205,6 +205,14 @@ module.exports = function(grunt) {
                 },
                 src: clientIncludeOrder.opentrailWildcards,
                 dest: clientIncludeOrder.otBundle
+            },
+            ot_goldstone: {
+                nonull: true,
+                options: {
+                    separator: '\n'
+                },
+                src: clientIncludeOrder.opentrailWildcards,
+                dest: clientIncludeOrder.otBundleGoldstone
             }
         },
 

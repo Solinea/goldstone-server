@@ -24,7 +24,8 @@ describe('newPasswordView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "accounts/login", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "accounts/login/", [200, {
             "Content-Type": "application/json"
         }, '[]']);
         data = [];

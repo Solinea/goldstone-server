@@ -43,13 +43,13 @@ var HelpView = GoldstoneBaseView.extend({
         '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
         'goldstone-users forum</a>, or ' +
         '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
-        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' + 
+        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' +
         'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
 
         '<a name="license"></a><h3>License</h3>' +
         'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
         'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
-        'https://www.apache.org/licenses/LICENSE-2.0</a>.' 
+        'https://www.apache.org/licenses/LICENSE-2.0</a>.'
     )
 
 });

@@ -25,5 +25,5 @@ var MetricViewCollection = GoldstoneBaseCollection.extend({
         this.statistic = this.options.statistic;
         this.standardDev = this.options.standardDev;
         this.fetchWithReset();
-    },
+    }
 });

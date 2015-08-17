@@ -24,7 +24,7 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone',
+            componentParam: 'keystone'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({

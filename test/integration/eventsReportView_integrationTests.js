@@ -45,7 +45,8 @@ describe('eventsReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
                 "Content-Type": "application/json"
             },
             this.dummyData
@@ -55,7 +56,7 @@ describe('eventsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new EventsReportView({
             el: '.testContainer',
@@ -120,7 +121,6 @@ describe('eventsReportView.js spec', function() {
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'

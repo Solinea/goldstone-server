@@ -425,7 +425,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 }
 
                 console.log('define feature set in utilizationCpuView.js');
-                return;
+                return null;
 
             })
             .attr("text-anchor", function(d) {

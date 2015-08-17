@@ -55,30 +55,11 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         // for each array index in the 'data' key
         _.each(data.per_interval, function(item) {
             var tempObj = {};
+
             // adds the 'time' param based on the object keyed by timestamp
             // and the 200-500 statuses
             tempObj.time = parseInt(_.keys(item)[0], 10);
             tempObj.count = item[tempObj.time].count;
-            // iterate through each item in the array
-            // _.each(item[tempObj.time], function(obj){
-            //     var key = _.keys(obj);
-            //     var value = _.values(obj)[0];
-
-            //     // copy key/value pairs to tempObj
-            //     tempObj[key] = value;
-            // });
-
-            // initialize counter
-            // var count = 0;
-            // _.each(tempObj, function(val, key) {
-            //     // add up the values of each nested object
-            //     if(key !== 'time') {
-            //         count += val;
-            //     }
-            // });
-
-            // set 'count' equal to the counter
-            // tempObj.count = count;
 
             // add the tempObj to the final results array
             finalResult.push(tempObj);

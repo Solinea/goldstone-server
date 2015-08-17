@@ -59,6 +59,7 @@ describe('goldstoneBaseView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
+        this.server.autoRespond = true;
         this.server.respondWith("GET", "/something/fancy", [200, {
             "Content-Type": "application/json"
         }, '[]']);
@@ -67,7 +68,7 @@ describe('goldstoneBaseView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection = new ApiPerfCollection({
             urlPrefix: 'cinder'
@@ -115,7 +116,6 @@ describe('goldstoneBaseView.js spec', function() {
             this.update_spy.restore();
         });
         it('appends dataErrorMessages to container', function() {
-            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage('this is a test');
             expect($('.popup-message').text()).to.include('this is a test');
             this.testView.dataErrorMessage('number two test');

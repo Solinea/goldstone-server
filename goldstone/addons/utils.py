@@ -1,4 +1,4 @@
-"""Add-on utilities."""
+"""Addon utilities."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,40 +14,16 @@
 # limitations under the License.
 
 
-def update_addon_nodes():
-    """Update the Resource graph's add-on nodes and edges from the current
-    Addon table.
+def update_addon_node():
+    """Update the persistent resource graph's Addon node.
 
-    Nodes are:
-       - deleted if they are no longer in the Addon table
-       - added if they are in the Addon table, but not in the graph.
-       - updated from the Addon table if they are already in the graph.
+    This is much simpler than the update_xxxxx_nodes functions that update
+    nodes for cloud entities. There will be only one Addon node in the table,
+    and all add-ons will be owned by it. If we're running for the first time,
+    the Addon node needs to be created. If it's already there, we leave it
+    alone.
 
     """
-    from django.forms.models import model_to_dict
-    from goldstone.addons.models import Addon as AddonTable
-    from goldstone.core.models import PolyResource, Addon
+    from goldstone.core.models import Addon
 
-    # Remove Resource graph nodes that no longer exist.
-    actual_names = set(x.name for x in AddonTable.objects.all())
-
-    # For every node of this type in the persistent resource graph...
-    for entry in Addon.objects.all():
-        if entry.native_name not in actual_names:
-            # This node isn't in the cloud anymore, so delete it from the
-            # persistent data.
-            entry.delete()
-
-    # For every Addon table row, add it to the persistent resource graph if
-    # it's not there.
-    for row in AddonTable.objects.all():
-        # Try to find its corresponding persistent Resource graph node.
-        if not Addon.objects.filter(native_name=row.name).exists():
-            # The node doesn't exist. Create it.
-            Addon.objects.create(native_id=row.name,
-                                 native_name=row.name,
-                                 cloud_attributes=model_to_dict(row))
-
-    # Now fill in / update all nodes' outgoing edges.
-    for node in PolyResource.objects.all():
-        node.update_edges()
+    Addon.objects.get_or_create(native_id="Add-on", native_name="Add-on")

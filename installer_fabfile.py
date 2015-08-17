@@ -915,11 +915,18 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
     """Configures syslog and ceilometer parameters on OpenStack hosts.
 
     :param goldstone_addr: Goldstone server's hostname or IP accessible to
-                         OpenStack hosts
+                           OpenStack hosts
     :type goldstone_addr: str
-    """
+    :param restart_services: After completion, do you want to restart
+                             openstack?
+    :type restart_services: boolean
+    :param accept: Do you understand that this will change your openstack and
+                   syslog configs?
+    :type accept: boolean
 
-    from fabric.contrib.files import upload_template
+    """
+    import arrow
+    from fabric.contrib.files import upload_template, exists
 
     if not accept:
         accepted = prompt(cyan(
@@ -942,75 +949,170 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
                                        "after configuration changes(yes/no)?"),
                                   default='no', validate='yes|no')
 
-    loglevel_mapping = {
-        "nova": "LOG_LOCAL0",
-        "keystone": "LOG_LOCAL6",
-        "ceilometer": "LOG_LOCAL3",
-        "neutron": "LOG_LOCAL2",
-        "cinder": "LOG_LOCAL5",
-        "glance": "LOG_LOCAL1",
+    openstack_config_map = {
+        "nova": {
+            "config_file": "/etc/nova/nova.conf",
+            "log_facility": "LOG_LOCAL0"
+        },
+        "keystone": {
+            "config_file": "/etc/keystone/keystone.conf",
+            "log_facility": "LOG_LOCAL6"
+        },
+        "ceilometer": {
+            "config_file": "/etc/ceilometer/ceilometer.conf",
+            "log_facility": "LOG_LOCAL3",
+            "metric_pipeline_template": "pipeline.yaml.template",
+            "metric_pipeline_file": "/etc/ceilometer/pipeline.yaml",
+            "event_pipeline_template": "event_pipeline.yaml.template",
+            "event_pipeline_file": "/etc/ceilometer/event_pipeline.yaml",
+            "event_defs_template": "event_definitions.yaml.template",
+            "event_defs_file": "/etc/ceilometer/event_definitions.yaml"
+        },
+        "neutron": {
+            "config_file": "/etc/neutron/neutron.conf",
+            "log_facility": "LOG_LOCAL2"
+        },
+        "cinder": {
+            "config_file": "/etc/cinder/cinder.conf",
+            "log_facility": "LOG_LOCAL5"
+        },
+        "glance-cache": {
+            "config_file": "/etc/glance/glance-cache.conf",
+            "log_facility": "LOG_LOCAL1"
+        },
+        "glance-api": {
+            "config_file": "/etc/glance/glance-api.conf",
+            "log_facility": "LOG_LOCAL1"
+        },
+        "glance-registry": {
+            "config_file": "/etc/glance/glance-registry.conf",
+            "log_facility": "LOG_LOCAL1"
+        },
+        "glance-scrubber": {
+            "config_file": "/etc/glance/glance-scrubber.conf",
+            "log_facility": "LOG_LOCAL1"
+        },
     }
 
-    openstack_config_map = [
-        ("/etc/nova/nova.conf", loglevel_mapping['nova']),
-        ("/etc/keystone/keystone.conf", loglevel_mapping['keystone']),
-        ("/etc/ceilometer/ceilometer.conf", loglevel_mapping['ceilometer']),
-        ("/etc/neutron/neutron.conf", loglevel_mapping['neutron']),
-        ("/etc/cinder/cinder.conf", loglevel_mapping['cinder']),
-        ("/etc/glance/glance-cache.conf", loglevel_mapping['glance']),
-        ("/etc/glance/glance-api.conf", loglevel_mapping['glance']),
-        ("/etc/glance/glance-registry.conf", loglevel_mapping['glance']),
-        ("/etc/glance/glance-scrubber.conf", loglevel_mapping['glance'])]
+    ceilometer_conf = "/etc/ceilometer/ceilometer.conf"
 
     ceilometer_template_dir = os.path.join(os.getcwd(), "external/ceilometer")
     syslog_template_dir = os.path.join(os.getcwd(), "external/rsyslog")
 
+    backup_timestamp = arrow.utcnow().timestamp
+
     with fab_settings(warn_only=True, user="root"):
+
         # Set up syslog shipping
-        print(green("\nConfiguring syslog settings."))
-        for entry in openstack_config_map:
-            run("crudini --existing=file --set " + entry[0] +
-                " DEFAULT use_syslog True")
-            run("crudini --existing=file --set " + entry[0] +
-                " DEFAULT verbose True")
-            run("crudini --existing=file --set " + entry[0] +
-                " DEFAULT syslog_log_facility " + entry[1])
+        print(green("\nConfiguring event and syslog handling."))
+
+        for entry in openstack_config_map.items():
+            if exists(entry[1]['config_file'], use_sudo=True, verbose=True):
+
+                backup_file = entry[1]['config_file'] + "." + \
+                    str(backup_timestamp)
+                run("cp " + entry[1]['config_file'] + " " + backup_file)
+
+                run("crudini --existing=file --set " +
+                    entry[1]['config_file'] +
+                    " DEFAULT use_syslog True")
+                run("crudini --existing=file --set " +
+                    entry[1]['config_file'] +
+                    " DEFAULT verbose True")
+                run("crudini --existing=file --set " +
+                    entry[1]['config_file'] +
+                    " DEFAULT syslog_log_facility " + entry[1]['log_facility'])
+
+                # this is a little messy business to deal with params that can
+                # have multiple lines in the file.
+                if entry[0] in ['nova', 'cinder']:
+                    configure_notification_driver(entry[1]['config_file'])
 
         # Set up ceilometer event shipping
-        print(green("\nConfiguring services to ship ceilometer events to "
-                    "Goldstone."))
-        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
-            "event definitions_cfg_file event_definitions.yaml")
-        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
-            "event drop_unmatched_notifications False")
-        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
-            "notification store_events True")
-        run("crudini --existing=file --set /etc/ceilometer/ceilometer.conf "
-            "database event_connection es://" + goldstone_addr + ":9200")
-        run("crudini --set /etc/nova/nova.conf "
-            "DEFAULT instance_usage_audit True")
-        run("crudini --set /etc/nova/nova.conf "
-            "DEFAULT instance_usage_audit_period hour")
-        run("crudini --set /etc/nova/nova.conf "
-            "DEFAULT notify_on_state_change vm_and_task_state")
-        run("crudini --set /etc/cinder/cinder.conf "
-            "DEFAULT control_exchange cinder")
+        if exists(ceilometer_conf):
+            print(green("\nConfiguring services to ship ceilometer events to "
+                        "Goldstone."))
+
+            backup_file = ceilometer_conf + "." + str(backup_timestamp)
+            run("cp " + openstack_config_map['ceilometer']['config_file'] +
+                " " + backup_file)
+
+            run("crudini --existing=file --set " + ceilometer_conf +
+                " event definitions_cfg_file event_definitions.yaml")
+            run("crudini --existing=file --set " + ceilometer_conf +
+                " event drop_unmatched_notifications False")
+            run("crudini --existing=file --set " + ceilometer_conf +
+                " notification store_events True")
+            run("crudini --existing=file --set " + ceilometer_conf +
+                " database event_connection es://" + goldstone_addr + ":9200")
+
+            # set up ceilometer auditing for nova
+            if exists(openstack_config_map['nova']['config_file']):
+                run("crudini --set " +
+                    openstack_config_map['nova']['config_file'] +
+                    " DEFAULT instance_usage_audit True")
+                run("crudini --set " +
+                    openstack_config_map['nova']['config_file'] +
+                    " DEFAULT instance_usage_audit_period hour")
+                run("crudini --set " +
+                    openstack_config_map['nova']['config_file'] +
+                    " DEFAULT notify_on_state_change vm_and_task_state")
+
+            # set up ceilometer auditing for cinder
+            if exists(openstack_config_map['cinder']['config_file']):
+                run("crudini --set " +
+                    openstack_config_map['cinder']['config_file'] +
+                    " DEFAULT control_exchange cinder")
 
         try:
             print(green("\nInstalling ceilometer and rsyslog config files."))
-            upload_template('pipeline.yaml.template',
-                            '/etc/ceilometer/pipeline.yaml',
-                            context={'goldstone_addr': goldstone_addr},
-                            template_dir=ceilometer_template_dir)
-            upload_template('event_definitions.yaml',
-                            '/etc/ceilometer/event_definitions.yaml',
-                            template_dir=ceilometer_template_dir)
-            upload_template('event_pipeline.yaml',
-                            '/etc/ceilometer/event_pipeline.yaml',
-                            template_dir=ceilometer_template_dir)
-            upload_template('rsyslog.conf',
-                            '/etc/rsyslog.conf',
-                            template_dir=syslog_template_dir)
+
+            # backup ceilometer event and metric pipelines
+            if exists(
+                    openstack_config_map['ceilometer']['event_pipeline_file']):
+                backup_file = openstack_config_map['ceilometer'][
+                    'event_pipeline_file'] + "." + str(backup_timestamp)
+                run("cp " + openstack_config_map['ceilometer'][
+                    'event_pipeline_file'] + " " + backup_file)
+
+            if exists(openstack_config_map['ceilometer'][
+                    'metric_pipeline_file']):
+                backup_file = openstack_config_map['ceilometer'][
+                    'metric_pipeline_file'] + "." + str(backup_timestamp)
+                run("cp " + openstack_config_map['ceilometer'][
+                    'metric_pipeline_file'] + " " + backup_file)
+
+            if exists(openstack_config_map['ceilometer']['event_defs_file']):
+                backup_file = openstack_config_map['ceilometer'][
+                    'event_defs_file'] + "." + str(backup_timestamp)
+                run("cp " + openstack_config_map['ceilometer'][
+                    'event_defs_file'] + " " + backup_file)
+
+            # configure ceileometer metric and event pipelines
+            upload_template(
+                openstack_config_map['ceilometer']['event_pipeline_template'],
+                openstack_config_map['ceilometer']['event_pipeline_file'],
+                context={'goldstone_addr': goldstone_addr},
+                template_dir=ceilometer_template_dir,
+                backup=False)
+            upload_template(
+                openstack_config_map['ceilometer']['event_defs_template'],
+                openstack_config_map['ceilometer']['event_defs_file'],
+                template_dir=ceilometer_template_dir,
+                backup=False)
+            upload_template(
+                openstack_config_map['ceilometer']['metric_pipeline_template'],
+                openstack_config_map['ceilometer']['metric_pipeline_file'],
+                template_dir=ceilometer_template_dir,
+                backup=False)
+
+            if exists('/etc/rsyslog.conf'):
+                backup_file = "/etc/rsyslog.conf." + str(backup_timestamp)
+                run("cp /etc/rsyslog.conf " + backup_file)
+                upload_template('rsyslog.conf',
+                                '/etc/rsyslog.conf',
+                                template_dir=syslog_template_dir, backup=False)
+
             upload_template('10-goldstone.conf.template',
                             '/etc/rsyslog.d/10-goldstone.conf',
                             context={'goldstone_addr': goldstone_addr},
@@ -1021,12 +1123,6 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
                                  'string representing a hostname or IP '
                                  'address')
 
-        # this is a little messy business to deal with params that can have
-        # multiple lines in the file.
-
-        configure_notification_driver('/etc/nova/nova.conf')
-        configure_notification_driver('/etc/cinder/cinder.conf')
-
         if restart_services == 'yes':
             print(green("\nRestarting OpenStack and rsyslog services."))
             run("openstack-service restart nova")
@@ -1034,7 +1130,7 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
             run("openstack-service restart cinder")
             run("openstack-service restart neutron")
             run("openstack-service restart ceilometer")
-            run("openstack-service restart keystone")
+            run("systemctl restart httpd")    # keystone/horizon
             run("service rsyslog restart")
         else:
             print(green("\nRestart OpenStack and rsyslog services on remote"

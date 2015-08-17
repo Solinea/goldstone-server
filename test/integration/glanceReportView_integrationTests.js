@@ -26,15 +26,16 @@ describe('glanceReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
+        this.server.autoRespond = true;
+        this.server.respondWith("GET", "*", [200, {
             "Content-Type": "application/json"
-        }, '{absolutely: "nothing"}']);
+        }, 'OK']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 

@@ -170,6 +170,7 @@ class Types(Graph):
                             source_type,
                             control_dict[TO],
                             attr_dict=control_dict[EDGE_ATTRIBUTES])
+
             except Exception:         # pylint: disable=W0703
                 logger.exception("Problem adding %s to the resource type "
                                  "graph! Skipping...", row)
