@@ -847,8 +847,8 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
     :param accept: Do you understand that this will change your openstack and
                    syslog configs?
     :type accept: boolean
-    """
 
+    """
     import arrow
     from fabric.contrib.files import upload_template, exists
 
@@ -872,15 +872,6 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
         restart_services = prompt(cyan("Restart OpenStack and syslog services "
                                        "after configuration changes(yes/no)?"),
                                   default='no', validate='yes|no')
-
-    loglevel_mapping = {
-        "nova": "LOG_LOCAL0",
-        "keystone": "LOG_LOCAL6",
-        "ceilometer": "LOG_LOCAL3",
-        "neutron": "LOG_LOCAL2",
-        "cinder": "LOG_LOCAL5",
-        "glance": "LOG_LOCAL1",
-    }
 
     openstack_config_map = {
         "nova": {
