@@ -107,12 +107,13 @@ class TenantInit(Setup):
         self._evaluate("bob", "bahb", "bahhb")
 
 
-class ESConnectionTests(SimpleTestCase):
-    """Test the ES connection."""
+class ElasticSearchTests(SimpleTestCase):
+    """Test some Elasticsearch operations."""
 
     @patch.object(connections, 'get_connection')
     @patch.object(connections, 'configure')
     def test_connection(self, mock_conf, mock_es):
+        """Connection tests."""
 
         mock_es.return_value = None
         mock_conf.return_value = None
@@ -133,14 +134,18 @@ class ESConnectionTests(SimpleTestCase):
                                      max_retries=1)
 
     def test_daily_index(self):
-
+        """Date string test."""
         date_str = arrow.utcnow().format('YYYY.MM.DD')
         self.assertEqual(daily_index("xyz-"), "xyz-" + date_str)
 
     @patch.object(Connections, 'get_connection')
     def test_es_indices(self, m_conn):
-        """To avoid ES calls, we mock out the get_connection call, then set
-        up additional mocks for the resulting ES connection."""
+        """Indices tests.
+
+        To avoid Elasticsearch calls, we mock out the get_connection call, then
+        set up additional mocks for the resulting ES connection.
+
+        """
 
         m_es = mock.Mock(Elasticsearch, name='es')
         m_indices = mock.MagicMock(IndicesClient, name='indices')
@@ -172,8 +177,10 @@ class ESConnectionTests(SimpleTestCase):
 
 
 class TopologyDataTest(SimpleTestCase):
+    """Topology data tests."""
 
     def test_sort_arg(self):
+        """Test the _sort_arg method."""
 
         # pylint: disable=W0212
         with self.assertRaises(ValueError):

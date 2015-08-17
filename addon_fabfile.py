@@ -14,6 +14,8 @@
 # limitations under the License.
 from __future__ import print_function
 from contextlib import contextmanager
+from importlib import import_module
+from inspect import getmembers, isfunction
 from shutil import copytree, rmtree
 
 from fabric.api import task
@@ -219,7 +221,6 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
     :rtype: (dict, dict)
 
     """
-    from importlib import import_module
     import re
     from goldstone.addons.models import Addon
 
@@ -410,6 +411,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
+        from goldstone.addons.utils import update_addon_node
         from rest_framework.authtoken.models import Token
 
         # Gather the package installation information from the package or the
@@ -430,16 +432,26 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Installing a new add-on. We'll track where we are, in case an
                 # exception occurs.
                 try:
-                    # First, add the new row.
-                    error = "%s while updating the Addon table. It's " \
-                            "probably OK, but check it."
+                    # If Goldstone has been running for at least five minutes,
+                    # the Addon node already exists in the PolyResource table.
+                    # But if not, it doesn't. The add-on's APIs may throw
+                    # exceptions if the Addon node doesn't exist, so take this
+                    # opportunity to ensure that it will.
+                    error = "creating the persistent resource graph's Addon " \
+                            "node"
+
+                    update_addon_node()
+
+                    # Add the new row.
+                    error = "updating the Addon table. It's probably OK, " \
+                            "but check it."
 
                     Addon.objects.create(**addon_db)
 
                     # Now add the add-on to INSTALLED_APPS and
                     # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
                     # instead.
-                    error = "%s while reading base.py. The Addon table was " \
+                    error = "reading base.py. The Addon table was " \
                             "modified. You must edit settings/base.py and " \
                             "urls.py, and copy the static files."
 
@@ -473,7 +485,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                         filedata[insert:]
 
                     # Update the file.
-                    error = "%s while writing base.py. The Addon table was " \
+                    error = "writing base.py. The Addon table was " \
                             "modified. You must edit settings/base.py and " \
                             "urls.py, and copy the static files."
 
@@ -481,7 +493,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                         f.write(filedata)
 
                     # Now add the add-on to the end of the URLconf.
-                    error = "%s while writing urls.py. The Addon table and " \
+                    error = "writing urls.py. The Addon table and " \
                             "settings/base.py were updated. You must edit " \
                             "urls.py, and copy the static files."
 
@@ -492,7 +504,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
                     # Now move the client's JavaScript files, and insert the
                     # script tag.
-                    error = "%s while copying the static files. You best " \
+                    error = "copying the static files. You best " \
                             "check them, and base.html's script tag."
 
                     _install_addon_javascript(name, addon_install, install_dir)
@@ -500,7 +512,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     # Finally, expire all user tokens to force users to
                     # re-login, which will reset their client-side localStorage
                     # 'addons' object.
-                    error = "%s while trying to invalidate user tokens. You " \
+                    error = "trying to invalidate user tokens. You " \
                             "must clear the Token table."
 
                     Token.objects.all().delete()
@@ -508,11 +520,14 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 except Exception as exc:       # pylint: disable=W0703
                     # Oops!  Tell the user what happened, because they'll have
                     # to unwind things manually.
+                    error = "%s while " + error
                     abort(red(error % exc))
 
 
 @task
-def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def remove_addon(name,                       # pylint: disable=R0914,R0915
+                 settings=PROD_SETTINGS,
+                 install_dir=INSTALL_DIR):
     """Remove a user add-on.
 
     :param name: The add-on's installation name
@@ -540,16 +555,30 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
         if confirm('We will remove the %s add-on. Proceed?' % name,
                    default=False):
-            # We'll track where we are, in case an exception occurs.
             try:
                 # First, delete the row.
-                error = "%s while updating the Addon table. Check it."
-
+                error = "updating the Addon table. Check it."
                 row.delete()
+
+                # Now remove its root node, and any inferior nodes, from the
+                # resource graph.
+                error = "importing %s" % name
+
+                the_app = import_module("%s.models" % name)
+                remove_nodes = next((x[1]
+                                     for x in getmembers(the_app, isfunction)
+                                     if x[0] == "remove_nodes"),
+                                    None)
+                if not remove_nodes:
+                    error = "looking for remove_nodes()"
+                    raise Exception
+
+                error = "calling remove_nodes()"
+                remove_nodes()
 
                 # Now remove the add-on from INSTALLED_APPS. SED is scary, so
                 # we'll use Python instead.
-                error = "%s while reading base.py. The Addon table was " \
+                error = "reading base.py. The Addon table was " \
                         "modified. You must manually edit settings/base.py " \
                         "and urls.py, and remove the base.html script tag, " \
                         "and delete the add-on's JavaScript directory."
@@ -573,8 +602,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # user-installed apps section. We do both to maximize the
                 # probability of doing this correctly. Then, find the beginning
                 # of the line that starts this add-on's task entries, and the
-                # beginning of the line after the end of this add-on's task
-                # entries.
+                # beginning of the line after the end of the task entries.
                 insert = filedata.index(CELERYBEAT_SCHEDULE)
                 insert = filedata.index(CELERYBEAT_APPS, insert)
 
@@ -587,7 +615,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 filedata = filedata[:insert] + filedata[end:]
 
                 # Update the file.
-                error = "%s while writing base.py. The Addon table was " \
+                error = "writing base.py. The Addon table was " \
                         "modified. You must manually edit settings/base.py " \
                         "and urls.py, and remove the base.html script tag, " \
                         "and delete the add-on's JavaScript directory."
@@ -596,7 +624,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     f.write(filedata)
 
                 # Now delete the add-on from the URLconf.
-                error = "%s while writing urls.py. The Addon table and " \
+                error = "writing urls.py. The Addon table and " \
                         "settings/base.py were updated. You must edit " \
                         "urls.py, and remove the base.html script tag, and " \
                         "delete the add-on's JavaScript directory."
@@ -607,8 +635,8 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     filedata = f.read()
 
                 insert = filedata.index(URLS_PY.format(name, row.url_root))
-                end = insert
 
+                end = insert
                 for _ in range(URLS_PY.count('\n')):
                     end = filedata.index('\n', end) + 1
 
@@ -619,7 +647,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
                 # Now remove the client's JavaScript files, and its base.html
                 # script tag
-                error = "%s while removing JavaScript files. You must " \
+                error = "removing JavaScript files. You must " \
                         "delete the add-on's JavaScript directory."
 
                 _remove_addon_javascript(name, install_dir)
@@ -627,7 +655,7 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Finally, expire all user tokens to force users to re-login,
                 # which will reset their client-side localStorage 'addons'
                 # object.
-                error = "%s while trying to invalidate user tokens. You " \
+                error = "trying to invalidate user tokens. You " \
                         "must clear the Token table."
 
                 Token.objects.all().delete()
@@ -635,4 +663,5 @@ def remove_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
             except Exception as exc:       # pylint: disable=W0703
                 # Oops! Tell the user what happened, because they'll have to
                 # unwind things manually.
+                error = "%s while " + error
                 abort(red(error % exc))
