@@ -1,0 +1,9 @@
+#!/bin/bash
+docker ps -a | awk '{print $1}' | tail +2 | while read c
+do
+    docker rm -f $c
+done
+docker images | tail +2 | awk '{print $3}' | while read i 
+do
+    docker rmi -f $i
+done

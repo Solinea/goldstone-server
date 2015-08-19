@@ -1,0 +1,66 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+filter {
+    if "agent_data" not in [tags] {
+        if [type] == "syslog" {
+            grok { 
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
+            }
+            if ("_grokparsefailure" not in [tags]) {
+                translate {
+                    field => "syslog_facility"
+                    dictionary => [ 
+                        "local0", "nova",
+                        "local1", "glance",
+                        "local2", "neutron",
+                        "local3", "ceilometer",
+                        "local4", "swift",
+                        "local5", "cinder",
+                        "local6", "keystone"
+                    ]
+                    fallback => "unknown"
+                    destination => "component"
+                }
+                if ([syslog_severity] == "NOTICE") {
+                    mutate {
+                        add_field => {"loglevel" => "AUDIT"}
+                    }
+                }
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        replace => ["event_type", "OpenStackSyslogError"]
+                    }
+                }
+                mutate {
+                    replace => [ "host", "%{syslog5424_host}" ]
+                    add_tag => ["openstack_syslog", "filter_34_pass"]
+                }
+
+                # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+                # if it happened earlier, this filter would end up processing each of the clones regardless
+                # of their type.
+                clone {
+                    clones => ["nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
+                }
+            } else {
+                mutate {
+                    add_tag => ["filter_34_fail"]
+                    remove_tag => ["_grokparsefailure"]
+                }
+            }
+        }
+    }
+}

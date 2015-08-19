@@ -1,0 +1,95 @@
+# Goldstone Docker Compose Configuration
+
+# Elasticsearch Container
+elasticsearch:
+  image: solinea/goldstone-elasticsearch:latest
+  volumes:
+    - config/elasticsearch:/usr/share/elasticsearch/config
+    # Mount a local volume for data
+    #- "$PWD/data/es":/usr/share/elasticsearch/data
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
+# PostgreSQL Container
+postgres:
+  image: solinea/goldstone-postgres:latest
+  env_file: config/postgres/pgsql.env
+  volumes_from:
+    - pgdvc
+  ports:
+    - "5432:5432"
+
+# PostgreSQL Data Volume Container
+pgdvc:
+  image: solinea/goldstone-postgres-data:latest
+  volumes:
+    - /var/lib/postgresql/data
+
+# Redis Container
+redis:
+  image: redis:latest
+  volumes_from:
+    - redisdvc
+  ports:
+    - "6379:6379"
+
+# Redis Data Volume Container
+redisdvc:
+  image: solinea/goldstone-redis-data
+  volumes:
+    - /data
+
+# Logstash Container
+logstash:
+  image: solinea/goldstone-logstash:latest
+  command: logstash -f /logstash/conf.d -w 1
+  volumes:
+    - config/logstash/conf.d:/logstash/conf.d
+    - config/logstash/patterns:/opt/logstash/patterns
+  ports:
+    - "5514:5514"
+    - "5515:5515"
+    - "5516:5516"
+  links:
+    - elasticsearch
+    - elasticsearch:es
+
+# Goldstone Django App Container
+goldstone:
+  image: solinea/goldstone:latest
+  env_file: config/goldstone/goldstone-server.env
+  ports:
+    - "8000:8000"
+  links:
+    - postgres
+    - postgres:pgsql-server
+    - elasticsearch
+    - elasticsearch:es
+
+# Goldstone Nginx
+nginx:
+  image: solinea/goldstone-nginx:latest
+  ports:
+    - "8888:81"
+  links:
+    - goldstone:goldstone
+
+# Celery Worker Container
+#celery:
+#image: solinea/goldstone:latest
+#command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
+#links:
+#- redis
+
+# Static Web Content Container
+#static:
+#image: solinea/goldstone:latest
+
+# RabbitMQ Container
+#rabbit1:
+#  image: rabbitmq:3-management
+#  hostname: rabbit1
+#  ports:
+#    - "5672:5672"
+#    - "15672:15672"
