@@ -1,0 +1,449 @@
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ /* Sticky footer styles
+-------------------------------------------------- */
+/* line 31, ../../../../../../client/scss/style.scss */
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+/* line 40, ../../../../../../client/scss/style.scss */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  /* Negative indent footer by its height */
+  margin: 0 auto -60px;
+  /* Pad bottom by footer height */
+  padding: 0 0 60px;
+}
+
+/* Set the fixed height of the footer here */
+/* line 50, ../../../../../../client/scss/style.scss */
+#footer {
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+/* line 59, ../../../../../../client/scss/style.scss */
+#wrap > .container {
+  padding: 60px 15px 0;
+}
+
+/* line 63, ../../../../../../client/scss/style.scss */
+.container .credit {
+  margin: 20px 0;
+}
+
+/* line 67, ../../../../../../client/scss/style.scss */
+#footer > .container {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* line 72, ../../../../../../client/scss/style.scss */
+#global-lookback-range, #global-refresh-range {
+  margin-top: 5px;
+}
+
+/* line 76, ../../../../../../client/scss/style.scss */
+#goldstone-text {
+  font-family: 'Homenaje', sans-serif;
+  font-size: x-large;
+}
+
+/* line 81, ../../../../../../client/scss/style.scss */
+code {
+  font-size: 80%;
+}
+
+/* line 85, ../../../../../../client/scss/style.scss */
+.ajax-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -32px;
+  /* -1 * image width / 2 */
+  margin-top: -32px;
+  /* -1 * image height / 2 */
+  display: block;
+}
+
+/* line 94, ../../../../../../client/scss/style.scss */
+.row {
+  margin-bottom: 20px;
+}
+
+/* Datatable font sizes */
+/* line 99, ../../../../../../client/scss/style.scss */
+.table-hover th {
+  font-size: 10px;
+}
+
+/* line 102, ../../../../../../client/scss/style.scss */
+.table-hover td {
+  font-size: 10px;
+}
+
+/* line 106, ../../../../../../client/scss/style.scss */
+.infoButton {
+  width: 17em;
+  margin-left: 1em;
+}
+
+/* line 111, ../../../../../../client/scss/style.scss */
+#multi-rsrc-table_wrapper > .dataTables_scroll {
+  min-height: 500px;
+}
+
+/* line 115, ../../../../../../client/scss/style.scss */
+.node:not(.data-leaf) {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+/* line 121, ../../../../../../client/scss/style.scss */
+.data-leaf {
+  cursor: context-menu;
+}
+
+/* line 125, ../../../../../../client/scss/style.scss */
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 130, ../../../../../../client/scss/style.scss */
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 135, ../../../../../../client/scss/style.scss */
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+/* line 142, ../../../../../../client/scss/style.scss */
+.axis path, .axis line {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+/* line 150, ../../../../../../client/scss/style.scss */
+.axis text, .legend-items {
+  font: 10px sans-serif;
+}
+
+/* line 155, ../../../../../../client/scss/style.scss */
+text:not(.zoomable), .axis.label {
+  font: 14px sans-serif;
+}
+
+/* line 161, ../../../../../../client/scss/style.scss */
+#goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text {
+  font-size: 10px;
+}
+
+/* line 166, ../../../../../../client/scss/style.scss */
+.legend rect {
+  opacity: 0.0;
+}
+
+/* nodeAvail viz css */
+/* line 172, ../../../../../../client/scss/style.scss */
+.invisible-axis path {
+  fill: none;
+  stroke: none;
+}
+
+/* line 177, ../../../../../../client/scss/style.scss */
+.swim.axis.invisible-axis .tick line {
+  fill: none;
+  stroke: none;
+}
+
+/* line 1, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu {
+  position: relative;
+}
+
+/* line 4, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  -webkit-border-radius: 0 6px 6px 6px;
+  -moz-border-radius: 0 6px 6px 6px;
+  border-radius: 0 6px 6px 6px;
+}
+
+/* line 13, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu:hover > .dropdown-menu {
+  display: block;
+}
+
+/* line 16, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu > a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+
+/* line 29, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu:hover > a:after {
+  border-left-color: #ffffff;
+}
+
+/* line 32, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu.pull-left {
+  float: none;
+}
+
+/* line 35, ../../../../../../client/scss/bootstrap-submenu-shim.scss */
+.dropdown-submenu.pull-left > .dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  -webkit-border-radius: 6px 0 6px 6px;
+  -moz-border-radius: 6px 0 6px 6px;
+  border-radius: 6px 0 6px 6px;
+}
+
+/* line 34, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.navbar .fa, #global-lookback-range .fa, #global-refresh-range .fa {
+  color: #777;
+}
+
+/* line 51, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel-body {
+  background-color: #FFFFFF;
+}
+
+/* line 55, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel-primary > .panel-heading {
+  background-color: #777777;
+  border-color: #777777;
+  color: #FFF;
+}
+
+/* line 61, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel {
+  border: none;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: none;
+}
+
+/* line 1, ../../../../../../client/scss/popover-and-tip.scss */
+#multi-rsrc-panel > div.popover.fade.left.in {
+  max-width: 350px;
+  max-height: 500px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  top: 50px !important;
+  left: -350px !important;
+}
+
+/* line 10, ../../../../../../client/scss/popover-and-tip.scss */
+#multi-rsrc-panel > div.popover.fade.left.in > h3 {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+/* line 15, ../../../../../../client/scss/popover-and-tip.scss */
+.popover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 10px;
+  padding: 0;
+  max-width: 350px;
+}
+
+/* line 22, ../../../../../../client/scss/popover-and-tip.scss */
+.popover.bottom .arrow:after {
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+/* line 26, ../../../../../../client/scss/popover-and-tip.scss */
+.popover.left .arrow {
+  border-left-color: rgba(0, 0, 0, 0.4);
+}
+
+/* line 30, ../../../../../../client/scss/popover-and-tip.scss */
+.popover-content ul {
+  list-style-type: none;
+  list-style-position: inside;
+}
+
+/* line 35, ../../../../../../client/scss/popover-and-tip.scss */
+.popover-content {
+  line-height: 1;
+  padding: 10px;
+  color: #fff;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* line 43, ../../../../../../client/scss/popover-and-tip.scss */
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+/* line 48, ../../../../../../client/scss/popover-and-tip.scss */
+.verticalGuideLine {
+  opacity: 0.8;
+}
+
+/* line 53, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip {
+  line-height: 1;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border-radius: 10px;
+  pointer-events: none;
+  max-width: 500px;
+}
+
+/* line 63, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip pre {
+  background: transparent;
+  color: #fff;
+  border: 0px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+/* line 70, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+
+/* line 81, ../../../../../../client/scss/popover-and-tip.scss */
+svg.n, svg.s {
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+/* line 86, ../../../../../../client/scss/popover-and-tip.scss */
+svg.e {
+  margin-left: 50px;
+}
+
+/* line 90, ../../../../../../client/scss/popover-and-tip.scss */
+.partialHiddenBar, .hiddenBar {
+  opacity: 0;
+}
+
+/* Northward tooltips */
+/* line 95, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+/* Eastward tooltips */
+/* line 104, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px;
+}
+
+/* Southward tooltips */
+/* line 112, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center;
+}
+
+/* Westward tooltips */
+/* line 121, ../../../../../../client/scss/popover-and-tip.scss */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%;
+}
+
+/* line 6, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table td, #log-search-table td, #events-report-table td, #multi-rsrc-table td, #single-rsrc-table td, #reports-result-table td {
+  font-size: 12px;
+}
+/* line 9, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table td th, #log-search-table td th, #events-report-table td th, #multi-rsrc-table td th, #single-rsrc-table td th, #reports-result-table td th {
+  font-size: 10px;
+}
+/* line 14, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-trash-o, #tenants-single-rsrc-table .fa-asterisk, #log-search-table .fa-trash-o, #log-search-table .fa-asterisk, #events-report-table .fa-trash-o, #events-report-table .fa-asterisk, #multi-rsrc-table .fa-trash-o, #multi-rsrc-table .fa-asterisk, #single-rsrc-table .fa-trash-o, #single-rsrc-table .fa-asterisk, #reports-result-table .fa-trash-o, #reports-result-table .fa-asterisk {
+  color: #bb201c;
+}
+/* line 18, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table .fa-play, #tenants-single-rsrc-table .fa-check, #log-search-table .fa-play, #log-search-table .fa-check, #events-report-table .fa-play, #events-report-table .fa-check, #multi-rsrc-table .fa-play, #multi-rsrc-table .fa-check, #single-rsrc-table .fa-play, #single-rsrc-table .fa-check, #reports-result-table .fa-play, #reports-result-table .fa-check {
+  color: #6BA757;
+}
+/* line 22, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table tr:hover td, #log-search-table tr:hover td, #events-report-table tr:hover td, #multi-rsrc-table tr:hover td, #single-rsrc-table tr:hover td, #reports-result-table tr:hover td {
+  background-color: #fff;
+}
+
+/* line 45, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused td, .table tbody tr.paused th {
+  color: #aaa !important;
+  border-top: 1px solid;
+  background-color: rgba(220, 220, 220, 0.5);
+}
+
+/* line 52, ../../../../../../client/scss/data-tables.scss */
+.table tbody tr.paused:hover td,
+.table tbody tr.paused:hover th {
+  color: #aaa !important;
+  background-color: rgba(220, 220, 220, 0.5) !important;
+}
+
+/*# sourceMappingURL=style.css.map */
