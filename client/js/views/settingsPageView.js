@@ -95,6 +95,14 @@ var SettingsPageView = GoldstoneBaseView.extend({
     addHandlers: function() {
         var self = this;
 
+        // add listener to theme selection buttons
+        $('#lightTheme').click(function() {
+            $('link[href="/static/css/base.css/client/scss/style-dark.css"]').attr('href', '/static/css/base.css/client/scss/style-light.css');
+        });
+        $('#darkTheme').click(function() {
+            $('link[href="/static/css/base.css/client/scss/style-light.css"]').attr('href', '/static/css/base.css/client/scss/style-dark.css');
+        });
+
         // add listener to settings form submission button
         $('.settings-form').on('submit', function(e) {
             e.preventDefault();
@@ -131,9 +139,24 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<div class="container">' +
+
+
+        // theme switcher
         '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<h3>User Settings</h3>' +
+        '<h5>Theme Settings</h5>' +
+        '<button class="btn btn-primary" id="lightTheme">light</button>' +
+        ' <button class="btn btn-primary" id="darkTheme">dark</button>' +
+        '<hr>' +
+        '</div>' +
+        '</div>' +
+
+
+
 
         // personal settings form
+        '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +
