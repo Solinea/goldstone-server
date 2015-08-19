@@ -2,14 +2,14 @@
 
 #test if postgres service is up
 PORT=5432
-HOST=pgsql-server
+HOST=gsdb
 
 status="DOWN"
 i="0"
 
 while [ "$status" == "DOWN" -a $i -lt 20 ] ; do
      status=`(echo > /dev/tcp/$HOST/$PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
-     echo -e "\t postgres connection status: $CONN_STATUS"
+     echo -e "Database connection status: $status"
      sleep 5
      let i++
 done

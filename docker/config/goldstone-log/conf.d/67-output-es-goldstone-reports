@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#
+# push processed agent reports/metrics to elasticsearch
+# 
 output {
-    # stdout { codec => rubydebug }
-    if [type] == "syslog" {
+    if [type] == "core_report" {
+        # stdout { codec => "rubydebug" }
         elasticsearch {
-            host => es
+            host => gssearch
             port => 9200
             protocol => http
-            workers => 4
+            index => "goldstone_reports-%{+YYYY.MM.dd}"
         }
     }
 }

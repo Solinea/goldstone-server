@@ -27,7 +27,7 @@ DATABASES = {
         'NAME': "goldstone",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
-        "HOST": "pgsql-server",
+        "HOST": "gsdb",
         "PORT": '5432',
     }
 }

@@ -1,95 +1,74 @@
 # Goldstone Docker Compose Configuration
 
-# Elasticsearch Container
-elasticsearch:
-  image: solinea/goldstone-elasticsearch:latest
+# Goldstone Proxy & Static
+gsweb:
+  image: solinea/goldstone-web
   volumes:
-    - config/elasticsearch:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/es":/usr/share/elasticsearch/data
+    - config/goldstone-web:/etc/nginx/conf.d
   ports:
-    - "9200:9200"
-    - "9300:9300"
+    - "8888:80"
+  links:
+    - gsapp:gsapp
 
-# PostgreSQL Container
-postgres:
-  image: solinea/goldstone-postgres:latest
-  env_file: config/postgres/pgsql.env
+# Goldstone Server Container
+gsapp:
+  image: solinea/goldstone-app
+  env_file: config/goldstone-app/goldstone.env
+  ports:
+    - "8000:8000"
+  links:
+    - gsdb
+    - gssearch
+
+# Database Container
+gsdb:
+  image: solinea/goldstone-db
+  env_file: config/goldstone-db/pgsql.env
   volumes_from:
-    - pgdvc
+    - gsdbdvc
   ports:
     - "5432:5432"
 
-# PostgreSQL Data Volume Container
-pgdvc:
-  image: solinea/goldstone-postgres-data:latest
+# Database Data Volume Container
+gsdbdvc:
+  image: solinea/goldstone-db-dvc
   volumes:
     - /var/lib/postgresql/data
 
-# Redis Container
-redis:
-  image: redis:latest
-  volumes_from:
-    - redisdvc
-  ports:
-    - "6379:6379"
-
-# Redis Data Volume Container
-redisdvc:
-  image: solinea/goldstone-redis-data
-  volumes:
-    - /data
-
 # Logstash Container
-logstash:
-  image: solinea/goldstone-logstash:latest
+gslog:
+  image: solinea/goldstone-log
   command: logstash -f /logstash/conf.d -w 1
   volumes:
-    - config/logstash/conf.d:/logstash/conf.d
-    - config/logstash/patterns:/opt/logstash/patterns
+    - config/goldstone-log/conf.d:/logstash/conf.d
+    - config/goldstone-log/patterns:/opt/logstash/patterns
   ports:
     - "5514:5514"
     - "5515:5515"
     - "5516:5516"
   links:
-    - elasticsearch
-    - elasticsearch:es
+    - gssearch
 
-# Goldstone Django App Container
-goldstone:
-  image: solinea/goldstone:latest
-  env_file: config/goldstone/goldstone-server.env
+# Elasticsearch Container
+gssearch:
+  image: solinea/goldstone-search
+  #volumes:
+    #- config/goldstone-search:/usr/share/elasticsearch/config
+    # Mount a local volume for data
+    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
   ports:
-    - "8000:8000"
-  links:
-    - postgres
-    - postgres:pgsql-server
-    - elasticsearch
-    - elasticsearch:es
-
-# Goldstone Nginx
-nginx:
-  image: solinea/goldstone-nginx:latest
-  ports:
-    - "8888:81"
-  links:
-    - goldstone:goldstone
+    - "9200:9200"
+    - "9300:9300"
 
 # Celery Worker Container
-#celery:
-#image: solinea/goldstone:latest
+#gstask:
+#image: solinea/goldstone
 #command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
 #links:
-#- redis
+#- gstaskq
 
-# Static Web Content Container
-#static:
-#image: solinea/goldstone:latest
-
-# RabbitMQ Container
-#rabbit1:
-#  image: rabbitmq:3-management
-#  hostname: rabbit1
+# Redis Container
+#gstaskq:
+#  image: redis
 #  ports:
-#    - "5672:5672"
-#    - "15672:15672"
+#    - "6379:6379"

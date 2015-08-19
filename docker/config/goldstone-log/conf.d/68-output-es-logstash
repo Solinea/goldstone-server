@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# push processed events to elasticsearch
-# 
 output {
-    if [type] in ["nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
-        # stdout { codec => "rubydebug" }
+    # stdout { codec => rubydebug }
+    if [type] == "syslog" {
         elasticsearch {
-            host => es
+            host => gssearch
             port => 9200
             protocol => http
-            index => "goldstone-%{+YYYY.MM.dd}"
             workers => 4
         }
     }
