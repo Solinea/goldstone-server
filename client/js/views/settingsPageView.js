@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-var SettingsPageView = GoldstoneBaseView.extend({
+var SettingsPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
+        this.el = this.options.el;
         this.render();
         this.getUserSettings();
         this.addHandlers();
@@ -30,7 +26,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
             '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
+            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -96,6 +92,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         var self = this;
 
         // add listener to theme selection buttons
+        // userPrefsView is instantiated in router.html
         $('#lightTheme').click(function() {
             goldstone.userPrefsView.trigger('lightThemeSelected');
         });
@@ -151,9 +148,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<hr>' +
         '</div>' +
         '</div>' +
-
-
-
 
         // personal settings form
         '<div class="row">' +
