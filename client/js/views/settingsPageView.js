@@ -97,10 +97,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         // add listener to theme selection buttons
         $('#lightTheme').click(function() {
-            $('link[href="/static/css/base.css/client/scss/style-dark.css"]').attr('href', '/static/css/base.css/client/scss/style-light.css');
+            goldstone.userPrefsView.trigger('lightThemeSelected');
         });
         $('#darkTheme').click(function() {
-            $('link[href="/static/css/base.css/client/scss/style-light.css"]').attr('href', '/static/css/base.css/client/scss/style-dark.css');
+            goldstone.userPrefsView.trigger('darkThemeSelected');
         });
 
         // add listener to settings form submission button

@@ -40,10 +40,13 @@
             finally, authLogoutIcon prunes old unused keys in localStorage
             */
 
-            goldstone.localStorageKeys = ['addons', 'userToken'];
+            goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs'];
             goldstone.authLogoutIcon = new LogoutIcon({
                 el: ".logout-icon-container"
             });
+
+            // instantiate object that will manage user prefs / theme
+            goldstone.userPrefsView = new UserPrefsView();
 
             // define the router
             goldstone.gsRouter = new GoldstoneRouter();
