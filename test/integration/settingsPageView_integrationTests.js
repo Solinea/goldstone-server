@@ -27,6 +27,11 @@ describe('settingsPageView.js spec', function() {
         this.server.autoRespond = true;
         this.server.respondWith('{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}');
 
+        goldstone.userPrefsView = new UserPrefsView();
+
+        this.protoApplyLightTheme = sinon.spy(UserPrefsView.prototype, "applyLightTheme");
+        this.protoApplyDarkTheme = sinon.spy(UserPrefsView.prototype, "applyDarkTheme");
+
         this.testView = new SettingsPageView({
             el: '.test-container'
         });
@@ -34,6 +39,9 @@ describe('settingsPageView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
+        this.protoApplyLightTheme.restore();
+        this.protoApplyDarkTheme.restore();
+        localStorage.clear();
     });
     describe('basic test for chart triggering', function() {
         it('renders view', function() {
@@ -73,6 +81,14 @@ describe('settingsPageView.js spec', function() {
             this.testView.trimInputField('[name="test1"]');
             // input field should equal 'hello'
             expect($('[name="test1"]').val()).to.equal('hello');
+        });
+        it('triggers theme change', function() {
+            expect(this.protoApplyDarkTheme.callCount).to.equal(0);
+            expect(this.protoApplyLightTheme.callCount).to.equal(0);
+            $('#lightTheme').click();
+            $('#darkTheme').click();
+            expect(this.protoApplyDarkTheme.callCount).to.equal(1);
+            expect(this.protoApplyLightTheme.callCount).to.equal(1);
         });
     });
 });
