@@ -21,8 +21,8 @@ fi
 
 python manage.py syncdb --noinput --migrate  # Apply database migrations
 
-if [[ ! -f /app/.gs_tenant_initialized ]] ; then
-    fab -f installer_fabfile.py docker_install && touch /app/.gs_tenant_initialized
+if [[ ! -f /app/.gs/tenant_initialized ]] ; then
+    fab -f installer_fabfile.py docker_install && touch /app/.gs/tenant_initialized
 fi
 
 echo Starting Gunicorn.

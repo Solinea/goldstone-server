@@ -24,26 +24,26 @@
 #     * adds NAT rules for Goldstone traffic
 #
 
-STACK=false
-DOCKER=false
-NETWORK=false
+STACK=true
+DOCKER=true
+NETWORK=true
 
 while [[ $# > 0 ]] ; do
     key="$1"
 
     case $key in
-        -s|--stack)
-            STACK=true
+        --nostack)
+            STACK=false
         ;;
-        -b|--boot2docker)
-            DOCKER=true
+        --nodocker)
+            DOCKER=false
         ;;
-        -n|--network)
-            NETWORK=true
+        --nonetwork)
+            NETWORK=false
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [-s|--stack] [-d|--boot2docker] [-n|--network]"
+            echo "Usage: $0 [--nostack] [--nodocker] [--nonetwork]"
             exit 1
         ;;
     esac
@@ -62,11 +62,11 @@ RULE_LIST='es_9200_RDO,tcp,172.24.4.1,9200,,9200
            es_9200_local,tcp,,9200,,9200 
            es_9300_local,tcp,,9300,,9300 
            gs_8000_local,tcp,,8000,,8000 
-           nginx_8888_local,tcp,,8888,,81
+           nginx_8888_local,tcp,,8888,,80
            logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514 
            logstash_syslog_local,tcp,,5514,,5514 
-           logstash_metrics_RDO,ucp,172.24.4.1,5516,,5516 
-           logstash_metrics_local,ucp,,5516,,5516 
+           logstash_metrics_RDO,udp,172.24.4.1,5516,,5516 
+           logstash_metrics_local,udp,,5516,,5516 
            postgres_local,tcp,,5432,,5432 
            redis_local,tcp,,6379,,6379' 
 
@@ -136,12 +136,12 @@ else
     echo "Skipping OpenStack network configuration"
 fi
 
-# Restore the original ssh NAT rule if it has been deleted.  Ignore errors.
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
 
 if [[ $DOCKER == "true" ]] ; then
+    # Restore the original ssh NAT rule if it has been deleted.  Ignore errors.
+    VBoxManage modifyvm "boot2docker-vm" --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
+
     # Track errors with Docker image NAT settings
-            
     err_count="0"
     for rule in $RULE_LIST ; do
         echo "processing rule: $rule"
