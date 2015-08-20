@@ -23,6 +23,11 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         this.addHandlers();
     },
 
+    onClose: function() {
+        $('#global-lookback-range').show();
+        $('#global-refresh-range').show();
+    },
+
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
             '<h3>Additional actions</h3>' +
@@ -59,6 +64,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
     },
 
     render: function() {
+
+        $('#global-lookback-range').hide();
+        $('#global-refresh-range').hide();
+
         this.$el.html(this.template());
         return this;
     },

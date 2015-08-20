@@ -1524,7 +1524,6 @@ describe('nodeAvailView.js spec', function() {
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'

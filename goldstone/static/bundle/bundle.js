@@ -12821,6 +12821,11 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         this.addHandlers();
     },
 
+    onClose: function() {
+        $('#global-lookback-range').show();
+        $('#global-refresh-range').show();
+    },
+
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
             '<h3>Additional actions</h3>' +
@@ -12857,6 +12862,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
     },
 
     render: function() {
+
+        $('#global-lookback-range').hide();
+        $('#global-refresh-range').hide();
+
         this.$el.html(this.template());
         return this;
     },
@@ -13496,17 +13505,18 @@ var SpawnsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var TenantSettingsPageView = GoldstoneBaseView.extend({
+var TenantSettingsPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function(options) {
+        this.el = this.options.el;
         this.render();
         this.getTenantSettings();
         this.addHandlers();
+    },
+
+    onClose: function() {
+        $('#global-lookback-range').show();
+        $('#global-refresh-range').show();
     },
 
     addHandlers: function() {
@@ -13635,6 +13645,10 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     },
 
     render: function() {
+
+        $('#global-lookback-range').hide();
+        $('#global-refresh-range').hide();
+
         this.$el.html(this.template());
         this.dataErrorMessage('Click row above to edit');
         return this;
