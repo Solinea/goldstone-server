@@ -64,6 +64,8 @@ module.exports = {
     },
     coverageReportOutput: 'test/results/coverage',
     scssWatch: 'client/scss/*.scss',
-    scss: 'client/scss/style.scss',
-    css: 'goldstone/static/css/base.css'
+    scssDark: 'client/scss/styleDark.scss',
+    cssDark: 'goldstone/static/css',
+    scssLight: 'client/scss/styleLight.scss',
+    cssLight: 'goldstone/static/css'
 };

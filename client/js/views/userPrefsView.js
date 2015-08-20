@@ -75,10 +75,10 @@ var UserPrefsView = Backbone.View.extend({
     },
 
     applyDarkTheme: function() {
-        $('link[href="/static/css/base.css/client/scss/style-light.css"]').attr('href', '/static/css/base.css/client/scss/style-dark.css');
+        $('link[href="/static/css/client/scss/styleLight.css"]').attr('href', '/static/css/client/scss/styleDark.css');
     },
 
     applyLightTheme: function() {
-        $('link[href="/static/css/base.css/client/scss/style-dark.css"]').attr('href', '/static/css/base.css/client/scss/style-light.css');
+        $('link[href="/static/css/client/scss/styleDark.css"]').attr('href', '/static/css/client/scss/styleLight.css');
     }
 });
