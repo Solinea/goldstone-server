@@ -52,7 +52,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             url: url,
             data: data
         }).done(function(success) {
-            goldstone.raiseInfo(message + ' update successful');
+            self.dataErrorMessage(message + ' update successful');
         })
             .fail(function(fail) {
                 try {
@@ -94,20 +94,18 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load user settings');
             });
+
+        // set dropdown for theme selection to currently theme preference
+        var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
+        if (userTheme && userTheme.theme) {
+            $('#theme-name').val(userTheme.theme);
+        }
+
     },
 
 
     addHandlers: function() {
         var self = this;
-
-        // add listener to theme selection buttons
-        // userPrefsView is instantiated in router.html
-        $('#lightTheme').click(function() {
-            goldstone.userPrefsView.trigger('lightThemeSelected');
-        });
-        $('#darkTheme').click(function() {
-            goldstone.userPrefsView.trigger('darkThemeSelected');
-        });
 
         // add listener to settings form submission button
         $('.settings-form').on('submit', function(e) {
@@ -134,6 +132,18 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             $('.password-reset-form').find('[name="current_password"]').val('');
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
+
+        // add listener to theme selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#theme-name').on('change', function() {
+            var theme = $('#theme-name').val();
+            if (theme === 'dark') {
+                goldstone.userPrefsView.trigger('darkThemeSelected');
+            }
+            if (theme === 'light') {
+                goldstone.userPrefsView.trigger('lightThemeSelected');
+            }
+        });
     },
 
     trimInputField: function(selector) {
@@ -146,16 +156,35 @@ var SettingsPageView = GoldstoneBaseView2.extend({
     template: _.template('' +
         '<div class="container">' +
 
-
         // theme switcher
         '<div class="row">' +
         '<div class="col-md-8 col-md-offset-2">' +
+
         '<h3>User Settings</h3>' +
         '<h5>Theme Settings</h5>' +
-        '<button class="btn btn-primary" id="lightTheme">light</button>' +
-        ' <button class="btn btn-primary" id="darkTheme">dark</button>' +
-        '<hr>' +
+
+        '<form class="theme-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="theme-name">' +
+        '<option value="dark">dark</option>' +
+        '<option value="light">light</option>' +
+        '</select>' +
         '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '<hr>' +
+
+        '</div>' +
+        '</div>' +
+
+        // popup message row
+        '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<br></div>' +
         '</div>' +
 
         // personal settings form

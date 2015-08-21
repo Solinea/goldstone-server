@@ -12850,7 +12850,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             url: url,
             data: data
         }).done(function(success) {
-            goldstone.raiseInfo(message + ' update successful');
+            self.dataErrorMessage(message + ' update successful');
         })
             .fail(function(fail) {
                 try {
@@ -12892,20 +12892,18 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load user settings');
             });
+
+        // set dropdown for theme selection to currently theme preference
+        var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
+        if (userTheme && userTheme.theme) {
+            $('#theme-name').val(userTheme.theme);
+        }
+
     },
 
 
     addHandlers: function() {
         var self = this;
-
-        // add listener to theme selection buttons
-        // userPrefsView is instantiated in router.html
-        $('#lightTheme').click(function() {
-            goldstone.userPrefsView.trigger('lightThemeSelected');
-        });
-        $('#darkTheme').click(function() {
-            goldstone.userPrefsView.trigger('darkThemeSelected');
-        });
 
         // add listener to settings form submission button
         $('.settings-form').on('submit', function(e) {
@@ -12932,6 +12930,18 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             $('.password-reset-form').find('[name="current_password"]').val('');
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
+
+        // add listener to theme selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#theme-name').on('change', function() {
+            var theme = $('#theme-name').val();
+            if (theme === 'dark') {
+                goldstone.userPrefsView.trigger('darkThemeSelected');
+            }
+            if (theme === 'light') {
+                goldstone.userPrefsView.trigger('lightThemeSelected');
+            }
+        });
     },
 
     trimInputField: function(selector) {
@@ -12944,16 +12954,35 @@ var SettingsPageView = GoldstoneBaseView2.extend({
     template: _.template('' +
         '<div class="container">' +
 
-
         // theme switcher
         '<div class="row">' +
         '<div class="col-md-8 col-md-offset-2">' +
+
         '<h3>User Settings</h3>' +
         '<h5>Theme Settings</h5>' +
-        '<button class="btn btn-primary" id="lightTheme">light</button>' +
-        ' <button class="btn btn-primary" id="darkTheme">dark</button>' +
-        '<hr>' +
+
+        '<form class="theme-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="theme-name">' +
+        '<option value="dark">dark</option>' +
+        '<option value="light">light</option>' +
+        '</select>' +
         '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '<hr>' +
+
+        '</div>' +
+        '</div>' +
+
+        // popup message row
+        '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<br></div>' +
         '</div>' +
 
         // personal settings form
@@ -13510,7 +13539,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
     instanceSpecificInit: function(options) {
         this.el = this.options.el;
         this.render();
-        this.getTenantSettings();
+        this.getTenantAndOSSettings();
         this.addHandlers();
     },
 
@@ -13542,7 +13571,21 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings');
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings', $('.tenant-settings-form'));
+        });
+
+        $('.openstack-settings-form').on('submit', function(e) {
+            // prevens page jump upon pressing submit button
+            e.preventDefault();
+
+            // trim inputs to prevent leading/trailing spaces
+            self.trimInputField('[name="os_auth_url"]');
+            self.trimInputField('[name="os_name"]');
+            self.trimInputField('[name="os_password"]');
+            self.trimInputField('[name="os_username"]');
+
+            // 4th argument informs what will be appeneded to screen upon success
+            self.submitRequest('PUT', '/user/', $(this).serialize(), 'OS settings', $('.openstack-settings-form'));
         });
     },
 
@@ -13599,7 +13642,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         });
     },
 
-    getTenantSettings: function() {
+    getTenantAndOSSettings: function() {
         var self = this;
 
         $.get('/tenants/')
@@ -13611,6 +13654,19 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             })
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load tenant settings');
+            });
+
+        $.get('/user/')
+            .done(function(result) {
+                var $form = $('.openstack-settings-form');
+                $form.find('[name="username"]').val(result.username);
+                $form.find('[name="os_auth_url"]').val(result.os_auth_url);
+                $form.find('[name="os_name"]').val(result.os_name);
+                $form.find('[name="os_password"]').val(result.os_password);
+                $form.find('[name="os_username"]').val(result.os_username);
+            })
+            .fail(function(fail) {
+                goldstone.raiseInfo('could not load OpenStack settings');
             });
     },
 
@@ -13637,10 +13693,9 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 } catch (e) {
                     self.dataErrorMessage(fail.responseText + e);
                 }
-                self.clearDataErrorMessage();
             })
             .always(function() {
-                self.getTenantSettings();
+                self.getTenantAndOSSettings();
             });
     },
 
@@ -13676,14 +13731,22 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         '</div>' +
         // end data table
 
+
         '<div class="container">' +
+
+        // popup message row
+        '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<br></div>' +
+        '</div>' +
+
         '<div class="row">' +
 
         // update settings form
-        '<div class="col-md-4 col-md-offset-0">' +
+        '<div class="col-md-4 col-md-offset-2">' +
         '<form class="tenant-settings-form">' +
         '<h3>Update Tenant Settings</h3>' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<label for="name">Tenant name</label>' +
         '<input name="name" type="text" class="form-control" placeholder="Tenant name" required>' +
         '<label for="owner">Owner name</label>' +
@@ -13691,6 +13754,24 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         '<label for="owner_contact">Owner contact</label>' +
         '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
         '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '</form>' +
+        '</div>' +
+
+        // update openstack settings form
+        '<div class="col-md-4">' +
+        '<form class="openstack-settings-form">' +
+        '<h3>Update OS Settings</h3>' +
+        '<label for="username">Username</label>' +
+        '<input name="username" type="text" class="form-control" placeholder="">' +
+        '<label for="os_auth_url">OS auth URL</label>' +
+        '<input name="os_auth_url" type="text" class="form-control" placeholder="http://...">' +
+        '<label for="os_name">OS Name</label>' +
+        '<input name="os_name" type="text" class="form-control" placeholder="">' +
+        '<label for="os_password">OpenStack password</label>' +
+        '<input name="os_password" type="text" class="form-control" placeholder="">' +
+        '<label for="os_username">OpenStack username</label>' +
+        '<input name="os_username" type="text" class="form-control" placeholder="">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
