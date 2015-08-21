@@ -40,7 +40,7 @@ describe('tenantSettingsPageView.js spec', function() {
             this.testView.render();
             this.testView.submitRequest();
             this.server.respond();
-            this.testView.getTenantSettings();
+            this.testView.getTenantAndOSSettings();
             this.server.respond();
             this.testView.addHandlers();
 

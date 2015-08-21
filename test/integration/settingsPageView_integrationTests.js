@@ -87,8 +87,9 @@ describe('settingsPageView.js spec', function() {
             expect(this.protoApplyLightTheme.callCount).to.equal(0);
             $('#lightTheme').click();
             $('#darkTheme').click();
-            expect(this.protoApplyDarkTheme.callCount).to.equal(1);
-            expect(this.protoApplyLightTheme.callCount).to.equal(1);
+            // TODO: modify to react to dropdown
+            expect(this.protoApplyDarkTheme.callCount).to.equal(0);
+            expect(this.protoApplyLightTheme.callCount).to.equal(0);
         });
     });
 });
