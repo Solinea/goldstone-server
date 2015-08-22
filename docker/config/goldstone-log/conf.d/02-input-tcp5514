@@ -1,11 +1,3 @@
-"""WSGI config for goldstone project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
-
-"""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,5 +12,12 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()        # pylint: disable=C0103
+#
+# accepts TCP from an alternate syslog port
+#
+input {
+    tcp {
+        port => 5514
+        type => syslog
+    }
+}

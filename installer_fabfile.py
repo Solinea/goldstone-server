@@ -62,6 +62,7 @@ INSTALL_DIR = '/opt/goldstone'
 # The Goldstone settings path, relative to the Goldstone root where we're
 # executing from.
 PROD_SETTINGS = "goldstone.settings.production"
+PROD_DOCKER_SETTINGS = "goldstone.settings.production"
 
 # used to collect configuration data, then presented at completion
 # of install.
@@ -699,7 +700,6 @@ def install(pg_passwd='goldstone',       # pylint: disable=R0913
                        stack_user=stack_user,
                        stack_password=stack_password,
                        stack_auth_url=stack_auth_url)
-
     else:
         print()
         abort('This appears to be an unsupported platform. Exiting.')
@@ -751,6 +751,82 @@ def partial_install(django_admin_password,
     else:
         print()
         abort('This appears to be an unsupported platform. Exiting.')
+
+
+@task
+def docker_install():
+    """Create Goldstone default tenant and initialize cloud, deriving values
+    from environment variables provided in the Dockerfile.
+
+    If env vars are not provided by the container, then the install will be
+    made in a way that is configured for the goldstone developer environment.
+
+    Supported env vars are:
+
+    DJANGO_SETTINGS_MODULE (default: goldstone.settings.docker)
+    GOLDSTONE_INSTALL_DIR (default: /app)
+    DJANGO_ADMIN_USER (default: admin)
+    DJANGO_ADMIN_PASSWORD (default: goldstone)
+    DJANGO_ADMIN_EMAIL (default: root@localhost)
+    GOLDSTONE_TENANT_ADMIN_PASSWORD (default: goldstone)
+    OS_TENANT_NAME (default: admin)
+    OS_USERNAME (default: admin)
+    OS_PASSWORD (default: solinea)
+    OS_AUTH_URL (default: http://172.24.4.100:5000/v2.0/)
+
+
+    """
+
+    # test to see that this really is a docker container.
+    if not os.path.isfile('/.dockerinit'):
+        print()
+        abort('This Does not appear to be a docker container. Exiting.')
+
+    # pull params out of the environment
+    django_admin_user = os.environ.get('DJANGO_ADMIN_USER', 'admin')
+    django_admin_password = os.environ.get(
+        'DJANGO_ADMIN_PASSWORD', 'goldstone')
+    django_admin_email = os.environ.get('DJANGO_ADMIN_EMAIL', 'root@localhost')
+    gs_tenant = 'default'
+    gs_tenant_owner = 'None'
+    gs_tenant_admin = 'gsadmin'
+    gs_tenant_admin_password = os.environ.get(
+        'GOLDSTONE_TENANT_ADMIN_PASSWORD', 'goldstone')
+    stack_tenant = os.environ.get('OS_TENANT_NAME', 'admin')
+    stack_user = os.environ.get('OS_USERNAME', 'admin')
+    stack_password = os.environ.get('OS_PASSWORD', 'solinea')
+    stack_auth_url = os.environ.get(
+        'OS_AUTH_URL', 'http://172.24.4.100:5000/v2.0/')
+    django_settings = os.environ.get('DJANGO_SETTTINGS_MODULE',
+                                     'goldstone.settings.docker')
+    gs_install_dir = os.environ.get('GOLDSTONE_INSTALL_DIR', '/app')
+
+    django_admin_init(
+        username=django_admin_user,
+        password=django_admin_password,
+        email=django_admin_email,
+        settings=django_settings,
+        install_dir=gs_install_dir
+    )
+
+    tenant = tenant_init(
+        gs_tenant,
+        gs_tenant_owner,
+        gs_tenant_admin,
+        gs_tenant_admin_password,
+        settings=django_settings,
+        install_dir=gs_install_dir
+    )
+
+    cloud_init(
+        tenant,
+        stack_tenant,
+        stack_user,
+        stack_password,
+        stack_auth_url,
+        settings=django_settings,
+        install_dir=gs_install_dir
+    )
 
 
 @task
