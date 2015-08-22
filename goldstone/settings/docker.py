@@ -49,7 +49,8 @@ if not SECRET_KEY:
 
 
 # STATIC_ROOT = '/app/goldstone/static/'
-STATIC_ROOT = os.path.join(os.getcwd(), 'docker/Dockerfiles/goldstone-web/static')
+STATIC_ROOT = os.path.join(os.getcwd(),
+                           'docker/Dockerfiles/goldstone-web/static')
 STATIC_URL = '/static/'
 
 # Settings for the Djoser package, which is used for login and
