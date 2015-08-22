@@ -78,6 +78,10 @@ If your environment is different than the typical dev environment, you may be ab
 
     $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
 
+**_Note: configure_vbox.sh accepts --nonetwork, --nostack, and --nodocker flags to skip configuration of those
+particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
+your boot2docker VM, you could run configure_vbox.sh --nonetwork --nostack.  This would only configure the docker
+related NAT rules. _**
 
 ## Activate the Virtualenv
 
@@ -97,6 +101,18 @@ The first time you enter the virtualenv, you should also install the project req
 If the requirements files change, you should rerun the `pip install` commands.
 
 **_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
+
+
+## Building and Start the Supporting Docker Containers
+
+All supporting services are available as docker containers.  To build the containers locally, run the following commands:
+
+    $ cd docker
+    $ bin/build_containers.sh
+
+Once the containers have been built, you can start them by executing the following:
+
+    $ docker-compose -f docker-compose.yml up
 
 
 ## Initialize Goldstone Server

@@ -27,6 +27,7 @@
 STACK=true
 DOCKER=true
 NETWORK=true
+DEVELOPER=true
 
 while [[ $# > 0 ]] ; do
     key="$1"
@@ -40,6 +41,9 @@ while [[ $# > 0 ]] ; do
         ;;
         --nonetwork)
             NETWORK=false
+        ;;
+        --prod)
+            DEVELOPER=false
         ;;
         *)
             # unknown option
@@ -58,17 +62,18 @@ BOOT2DOCKER_VM="boot2docker-vm"
 OPENSTACK_VM="RDO-kilo"
 OPENSTACK_HOST_INT=2
 OPENSTACK_NAT_INT=1
-RULE_LIST='es_9200_RDO,tcp,172.24.4.1,9200,,9200 
-           es_9200_local,tcp,,9200,,9200 
-           es_9300_local,tcp,,9300,,9300 
-           gs_8000_local,tcp,,8000,,8000 
-           nginx_8888_local,tcp,,8888,,80
-           logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514 
-           logstash_syslog_local,tcp,,5514,,5514 
-           logstash_metrics_RDO,udp,172.24.4.1,5516,,5516 
-           logstash_metrics_local,udp,,5516,,5516 
-           postgres_local,tcp,,5432,,5432 
-           redis_local,tcp,,6379,,6379' 
+COMMON_RULE_LIST='es_9200_RDO,tcp,172.24.4.1,9200,,9200 
+                  es_9200_local,tcp,,9200,,9200 
+                  es_9300_local,tcp,,9300,,9300 
+                  logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514 
+                  logstash_syslog_local,tcp,,5514,,5514 
+                  logstash_metrics_RDO,udp,172.24.4.1,5516,,5516 
+                  logstash_metrics_local,udp,,5516,,5516 
+                  postgres_local,tcp,,5432,,5432 
+                  redis_local,tcp,,6379,,6379' 
+
+PROD_RULE_LIST='gs_8000_local,tcp,,8000,,8000 
+                nginx_8888_local,tcp,,8888,,80'
 
 # create vboxnet
 if [[ $NETWORK == "true" ]] ; then
@@ -143,12 +148,20 @@ if [[ $DOCKER == "true" ]] ; then
 
     # Track errors with Docker image NAT settings
     err_count="0"
-    for rule in $RULE_LIST ; do
+    for rule in $COMMON_RULE_LIST ; do
         echo "processing rule: $rule"
         VBoxManage modifyvm $BOOT2DOCKER_VM --natpf1 "$rule" || \
             err_count=$[$err_count+$?]
     done
 
+    if [[ $DEVELOPER == "false" ]] ; then
+        for rule in $PROD_RULE_LIST ; do
+            echo "processing rule: $rule"
+            VBoxManage modifyvm $BOOT2DOCKER_VM --natpf1 "$rule" || \
+                err_count=$[$err_count+$?]
+        done
+    fi
+    
     if [ $err_count -gt 0 ] ; then
         echo "Encountered errors setting up NAT rules for $BOOT2DOCKER_VM"
         exit 1

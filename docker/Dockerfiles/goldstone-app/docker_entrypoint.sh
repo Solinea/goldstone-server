@@ -21,9 +21,11 @@ fi
 
 python manage.py syncdb --noinput --migrate  # Apply database migrations
 
-if [[ ! -f /app/.gs/tenant_initialized ]] ; then
-    fab -f installer_fabfile.py docker_install && touch /app/.gs/tenant_initialized
-fi
+#
+# this won't do anything if the django admin, goldstone tenant and cloud already
+# exist.  otherwise it will use the env vars to create missing entities.
+#
+fab -f installer_fabfile.py docker_install
 
 echo Starting Gunicorn.
 exec gunicorn --config=gunicorn-settings.py goldstone.wsgi "$@"

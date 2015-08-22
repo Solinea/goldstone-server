@@ -1,5 +1,26 @@
 # Goldstone Docker Compose Configuration
 
+# Goldstone Proxy & Static
+gsweb:
+  image: solinea/goldstone-web
+  volumes:
+    - config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
+    - config/goldstone-web/conf.d:/etc/nginx/conf.d
+  ports:
+    - "8888:8888"
+  links:
+    - gsapp:gsapp
+
+# Goldstone Server Container
+gsapp:
+  image: solinea/goldstone-app
+  env_file: config/goldstone-app/goldstone.env
+  ports:
+    - "8000:8000"
+  links:
+    - gsdb
+    - gssearch
+
 # Database Container
 gsdb:
   image: solinea/goldstone-db

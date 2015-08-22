@@ -15,7 +15,8 @@
 from .base import *            # pylint: disable=W0614,W0401
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+
+DEBUG = bool(os.environ.get('DEBUG', False))
 
 TEMPLATE_DEBUG = False
 
@@ -47,7 +48,8 @@ if not SECRET_KEY:
                                                        '.secret_key_store'))
 
 
-STATIC_ROOT = '/app/goldstone/static/'
+# STATIC_ROOT = '/app/goldstone/static/'
+STATIC_ROOT = os.path.join(os.getcwd(), 'docker/Dockerfiles/goldstone-web/static')
 STATIC_URL = '/static/'
 
 # Settings for the Djoser package, which is used for login and
@@ -105,13 +107,21 @@ LOGGING = {
     },
 }
 
-REDIS_HOST = 'redis'
+REDIS_HOST = 'gstaskq'
 REDIS_PORT = '6379'
 REDIS_DB = '0'
 REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
-ES_HOST = 'es'
+ES_HOST = 'gssearch'
 ES_PORT = '9200'
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
 
 MAILHOST = 'mailhost'
+
+# Mail settings default to simple local SMTP or use environment settings
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '127.0.0.1')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 25))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', None)
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', None)
+EMAIL_USE_TLS = bool(os.environ.get('EMAIL_USE_TLS', False))
+EMAIL_USE_SSL = bool(os.environ.get('EMAIL_USE_SSL', False))

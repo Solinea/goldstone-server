@@ -18,7 +18,7 @@ GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
 
 REGISTRY_ORG=solinea
 
-declare -a need_source=( $GS_APP_DIR $GS_WEB_DIR )
+declare -a need_source=( $GS_APP_DIR )
 declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
              $GS_LOG_DIR $GS_DB_DIR $GS_DB_DVC_DIR )
 # declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
@@ -50,6 +50,14 @@ for folder in "${need_source[@]}" ; do
 done
 echo "##########################################################"
 
+
+echo "##########################################################"
+echo "Copying static files to to $GS_WEB_DIR..."
+rm -rf $GS_WEB_DIR/static 2> /dev/null || /bin/true
+cd $TOP_DIR
+python manage.py collectstatic --noinput --settings=goldstone.settings.docker
+echo "##########################################################"
+
 # 
 # build containers
 #
@@ -71,4 +79,10 @@ for folder in "${need_source[@]}" ; do
     cd $folder || exit 1
     rm -rf goldstone-server
 done
+echo "##########################################################"
+
+echo "##########################################################"
+echo "Removing static files from $GS_WEB_DIR..."
+cd $GS_WEB_DIR
+rm -rf static
 echo "##########################################################"
