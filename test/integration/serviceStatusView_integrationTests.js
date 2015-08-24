@@ -145,7 +145,6 @@ describe('serviceStatusView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
-            expect($(this.testView.el).text()).to.equal("");
 
         });
         it('appends the correct class', function() {

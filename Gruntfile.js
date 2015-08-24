@@ -119,14 +119,19 @@ module.exports = function(grunt) {
             dev: {
                 options: {
                     compass: false,
-                    lineNumbers: true,
-                    style: 'expanded',
+                    lineNumbers: false,
+                    style: 'compact',
                     noCache: true
                 },
                 files: [{
                     expand: true,
-                    src: clientIncludeOrder.scss,
-                    dest: clientIncludeOrder.css,
+                    src: clientIncludeOrder.scssDark,
+                    dest: clientIncludeOrder.cssDark,
+                    ext: '.css'
+                }, {
+                    expand: true,
+                    src: clientIncludeOrder.scssLight,
+                    dest: clientIncludeOrder.cssLight,
                     ext: '.css'
                 }]
             }

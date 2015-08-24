@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-var SettingsPageView = GoldstoneBaseView.extend({
+var SettingsPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
+        this.el = this.options.el;
         this.render();
         this.getUserSettings();
         this.addHandlers();
     },
 
+    onClose: function() {
+        $('#global-lookback-range').show();
+        $('#global-refresh-range').show();
+    },
+
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
             '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
+            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -51,7 +52,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             url: url,
             data: data
         }).done(function(success) {
-            goldstone.raiseInfo(message + ' update successful');
+            self.dataErrorMessage(message + ' update successful');
         })
             .fail(function(fail) {
                 try {
@@ -63,6 +64,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     render: function() {
+
+        $('#global-lookback-range').hide();
+        $('#global-refresh-range').hide();
+
         this.$el.html(this.template());
         return this;
     },
@@ -89,6 +94,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load user settings');
             });
+
+        // set dropdown for theme selection to currently theme preference
+        var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
+        if (userTheme && userTheme.theme) {
+            $('#theme-name').val(userTheme.theme);
+        }
+
     },
 
 
@@ -120,6 +132,18 @@ var SettingsPageView = GoldstoneBaseView.extend({
             $('.password-reset-form').find('[name="current_password"]').val('');
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
+
+        // add listener to theme selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#theme-name').on('change', function() {
+            var theme = $('#theme-name').val();
+            if (theme === 'dark') {
+                goldstone.userPrefsView.trigger('darkThemeSelected');
+            }
+            if (theme === 'light') {
+                goldstone.userPrefsView.trigger('lightThemeSelected');
+            }
+        });
     },
 
     trimInputField: function(selector) {
@@ -131,9 +155,40 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<div class="container">' +
+
+        // theme switcher
         '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+
+        '<h3>User Settings</h3>' +
+        '<h5>Theme Settings</h5>' +
+
+        '<form class="theme-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="theme-name">' +
+        '<option value="dark">dark</option>' +
+        '<option value="light">light</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '<hr>' +
+
+        '</div>' +
+        '</div>' +
+
+        // popup message row
+        '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<br></div>' +
+        '</div>' +
 
         // personal settings form
+        '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +

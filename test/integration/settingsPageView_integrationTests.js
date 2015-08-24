@@ -20,12 +20,31 @@
 describe('settingsPageView.js spec', function() {
     beforeEach(function() {
 
-        $('body').html('<div class="test-container"></div>');
+        $('body').html('' +
+            // for testing theme switch
+            '<form class="theme-selector" role="form">' +
+            '<div class="form-group">' +
+            '<div class="col-xl-5">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="theme-name">' +
+            '<option value="dark" selected>dark</option>' +
+            '<option value="light">light</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '<div class="test-container"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
         this.server.respondWith('{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}');
+
+        goldstone.userPrefsView = new UserPrefsView();
+
+        this.protoApplyLightTheme = sinon.spy(UserPrefsView.prototype, "applyLightTheme");
+        this.protoApplyDarkTheme = sinon.spy(UserPrefsView.prototype, "applyDarkTheme");
 
         this.testView = new SettingsPageView({
             el: '.test-container'
@@ -34,6 +53,9 @@ describe('settingsPageView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
+        this.protoApplyLightTheme.restore();
+        this.protoApplyDarkTheme.restore();
+        localStorage.clear();
     });
     describe('basic test for chart triggering', function() {
         it('renders view', function() {
@@ -73,6 +95,16 @@ describe('settingsPageView.js spec', function() {
             this.testView.trimInputField('[name="test1"]');
             // input field should equal 'hello'
             expect($('[name="test1"]').val()).to.equal('hello');
+        });
+        it('triggers theme change', function() {
+            expect(this.protoApplyDarkTheme.callCount).to.equal(0);
+            expect(this.protoApplyLightTheme.callCount).to.equal(0);
+            $('#theme-name').val('light');
+            $('#theme-name').trigger('change');
+            $('#theme-name').val('dark');
+            $('#theme-name').trigger('change');
+            expect(this.protoApplyDarkTheme.callCount).to.equal(1);
+            expect(this.protoApplyLightTheme.callCount).to.equal(1);
         });
     });
 });
