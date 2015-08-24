@@ -13746,13 +13746,13 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // update settings form
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="tenant-settings-form">' +
-        '<h3>Update Tenant Settings</h3>' +
-        '<label for="name">Tenant name</label>' +
-        '<input name="name" type="text" class="form-control" placeholder="Tenant name" required>' +
-        '<label for="owner">Owner name</label>' +
-        '<input name="owner" type="text" class="form-control" placeholder="Username of owner" required>' +
-        '<label for="owner_contact">Owner contact</label>' +
-        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
+        '<h3>Goldstone Tenant Settings</h3>' +
+        '<label for="name">Tenant Name</label>' +
+        '<input name="name" type="text" class="form-control" placeholder="Tenant Name" required>' +
+        '<label for="owner">Owner Name</label>' +
+        '<input name="owner" type="text" class="form-control" placeholder="Username of Owner" required>' +
+        '<label for="owner_contact">Owner Email</label>' +
+        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner Email Address">' +
         '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
@@ -13761,17 +13761,17 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // update openstack settings form
         '<div class="col-md-4">' +
         '<form class="openstack-settings-form">' +
-        '<h3>Update OS Settings</h3>' +
-        '<label for="username">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="">' +
-        '<label for="os_auth_url">OS auth URL</label>' +
+        '<h3>OpenStack Settings</h3>' +
+        '<label for="os_name">OpenStack Tenant Name</label>' +
+        '<input name="os_name" type="text" class="form-control" placeholder="OpenStack Tenant Name">' +
+        '<label for="os_username">OpenStack Username</label>' +
+        '<input name="os_username" type="text" class="form-control" placeholder="OpenStack Username">' +
+        '<label for="os_password">OpenStack Password</label>' +
+        '<input name="os_password" type="text" class="form-control" placeholder="OpenStack Password">' +
+        '<label for="os_auth_url">OpenStack Auth URL</label>' +
         '<input name="os_auth_url" type="text" class="form-control" placeholder="http://...">' +
-        '<label for="os_name">OS Name</label>' +
-        '<input name="os_name" type="text" class="form-control" placeholder="">' +
-        '<label for="os_password">OpenStack password</label>' +
-        '<input name="os_password" type="text" class="form-control" placeholder="">' +
-        '<label for="os_username">OpenStack username</label>' +
-        '<input name="os_username" type="text" class="form-control" placeholder="">' +
+        // username must be submitted with request, so including as hidden
+        '<input name="username" type="hidden" class="form-control" placeholder="">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
