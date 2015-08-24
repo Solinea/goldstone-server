@@ -20,7 +20,21 @@
 describe('settingsPageView.js spec', function() {
     beforeEach(function() {
 
-        $('body').html('<div class="test-container"></div>');
+        $('body').html('' +
+            // for testing theme switch
+            '<form class="theme-selector" role="form">' +
+            '<div class="form-group">' +
+            '<div class="col-xl-5">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="theme-name">' +
+            '<option value="dark" selected>dark</option>' +
+            '<option value="light">light</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '<div class="test-container"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -85,11 +99,12 @@ describe('settingsPageView.js spec', function() {
         it('triggers theme change', function() {
             expect(this.protoApplyDarkTheme.callCount).to.equal(0);
             expect(this.protoApplyLightTheme.callCount).to.equal(0);
-            $('#lightTheme').click();
-            $('#darkTheme').click();
-            // TODO: modify to react to dropdown
-            expect(this.protoApplyDarkTheme.callCount).to.equal(0);
-            expect(this.protoApplyLightTheme.callCount).to.equal(0);
+            $('#theme-name').val('light');
+            $('#theme-name').trigger('change');
+            $('#theme-name').val('dark');
+            $('#theme-name').trigger('change');
+            expect(this.protoApplyDarkTheme.callCount).to.equal(1);
+            expect(this.protoApplyLightTheme.callCount).to.equal(1);
         });
     });
 });
