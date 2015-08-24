@@ -8,7 +8,7 @@ RUN plugin install mobz/elasticsearch-head \
   && plugin install lukas-vlcek/bigdesk
 
 # Overlays any files/directories to the ES config dir
-ADD config /usr/share/elasticsearch/config
+# ADD config /usr/share/elasticsearch/config
 
 ENV ES_CLUSTERNAME goldstone
 
@@ -21,8 +21,6 @@ ENV ES_HEAP_SIZE 256M
 ENV ES_JAVA_OPTS="\
   -Des.cluster.name=\${ES_CLUSTERNAME} \
   -Des.node.name=\${ES_NODENAME} \
-  -Des.index.number_of_shards=1 \
-  -Des.index.number_of_replicas=0 \
   -Des.index.search.slowlog.threshold.query.warn=10s \
   -Des.index.search.slowlog.threshold.query.info=5s \
   -Des.index.search.slowlog.threshold.query.debug=2s \

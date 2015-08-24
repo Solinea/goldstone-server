@@ -56,7 +56,7 @@ rm /tmp/goldstone-server-celery.log
 rm /tmp/goldstone-server-flower.log
 
 echo "shutting down boot2docker"
-(cd $PROJECT_HOME/goldstone-docker;docker-compose stop)
+(cd $PROJECT_HOME/goldstone-server/docker;docker-compose stop)
 boot2docker down
 
 VBoxManage controlvm $STACK_VM_NAME acpipowerbutton 2&> /dev/null

@@ -42,7 +42,6 @@ fi
 
 boot2docker up
 eval $(boot2docker shellinit)
-(cd $PROJECT_HOME/goldstone-docker;docker-compose up -d)
 
 echo "starting celery"
 (cd $PROJECT_HOME/goldstone-server ; \
@@ -54,3 +53,5 @@ echo "starting flower on port 5555"
 (cd $PROJECT_HOME/goldstone-server ; \
  celery flower -A goldstone --address=127.0.0.1 --port=5555 > \
                             /tmp/goldstone-server-flower.log 2>&1 &)
+
+(cd $PROJECT_HOME/goldstone-server/docker;docker-compose up)

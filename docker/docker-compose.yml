@@ -32,8 +32,8 @@ gslog:
 # Elasticsearch Container
 gssearch:
   image: solinea/goldstone-search
-  #volumes:
-    #- config/goldstone-search:/usr/share/elasticsearch/config
+  volumes:
+    - config/goldstone-search:/usr/share/elasticsearch/config
     # Mount a local volume for data
     #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
   ports:
@@ -48,7 +48,7 @@ gssearch:
 #- gstaskq
 
 # Redis Container
-#gstaskq:
-#  image: redis
-#  ports:
-#    - "6379:6379"
+gstaskq:
+  image: redis
+  ports:
+    - "6379:6379"

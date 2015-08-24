@@ -103,7 +103,7 @@ If the requirements files change, you should rerun the `pip install` commands.
 **_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
 
-## Building and Start the Supporting Docker Containers
+## Building the Goldstone Containers
 
 All supporting services are available as docker containers.  To build the containers locally, run the following commands:
 
@@ -114,14 +114,27 @@ Once the containers have been built, you can start them by executing the followi
 
     $ docker-compose -f docker-compose.yml up
 
+## Start and Stop the Goldstone Dev Environment
 
+There are convenince scripts to start/stop the virtual machines and docker containers used during goldstone development.  To start working on goldstone, execute:
+
+    $ cd $PROJECT_HOME/goldstone-server
+    $ bin/start_dev_env.sh
+    
+When you want to shut things down, execute:
+
+    $ cd $PROJECT_HOME/goldstone-server
+    $ bin/stop_dev_env.sh
+    
 ## Initialize Goldstone Server
 
-This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch.
+This step configures the Goldstone Server database, and is the final step before running the application.  It only needs to be done the first time you start Goldstone, and when you change ES or PostgreSQL schema.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in PostgreSQL and Elasticsearch.
 
 To initialize Goldstone Server, use the goldstone_init fabric task:
 
     $ cd $PROJECT_HOME/goldstone-server
+    $ dropdb -h 127.0.0.1 -U postgres goldstone  # password goldstone
+    $ createdb -h 127.0.0.1 -U postgres goldstone   # password goldstone
     $ fab goldstone_init
 
 You will be prompted for the settings to use (select `local_docker`), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
@@ -132,9 +145,6 @@ If there have been significant data model changes in Goldstone, you may need to 
 
     $ dropdb -U postgres -h 127.0.0.1 goldstone_docker
     $ createdb -U postgres -h 127.0.0.1 goldstone_docker
-
-
-## Configure the OpenStack VM 
 
 After the goldstone_init task has been completed, it will advise you to run another task to configure the OpenStack server.  For the developer environment, the command looks like this:
 

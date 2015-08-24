@@ -199,12 +199,14 @@ def goldstone_init(verbose=False):
 
     """
     from installer_fabfile import goldstone_init as installer_goldstone_init
-    from installer_fabfile import syncmigrate, django_admin_init
+    from installer_fabfile import syncmigrate, django_admin_init,\
+        load_es_templates
 
     # Get the desired settings from the user.
     settings = _django_settings_module(verbose)
 
     # Do the initialization with the user's settings, on the current directory.
+    load_es_templates(proj_settings=settings, install_dir='.')
     syncmigrate(settings=settings, install_dir='.')
     django_admin_init(settings=settings, install_dir='.')
     installer_goldstone_init(settings=settings, install_dir='.')

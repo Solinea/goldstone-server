@@ -88,7 +88,22 @@ def _put_all_templates(server=settings.ES_SERVER):
     _put_metrics_template(server=server)
 
 
+def _delete_all_indices(server=settings.ES_SERVER):
+    """Install or update all goldstone templates."""
+
+    from elasticsearch.exceptions import RequestError
+    from .models import es_conn
+
+    try:
+        conn = es_conn(server)
+        conn.indices.delete('goldstone*')
+    except RequestError:
+        print "?ERROR: Index deletion failed. Please report this!"
+        raise
+
+
 def initialize_elasticsearch():
     """Set up the Elasticsearch templates."""
 
     _put_all_templates()
+    _delete_all_indices()
