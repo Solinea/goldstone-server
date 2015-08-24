@@ -282,20 +282,23 @@ def cloud_init(gs_tenant,
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
 
+        # Ask for user for two of the necessary attributes if they're not
+        # defined.
+        if stack_tenant is None:
+            stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
+                                  default='admin')
+        if stack_user is None:
+            stack_user = prompt(cyan("Enter Openstack user name: "),
+                                default='admin')
         try:
-            # unique constraint on (tenant, tenant_name, and username)
+            # Note: There's a db unique constraint on (tenant, tenant_name, and
+            # username).
             Cloud.objects.get(tenant=gs_tenant,
                               tenant_name=stack_tenant,
                               username=stack_user)
         except ObjectDoesNotExist:
-            # Since the row doesn't exist, we have to create it. Ask for user
-            # for each of the necessary attributes if they're not defined.
-            if stack_tenant is None:
-                stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
-                                      default='admin')
-            if stack_user is None:
-                stack_user = prompt(cyan("Enter Openstack user name: "),
-                                    default='admin')
+            # The row doesn't exist, so we have to create it. To do that, we
+            # need two more pieces of information.
             if stack_password is None:
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
@@ -315,6 +318,7 @@ def cloud_init(gs_tenant,
                 # Append our version number to the base URL.
                 stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
+            # Create the row!
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
                                  username=stack_user,
