@@ -12966,8 +12966,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="theme-name">' +
-        '<option value="dark">dark</option>' +
         '<option value="light">light</option>' +
+        '<option value="dark">dark</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
