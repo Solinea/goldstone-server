@@ -76,6 +76,11 @@ module.exports = function(grunt) {
                 options: {
                     message: "OpenTrail tests copied to external repo"
                 }
+            },
+            copy_message_openTrailCss: {
+                options: {
+                    message: "OpenTrail css copied to external repo"
+                }
             }
         },
 
@@ -175,6 +180,10 @@ module.exports = function(grunt) {
             opentrailTest: {
                 files: clientIncludeOrder.otTest,
                 tasks: ['lint', 'karma', 'clean:otTest', 'copy-otTest']
+            },
+            opentrailCss: {
+                files: clientIncludeOrder.opentrailCss,
+                tasks: ['copy-otCss']
             }
         },
 
@@ -239,6 +248,33 @@ module.exports = function(grunt) {
                     expand: true,
                     nonull: true
                 }]
+            },
+            otCss: {
+                files: [{
+                    src: [clientIncludeOrder.opentrailCss],
+                    dest: clientIncludeOrder.otCssCopy,
+                    flatten: true,
+                    expand: true,
+                    nonull: true
+                }]
+            },
+            otCssGoldstone: {
+                files: [{
+                    src: [clientIncludeOrder.opentrailCss],
+                    dest: clientIncludeOrder.otCssCopyGoldstone,
+                    flatten: true,
+                    expand: true,
+                    nonull: true
+                }]
+            },
+            otCssGit: {
+                files: [{
+                    src: [clientIncludeOrder.opentrailCss],
+                    dest: clientIncludeOrder.otCssCopyGit,
+                    flatten: true,
+                    expand: true,
+                    nonull: true
+                }]
             }
         },
 
@@ -267,6 +303,7 @@ module.exports = function(grunt) {
     grunt.registerTask('concat-ot', ['concat:ot', 'notify:concat_message_openTrail']);
     grunt.registerTask('copy-ot', ['copy:ot', 'notify:copy_message_openTrail']);
     grunt.registerTask('copy-otTest', ['copy:otTest', 'notify:copy_message_openTrailTest']);
+    grunt.registerTask('copy-otCss', ['copy:otCssGoldstone', 'copy:otCssGit', 'copy:otCss', 'notify:copy_message_openTrailCss']);
     grunt.registerTask('e', ['casperjs:e2e']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
