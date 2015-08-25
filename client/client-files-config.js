@@ -39,6 +39,7 @@ module.exports = {
         'client/js/addons/opentrail/*.js',
         'client/js/addons/opentrail/tail/routes.js',
     ],
+    opentrailCss: 'client/js/addons/opentrail/*.css',
     lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
     test: [
         'test/unit/*.js',
@@ -55,6 +56,9 @@ module.exports = {
     otTest: 'test/openTrail/*.js',
     otCopy: '../django-opentrail/client-dev/',
     otTestCopy: '../django-opentrail/client-test/',
+    otCssCopyGit: '../django-opentrail/client-css/',
+    otCssCopyGoldstone: 'goldstone/static/addons/opentrail/',
+    otCssCopy: '../django-opentrail/opentrail/static/',
     coverageReportTargets: {
         'client/js/preload/*.js': ['coverage'],
         'client/js/models/*.js': ['coverage'],
