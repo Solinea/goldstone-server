@@ -1445,11 +1445,11 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes'):
         {
             "file": "/etc/ceilometer/pipeline.yaml",
             "template": "pipeline.yaml.template",
+            "context": {"goldstone_addr": goldstone_addr}
         },
         {
             "file": "/etc/ceilometer/event_pipeline.yaml",
-            "template": "event_pipeline.yaml.template",
-            "context": {"goldstone_addr": goldstone_addr}
+            "template": "event_pipeline.yaml.template"
         },
         {
             "file": "/etc/ceilometer/event_definitions.yaml",
