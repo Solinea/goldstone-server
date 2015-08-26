@@ -121,9 +121,9 @@ To initialize Goldstone Server, use the goldstone_init fabric task:
     $ cd $PROJECT_HOME/goldstone-server
     $ ./bin/start_dev_env.sh
     $ fab goldstone_init
-    $ fab -H 172.24.4.100 configure_stack
+    $ fab -f installer-fabfile.py -H 172.24.4.100 configure_stack
 
-You will be prompted for the settings to use (select `local_docker`), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
+
 
 ### Re-initializing Goldstone Server
 
