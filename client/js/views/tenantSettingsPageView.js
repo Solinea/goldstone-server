@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-var TenantSettingsPageView = GoldstoneBaseView.extend({
+var TenantSettingsPageView = GoldstoneBaseView2.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function(options) {
+        this.el = this.options.el;
         this.render();
-        this.getTenantSettings();
+        this.getTenantAndOSSettings();
         this.addHandlers();
+    },
+
+    onClose: function() {
+        $('#global-lookback-range').show();
+        $('#global-refresh-range').show();
     },
 
     addHandlers: function() {
@@ -50,7 +51,21 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings');
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings', $('.tenant-settings-form'));
+        });
+
+        $('.openstack-settings-form').on('submit', function(e) {
+            // prevens page jump upon pressing submit button
+            e.preventDefault();
+
+            // trim inputs to prevent leading/trailing spaces
+            self.trimInputField('[name="os_auth_url"]');
+            self.trimInputField('[name="os_name"]');
+            self.trimInputField('[name="os_password"]');
+            self.trimInputField('[name="os_username"]');
+
+            // 4th argument informs what will be appeneded to screen upon success
+            self.submitRequest('PUT', '/user/', $(this).serialize(), 'OS settings', $('.openstack-settings-form'));
         });
     },
 
@@ -107,7 +122,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         });
     },
 
-    getTenantSettings: function() {
+    getTenantAndOSSettings: function() {
         var self = this;
 
         $.get('/tenants/')
@@ -119,6 +134,19 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             })
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load tenant settings');
+            });
+
+        $.get('/user/')
+            .done(function(result) {
+                var $form = $('.openstack-settings-form');
+                $form.find('[name="username"]').val(result.username);
+                $form.find('[name="os_auth_url"]').val(result.os_auth_url);
+                $form.find('[name="os_name"]').val(result.os_name);
+                $form.find('[name="os_password"]').val(result.os_password);
+                $form.find('[name="os_username"]').val(result.os_username);
+            })
+            .fail(function(fail) {
+                goldstone.raiseInfo('could not load OpenStack settings');
             });
     },
 
@@ -145,14 +173,17 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 } catch (e) {
                     self.dataErrorMessage(fail.responseText + e);
                 }
-                self.clearDataErrorMessage();
             })
             .always(function() {
-                self.getTenantSettings();
+                self.getTenantAndOSSettings();
             });
     },
 
     render: function() {
+
+        $('#global-lookback-range').hide();
+        $('#global-refresh-range').hide();
+
         this.$el.html(this.template());
         this.dataErrorMessage('Click row above to edit');
         return this;
@@ -180,21 +211,47 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         '</div>' +
         // end data table
 
+
         '<div class="container">' +
+
+        // popup message row
+        '<div class="row">' +
+        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<br></div>' +
+        '</div>' +
+
         '<div class="row">' +
 
         // update settings form
-        '<div class="col-md-4 col-md-offset-0">' +
+        '<div class="col-md-4 col-md-offset-2">' +
         '<form class="tenant-settings-form">' +
-        '<h3>Update Tenant Settings</h3>' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<label for="name">Tenant name</label>' +
-        '<input name="name" type="text" class="form-control" placeholder="Tenant name" required>' +
-        '<label for="owner">Owner name</label>' +
-        '<input name="owner" type="text" class="form-control" placeholder="Username of owner" required>' +
-        '<label for="owner_contact">Owner contact</label>' +
-        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
+        '<h3>Goldstone Tenant Settings</h3>' +
+        '<label for="name">Tenant Name</label>' +
+        '<input name="name" type="text" class="form-control" placeholder="Tenant Name" required>' +
+        '<label for="owner">Owner Name</label>' +
+        '<input name="owner" type="text" class="form-control" placeholder="Username of Owner" required>' +
+        '<label for="owner_contact">Owner Email</label>' +
+        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner Email Address">' +
         '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '</form>' +
+        '</div>' +
+
+        // update openstack settings form
+        '<div class="col-md-4">' +
+        '<form class="openstack-settings-form">' +
+        '<h3>OpenStack Settings</h3>' +
+        '<label for="os_name">OpenStack Tenant Name</label>' +
+        '<input name="os_name" type="text" class="form-control" placeholder="OpenStack Tenant Name">' +
+        '<label for="os_username">OpenStack Username</label>' +
+        '<input name="os_username" type="text" class="form-control" placeholder="OpenStack Username">' +
+        '<label for="os_password">OpenStack Password</label>' +
+        '<input name="os_password" type="text" class="form-control" placeholder="OpenStack Password">' +
+        '<label for="os_auth_url">OpenStack Auth URL</label>' +
+        '<input name="os_auth_url" type="text" class="form-control" placeholder="http://...">' +
+        // username must be submitted with request, so including as hidden
+        '<input name="username" type="hidden" class="form-control" placeholder="">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
