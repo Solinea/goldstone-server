@@ -46,6 +46,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
+        // messages to display as OS X notifications
         notify: {
             concat_message: {
                 options: {
@@ -84,7 +85,7 @@ module.exports = function(grunt) {
             }
         },
 
-        // what files should be linted
+        // linting
         jshint: {
             gruntfile: 'Gruntfile.js',
             karmaConfig: 'karma.conf.js',
@@ -98,7 +99,7 @@ module.exports = function(grunt) {
             }
         },
 
-        // configure karma
+        // karma headless browser unit/integration test runner
         karma: {
             options: {
                 configFile: 'karma.conf.js',
@@ -110,7 +111,7 @@ module.exports = function(grunt) {
             }
         },
 
-        // configure casperjs
+        // casperjs headless browser e2e test runner
         casperjs: {
             options: {},
             e2e: {
@@ -120,6 +121,7 @@ module.exports = function(grunt) {
             }
         },
 
+        // transpile sass > css
         sass: {
             dev: {
                 options: {
@@ -142,8 +144,7 @@ module.exports = function(grunt) {
             }
         },
 
-        // create a watch task for tracking
-        // any changes to the following files
+        // changes to the designated files kick off tasks as a result
         watch: {
             client: {
                 files: clientIncludeOrder.clientWildcards,
@@ -187,6 +188,7 @@ module.exports = function(grunt) {
             }
         },
 
+        // start watch tasks that only observe the specified files
         focus: {
             dev: {
                 include: ['unitTests', 'integrationTests', 'client']
@@ -196,7 +198,7 @@ module.exports = function(grunt) {
             }
         },
 
-        // configure grunt-concat
+        // configure grunt-concat for JavaScript file combining
         concat: {
             options: {
                 separator: ';\n',
@@ -230,6 +232,7 @@ module.exports = function(grunt) {
             }
         },
 
+        // copy files between folders and/or repos
         copy: {
             ot: {
                 files: [{
@@ -278,6 +281,7 @@ module.exports = function(grunt) {
             }
         },
 
+        // clean out directories, usually used prior to a 'copy' task
         clean: {
             ot: {
                 src: [clientIncludeOrder.otCopy.concat('/*.js')],
