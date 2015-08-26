@@ -26,6 +26,7 @@ from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
 from fabric.context_managers import lcd
+from fabric.contrib.files import upload_template, exists
 
 
 ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.5.repo"
@@ -862,52 +863,652 @@ def uninstall(dropdb=True, dropuser=True):
         local('yum remove -y goldstone-server')
 
 
-def get_ip():
-    """Return an IP address."""
-    import socket
+def _set_single_value_configs(file_name, edits_list):
+    """
+    Edits StrOpt entries in a config file.
 
-    thing = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    :param file_name: the config file name
+    :param edits_list: the list of edits to make
+    :return: None
+    """
 
-    try:
-        # doesn't even have to be reachable
-        thing.connect(('10.255.255.255', 0))
-        ipaddress = thing.getsockname()[0]
-    except Exception:                # pylint: disable=W0703
-        ipaddress = '127.0.0.1'
-    finally:
-        thing.close()
+    if exists(file_name, use_sudo=True, verbose=True):
+        print(green("\tEditing %s" % file_name))
 
-    return ipaddress
+        for config_entry in edits_list:
+            cmd = "crudini --existing=file --set %s %s %s %s" % \
+                  (file_name, config_entry['section'],
+                   config_entry['parameter'], config_entry['value'])
+            run(cmd)
+
+            print(green("\tSet %s:%s to %s" %
+                        (config_entry['section'], config_entry['parameter'],
+                         config_entry['value'])))
+    else:
+        raise IOError("File not found: %s" % file_name)
 
 
-def configure_notification_driver(filename):
-    """Configure a notification_driver setting for ceilometer."""
+def _set_multi_value_configs(file_name, edits_list):
+    """
+    Edits MultiStrOpt entries in a config file.  Currently only supports adding
+    a new parameter.
+
+    :param file_name: the config file name
+    :param edits_list: the list of edits to make
+    :return: None
+    """
+
     from fabric.contrib.files import contains, sed
 
-    with fab_settings(warn_only=True, user="root"):
-        # Set up syslog shipping
-        print(green("\nConfiguring notification_driver settings for " +
-                    filename))
+    if exists(file_name, use_sudo=True, verbose=True):
+        print(green("\tEditing %s" % file_name))
 
-        has_messagingv2 = contains(
-            filename,
-            '^notification_driver[\s]*=.*messagingv2', escape=False)
+        for config_entry in edits_list:
+            # hopefully match all forms of key = [other_val] val [other_val]
+            # while avoiding key = [other_val] xvalx [other_val]
+            empty_setting_regex = '^%s[\s]*=[\s]*$' % \
+                                  (config_entry['parameter'])
+            setting_regex = '^[\s]*%s[\s]*=.*(?<=\s|=)%s(?!\S).*$' % \
+                            (config_entry['parameter'], config_entry['value'])
+            empty_setting_exists = contains(
+                file_name, empty_setting_regex, escape=False)
+            setting_exists = contains(
+                file_name, setting_regex, escape=False)
 
-        has_empty_driver = contains(
-            filename, '^notification_driver[ ]*=[ ]*$', escape=False)
-
-        if not has_messagingv2:
-            if has_empty_driver:
-                print(green("\nReplacing empty notification_driver entry"))
-                sed(filename, '^notification_driver[ ]*=[ ]*$',
-                    'notification_driver=messagingv2')
+            if not setting_exists and empty_setting_exists:
+                print(green("\tReplacing empty %s entry" %
+                            (config_entry['parameter'])))
+                sed(file_name,
+                    '^%s[\s]*=[\s]*$' % (config_entry['parameter']),
+                    '%s = %s' % (config_entry['value']),
+                    backup='.gsbak')
+                # we have our own backup, so delete the one that sed made
+                run("rm %s.gsbak" % file_name)
+            elif not setting_exists:
+                # add a new line to the appropriate section
+                print(green("\tAdding new %s entry" %
+                            (config_entry['parameter'])))
+                sed(file_name,
+                    '^\[%s\][\s]*$',
+                    '\[%s\]\\n%s = %s' % (config_entry['section'],
+                                          config_entry['parameter'],
+                                          config_entry['value']),
+                    backup='.gsbak')
+                # we have our own backup, so delete the one that sed made
+                run("rm %s.gsbak" % file_name)
             else:
-                print(green("\nAdding a new notification_driver entry in "
-                            "DEFAULT section"))
-                sed(filename, '^\[DEFAULT\][\s]*$',
-                    '\[DEFAULT\]\\nnotification_driver=messagingv2')
-        else:
-            print(green("\nnotification_driver already configured"))
+                print(green("\tNo changes required for %s" %
+                            (config_entry['parameter'])))
+
+    else:
+        raise IOError("File not found: %s" % file_name)
+
+
+def _backup_config_file(file_name, backup_postfix, previously_backed_up=[]):
+    """Back up a configuration file if it hasn't been backed up already.
+
+    :param file_name: name of file
+    :param backup_postfix: postfix to append
+    :param previously_backed_up: list of already backed up files
+    :return: updated previously backed up files
+    """
+    if file_name not in previously_backed_up and \
+            exists(file_name, use_sudo=True, verbose=True):
+
+        backup_file = file_name + "." + str(backup_postfix)
+        run("cp " + file_name + " " + backup_file)
+        previously_backed_up.append(file_name)
+
+    return previously_backed_up
+
+
+def _configure_service(service_name, backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files):
+    """
+    Configure a service as defined in the supplied params.
+    :param service_name: eg: Nova
+    :param single_value_edits: dict of configuration instructions
+    :param multi_value_edits: dict of configuration instructions
+    :param template_dir: directory on calling host where templates are found
+    :param template_files: dict of configuration instructions
+    :return:
+    """
+
+    backed_up_files = []
+
+    with fab_settings(warn_only=True, user="root"):
+
+        print(green("\nConfiguring %s" % service_name))
+
+        # process config changes for single value entries
+        for entry in single_value_edits.items():
+            file_name = entry[0]
+            backed_up_files = _backup_config_file(
+                file_name, backup_postfix, backed_up_files)
+
+            # set StrOpt values
+            _set_single_value_configs(file_name, entry[1])
+
+        # process config changes for multi value entries
+        for entry in multi_value_edits.items():
+            file_name = entry[0]
+            backed_up_files = _backup_config_file(
+                file_name, backup_postfix, backed_up_files)
+
+        # set MultiStrOpt values
+            _set_multi_value_configs(file_name, entry[1])
+
+        # upload template files
+        for entry in template_files:
+            file_name = entry['file']
+            template_name = entry['template']
+            template_context = entry['context'] if 'context' in entry else {}
+            import json
+            print(red("\nProcessing template %s, context = %s" % (template_name, json.dumps(template_context))))
+            backed_up_files = _backup_config_file(
+                file_name, backup_postfix, backed_up_files)
+
+            upload_template(
+                template_name,
+                file_name,
+                context=template_context,
+                template_dir=template_dir,
+                backup=False)
+
+
+@task
+def _configure_nova(backup_postfix, restart='yes'):
+    """Configures nova on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/nova/nova.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL0"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "instance_usage_audit",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "instance_usage_audit_period",
+                "value": "hour"
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "notify_on_state_change",
+                "value": "vm_and_task_state"
+            },
+        ]
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {
+        "/etc/nova/nova.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_driver",
+                "value": "messagingv2"
+            }
+        ]
+    }
+
+    template_dir = os.path.join(os.getcwd(), "external/nova")
+    template_files = [
+        {
+            "file": "/etc/nova/api-paste.ini",
+            "template": "api-paste.ini.template"
+        },
+        {
+            "file": "/etc/nova/nova_api_audit_map.conf",
+            "template": "nova_api_audit_map.conf.template"
+        }
+    ]
+
+    _configure_service('Nova', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Nova service."))
+        run("openstack-service restart nova")
+    else:
+        print(green("\nRestart Nova to apply changes."))
+
+
+@task
+def _configure_cinder(backup_postfix, restart='yes'):
+    """Configures cinder on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/cinder/cinder.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL5"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "control_exchange",
+                "value": "cinder"
+            }
+        ]
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {
+        "/etc/cinder/cinder.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_driver",
+                "value": "messagingv2"
+            }
+        ]
+    }
+
+    template_dir = os.path.join(os.getcwd(), "external/cinder")
+    template_files = [
+        {
+            "file": "/etc/cinder/api-paste.ini",
+            "template": "api-paste.ini.template"
+        },
+        {
+            "file": "/etc/cinder/cinder_api_audit_map.conf",
+            "template": "cinder_api_audit_map.conf.template"
+        }
+    ]
+
+    _configure_service('Cinder', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Cinder service."))
+        run("openstack-service restart cinder")
+    else:
+        print(green("\nRestart Cinder to apply changes."))
+
+
+@task
+def _configure_keystone(backup_postfix, restart='yes'):
+    """Configures keystone on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/keystone/keystone.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL6"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_format",
+                "value": "cadf"
+            },
+
+        ]
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {
+        "/etc/keystone/keystone.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_driver",
+                "value": "messaging"
+            }
+        ]
+    }
+
+    template_dir = os.path.join(os.getcwd(), "external/keystone")
+    template_files = []
+
+    _configure_service('Keystone', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Keystone service."))
+        run("systemctl restart httpd")
+    else:
+        print(green("\nRestart Keystone to apply changes."))
+
+
+@task
+def _configure_neutron(backup_postfix, restart='yes'):
+    """Configures neutron on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/neutron/neutron.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL2"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            }
+        ]
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {}
+
+    template_dir = os.path.join(os.getcwd(), "external/neutron")
+    template_files = [
+        {
+            "file": "/etc/neutron/api-paste.ini",
+            "template": "api-paste.ini.template"
+        },
+        {
+            "file": "/etc/neutron/neutron_api_audit_map.conf",
+            "template": "neutron_api_audit_map.conf.template"
+        }
+    ]
+
+    _configure_service('Neutron', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Neutron service."))
+        run("openstack-service restart neutron")
+    else:
+        print(green("\nRestart Neutron to apply changes."))
+
+
+@task
+def _configure_glance(backup_postfix, restart='yes'):
+    """Configures glance on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/glance/glance-cache.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL1"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            }
+        ],
+        "/etc/glance/glance-api.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL1"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            }
+        ],
+        "/etc/glance/glance-registry.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL1"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            }
+        ],
+        "/etc/glance/glance-scrubber.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL1"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            }
+        ],
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {}
+
+    template_dir = os.path.join(os.getcwd(), "external/glance")
+    template_files = [
+        {
+            "file": "/etc/glance/glance-api-paste.ini",
+            "template": "glance-api-paste.ini.template"
+        },
+        {
+            "file": "/etc/glance/glance_api_audit_map.conf",
+            "template": "glance_api_audit_map.conf.template"
+        }
+    ]
+
+    _configure_service('Glance', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Glance service."))
+        run("openstack-service restart glance")
+    else:
+        print(green("\nRestart Glance to apply changes."))
+
+
+@task
+def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes'):
+    """Configures ceilometer on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param goldstone_addr: IP address of the goldstone server
+    :type goldstone_addr: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    single_value_edits = {
+        "/etc/ceilometer/ceilometer.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "syslog_log_facility",
+                "value": "LOG_LOCAL3"},
+            {
+                "section": "DEFAULT",
+                "parameter": "use_syslog",
+                "value": str(True)
+            },
+            {
+                "section": "DEFAULT",
+                "parameter": "verbose",
+                "value": str(True)
+            },
+            {
+                "section": "event",
+                "parameter": "definitions_cfg_file",
+                "value": "event_definitions.yaml"
+            },
+            {
+                "section": "event",
+                "parameter": "drop_unmatched_notifications",
+                "value": str(False)
+            },
+            {
+                "section": "notification",
+                "parameter": "store_events",
+                "value": str(True)
+            },
+            {
+                "section": "notification",
+                "parameter": "disable_non_metric_meters",
+                "value": str(True)
+            },
+            {
+                "section": "database",
+                "parameter": "event_connection",
+                "value": "es://%s:9200" % goldstone_addr
+            },
+        ]
+    }
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {}
+
+    template_dir = os.path.join(os.getcwd(), "external/ceilometer")
+    template_files = [
+        {
+            "file": "/etc/ceilometer/pipeline.yaml",
+            "template": "pipeline.yaml.template",
+        },
+        {
+            "file": "/etc/ceilometer/event_pipeline.yaml",
+            "template": "event_pipeline.yaml.template",
+            "context": {"goldstone_addr": goldstone_addr}
+        },
+        {
+            "file": "/etc/ceilometer/event_definitions.yaml",
+            "template": "event_definitions.yaml.template"
+        },
+        {
+            "file": "/etc/ceilometer/api_paste.ini",
+            "template": "api_paste.ini.template"
+        },
+    ]
+
+    _configure_service('Ceilometer', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Ceilometer service."))
+        run("openstack-service restart ceilometer")
+    else:
+        print(green("\nRestart Ceilometer to apply changes."))
+
+
+@task
+def _configure_rsyslog(backup_postfix, goldstone_addr, restart='yes'):
+    """Configures neutron on OpenStack hosts.
+
+    :param backup_postfix: A string to append to any config files that are
+                           backed up (a timestamp would be nice).
+    :type backup_postfix: str
+    :param restart: restart the service? (yes/no)
+    :type restart: str
+    """
+
+    # config lines that accept single values per line
+    single_value_edits = {}
+
+    # config lines that accept multiple values per line
+    multi_value_edits = {}
+
+    template_dir = os.path.join(os.getcwd(), "external/rsyslog")
+    template_files = [
+        {
+            "file": "/etc/rsyslog.conf",
+            "template": "rsyslog.conf.template"
+        },
+        {
+            "file": "/etc/rsyslog.d/10-goldstone.conf",
+            "template": "10-goldstone.conf.template",
+            "context": {"goldstone_addr": goldstone_addr}
+        }
+    ]
+
+    _configure_service('Rsyslog', backup_postfix, single_value_edits,
+                       multi_value_edits, template_dir, template_files)
+
+    if restart == 'yes':
+        print(green("\nRestarting Rsyslog service."))
+        run("service rsyslog restart")
+    else:
+        print(green("\nRestart Rsyslog to apply changes."))
 
 
 @task
@@ -926,212 +1527,59 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
 
     """
     import arrow
-    from fabric.contrib.files import upload_template, exists
 
     if not accept:
         accepted = prompt(cyan(
-            "This utility will modify configuration fileson the hosts\n"
+            "This utility will modify configuration files on the hosts\n"
             "supplied via the -H parameter, and optionally restart\n"
             "OpenStack and syslog services.\n\n"
             "Do you want to continue (yes/no)?"),
-            default='no', validate='yes|no')
+            default='yes', validate='yes|no')
 
     if accepted != 'yes':
         return 0
 
-    if goldstone_addr is None:
-        goldstone_addr = prompt(cyan("Goldstone server's hostname or IP "
-                                     "accessible to OpenStack hosts?"),
-                                default=get_ip())
-
     if restart_services is None:
         restart_services = prompt(cyan("Restart OpenStack and syslog services "
                                        "after configuration changes(yes/no)?"),
-                                  default='no', validate='yes|no')
+                                  default='yes', validate='yes|no')
 
-    openstack_config_map = {
-        "nova": {
-            "config_file": "/etc/nova/nova.conf",
-            "log_facility": "LOG_LOCAL0"
-        },
-        "keystone": {
-            "config_file": "/etc/keystone/keystone.conf",
-            "log_facility": "LOG_LOCAL6"
-        },
-        "ceilometer": {
-            "config_file": "/etc/ceilometer/ceilometer.conf",
-            "log_facility": "LOG_LOCAL3",
-            "metric_pipeline_template": "pipeline.yaml.template",
-            "metric_pipeline_file": "/etc/ceilometer/pipeline.yaml",
-            "event_pipeline_template": "event_pipeline.yaml.template",
-            "event_pipeline_file": "/etc/ceilometer/event_pipeline.yaml",
-            "event_defs_template": "event_definitions.yaml.template",
-            "event_defs_file": "/etc/ceilometer/event_definitions.yaml"
-        },
-        "neutron": {
-            "config_file": "/etc/neutron/neutron.conf",
-            "log_facility": "LOG_LOCAL2"
-        },
-        "cinder": {
-            "config_file": "/etc/cinder/cinder.conf",
-            "log_facility": "LOG_LOCAL5"
-        },
-        "glance-cache": {
-            "config_file": "/etc/glance/glance-cache.conf",
-            "log_facility": "LOG_LOCAL1"
-        },
-        "glance-api": {
-            "config_file": "/etc/glance/glance-api.conf",
-            "log_facility": "LOG_LOCAL1"
-        },
-        "glance-registry": {
-            "config_file": "/etc/glance/glance-registry.conf",
-            "log_facility": "LOG_LOCAL1"
-        },
-        "glance-scrubber": {
-            "config_file": "/etc/glance/glance-scrubber.conf",
-            "log_facility": "LOG_LOCAL1"
-        },
-    }
-
-    ceilometer_conf = "/etc/ceilometer/ceilometer.conf"
-
-    ceilometer_template_dir = os.path.join(os.getcwd(), "external/ceilometer")
-    syslog_template_dir = os.path.join(os.getcwd(), "external/rsyslog")
+    if goldstone_addr is None:
+        goldstone_addr = prompt(cyan("Goldstone server's hostname or IP "
+                                     "accessible to OpenStack hosts?"))
 
     backup_timestamp = arrow.utcnow().timestamp
 
     with fab_settings(warn_only=True, user="root"):
 
-        # Set up syslog shipping
-        print(green("\nConfiguring event and syslog handling."))
+        _configure_rsyslog(
+            backup_timestamp,
+            goldstone_addr,
+            restart=restart_services)
 
-        for entry in openstack_config_map.items():
-            if exists(entry[1]['config_file'], use_sudo=True, verbose=True):
+        _configure_ceilometer(
+            backup_timestamp,
+            goldstone_addr,
+            restart=restart_services)
 
-                backup_file = entry[1]['config_file'] + "." + \
-                    str(backup_timestamp)
-                run("cp " + entry[1]['config_file'] + " " + backup_file)
+        _configure_nova(
+            backup_timestamp,
+            restart=restart_services)
 
-                run("crudini --existing=file --set " +
-                    entry[1]['config_file'] +
-                    " DEFAULT use_syslog True")
-                run("crudini --existing=file --set " +
-                    entry[1]['config_file'] +
-                    " DEFAULT verbose True")
-                run("crudini --existing=file --set " +
-                    entry[1]['config_file'] +
-                    " DEFAULT syslog_log_facility " + entry[1]['log_facility'])
+        _configure_cinder(
+            backup_timestamp,
+            restart=restart_services)
 
-                # this is a little messy business to deal with params that can
-                # have multiple lines in the file.
-                if entry[0] in ['nova', 'cinder']:
-                    configure_notification_driver(entry[1]['config_file'])
+        _configure_glance(
+            backup_timestamp,
+            restart=restart_services)
 
-        # Set up ceilometer event shipping
-        if exists(ceilometer_conf):
-            print(green("\nConfiguring services to ship ceilometer events to "
-                        "Goldstone."))
+        _configure_neutron(
+            backup_timestamp,
+            restart=restart_services)
 
-            backup_file = ceilometer_conf + "." + str(backup_timestamp)
-            run("cp " + openstack_config_map['ceilometer']['config_file'] +
-                " " + backup_file)
+        _configure_keystone(
+            backup_timestamp,
+            restart=restart_services)
 
-            run("crudini --existing=file --set " + ceilometer_conf +
-                " event definitions_cfg_file event_definitions.yaml")
-            run("crudini --existing=file --set " + ceilometer_conf +
-                " event drop_unmatched_notifications False")
-            run("crudini --existing=file --set " + ceilometer_conf +
-                " notification store_events True")
-            run("crudini --existing=file --set " + ceilometer_conf +
-                " database event_connection es://" + goldstone_addr + ":9200")
-
-            # set up ceilometer auditing for nova
-            if exists(openstack_config_map['nova']['config_file']):
-                run("crudini --set " +
-                    openstack_config_map['nova']['config_file'] +
-                    " DEFAULT instance_usage_audit True")
-                run("crudini --set " +
-                    openstack_config_map['nova']['config_file'] +
-                    " DEFAULT instance_usage_audit_period hour")
-                run("crudini --set " +
-                    openstack_config_map['nova']['config_file'] +
-                    " DEFAULT notify_on_state_change vm_and_task_state")
-
-            # set up ceilometer auditing for cinder
-            if exists(openstack_config_map['cinder']['config_file']):
-                run("crudini --set " +
-                    openstack_config_map['cinder']['config_file'] +
-                    " DEFAULT control_exchange cinder")
-
-        try:
-            print(green("\nInstalling ceilometer and rsyslog config files."))
-
-            # backup ceilometer event and metric pipelines
-            if exists(
-                    openstack_config_map['ceilometer']['event_pipeline_file']):
-                backup_file = openstack_config_map['ceilometer'][
-                    'event_pipeline_file'] + "." + str(backup_timestamp)
-                run("cp " + openstack_config_map['ceilometer'][
-                    'event_pipeline_file'] + " " + backup_file)
-
-            if exists(openstack_config_map['ceilometer'][
-                    'metric_pipeline_file']):
-                backup_file = openstack_config_map['ceilometer'][
-                    'metric_pipeline_file'] + "." + str(backup_timestamp)
-                run("cp " + openstack_config_map['ceilometer'][
-                    'metric_pipeline_file'] + " " + backup_file)
-
-            if exists(openstack_config_map['ceilometer']['event_defs_file']):
-                backup_file = openstack_config_map['ceilometer'][
-                    'event_defs_file'] + "." + str(backup_timestamp)
-                run("cp " + openstack_config_map['ceilometer'][
-                    'event_defs_file'] + " " + backup_file)
-
-            # configure ceileometer metric and event pipelines
-            upload_template(
-                openstack_config_map['ceilometer']['event_pipeline_template'],
-                openstack_config_map['ceilometer']['event_pipeline_file'],
-                context={'goldstone_addr': goldstone_addr},
-                template_dir=ceilometer_template_dir,
-                backup=False)
-            upload_template(
-                openstack_config_map['ceilometer']['event_defs_template'],
-                openstack_config_map['ceilometer']['event_defs_file'],
-                template_dir=ceilometer_template_dir,
-                backup=False)
-            upload_template(
-                openstack_config_map['ceilometer']['metric_pipeline_template'],
-                openstack_config_map['ceilometer']['metric_pipeline_file'],
-                template_dir=ceilometer_template_dir,
-                backup=False)
-
-            if exists('/etc/rsyslog.conf'):
-                backup_file = "/etc/rsyslog.conf." + str(backup_timestamp)
-                run("cp /etc/rsyslog.conf " + backup_file)
-                upload_template('rsyslog.conf',
-                                '/etc/rsyslog.conf',
-                                template_dir=syslog_template_dir, backup=False)
-
-            upload_template('10-goldstone.conf.template',
-                            '/etc/rsyslog.d/10-goldstone.conf',
-                            context={'goldstone_addr': goldstone_addr},
-                            backup=False,
-                            template_dir=syslog_template_dir)
-        except (AttributeError, TypeError):
-            raise AssertionError('The goldstone_addr parameter should be a '
-                                 'string representing a hostname or IP '
-                                 'address')
-
-        if restart_services == 'yes':
-            print(green("\nRestarting OpenStack and rsyslog services."))
-            run("openstack-service restart nova")
-            run("openstack-service restart glance")
-            run("openstack-service restart cinder")
-            run("openstack-service restart neutron")
-            run("openstack-service restart ceilometer")
-            run("systemctl restart httpd")    # keystone/horizon
-            run("service rsyslog restart")
-        else:
-            print(green("\nRestart OpenStack and rsyslog services on remote"
-                        "hosts to complete configuration."))
+        print(green("\nFinshed"))
