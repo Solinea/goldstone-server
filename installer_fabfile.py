@@ -1003,8 +1003,6 @@ def _configure_service(service_name, backup_postfix, single_value_edits,
             file_name = entry['file']
             template_name = entry['template']
             template_context = entry['context'] if 'context' in entry else {}
-            import json
-            print(red("\nProcessing template %s, context = %s" % (template_name, json.dumps(template_context))))
             backed_up_files = _backup_config_file(
                 file_name, backup_postfix, backed_up_files)
 
