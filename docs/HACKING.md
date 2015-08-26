@@ -119,6 +119,7 @@ This step configures the Goldstone Server database, and is the final step before
 To initialize Goldstone Server, use the goldstone_init fabric task:
 
     $ cd $PROJECT_HOME/goldstone-server
+    $ ./bin/start_dev_env.sh
     $ fab goldstone_init
     $ fab -H 172.24.4.100 configure_stack
 
