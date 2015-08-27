@@ -1,0 +1,54 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+filter {
+
+    if "agent_data" not in [tags] {
+        # clone all syslog messages to be handled by the host_stream and
+        # event_stream outputs.
+        if [type] == "syslog" {
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{GENERIC_SYSLOGLINE}" }
+                add_field => { "received_at" => "%{@timestamp}" }
+            }
+            if ("_grokparsefailure" not in [tags]) {
+                syslog_pri {
+                    severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
+                    syslog_pri_field_name => "syslog5424_pri"
+                }
+                # set the event_stream type for the highest severities.  Can
+                # be overridden in future rules occurring before the clone.
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        add_field => ["event_type", "GenericSyslogError"]
+                    }
+                }
+                date {
+                    match => [ "syslog_ts", "ISO8601", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZ", "MMM dd HH:mm:ss" ]
+                }
+                mutate {
+                    replace => [ "host", "%{syslog5424_host}" ]
+                    add_tag => ["filter_20_pass"]
+                }
+            } else {
+                mutate {
+                    add_tag => ["filter_20_fail"]
+                    remove_tag => ["_grokparsefailure"]
+                }
+            }
+        }
+    }
+}

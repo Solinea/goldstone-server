@@ -139,7 +139,8 @@ def _choose_runserver_settings(verbose):
     # Bash command to locate the candidate settings files, from results piped
     # in. Production is included because this command is used by the external
     # installation script. The results will be in alphabetical order.
-    CANDIDATES = 'egrep "production|local_|dev_|test_" | egrep -v "pyc|~"'
+    CANDIDATES = \
+        'egrep "production|local_|dev_|test_|docker" | egrep -v "pyc|~"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
@@ -199,12 +200,14 @@ def goldstone_init(verbose=False):
 
     """
     from installer_fabfile import goldstone_init as installer_goldstone_init
-    from installer_fabfile import syncmigrate, django_admin_init
+    from installer_fabfile import syncmigrate, django_admin_init,\
+        load_es_templates
 
     # Get the desired settings from the user.
     settings = _django_settings_module(verbose)
 
     # Do the initialization with the user's settings, on the current directory.
+    load_es_templates(proj_settings=settings, install_dir='.')
     syncmigrate(settings=settings, install_dir='.')
     django_admin_init(settings=settings, install_dir='.')
     installer_goldstone_init(settings=settings, install_dir='.')

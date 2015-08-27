@@ -1,7 +1,7 @@
 # Goldstone Server Hacking Guide
 
 
-This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
+This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Docker Toolbox](http://www.docker.com/toolbox) installed.
 
 [TOC]
 
@@ -13,11 +13,8 @@ Install various prerequisite packages:
     $ brew doctor # (Resolve any any errors or warnings)
     $ brew install python
     $ brew install git
-    $ brew install boot2docker
-    $ brew install docker-compose
     $ brew install postgres
     $ brew install pyenv-virtualenvwrapper
-    $ boot2docker init
 
 You must have Python 2, at least at the version 2.7.10.
 
@@ -32,7 +29,6 @@ The commands given below are for use by core contributors. If you are a communit
 
     $ mkdir ~/devel
     $ cd ~/devel
-    $ git clone https://github.com/Solinea/goldstone-docker.git
     $ git clone https://github.com/Solinea/goldstone-server.git
 
 
@@ -62,7 +58,7 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
 
 ## Install the Development OpenStack VM
 
-For convenience, you can [download an OpenStack VM image](https://horizon.hpcloud.com/project/containers/RDO-Images/RDO-kilo.ova/download) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
+For convenience, you can [download an OpenStack VM image](https://horizon.hpcloud.com/project/containers/RDO-Images/RDO-kilo-201508.ova/download) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
 
 
 ## Configure VirtualBox Networking
@@ -72,12 +68,17 @@ The recommended developement environment uses a prebuilt OpenStack image.  This 
 * Creates a new host-only network
 * Ensures that the OpenStack VM has the correct network interfaces
 * Creates a DHCP server on the host-only network
-* Configures NAT rules for boot2docker VM
+* Configures NAT rules for docker VM
 
 If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
+    $ docker-machine stop default     # shut down the docker VM so it can be modified
     $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
 
+**_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
+particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
+your docker VM, you could run configure_vbox.sh --no-stack.  This would only configure the docker
+related NAT rules. _**
 
 ## Activate the Virtualenv
 
@@ -92,37 +93,18 @@ The first time you enter the virtualenv, you should also install the project req
     $ pip install --upgrade pip
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
-    $ pip install flower
 
 If the requirements files change, you should rerun the `pip install` commands.
 
 **_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
 
-## Initialize Goldstone Server
+## Building the Goldstone Containers
 
-This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch.
-
-To initialize Goldstone Server, use the goldstone_init fabric task:
+All supporting services are available as docker containers. This step configures the Goldstone Server database, and is the final step before running the application.  It only needs to be done the first time you start Goldstone, and when you change ES or PostgreSQL schema.  You can rerun this step if you want to reinitialize, but realize that it will remove existing data in PostgreSQL and Elasticsearch.
 
     $ cd $PROJECT_HOME/goldstone-server
-    $ fab goldstone_init
-
-You will be prompted for the settings to use (select `local_docker`), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
-
-### Re-initializing Goldstone Server
-
-If there have been significant data model changes in Goldstone, you may need to drop and recreate the database, then rerun the goldstone_init task.  To do that, execute the following commands while the postgres docker ontainer is running (the password will be the one you provided when running goldstone_init the last time):
-
-    $ dropdb -U postgres -h 127.0.0.1 goldstone_docker
-    $ createdb -U postgres -h 127.0.0.1 goldstone_docker
-
-
-## Configure the OpenStack VM 
-
-After the goldstone_init task has been completed, it will advise you to run another task to configure the OpenStack server.  For the developer environment, the command looks like this:
-
-    $ fab -H 172.24.4.100 configure_stack
+    $ bin/init_dev_env.sh
 
 If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
 

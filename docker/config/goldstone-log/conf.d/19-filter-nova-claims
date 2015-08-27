@@ -1,0 +1,65 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+filter {
+    if [type] == "nova_claims_resub" {
+        if [program] == "nova.compute.claims" {
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
+                add_tag => ["nova_phys_claim"]
+                add_field => ["state", "physical"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_VIRT}" }
+                add_tag => ["nova_virt_claim"]
+                add_field => ["state", "virtual"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "openstack_message" => "%{NOVA_INSTANCE_REQUEST}" }
+                add_tag => ["nova_claim_request"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            if ("nova_phys_claim" not in [tags] and "nova_virt_claim" not in [tags] and "nova_claim_request" not in [tags]) {
+                drop { }
+            } else {
+                mutate {
+                    replace => [ "type", "nova_claims" ]
+                    remove_field => [
+                        syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                        syslog_severity_code, syslog_facility_code,
+                        syslog_severity, syslog_facility, program, component,
+                        openstack_message, request_id, instance_id, timestamp,
+                        request_id_list, message, tags ]
+                }
+            }
+        } else {
+            drop { } 
+        }
+    }
+}
+

@@ -1,0 +1,104 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+OPENSTACK_PROG (?:[ a-zA-Z0-9_\-]+\.)+[ A-Za-z0-9_\-$]+
+
+OPENSTACK_PROG_SINGLE [A-Za-z0-9_\-$]+
+
+OPENSTACK_SOURCE %{OPENSTACK_PROG}|%{OPENSTACK_PROG_SINGLE}
+
+OPENSTACK_REQ_LIST (\[(?:(req-%{UUID}|%{UUID}|%{BASE16NUM}|None|-|%{SPACE}))+\])?
+
+OPENSTACK_PID ( %{POSINT:pid:int})?
+
+OPENSTACK_LOGLEVEL ([D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|[A|a]udit|AUDIT)
+
+OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:openstack_message}
+
+RAW_TRACE (?:^[^0-9].*$|^$)
+
+# treat errors separately to account for trace following
+OPENSTACK_ERROR %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid:int} ERROR %{OPENSTACK_SOURCE:program} %{GREEDYDATA:openstack_error_message}
+
+OPENSTACK_TRACE %{TIMESTAMP_ISO8601} %{POSINT} TRACE %{OPENSTACK_SOURCE} %{GREEDYDATA:openstack_trace_message}
+
+OPENSTACK_ROOTWRAP sudo:  %{GREEDYDATA:component} : TTY=%{GREEDYDATA:tty} ; PWD=%{GREEDYDATA:pwd} ; USER=%{GREEDYDATA:user} ; COMMAND=%{GREEDYDATA:command}
+
+OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_ERROR}|%{OPENSTACK_ROOTWRAP}
+
+NOT_OVSW_SEPARATOR (?:[^|]*)
+HTTP_METHOD (?:GET|PUT|POST|DELETE|PATCH|HEAD)
+
+#
+# Nova logs that have been passed through syslog
+# Adaptation of SYSLOG5424LINE
+#
+SYSLOG5424PRINUM (?:\<%{NONNEGINT:syslog5424_pri}\>)
+
+MY_SYSLOG_TIMESTAMP %{SYSLOGTIMESTAMP}|%{TIMESTAMP_ISO8601}
+
+OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
+GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:log_message}
+
+GOLDSTONE_AGENT_PREFIX %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA} (goldstone-agent) %{POSINT:pid}
+
+# our IANA assigned PEN (private enterprise number) is 44571
+GOLDSTONE_AGENT_DATA %{GOLDSTONE_AGENT_PREFIX} (\[(?<agent_data_type>metric|report)@44571 data=%{GREEDYDATA:agent_data}\]$)
+
+NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
+CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
+CLAIM_RSRC_VIRT (?:%{WORD:resource} limit: %{NUMBER:limit:float} %{WORD}, free: %{NUMBER:free:float} %{WORD})
+CLAIM_REQ (?:Attempting claim: memory %{NUMBER:mem:float} MB, disk %{NUMBER:disk:float} GB, VCPUs %{NUMBER:cpu:float})
+NOVA_INSTANCE_REQUEST %{NOVA_INSTANCE} %{CLAIM_REQ}
+NOVA_CLAIMS_SUMMARY_PHYS %{NOVA_INSTANCE} %{CLAIM_RSRC_PHYS}
+NOVA_CLAIMS_SUMMARY_VIRT %{NOVA_INSTANCE} %{CLAIM_RSRC_VIRT}
+
+NOVA_SPAWN_START %{NOVA_INSTANCE} (?:Creating image)
+NOVA_SPAWN_SUCCESS %{NOVA_INSTANCE} (?:Instance spawned successfully.)
+NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.)
+NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.|Instance failed to spawn)
+
+#
+# Make some metrics out of API call data
+# Nova uses a slightly different format than Neutron, Cinder, and Glance for API call logging
+#
+API_CALL %{URIHOST:client_ip} - - \[%{GREEDYDATA}\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" %{NUMBER:response_status:int} %{NUMBER:response_length:int} %{NUMBER:response_time:float}
+
+NOVA_API_CALL %{URIHOST:client_ip} [\\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+
+OPENSTACK_API_CALL %{API_CALL}|%{NOVA_API_CALL}
+
+# 
+# Identify AMQP status messages
+#
+OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}|(?:AMQP server on %{IP}:%{POSINT} is unreachable)%{GREEDYDATA}
+OPENSTACK_AMQP_OK (?:Connected to AMQP server)%{GREEDYDATA}
+OPENSTACK_AMQP_MESSAGE %{OPENSTACK_AMQP_FAIL}|%{OPENSTACK_AMQP_OK}
+#
+# setting the field names to match the openstack log until I can figure out a better way of doing
+# the search table
+#
+OPENVSWITCH_MESSAGE %{TIMESTAMP_ISO8601:timestamp}\|%{NUMBER:pid}\|%{NOT_OVSW_SEPARATOR:program}\|%{OPENSTACK_LOGLEVEL:loglevel}\|%{GREEDYDATA:msg}
+
+LIBVIRT_MESSAGE %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:pid}: %{OPENSTACK_LOGLEVEL:loglevel} : %{GREEDYDATA:msg}
+
+APACHE_LOG_LEVEL (?:emerg|alert|crit|error|warn|notice|info|debug)
+
+APACHE_DATETIME_ERROR %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}
+
+RABBITMQ_DATE %{MONTHDAY}-%{MONTH}-%{YEAR}::%{TIME}
+
+MYSYSLOG5424LINE %{SYSLOG5424PRI:syslog5424_pri}%{NONNEGINT:syslog5424_ver} (%{TIMESTAMP_ISO8601:syslog5424_ts}|-) (%{HOSTNAME:syslog5424_host}|-) (%{WORD:syslog5424_app}|-) (%{WORD:syslog5424_proc}|-) (%{WORD:syslog5424_msgid}|-) %{GREEDYDATA:syslog5424_msg}
+
+OS_NODEINFO cpu_model=%{WORD:cpu_model},mem_mbytes=%{NONNEGINT:mem_mbytes:int},total_vcpus=%{NONNEGINT:total_vcpus:int},cpu_mhz=%{NONNEGINT:cpu_mhz:int},threads_per_core=%{NONNEGINT:threads_per_core:int},cpu_sockets=%{NONNEGINT:cpu_sockets:int},cores_per_socket=%{NONNEGINT:cores_per_socket:int},numa_cells=%{NONNEGINT:numa_cells:int},total_vms=%{NONNEGINT:total_vms:int},active_vms=%{NONNEGINT:active_vms:int},inactive_vms=%{NONNEGINT:inactive_vms:int},active_vcpus=%{NONNEGINT:active_vcpus:int},active_mem_allocated=%{NONNEGINT:active_mem_allocated:int},active_mem_used=%{NONNEGINT:active_mem_used:int},inactive_vcpus=%{NONNEGINT:inactive_vcpus:int},inactive_mem=%{NONNEGINT:inactive_mem:int}%{GREEDYDATA}

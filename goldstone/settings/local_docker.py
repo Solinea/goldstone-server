@@ -6,7 +6,7 @@ from .development import *           # pylint: disable=W0614,W0401
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "goldstone_docker",
+        'NAME': "goldstone",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
         "HOST": "127.0.0.1",
