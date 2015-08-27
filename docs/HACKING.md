@@ -105,8 +105,6 @@ All supporting services are available as docker containers. This step configures
 
     $ cd $PROJECT_HOME/goldstone-server
     $ bin/init_dev_env.sh
-    $ fab -f installer_fabfile.py -H 172.24.4.100 configure_stack
-
 
 If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
 

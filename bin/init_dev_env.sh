@@ -74,6 +74,7 @@ docker/bin/build_containers.sh
 docker-compose -f docker/docker-compose.yml up -d 
 sleep 15
 fab goldstone_init 
+fab -f installer_fabfile.py -H 172.24.4.100 configure_stack
 
 docker-compose -f docker/docker-compose.yml stop
 docker-machine stop ${DOCKER_VM}
