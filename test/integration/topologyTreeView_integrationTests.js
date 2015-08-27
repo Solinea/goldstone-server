@@ -20,14 +20,14 @@
 describe('eventsReportView.js spec', function() {
     beforeEach(function() {
 
-        this.dummyData = ' {"info":{"last_updated":"2014-12-03T20:38:37.047+0000"},"rsrcType":"region","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"flavors-leaf","label":"flavors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hypervisors-leaf","label":"hypervisors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"west-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"west-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"west-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"west-zone","label":"services"}],"label":"west-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"east-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"east-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"east-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"east-zone","label":"services"}],"label":"east-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"internal","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"internal","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"internal","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"internal","label":"services"}],"label":"internal"}],"label":"RegionOne"}';
+        this.dummyData = '{"info":{"last_updated":"2014-12-03T20:38:37.047+0000"},"rsrcType":"region","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"flavors-leaf","label":"flavors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hypervisors-leaf","label":"hypervisors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"west-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"west-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"west-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"west-zone","label":"services"}],"label":"west-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"east-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"east-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"east-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"east-zone","label":"services"}],"label":"east-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"internal","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"internal","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"internal","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"internal","label":"services"}],"label":"internal"}],"label":"RegionOne"}';
 
         $('body').html('<div class="testContainer"></div><div id="testMultiRsrcView"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/*", [200, {
-                "Content-Type": "application/json"
+        this.server.respondWith([200, {
+                "Content-Type": "text/html"
             },
             this.dummyData
         ]);
@@ -38,13 +38,14 @@ describe('eventsReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        this.testCollection = new ZoomablePartitionCollection({});
+
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
+            collection: this.testCollection,
             chartHeader: ['.testContainer', 'Test Topology', 'discoverCloudTopology'],
-            data: JSON.parse(this.dummyData),
             el: '.testContainer',
-            frontPage: false,
-            h: 400,
+            h: 600,
             multiRsrcViewEl: '#testMultiRsrcView',
             width: $('.testContainer').width(),
             leafDataUrls: {
@@ -80,6 +81,8 @@ describe('eventsReportView.js spec', function() {
     });
     describe('view is constructed', function() {
         it('should exist', function() {
+            this.server.respond();
+
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
