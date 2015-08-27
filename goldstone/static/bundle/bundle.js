@@ -5839,27 +5839,21 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "main": 150,
                 "swim": 50
             },
-            width: $('#goldstone-discover-r2-c2').width()
+            width: $('#goldstone-discover-r1-c2').width()
         });
 
-
         //---------------------------
-        // instantiate Zoomable Tree chart
+        // instantiate Collapsable Tree chart
 
-        // collection ready if tree data becomes api-driven
+        this.topologyTree = new ZoomablePartitionCollection({});
 
-        // this.zoomableTree = new ZoomablePartitionCollection({
-        // });
-
-        this.zoomableTree = new ZoomablePartitionCollection({});
-
-        this.zoomableTreeView = new ZoomablePartitionView({
+        var topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            collection: this.zoomableTree,
+            collection: this.topologyTree,
+            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
             el: '#goldstone-discover-r2-c1',
-            frontPage: false,
             h: 600,
+            width: $('#goldstone-discover-r2-c1').width(),
             leafDataUrls: {
                 "services-leaf": "/services",
                 "endpoints-leaf": "/endpoints",
@@ -5885,7 +5879,47 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "volume-types-leaf": "/volume_types"
             },
             multiRsrcViewEl: '#goldstone-discover-r2-c2',
-            width: $('#goldstone-discover-r2-c1').width()
+
+        });
+
+
+        //---------------------------
+        // instantiate Zoomable Tree chart
+
+        this.zoomableTree = new ZoomablePartitionCollection({});
+
+        this.zoomableTreeView = new ZoomablePartitionView({
+            blueSpinnerGif: blueSpinnerGif,
+            chartHeader: ['#goldstone-discover-r3-c1', 'Cloud Topology', 'discoverZoomTopology'],
+            collection: this.zoomableTree,
+            el: '#goldstone-discover-r3-c1',
+            h: 600,
+            leafDataUrls: {
+                "services-leaf": "/services",
+                "endpoints-leaf": "/endpoints",
+                "roles-leaf": "/roles",
+                "users-leaf": "/users",
+                "tenants-leaf": "/tenants",
+                "agents-leaf": "/agents",
+                "aggregates-leaf": "/aggregates",
+                "availability-zones-leaf": "/availability_zones",
+                "cloudpipes-leaf": "/cloudpipes",
+                "flavors-leaf": "/flavors",
+                "floating-ip-pools-leaf": "/floating_ip_pools",
+                "hosts-leaf": "/hosts",
+                "hypervisors-leaf": "/hypervisors",
+                "networks-leaf": "/networks",
+                "secgroups-leaf": "/security_groups",
+                "servers-leaf": "/servers",
+                "images-leaf": "/images",
+                "volumes-leaf": "/volumes",
+                "backups-leaf": "/backups",
+                "snapshots-leaf": "/snapshots",
+                "transfers-leaf": "/transfers",
+                "volume-types-leaf": "/volume_types"
+            },
+            multiRsrcViewEl: '#goldstone-discover-r3-c2',
+            width: $('#goldstone-discover-r3-c1').width()
         });
 
     },
@@ -5895,11 +5929,17 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
         '</div>' +
+
         '<div id="goldstone-discover-r2" class="row">' +
         '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
         '</div>' +
+
         '<div id="goldstone-discover-r3" class="row">' +
+        '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
+        '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="goldstone-discover-r4" class="row">' +
         '<br><br>' +
         '</div>'
     )
@@ -13815,14 +13855,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         this.defaults.blueSpinnerGif = options.blueSpinnerGif;
         this.defaults.chartHeader = options.chartHeader || null;
 
-        // data may be coming from a collection fetch soon
-        this.defaults.data = options.data;
         this.defaults.h = options.h;
 
-        // frontPage affects clicking of leaves.
-        // whether it will redirect or append
-        // results to resource list
-        this.defaults.frontPage = options.frontPage;
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
         this.defaults.w = options.width;
         this.defaults.leafDataUrls = options.leafDataUrls;
@@ -13834,14 +13868,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         this.render();
         this.initSvg();
 
-        // when extended to zoomablePartitionView, a collection
-        // is used to fetch the data and update will be triggered
-        // by the listener on that subView.
-        if(this.collection === undefined) {
-            this.update();
-        } else {
-            this.processListeners();
-        }
+        this.processListeners();
+    },
+
+    processListeners: function() {
+        this.listenTo(this.collection, 'sync', this.update);
     },
 
     filterMultiRsrcData: function(data) {
@@ -14003,7 +14034,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
             // firstTsData[0] if it exists, contains key/values representative
             // of table structure.
-            if (firstTsData[0] !== 'undefined') {
+            if (firstTsData[0] !== undefined) {
                 firstTsData = _.map(firstTsData, function(e) {
                     e.datatableRecId = goldstone.uuid()();
                     return e;
@@ -14133,7 +14164,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // but must keep for old collapsable tree style viz
 
         var ns = this.defaults;
-        var that = this;
+        var self = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
 
         // Compute the new tree layout.
@@ -14171,7 +14202,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 var origClickedLabel = d.label;
 
                 if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType];
+                    var url = ns.leafDataUrls[d.rsrcType] + '/';
                     if (url !== undefined) {
                         var hasParam = false;
                         if (d.hasOwnProperty('region')) {
@@ -14185,42 +14216,33 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                             url = url + "zone=" + d.zone;
                         }
 
-                        // !front page = load results
-                        if (!ns.frontPage) {
-                            that.loadLeafData(url);
-                            that.appendLeafNameToResourceHeader(origClickedLabel);
+                        // prepend zone to url:
+                        var parentModule;
+                        // traverse up the tree until the
+                        // parent module is reached
+                        while (d.rsrcType !== 'module') {
+                            d = d.parent;
+                        }
+                        parentModule = d.label;
+
+                        if (self.overrideSets[d.label]) {
+                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        } else {
+                            ns.filterMultiRsrcDataOverride = null;
                         }
 
-                        // front page = redirect to new page
-                        // if leaf is clicked
-                        if (ns.frontPage) {
+                        url = "/" + parentModule + url;
 
-                            // if not a leaf, don't redirect
-                            if (d.rsrcType === 'region' || d.rsrcType === 'module') {
-                                return true;
-                            } else {
-                                var parentModule;
+                        // loadLeafData on TopologyTreeView
+                        self.loadLeafData(url);
 
-                                // traverse up the tree until the
-                                // parent module is reached
-                                while (d.rsrcType !== 'module') {
-                                    d = d.parent;
-                                }
-                                parentModule = d.label;
-
-                                // set resource url in localStorage
-                                url = "/" + parentModule + url;
-                                localStorage.setItem('urlForResourceList', url);
-                                localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = '#' +
-                                    parentModule + '/discover';
-                            }
-                        }
+                        // appendLeafNameToResourceHeader on TopologyTreeView
+                        self.appendLeafNameToResourceHeader(origClickedLabel);
                     }
 
                 } else {
-                    that.toggle(d);
-                    that.processTree(d);
+                    self.toggle(d);
+                    self.processTree(d);
                 }
             });
 
@@ -14318,7 +14340,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             })
             .style("fill-opacity", 1)
             .style("text-decoration", function(d) {
-                return (that.hasRemovedChildren(d) || that.isRemovedChild(d)) ?
+                return (self.hasRemovedChildren(d) || self.isRemovedChild(d)) ?
                     "line-through" : "";
             });
 
@@ -14392,7 +14414,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        if (ns.data !== 'undefined') {
+        ns.data = self.collection.toJSON()[0];
+
+        if (ns.data !== undefined) {
             if (Object.keys(ns.data).length === 0) {
                 $(self.el).find('#topology-tree').prepend("<p> Response was empty.");
             } else {
@@ -14416,6 +14440,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 localStorage.removeItem('urlForResourceList');
                 localStorage.removeItem('origClickedLabel');
             }
+        } else {
+            this.dataErrorMessage('Topology currently undefined');
         }
     },
 
@@ -14455,8 +14481,94 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         return this;
     },
 
+    overrideSets: {
+        // works with filterMultiRsrcData method in topologyTreeView
+        // these params will be omitted from the returned data before
+        // rendering as a data table in 'resource list'
+
+        nova: ['@timestamp',
+            'metadata',
+            'region',
+            'links',
+            'swap',
+            'rxtx_factor',
+            'OS-FLV-EXT-DATA:ephemeral',
+            'service',
+            'cpu_info',
+            'hypervisor_version',
+            'bridge',
+            'bridge_interface',
+            'broadcast',
+            'cidr_v6',
+            'deleted',
+            'deleted_at',
+            'dhcp_start',
+            'dns1',
+            'dns2',
+            'gateway_v6',
+            'host',
+            'injected',
+            'multi_host',
+            'netmask_v6',
+            'priority',
+            'region',
+            'rxtx_base',
+            'vpn_private_address',
+            'vpn_public_address',
+            'vpn_public_port',
+            'accessIPv4',
+            'accessIPv6',
+            'addresses',
+            'config_drive',
+            'flavor',
+            'hostId',
+            'image',
+            'key_name',
+            'links',
+            'metadata',
+            'OS-DCF:diskConfig',
+            'OS-EXT-AZ:availability_zone',
+            'OS-EXT-SRV-ATTR:hypervisor_hostname',
+            'OS-EXT-STS:power_state',
+            'OS-EXT-STS:task_state',
+            'OS-EXT-STS:vm_state',
+            'os-extended-volumes:volumes_attached',
+            'OS-SRV-USG:launched_at',
+            'OS-SRV-USG:terminated_at',
+            'progress',
+            'region',
+            'security_groups',
+            'rules'
+        ],
+        cinder: ['@timestamp',
+            'metadata',
+            'region',
+            'extra_specs',
+            'display_description',
+            'os-extended-snapshot-attributes:progress',
+            'links',
+            'attachments',
+            'availability_zone',
+            'os-vol-mig-status-attr:migstat',
+            'os-vol-mig-status-attr:name_id',
+            'snapshot_id',
+            'source_volid'
+        ],
+        keystone: ['@timestamp'],
+        glance: ['@timestamp',
+            'metadata',
+            'region',
+            'tags',
+            'checksum',
+            'owner',
+            'schema',
+            'file'
+        ]
+    },
+
     template: _.template('' +
         '<div class="panel-body" style="height:600px">' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div id="topology-tree">' +
         '<div class="clearfix"></div>' +
         '</div>' +
@@ -14815,7 +14927,6 @@ var zoomableTreeView = new ZoomablePartitionView({
     // collection: zoomableTree,
     data: data,
     el: '#goldstone-discover-r2-c1',
-    frontPage: false,
     h: 600,
     leafDataUrls: {
         "services-leaf": "/services",
@@ -14853,36 +14964,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     initialize: function(options) {
         ZoomablePartitionView.__super__.initialize.apply(this, arguments);
-        this.showSpinner();
-    },
-
-    processListeners: function() {
-        this.listenTo(this.collection, 'sync', this.update);
-    },
-
-    showSpinner: function() {
-
-        // appends spinner with sensitivity to the fact that the View object
-        // may render before the .gif is served by django. If that happens,
-        // the hideSpinner method will set the 'display' css property to
-        // 'none' which will prevent it from appearing on the page
-
-        var ns = this.defaults;
-        var self = this;
-
-        ns.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation = "#chart-panel-header";
-
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.w / 2),
-                'margin-top': 100,
-                'display': ns.spinnerDisplay
-            });
-        });
-
     },
 
     initSvg: function() {
@@ -14910,7 +14991,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
     },
 
     update: function() {
-        this.hideSpinner();
         var ns = this.defaults;
         var self = this;
 
@@ -15113,91 +15193,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             return "translate(22," + d.dx * ky / 2 + ")";
         }
 
-    },
-
-    overrideSets: {
-        // works with filterMultiRsrcData method in topologyTreeView
-        // these params will be omitted from the returned data before
-        // rendering as a data table in 'resource list'
-
-        nova: ['@timestamp',
-            'metadata',
-            'region',
-            'links',
-            'swap',
-            'rxtx_factor',
-            'OS-FLV-EXT-DATA:ephemeral',
-            'service',
-            'cpu_info',
-            'hypervisor_version',
-            'bridge',
-            'bridge_interface',
-            'broadcast',
-            'cidr_v6',
-            'deleted',
-            'deleted_at',
-            'dhcp_start',
-            'dns1',
-            'dns2',
-            'gateway_v6',
-            'host',
-            'injected',
-            'multi_host',
-            'netmask_v6',
-            'priority',
-            'region',
-            'rxtx_base',
-            'vpn_private_address',
-            'vpn_public_address',
-            'vpn_public_port',
-            'accessIPv4',
-            'accessIPv6',
-            'addresses',
-            'config_drive',
-            'flavor',
-            'hostId',
-            'image',
-            'key_name',
-            'links',
-            'metadata',
-            'OS-DCF:diskConfig',
-            'OS-EXT-AZ:availability_zone',
-            'OS-EXT-SRV-ATTR:hypervisor_hostname',
-            'OS-EXT-STS:power_state',
-            'OS-EXT-STS:task_state',
-            'OS-EXT-STS:vm_state',
-            'os-extended-volumes:volumes_attached',
-            'OS-SRV-USG:launched_at',
-            'OS-SRV-USG:terminated_at',
-            'progress',
-            'region',
-            'security_groups',
-            'rules'
-        ],
-        cinder: ['@timestamp',
-            'metadata',
-            'region',
-            'extra_specs',
-            'display_description',
-            'os-extended-snapshot-attributes:progress',
-            'links',
-            'attachments',
-            'availability_zone',
-            'os-vol-mig-status-attr:migstat',
-            'os-vol-mig-status-attr:name_id',
-            'snapshot_id',
-            'source_volid'
-        ],
-        keystone: ['@timestamp'],
-        glance: ['@timestamp',
-            'metadata',
-            'region',
-            'tags',
-            'checksum',
-            'owner',
-            'schema',
-            'file'
-        ]
     },
 
     template: null

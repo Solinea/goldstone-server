@@ -56,27 +56,21 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "main": 150,
                 "swim": 50
             },
-            width: $('#goldstone-discover-r2-c2').width()
+            width: $('#goldstone-discover-r1-c2').width()
         });
 
-
         //---------------------------
-        // instantiate Zoomable Tree chart
+        // instantiate Collapsable Tree chart
 
-        // collection ready if tree data becomes api-driven
+        this.topologyTree = new ZoomablePartitionCollection({});
 
-        // this.zoomableTree = new ZoomablePartitionCollection({
-        // });
-
-        this.zoomableTree = new ZoomablePartitionCollection({});
-
-        this.zoomableTreeView = new ZoomablePartitionView({
+        var topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            collection: this.zoomableTree,
+            collection: this.topologyTree,
+            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
             el: '#goldstone-discover-r2-c1',
-            frontPage: false,
             h: 600,
+            width: $('#goldstone-discover-r2-c1').width(),
             leafDataUrls: {
                 "services-leaf": "/services",
                 "endpoints-leaf": "/endpoints",
@@ -102,7 +96,47 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "volume-types-leaf": "/volume_types"
             },
             multiRsrcViewEl: '#goldstone-discover-r2-c2',
-            width: $('#goldstone-discover-r2-c1').width()
+
+        });
+
+
+        //---------------------------
+        // instantiate Zoomable Tree chart
+
+        this.zoomableTree = new ZoomablePartitionCollection({});
+
+        this.zoomableTreeView = new ZoomablePartitionView({
+            blueSpinnerGif: blueSpinnerGif,
+            chartHeader: ['#goldstone-discover-r3-c1', 'Cloud Topology', 'discoverZoomTopology'],
+            collection: this.zoomableTree,
+            el: '#goldstone-discover-r3-c1',
+            h: 600,
+            leafDataUrls: {
+                "services-leaf": "/services",
+                "endpoints-leaf": "/endpoints",
+                "roles-leaf": "/roles",
+                "users-leaf": "/users",
+                "tenants-leaf": "/tenants",
+                "agents-leaf": "/agents",
+                "aggregates-leaf": "/aggregates",
+                "availability-zones-leaf": "/availability_zones",
+                "cloudpipes-leaf": "/cloudpipes",
+                "flavors-leaf": "/flavors",
+                "floating-ip-pools-leaf": "/floating_ip_pools",
+                "hosts-leaf": "/hosts",
+                "hypervisors-leaf": "/hypervisors",
+                "networks-leaf": "/networks",
+                "secgroups-leaf": "/security_groups",
+                "servers-leaf": "/servers",
+                "images-leaf": "/images",
+                "volumes-leaf": "/volumes",
+                "backups-leaf": "/backups",
+                "snapshots-leaf": "/snapshots",
+                "transfers-leaf": "/transfers",
+                "volume-types-leaf": "/volume_types"
+            },
+            multiRsrcViewEl: '#goldstone-discover-r3-c2',
+            width: $('#goldstone-discover-r3-c1').width()
         });
 
     },
@@ -112,11 +146,17 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
         '</div>' +
+
         '<div id="goldstone-discover-r2" class="row">' +
         '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
         '</div>' +
+
         '<div id="goldstone-discover-r3" class="row">' +
+        '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
+        '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="goldstone-discover-r4" class="row">' +
         '<br><br>' +
         '</div>'
     )

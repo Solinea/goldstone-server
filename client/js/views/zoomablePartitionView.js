@@ -25,7 +25,6 @@ var zoomableTreeView = new ZoomablePartitionView({
     // collection: zoomableTree,
     data: data,
     el: '#goldstone-discover-r2-c1',
-    frontPage: false,
     h: 600,
     leafDataUrls: {
         "services-leaf": "/services",
@@ -63,36 +62,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     initialize: function(options) {
         ZoomablePartitionView.__super__.initialize.apply(this, arguments);
-        this.showSpinner();
-    },
-
-    processListeners: function() {
-        this.listenTo(this.collection, 'sync', this.update);
-    },
-
-    showSpinner: function() {
-
-        // appends spinner with sensitivity to the fact that the View object
-        // may render before the .gif is served by django. If that happens,
-        // the hideSpinner method will set the 'display' css property to
-        // 'none' which will prevent it from appearing on the page
-
-        var ns = this.defaults;
-        var self = this;
-
-        ns.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation = "#chart-panel-header";
-
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.w / 2),
-                'margin-top': 100,
-                'display': ns.spinnerDisplay
-            });
-        });
-
     },
 
     initSvg: function() {
@@ -120,7 +89,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
     },
 
     update: function() {
-        this.hideSpinner();
         var ns = this.defaults;
         var self = this;
 
@@ -323,91 +291,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             return "translate(22," + d.dx * ky / 2 + ")";
         }
 
-    },
-
-    overrideSets: {
-        // works with filterMultiRsrcData method in topologyTreeView
-        // these params will be omitted from the returned data before
-        // rendering as a data table in 'resource list'
-
-        nova: ['@timestamp',
-            'metadata',
-            'region',
-            'links',
-            'swap',
-            'rxtx_factor',
-            'OS-FLV-EXT-DATA:ephemeral',
-            'service',
-            'cpu_info',
-            'hypervisor_version',
-            'bridge',
-            'bridge_interface',
-            'broadcast',
-            'cidr_v6',
-            'deleted',
-            'deleted_at',
-            'dhcp_start',
-            'dns1',
-            'dns2',
-            'gateway_v6',
-            'host',
-            'injected',
-            'multi_host',
-            'netmask_v6',
-            'priority',
-            'region',
-            'rxtx_base',
-            'vpn_private_address',
-            'vpn_public_address',
-            'vpn_public_port',
-            'accessIPv4',
-            'accessIPv6',
-            'addresses',
-            'config_drive',
-            'flavor',
-            'hostId',
-            'image',
-            'key_name',
-            'links',
-            'metadata',
-            'OS-DCF:diskConfig',
-            'OS-EXT-AZ:availability_zone',
-            'OS-EXT-SRV-ATTR:hypervisor_hostname',
-            'OS-EXT-STS:power_state',
-            'OS-EXT-STS:task_state',
-            'OS-EXT-STS:vm_state',
-            'os-extended-volumes:volumes_attached',
-            'OS-SRV-USG:launched_at',
-            'OS-SRV-USG:terminated_at',
-            'progress',
-            'region',
-            'security_groups',
-            'rules'
-        ],
-        cinder: ['@timestamp',
-            'metadata',
-            'region',
-            'extra_specs',
-            'display_description',
-            'os-extended-snapshot-attributes:progress',
-            'links',
-            'attachments',
-            'availability_zone',
-            'os-vol-mig-status-attr:migstat',
-            'os-vol-mig-status-attr:name_id',
-            'snapshot_id',
-            'source_volid'
-        ],
-        keystone: ['@timestamp'],
-        glance: ['@timestamp',
-            'metadata',
-            'region',
-            'tags',
-            'checksum',
-            'owner',
-            'schema',
-            'file'
-        ]
     },
 
     template: null
