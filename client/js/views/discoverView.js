@@ -60,17 +60,19 @@ var DiscoverView = GoldstoneBasePageView.extend({
         });
 
         //---------------------------
-        // instantiate Collapsable Tree chart
+        // fetch cloud topology
 
-        this.topologyTree = new ZoomablePartitionCollection({});
+        this.discoverTree = new ZoomablePartitionCollection({});
+
+        //---------------------------
+        // instantiate Collapsable Tree chart
 
         var topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            collection: this.topologyTree,
+            collection: this.discoverTree,
             chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
-            el: '#goldstone-discover-r2-c1',
+            el: '#c1-r1',
             h: 600,
-            width: $('#goldstone-discover-r2-c1').width(),
             leafDataUrls: {
                 "services-leaf": "/services",
                 "endpoints-leaf": "/endpoints",
@@ -95,7 +97,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "transfers-leaf": "/transfers",
                 "volume-types-leaf": "/volume_types"
             },
-            multiRsrcViewEl: '#goldstone-discover-r2-c2',
+            multiRsrcViewEl: '#r1-c2',
+            width: $('#goldstone-discover-r1-c1').width(),
 
         });
 
@@ -103,13 +106,11 @@ var DiscoverView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Zoomable Tree chart
 
-        this.zoomableTree = new ZoomablePartitionCollection({});
-
         this.zoomableTreeView = new ZoomablePartitionView({
             blueSpinnerGif: blueSpinnerGif,
             chartHeader: ['#goldstone-discover-r3-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            collection: this.zoomableTree,
-            el: '#goldstone-discover-r3-c1',
+            collection: this.discoverTree,
+            el: '#c2-r1',
             h: 600,
             leafDataUrls: {
                 "services-leaf": "/services",
@@ -135,8 +136,16 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 "transfers-leaf": "/transfers",
                 "volume-types-leaf": "/volume_types"
             },
-            multiRsrcViewEl: '#goldstone-discover-r3-c2',
-            width: $('#goldstone-discover-r3-c1').width()
+            multiRsrcViewEl: '#r1-c2',
+            width: $('#goldstone-discover-r1-c1').width()
+        });
+
+        // button swaps out tree view
+        $('#c2-r1').hide();
+        $('#changeMap').on('click', function() {
+            console.log('clicked');
+            $('#c2-r1').toggle();
+            $('#c1-r1').toggle();
         });
 
     },
@@ -147,18 +156,30 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
         '</div>' +
 
+        '<div><button class="btn btn-standard" id="changeMap">change</button></div>' +
+        '<br>' +
         '<div id="goldstone-discover-r2" class="row">' +
-        '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
-        '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
+        '<div id="r1" class="col-md-6">' +
+        '<div id="c1-r1" class="col-md-6"></div>' +
+        '<div id="c2-r1" class="col-md-6"></div>' +
         '</div>' +
-
-        '<div id="goldstone-discover-r3" class="row">' +
-        '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
-        '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
+        // should be column on the right
+        '<div id="r1-c2" class="col-md-6"></div>' +
         '</div>' +
-        '<div id="goldstone-discover-r4" class="row">' +
-        '<br><br>' +
         '</div>'
+
+        // '<div id="goldstone-discover-r2" class="row">' +
+        // '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
+        // '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
+        // '</div>' +
+
+        // '<div id="goldstone-discover-r3" class="row">' +
+        // '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
+        // '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
+        // '</div>' +
+        // '<div id="goldstone-discover-r4" class="row">' +
+        // '<br><br>' +
+        // '</div>'
     )
 
 });

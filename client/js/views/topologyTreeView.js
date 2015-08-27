@@ -198,7 +198,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
-            var firstTsData = payload[0] !== 'undefined' ? payload[0] : [];
+            var firstTsData = payload[0] !== undefined ? payload[0] : [];
             var myUuid = goldstone.uuid()();
             var filteredFirstTsData;
             var keys;
@@ -208,6 +208,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
             // firstTsData[0] if it exists, contains key/values representative
             // of table structure.
+            // otherwise it will === undefined
             if (firstTsData[0] !== undefined) {
                 firstTsData = _.map(firstTsData, function(e) {
                     e.datatableRecId = goldstone.uuid()();
@@ -283,10 +284,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                             }
                         }
                     });
-                } else {
-                    goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
                 }
+            } else {
+                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
             }
+
         }).fail(function(error) {
 
             // ns.multiRscsView is defined in this.render
@@ -587,7 +589,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
-
         ns.data = self.collection.toJSON()[0];
 
         if (ns.data !== undefined) {
