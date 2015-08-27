@@ -26,40 +26,45 @@
 
 STACK=true
 DOCKER=true
-NETWORK=true
 DEVELOPER=true
+DOCKER_VM="default"
+OPENSTACK_VM="RDO-kilo"
 
-while [[ $# > 0 ]] ; do
-    key="$1"
-
-    case $key in
-        --nostack)
+for arg in "$@" ; do
+    case $arg in
+        --no-stack)
             STACK=false
         ;;
-        --nodocker)
+        --no-docker)
             DOCKER=false
-        ;;
-        --nonetwork)
-            NETWORK=false
         ;;
         --prod)
             DEVELOPER=false
         ;;
+        --docker-vm=*)
+            DOCKER_VM="${arg#*=}"
+            shift
+        ;;
+        --stack-vm=*)
+            OPENSTACK_VM="${arg#*=}"
+            shift
+        ;;
+        --help)
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--no-stack] [--no-docker]"
+            exit 0
+        ;;
         *)
             # unknown option
-            echo "Usage: $0 [--nostack] [--nodocker] [--nonetwork]"
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--no-stack] [--no-docker]"
             exit 1
         ;;
     esac
-    shift # past argument or value
 done
 
 HOST_ONLY_ADDR=172.24.4.1
 HOST_ONLY_NETMASK=255.255.255.0
 DHCP_LO=172.24.4.50
 DHCP_HI=172.24.4.59
-BOOT2DOCKER_VM="boot2docker-vm"
-OPENSTACK_VM="RDO-kilo"
 OPENSTACK_HOST_INT=2
 OPENSTACK_NAT_INT=1
 COMMON_RULE_LIST='es_9200_RDO,tcp,172.24.4.1,9200,,9200 
@@ -76,7 +81,7 @@ PROD_RULE_LIST='gs_8000_local,tcp,,8000,,8000
                 nginx_8888_local,tcp,,8888,,80'
 
 # create vboxnet
-if [[ $NETWORK == "true" ]] ; then
+if [[ $STACK == "true" ]] ; then
     host_net=$(VBoxManage hostonlyif create 2> /dev/null | \
            grep Interface | \
            sed -e "s/^.*'\(.*\)'.*$/\1/")
@@ -114,11 +119,7 @@ if [[ $NETWORK == "true" ]] ; then
     else 
         echo "set $host_net DHCP range from $DHCP_LO to $DHCP_HI"
     fi
-else
-    echo "Skipping VBox network configuration"
-fi
 
-if [[ $STACK == "true" ]] ; then
     # Track errors with VM network settings
     err_count="0"
 
@@ -150,20 +151,20 @@ if [[ $DOCKER == "true" ]] ; then
     err_count="0"
     for rule in $COMMON_RULE_LIST ; do
         echo "processing rule: $rule"
-        VBoxManage modifyvm $BOOT2DOCKER_VM --natpf1 "$rule" || \
+        VBoxManage modifyvm $DOCKER_VM --natpf1 "$rule" || \
             err_count=$[$err_count+$?]
     done
 
     if [[ $DEVELOPER == "false" ]] ; then
         for rule in $PROD_RULE_LIST ; do
             echo "processing rule: $rule"
-            VBoxManage modifyvm $BOOT2DOCKER_VM --natpf1 "$rule" || \
+            VBoxManage modifyvm $DOCKER_VM --natpf1 "$rule" || \
                 err_count=$[$err_count+$?]
         done
     fi
     
     if [ $err_count -gt 0 ] ; then
-        echo "Encountered errors setting up NAT rules for $BOOT2DOCKER_VM"
+        echo "Encountered errors setting up NAT rules for $DOCKER_VM"
         exit 1
     else
         echo "Finished configuring VM network interfaces"

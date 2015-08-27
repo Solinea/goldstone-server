@@ -23,19 +23,42 @@
 # It assumes that there are no other celery or flower processes running
 # on the system, and optimistically kills processes.
 
-STACK_VM_NAME='RDO-kilo'
+STACK_VM="RDO-kilo"
+DOCKER_VM="default"
 ACPI_SHUTDOWN_WAIT=300
+
+for arg in "$@" ; do
+    case $arg in
+        --docker-vm=*)
+            DOCKER_VM="${arg#*=}"
+            shift
+        ;;
+        --stack-vm=*)
+            STACK_VM="${arg#*=}"
+            shift
+        ;;
+        --help)
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            exit 1
+        ;;
+    esac
+done
 
 wait_for_shutdown()
 {
     local delay=0.75
     local spinstr='|/-\'
     local i="0"
-    until $(VBoxManage showvminfo $STACK_VM_NAME --machinereadable | grep -q ^VMState=.poweroff.)
+    until $(VBoxManage showvminfo ${STACK_VM} --machinereadable | grep -q ^VMState=.poweroff.)
     do
         i=$[$i+1]
-        if [ $i -gt $ACPI_SHUTDOWN_WAIT ] ; then
-            echo "Failed to shut down $STACK_VM_NAME"
+        if [ $i -gt ${ACPI_SHUTDOWN_WAIT} ] ; then
+            echo "Failed to shut down ${STACK_VM}"
             exit 1 
         fi 
         local temp=${spinstr#?}
@@ -55,12 +78,12 @@ echo "cleaning up celery log files"
 rm /tmp/goldstone-server-celery.log
 rm /tmp/goldstone-server-flower.log
 
-echo "shutting down boot2docker"
+echo "shutting down docker VM"
 (cd $PROJECT_HOME/goldstone-server/docker;docker-compose stop)
-boot2docker down
+docker-machine stop ${DOCKER_VM}
 
-VBoxManage controlvm $STACK_VM_NAME acpipowerbutton 2&> /dev/null
-echo "Waiting for $STACK_VM_NAME to poweroff..."
+VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
+echo "Waiting for $STACK_VM to poweroff..."
 wait_for_shutdown
 
 

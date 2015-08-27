@@ -66,15 +66,14 @@ fi
 docker-machine start ${DOCKER_VM}
 eval "$(docker-machine env ${DOCKER_VM})"
 
-echo "starting celery"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery worker --app=goldstone --loglevel=info --queues=default \
-               --beat --without-heartbeat > \
-               /tmp/goldstone-server-celery.log 2>&1 &)
+cd $PROJECT_HOME/goldstone-server
+echo "Cleaning out old docker images and containers"
+docker/bin/wipe_docker
+echo "Building new images"
+docker/bin/build_containers.sh
+docker-compose -f docker/docker-compose.yml up -d 
+sleep 15
+fab goldstone_init 
 
-echo "starting flower on port 5555"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery flower -A goldstone --address=127.0.0.1 --port=5555 > \
-                            /tmp/goldstone-server-flower.log 2>&1 &)
-
-(cd $PROJECT_HOME/goldstone-server/docker;docker-compose up)
+docker-compose -f docker/docker-compose.yml stop
+docker-machine stop ${DOCKER_VM}

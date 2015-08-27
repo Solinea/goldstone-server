@@ -3,7 +3,7 @@
 # Database Container
 gsdb:
   image: solinea/goldstone-db
-  env_file: config/goldstone-db/pgsql.env
+  env_file: ./config/goldstone-db/pgsql.env
   volumes_from:
     - gsdbdvc
   ports:
@@ -20,8 +20,8 @@ gslog:
   image: solinea/goldstone-log
   command: logstash -f /logstash/conf.d -w 1
   volumes:
-    - config/goldstone-log/conf.d:/logstash/conf.d
-    - config/goldstone-log/patterns:/opt/logstash/patterns
+    - ./config/goldstone-log/conf.d:/logstash/conf.d
+    - ./config/goldstone-log/patterns:/opt/logstash/patterns
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -33,7 +33,7 @@ gslog:
 gssearch:
   image: solinea/goldstone-search
   volumes:
-    - config/goldstone-search:/usr/share/elasticsearch/config
+    - ./config/goldstone-search:/usr/share/elasticsearch/config
     # Mount a local volume for data
     #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
   ports:
