@@ -920,7 +920,8 @@ def _set_multi_value_configs(file_name, edits_list):
                             (config_entry['parameter'])))
                 sed(file_name,
                     '^%s[\s]*=[\s]*$' % (config_entry['parameter']),
-                    '%s = %s' % (config_entry['value']),
+                    '%s = %s' % (config_entry['parameter'],
+                                 config_entry['value']),
                     backup='.gsbak')
                 # we have our own backup, so delete the one that sed made
                 run("rm %s.gsbak" % file_name)
@@ -929,7 +930,7 @@ def _set_multi_value_configs(file_name, edits_list):
                 print(green("\tAdding new %s entry" %
                             (config_entry['parameter'])))
                 sed(file_name,
-                    '^\[%s\][\s]*$',
+                    '^\[%s\][\s]*$' % (config_entry['section']),
                     '\[%s\]\\n%s = %s' % (config_entry['section'],
                                           config_entry['parameter'],
                                           config_entry['value']),
