@@ -1,7 +1,7 @@
 # Goldstone Server Hacking Guide
 
 
-This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
+This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Docker Toolbox](http://www.docker.com/toolbox) installed.
 
 [TOC]
 
@@ -13,11 +13,8 @@ Install various prerequisite packages:
     $ brew doctor # (Resolve any any errors or warnings)
     $ brew install python
     $ brew install git
-    $ brew install boot2docker
-    $ brew install docker-compose
     $ brew install postgres
     $ brew install pyenv-virtualenvwrapper
-    $ boot2docker init
 
 You must have Python 2, at least at the version 2.7.10.
 
@@ -71,15 +68,15 @@ The recommended developement environment uses a prebuilt OpenStack image.  This 
 * Creates a new host-only network
 * Ensures that the OpenStack VM has the correct network interfaces
 * Creates a DHCP server on the host-only network
-* Configures NAT rules for boot2docker VM
+* Configures NAT rules for docker VM
 
 If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
     $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
 
-**_Note: configure_vbox.sh accepts --nonetwork, --nostack, and --nodocker flags to skip configuration of those
+**_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
 particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
-your boot2docker VM, you could run configure_vbox.sh --nonetwork --nostack.  This would only configure the docker
+your docker VM, you could run configure_vbox.sh --no-stack.  This would only configure the docker
 related NAT rules. _**
 
 ## Activate the Virtualenv
@@ -104,36 +101,12 @@ If the requirements files change, you should rerun the `pip install` commands.
 
 ## Building the Goldstone Containers
 
-All supporting services are available as docker containers.  To build the containers locally, run the following commands:
-
-    $ cd $PROJECT_HOME/goldstone-server/docker
-    $ boot2docker up
-    $ eval "$(boot2docker shellinit)"
-    $ bin/build_containers.sh
-    $ boot2docker down
-
-## Initialize Goldstone Server
-
-This step configures the Goldstone Server database, and is the final step before running the application.  It only needs to be done the first time you start Goldstone, and when you change ES or PostgreSQL schema.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in PostgreSQL and Elasticsearch.
-
-To initialize Goldstone Server, use the goldstone_init fabric task:
+All supporting services are available as docker containers. This step configures the Goldstone Server database, and is the final step before running the application.  It only needs to be done the first time you start Goldstone, and when you change ES or PostgreSQL schema.  You can rerun this step if you want to reinitialize, but realize that it will remove existing data in PostgreSQL and Elasticsearch.
 
     $ cd $PROJECT_HOME/goldstone-server
-    $ ./bin/start_dev_env.sh
-    $ fab goldstone_init
+    $ bin/init_dev_env.sh
     $ fab -f installer_fabfile.py -H 172.24.4.100 configure_stack
 
-
-
-### Re-initializing Goldstone Server
-
-If there have been significant data model changes in Goldstone, you may need to drop and recreate the database, then rerun the goldstone_init task.  To do that, execute the following commands while the postgres docker ontainer is running (the password will be the one you provided when running goldstone_init the last time):
-
-    $ cd $PROJECT_HOME/goldstone-server
-    $ dropdb -U postgres -h 127.0.0.1 goldstone   # password goldstone
-    $ createdb -U postgres -h 127.0.0.1 goldstone   # password goldstone
-    $ fab goldstone_init
-    $ fab -H 172.24.4.100 configure_stack
 
 If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
 
