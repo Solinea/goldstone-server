@@ -72,6 +72,7 @@ The recommended developement environment uses a prebuilt OpenStack image.  This 
 
 If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
+    $ docker-machine stop default     # shut down the docker VM so it can be modified
     $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
 
 **_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
@@ -92,7 +93,6 @@ The first time you enter the virtualenv, you should also install the project req
     $ pip install --upgrade pip
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
-    $ pip install flower
 
 If the requirements files change, you should rerun the `pip install` commands.
 
