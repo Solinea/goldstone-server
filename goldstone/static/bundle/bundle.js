@@ -5815,6 +5815,26 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
+        var LauncherView = Backbone.View.extend({
+            initialize: function(options) {
+                this.render();
+            },
+
+            render: function() {
+                this.$el.html(this.template());
+                return this;
+            },
+
+            // inner views will be bound to ".launcher-container" via
+            // their .el property passed into the options hash.
+            template: _.template('' +
+                '<div id="launcher-r1" class="row">' +
+                '<div id="launcher-r1-c1" class="col-md-6"></div>' +
+                '<div id="launcher-r1-c2" class="col-md-6"></div>' +
+                '</div>'
+            )
+        });
+
         //---------------------------
         // instantiate event timeline chart
 
@@ -5855,7 +5875,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         var topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
             collection: this.discoverTree,
-            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
+            chartHeader: ['#c1-r1', 'Cloud Topology', 'discoverCloudTopology'],
             el: '#c1-r1',
             h: 600,
             leafDataUrls: {
@@ -5893,7 +5913,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         this.zoomableTreeView = new ZoomablePartitionView({
             blueSpinnerGif: blueSpinnerGif,
-            chartHeader: ['#goldstone-discover-r3-c1', 'Cloud Topology', 'discoverZoomTopology'],
+            chartHeader: ['#c2-r1', 'Cloud Topology', 'discoverZoomTopology'],
             collection: this.discoverTree,
             el: '#c2-r1',
             h: 600,
@@ -5926,12 +5946,95 @@ var DiscoverView = GoldstoneBasePageView.extend({
         });
 
         // button swaps out tree view
-        $('#c2-r1').hide();
+        var mapCount = 0;
+        var launcherView;
         $('#changeMap').on('click', function() {
-            console.log('clicked');
-            $('#c2-r1').toggle();
-            $('#c1-r1').toggle();
-        });
+
+            if (launcherView) {
+                launcherView.remove();
+            }
+
+            launcherView = new LauncherView({});
+            $('#goldstone-discover-launcher-container').append(launcherView.el);
+
+            if (mapCount++ % 2 === 0) {
+
+                this.discoverTree = new ZoomablePartitionCollection({});
+
+                var topologyTreeView = new TopologyTreeView({
+                    blueSpinnerGif: blueSpinnerGif,
+                    collection: this.discoverTree,
+                    chartHeader: ['#launcher-r1-c1', 'Cloud Topology', 'discoverCloudTopology'],
+                    el: '#launcher-r1-c1',
+                    h: 600,
+                    leafDataUrls: {
+                        "services-leaf": "/services",
+                        "endpoints-leaf": "/endpoints",
+                        "roles-leaf": "/roles",
+                        "users-leaf": "/users",
+                        "tenants-leaf": "/tenants",
+                        "agents-leaf": "/agents",
+                        "aggregates-leaf": "/aggregates",
+                        "availability-zones-leaf": "/availability_zones",
+                        "cloudpipes-leaf": "/cloudpipes",
+                        "flavors-leaf": "/flavors",
+                        "floating-ip-pools-leaf": "/floating_ip_pools",
+                        "hosts-leaf": "/hosts",
+                        "hypervisors-leaf": "/hypervisors",
+                        "networks-leaf": "/networks",
+                        "secgroups-leaf": "/security_groups",
+                        "servers-leaf": "/servers",
+                        "images-leaf": "/images",
+                        "volumes-leaf": "/volumes",
+                        "backups-leaf": "/backups",
+                        "snapshots-leaf": "/snapshots",
+                        "transfers-leaf": "/transfers",
+                        "volume-types-leaf": "/volume_types"
+                    },
+                    multiRsrcViewEl: '#launcher-r1-c2',
+                    width: $('#launcher-r1-c1').width(),
+
+                });
+
+            } else {
+                this.discoverTree = new ZoomablePartitionCollection({});
+
+                this.zoomableTreeView = new ZoomablePartitionView({
+                    blueSpinnerGif: blueSpinnerGif,
+                    chartHeader: ['#launcher-r1-c1', 'Cloud Topology', 'discoverZoomTopology'],
+                    collection: this.discoverTree,
+                    el: '#launcher-r1-c1',
+                    h: 600,
+                    leafDataUrls: {
+                        "services-leaf": "/services",
+                        "endpoints-leaf": "/endpoints",
+                        "roles-leaf": "/roles",
+                        "users-leaf": "/users",
+                        "tenants-leaf": "/tenants",
+                        "agents-leaf": "/agents",
+                        "aggregates-leaf": "/aggregates",
+                        "availability-zones-leaf": "/availability_zones",
+                        "cloudpipes-leaf": "/cloudpipes",
+                        "flavors-leaf": "/flavors",
+                        "floating-ip-pools-leaf": "/floating_ip_pools",
+                        "hosts-leaf": "/hosts",
+                        "hypervisors-leaf": "/hypervisors",
+                        "networks-leaf": "/networks",
+                        "secgroups-leaf": "/security_groups",
+                        "servers-leaf": "/servers",
+                        "images-leaf": "/images",
+                        "volumes-leaf": "/volumes",
+                        "backups-leaf": "/backups",
+                        "snapshots-leaf": "/snapshots",
+                        "transfers-leaf": "/transfers",
+                        "volume-types-leaf": "/volume_types"
+                    },
+                    multiRsrcViewEl: '#launcher-r1-c2',
+                    width: $('#launcher-r1-c1').width()
+                });
+            }
+
+        }).click();
 
     },
 
@@ -5941,30 +6044,13 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div><button class="btn btn-standard" id="changeMap">change</button></div>' +
-        '<br>' +
+        '<div><button class="btn btn-standard" id="changeMap">Change Layout</button></div><br>' +
         '<div id="goldstone-discover-r2" class="row">' +
-        '<div id="r1" class="col-md-6">' +
-        '<div id="c1-r1" class="col-md-6"></div>' +
-        '<div id="c2-r1" class="col-md-6"></div>' +
+        '<div id="goldstone-discover-launcher-container" class="col-md-12"></div>' +
         '</div>' +
-        // should be column on the right
-        '<div id="r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '</div>'
 
-        // '<div id="goldstone-discover-r2" class="row">' +
-        // '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
-        // '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
-        // '</div>' +
+        '<div id="goldstone-discover-r2" class="row"><br><br></div>'
 
-        // '<div id="goldstone-discover-r3" class="row">' +
-        // '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
-        // '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
-        // '</div>' +
-        // '<div id="goldstone-discover-r4" class="row">' +
-        // '<br><br>' +
-        // '</div>'
     )
 
 });
