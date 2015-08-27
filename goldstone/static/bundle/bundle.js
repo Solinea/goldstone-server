@@ -82,7 +82,9 @@ goldstone.raiseAlert = function(selector, message, persist) {
     var alertWidth = $(selector).parent().width();
 
     $(selector).fadeIn("slow").css({
-        'position': 'absolute', 'width': alertWidth
+        'position': 'absolute',
+        'width': alertWidth,
+        'z-index': 10
     });
 
     if (!persist) {
