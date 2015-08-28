@@ -193,8 +193,8 @@ def _django_settings_module(verbose):
 
 @task
 def goldstone_init(django_admin_user='admin', django_admin_password=None,
-             django_admin_email='root@localhost', verbose=False, settings=None,
-             install_dir='.', **kwargs):
+                   django_admin_email='root@localhost', verbose=False,
+                   settings=None, install_dir='.', **kwargs):
     """Initialize the development environment.
 
     :keyword verbose: Display detail about each settings choice?
@@ -217,7 +217,7 @@ def goldstone_init(django_admin_user='admin', django_admin_password=None,
                       password=django_admin_password,
                       email=django_admin_email,
                       settings=settings, install_dir='.')
-    
+
     installer_goldstone_init(settings=settings, install_dir='.', **kwargs)
 
 

@@ -1372,7 +1372,6 @@ def _configure_glance(backup_postfix, restart='yes'):
         ]
     }
 
-
     template_dir = os.path.join(os.getcwd(), "external/glance")
     template_files = [
         {
