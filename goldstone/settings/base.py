@@ -166,8 +166,8 @@ CELERY_QUEUES = (
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 ES_GOLDSTONE_RETENTION = 30
 ES_LOGSTASH_RETENTION = 30
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 
@@ -273,7 +273,6 @@ REST_FRAMEWORK = {
                                 'rest_framework.filters.OrderingFilter', ),
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
-    'MAX_PAGINATE_BY': 1000,
     'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 

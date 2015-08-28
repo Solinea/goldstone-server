@@ -20,6 +20,7 @@ coverage==3.7.1
 selenium==2.40.0
 sphinx
 mock==1.0.1
+flower==0.8.2
 -e git+git://github.com/kmmbvnr/django-jenkins.git@0.15.0#egg=django-jenkins
 fake-factory
 mkdocs

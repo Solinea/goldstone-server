@@ -1,0 +1,47 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+filter {
+
+    if ([type] == "goldstone_nodeinfo") {
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => ["message", "host"]
+            match => { "message" => "%{MYSYSLOG5424LINE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+            add_field => [ "received_from", "%{host}" ]
+        }
+        date {
+            match => [ "syslog5424_ts", "yyyy-MM-dd HH:mm:ss,SSS", "yyyy-MM-dd HH:mm:ss,SSSZ", "ISO8601" ]
+            remove_field => "syslog5424_ts"
+        }
+        mutate {
+            rename => [ "syslog5424_host", "host" ]
+            rename => [ "syslog5424_msg", "message" ]
+        }
+
+        if ([syslog5424_app] == "goldstone_nodeinfo") {
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{OS_NODEINFO}" }
+            }
+            mutate {
+                remove_field => "syslog5424_msgid"
+                remove_field => "syslog5424_proc"
+                remove_field => "syslog5424_pri"
+                remove_field => "syslog5424_ver"
+            }
+        }
+    }
+}

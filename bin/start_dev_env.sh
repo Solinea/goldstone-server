@@ -29,20 +29,52 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-export STACK_VM_NAME="RDO-kilo"
 export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
+STACK_VM="RDO-kilo"
+DOCKER_VM="default"
 
-VboxManage list runningvms | grep \"${STACK_VM_NAME}\" ; RC=$?
+# trap ctrl-c and call ctrl_c()
+trap stop_dev_env INT
+
+function stop_dev_env() {
+    echo "Shutting down Goldstone dev env"
+    $PROJECT_HOME/goldstone-server/bin/stop_dev_env.sh
+    exit 0
+}
+
+
+for arg in "$@" ; do
+    case $arg in
+        --docker-vm=*)
+            DOCKER_VM="${arg#*=}"
+            shift
+        ;;
+        --stack-vm=*)
+            STACK_VM="${arg#*=}"
+            shift
+        ;;
+        --help)
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            exit 1
+        ;;
+    esac
+done
+
+VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
-    VBoxManage startvm ${STACK_VM_NAME} --type headless
+    VBoxManage startvm ${STACK_VM} --type headless
 else
-    echo "${STACK_VM_NAME} is already running"
+    echo "${STACK_VM} is already running"
 fi
 
-boot2docker up
-eval $(boot2docker shellinit)
-(cd $PROJECT_HOME/goldstone-docker;docker-compose up -d)
+docker-machine start ${DOCKER_VM}
+eval "$(docker-machine env ${DOCKER_VM})"
 
 echo "starting celery"
 (cd $PROJECT_HOME/goldstone-server ; \
@@ -54,3 +86,5 @@ echo "starting flower on port 5555"
 (cd $PROJECT_HOME/goldstone-server ; \
  celery flower -A goldstone --address=127.0.0.1 --port=5555 > \
                             /tmp/goldstone-server-flower.log 2>&1 &)
+
+(cd $PROJECT_HOME/goldstone-server/docker;docker-compose up)

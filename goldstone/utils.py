@@ -140,10 +140,12 @@ def get_client(service):
         os_auth_url = cloud.auth_url
 
         if service == 'keystone':
-            client = ksclient.Client(username=os_username,
-                                     password=os_password,
-                                     tenant_name=os_tenant_name,
-                                     auth_url=os_auth_url)
+            client = ksclient.Client(
+                username=os_username,
+                password=os_password,
+                tenant_name=os_tenant_name,
+                auth_url=os_auth_url.replace('/v2.0/', '/v3/'))
+
             if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
@@ -152,10 +154,12 @@ def get_client(service):
                 return {'client': client, 'hex_token': client.auth_token}
 
         elif service == 'nova':
-            client = nvclient.Client(os_username,
-                                     os_password,
-                                     os_tenant_name,
-                                     os_auth_url.replace('/v3/', '/v2.0/'))
+            client = nvclient.Client(
+                os_username,
+                os_password,
+                os_tenant_name,
+                os_auth_url.replace('/v3/', '/v2.0/'))
+
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
 
@@ -173,7 +177,7 @@ def get_client(service):
             client = get_neutron_client(os_username,
                                         os_password,
                                         os_tenant_name,
-                                        os_auth_url)
+                                        os_auth_url.replace('/v2.0/', '/v3/'))
             return {'client': client}
 
         elif service == 'glance':
