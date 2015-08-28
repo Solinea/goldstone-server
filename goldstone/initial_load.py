@@ -98,7 +98,8 @@ def _delete_all_indices(server=settings.ES_SERVER):
         conn = es_conn(server)
         conn.indices.delete('goldstone*')
     except RequestError:
-        raise("? Index deletion failed. Please report this!")
+        print "?ERROR: Index deletion failed. Please report this!"
+        raise
 
 
 def initialize_elasticsearch():
