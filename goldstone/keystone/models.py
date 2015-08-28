@@ -16,25 +16,30 @@ from goldstone.models import TopologyData
 
 
 class EndpointsData(TopologyData):
+    """Return data from ES about keystone endpoints"""
     _DOC_TYPE = 'keystone_endpoint_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class RolesData(TopologyData):
+    """Return data from ES about keystone roles"""
     _DOC_TYPE = 'keystone_role_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class ServicesData(TopologyData):
+    """Return data from ES about keystone services"""
     _DOC_TYPE = 'keystone_service_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class TenantsData(TopologyData):
+    """Return data from ES about keystone tenants"""
     _DOC_TYPE = 'keystone_tenant_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class UsersData(TopologyData):
+    """Return data from ES about keystone projects"""
     _DOC_TYPE = 'keystone_user_list'
     _INDEX_PREFIX = 'goldstone-'

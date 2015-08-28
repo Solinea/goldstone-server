@@ -16,35 +16,42 @@ from goldstone.models import TopologyData
 
 
 class ServicesData(TopologyData):
+    """Return data from ES about cinder services"""
     _DOC_TYPE = 'cinder_service_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class VolumesData(TopologyData):
+    """Return data from ES about cinder volumes"""
     _DOC_TYPE = 'cinder_volume_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class BackupsData(TopologyData):
+    """Return data from ES about cinder backups"""
     _DOC_TYPE = 'cinder_backup_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class SnapshotsData(TopologyData):
+    """Return data from ES about cinder snapshots"""
     _DOC_TYPE = 'cinder_snapshot_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class VolTypesData(TopologyData):
+    """Return data from ES about cinder volume types"""
     _DOC_TYPE = 'cinder_voltype_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class EncryptionTypesData(TopologyData):
+    """Return data from ES about cinder encryption types"""
     _DOC_TYPE = 'cinder_encrypttype_list'
     _INDEX_PREFIX = 'goldstone-'
 
 
 class TransfersData(TopologyData):
+    """Return data from ES about cinder transfers"""
     _DOC_TYPE = 'cinder_transfer_list'
     _INDEX_PREFIX = 'goldstone-'

@@ -210,15 +210,16 @@ def goldstone_init(django_admin_user='admin', django_admin_password=None,
         settings = _django_settings_module(verbose)
 
     # Do the initialization with the user's settings, on the current directory.
-    load_es_templates(proj_settings=settings, install_dir='.')
-    syncmigrate(settings=settings, install_dir='.')
+    load_es_templates(proj_settings=settings, install_dir=install_dir)
+    syncmigrate(settings=settings, install_dir=install_dir)
 
     django_admin_init(username=django_admin_user,
                       password=django_admin_password,
                       email=django_admin_email,
-                      settings=settings, install_dir='.')
+                      settings=settings, install_dir=install_dir)
 
-    installer_goldstone_init(settings=settings, install_dir='.', **kwargs)
+    installer_goldstone_init(settings=settings,
+                             install_dir=install_dir, **kwargs)
 
 
 @task

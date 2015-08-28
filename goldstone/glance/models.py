@@ -16,5 +16,6 @@ from goldstone.models import TopologyData
 
 
 class ImagesData(TopologyData):
+    """Return data from ES about glance images"""
     _DOC_TYPE = 'glance_image_list'
     _INDEX_PREFIX = 'goldstone-'
