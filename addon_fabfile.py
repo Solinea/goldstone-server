@@ -162,8 +162,8 @@ def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
               "\tnotes: {notes}\n\n"
 
         # The prompt string.
-        COMMAND = "Do you want to (I)gnore this row for now, (A)bort this " \
-                  "command, or (D)elete this row?"
+        COMMAND = cyan("Do you want to (I)gnore this row for now, (A)bort "
+                       "this command, or (D)elete this row?")
 
         # If this is the first bad row found, explain the facts of life.
         if not variables.errors_found:
@@ -203,7 +203,7 @@ def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     # Display a summary.
     if variables.errors_found:
         if variables.all_errors_fixed:
-            print(cyan("\nBad add-ons found and fixed!"))
+            print(green("\nBad add-ons found and fixed!"))
         else:
             print(red("\nBad add-ons found and not fixed."))
 
@@ -288,20 +288,20 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
 
     # Create the different messages we display for an update vs. an insert.
     if addon_install["replacement"]:
-        row_action = red("We'll replace an existing row in")
-        base_urls = red("\nWe won't change anything else.\n\n")
+        row_action = "We'll replace an existing row in"
+        base_urls = "\nWe won't change anything else.\n\n"
         celery_tasks = ''
         static_changes = ''
     else:
-        row_action = red("We'll add a row to")
+        row_action = "We'll add a row to"
         base_urls = \
-            red("\nWe'll add this to Goldstone\'s INSTALLED_APPS:\n") + \
+            "\nWe'll add this to Goldstone\'s INSTALLED_APPS:\n" + \
             "\t{0}\n".format(addon_install["installedapp"]) + \
-            red("We'll add this to Goldstone\'s URLconf:") + \
+            "We'll add this to Goldstone\'s URLconf:" + \
             "{0}\n".format(addon_install["urlpatterns"])
 
         celery_tasks = \
-            red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
+            "We'll add these lines to CELERYBEAT_SCHEDULE:\n" + \
             CELERYBEAT_APP_INCLUDE.format(name)
 
         static_changes = \
@@ -309,14 +309,12 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
             "base.html:\n".format(addon_install["static_source"],
                                   addon_install["static_dest"])
         static_changes = \
-            red(static_changes) + \
-            SCRIPT_TAG % name + \
-            LINK_TAG % name + '\n'
+            static_changes + SCRIPT_TAG % name + LINK_TAG % name + '\n'
 
     # Tell the user what we're about to do.
     fastprint("\nPlease confirm this:\n\n" +
               row_action +
-              red(" the addon table. It will contain:\n") +
+              " the addon table. It will contain:\n" +
               ROW.format(**addon_db) +
               base_urls +
               celery_tasks +
@@ -446,7 +444,7 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         addon_db, addon_install = _install_addon_info(name, install_dir)
 
         # Get permission to proceed.
-        if confirm('Proceed?', default=False):
+        if confirm(cyan('Proceed?'), default=False):
             if addon_install["replacement"]:
                 row = Addon.objects.get(name=name)
                 row.version = addon_db["version"]
@@ -576,10 +574,10 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
         try:
             row = Addon.objects.get(name=name)
         except ObjectDoesNotExist:
-            fastprint("The add-on \"%s\" isn't in the table.\n" % name)
+            fastprint(red("The add-on \"%s\" isn't in the table.\n" % name))
             sys.exit()
 
-        if confirm('We will remove the %s add-on. Proceed?' % name,
+        if confirm(cyan('We will remove the %s add-on. Proceed?' % name),
                    default=False):
             try:
                 # First, delete the row.
