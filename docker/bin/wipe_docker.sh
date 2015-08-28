@@ -1,4 +1,4 @@
-# Goldstone Docker Compose Configuration
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,55 +29,23 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-# Database Container
-gsdb:
-  image: solinea/goldstone-db
-  env_file: ./config/goldstone-db/pgsql.env
-  volumes_from:
-    - gsdbdvc
-  ports:
-    - "5432:5432"
+for arg in "$@" ; do
+    case $arg in
+        --help)
+            echo "Usage: $0"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0"
+            exit 1
+        ;;
+    esac
+done
 
-# Database Data Volume Container
-gsdbdvc:
-  image: solinea/goldstone-db-dvc
-  volumes:
-    - /var/lib/postgresql/data
-
-# Logstash Container
-gslog:
-  image: solinea/goldstone-log
-  command: logstash -f /logstash/conf.d -w 1
-  volumes:
-    - ./config/goldstone-log/conf.d:/logstash/conf.d
-    - ./config/goldstone-log/patterns:/opt/logstash/patterns
-  ports:
-    - "5514:5514"
-    - "5515:5515"
-    - "5516:5516"
-  links:
-    - gssearch
-
-# Elasticsearch Container
-gssearch:
-  image: solinea/goldstone-search
-  volumes:
-    - ./config/goldstone-search:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-
-# Celery Worker Container
-#gstask:
-#image: solinea/goldstone
-#command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
-#links:
-#- gstaskq
-
-# Redis Container
-gstaskq:
-  image: redis
-  ports:
-    - "6379:6379"
+docker ps -a | awk '{print $1}' | tail +2 | while read c ; do
+    docker rm -f $c
+done
+docker images | tail +2 | awk '{print $3}' | while read i ; do
+    docker rmi -f $i
+done

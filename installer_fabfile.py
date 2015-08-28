@@ -1359,7 +1359,22 @@ def _configure_glance(backup_postfix, restart='yes'):
     }
 
     # config lines that accept multiple values per line
-    multi_value_edits = {}
+    multi_value_edits = {
+        "/etc/glance/glance-api.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_driver",
+                "value": "messagingv2"
+            }
+        ],
+        "/etc/glance/glance-registry.conf": [
+            {
+                "section": "DEFAULT",
+                "parameter": "notification_driver",
+                "value": "messagingv2"
+            }
+        ]
+    }
 
     template_dir = os.path.join(os.getcwd(), "external/glance")
     template_files = [
@@ -1538,6 +1553,8 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
             "OpenStack and syslog services.\n\n"
             "Do you want to continue (yes/no)?"),
             default='yes', validate='yes|no')
+    else:
+        accepted = 'yes'
 
     if accepted != 'yes':
         return 0

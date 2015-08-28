@@ -72,8 +72,9 @@ The recommended developement environment uses a prebuilt OpenStack image.  This 
 
 If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
-    $ docker-machine stop default     # shut down the docker VM so it can be modified
-    $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
+    $ cd $PROJECT_HOME/goldstone-server
+    $ bin/stop_dev_env.sh
+    $ bin/configure_vbox.sh
 
 **_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
 particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
@@ -112,12 +113,14 @@ If you prefer to configure your own OpenStack, you will need to follow the instr
 
 There are some convenience scripts in `$PROJECT_HOME/goldstone-server/bin` for starting and stopping the virtual machines and docker containers that support the goldstone test environment.  For developer flexibilty, starting/stopping the django application has been omitted from the scripts.  To start the development environment, execute:
 
+    $ workon goldstone-server
     $ cd $PROJECT_HOME/goldstone-server
     $ ./bin/start_dev_env.sh
     $ fab runserver   # select local_docker settings
 
 To stop the development environment, exit the running server (Ctrl-C), then:
 
+    $ workon goldstone-server
     $ cd $PROJECT_HOME/goldstone-server
     $ ./bin/stop_dev_env.sh
 

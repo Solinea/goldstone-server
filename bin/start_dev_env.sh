@@ -33,6 +33,16 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 
+# trap ctrl-c and call ctrl_c()
+trap stop_dev_env INT
+
+function stop_dev_env() {
+    echo "Shutting down Goldstone dev env"
+    $PROJECT_HOME/goldstone-server/bin/stop_dev_env.sh
+    exit 0
+}
+
+
 for arg in "$@" ; do
     case $arg in
         --docker-vm=*)
