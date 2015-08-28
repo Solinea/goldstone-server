@@ -166,8 +166,8 @@ CELERY_QUEUES = (
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 ES_GOLDSTONE_RETENTION = 30
 ES_LOGSTASH_RETENTION = 30
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 

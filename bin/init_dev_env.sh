@@ -32,7 +32,6 @@
 export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
-CLEAN='--full-clean'
 
 for arg in "$@" ; do
     case $arg in
@@ -68,16 +67,21 @@ docker-machine start ${DOCKER_VM}
 eval "$(docker-machine env ${DOCKER_VM})"
 
 cd $PROJECT_HOME/goldstone-server
+
 echo "Cleaning out old docker images and containers"
-docker/bin/wipe_docker.sh $CLEAN
+docker/bin/wipe_docker.sh 
+
 echo "Building new images"
 docker/bin/build_containers.sh
 
 docker-compose -f docker/docker-compose.yml up -d 
+
 sleep 15
-fab -f fabfile.py goldstone_init:gs_tenant='default',gs_tenant_owner='None',gs_tenant_admin='gsadmin',gs_tenant_admin_password='admin',stack_tenant="${OS_TENANT}",stack_user="${OS_USERNAME}",stack_password="${OS_PASSWORD}",stack_auth_url="${OS_AUTH_URL}",settings="${DJANGO_SETTINGS_MODULE}",install_dir='.',django_admin_password='admin'
+
+fab -f fabfile.py goldstone_init:gs_tenant='default',gs_tenant_owner='None',gs_tenant_admin='gsadmin',gs_tenant_admin_password='admin',stack_tenant="${OS_TENANT_NAME}",stack_user="${OS_USERNAME}",stack_password="${OS_PASSWORD}",stack_auth_url="${OS_AUTH_URL}",settings="${DJANGO_SETTINGS_MODULE}",install_dir='.',django_admin_password='admin'
 
 fab -f installer_fabfile.py -p solinea -H 172.24.4.100 configure_stack:goldstone_addr='172.24.4.1',restart_services='yes',accept='True'
 
-docker-compose -f docker/docker-compose.yml stop
-docker-machine stop ${DOCKER_VM}
+bin/stop_dev_env.sh
+# docker-compose -f docker/docker-compose.yml stop
+# docker-machine stop ${DOCKER_VM}
