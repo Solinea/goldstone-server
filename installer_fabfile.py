@@ -28,6 +28,7 @@ from fabric.operations import prompt
 from fabric.context_managers import lcd
 from fabric.contrib.files import upload_template, exists
 
+# pylint: disable=C0302
 
 ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.5.repo"
 
@@ -906,6 +907,7 @@ def _set_multi_value_configs(file_name, edits_list):
         for config_entry in edits_list:
             # hopefully match all forms of key = [other_val] val [other_val]
             # while avoiding key = [other_val] xvalx [other_val]
+            # pylint: disable=W1401
             empty_setting_regex = '^%s[\s]*=[\s]*$' % \
                                   (config_entry['parameter'])
             setting_regex = '^[\s]*%s[\s]*=.*(?<=\s|=)%s(?!\S).*$' % \
@@ -945,7 +947,7 @@ def _set_multi_value_configs(file_name, edits_list):
         raise IOError("File not found: %s" % file_name)
 
 
-def _backup_config_file(file_name, backup_postfix, previously_backed_up=[]):
+def _backup_config_file(file_name, backup_postfix, previously_backed_up):
     """Back up a configuration file if it hasn't been backed up already.
 
     :param file_name: name of file
