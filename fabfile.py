@@ -192,7 +192,9 @@ def _django_settings_module(verbose):
 
 
 @task
-def goldstone_init(verbose=False):
+def goldstone_init(django_admin_user='admin', django_admin_password=None,
+             django_admin_email='root@localhost', verbose=False, settings=None,
+             install_dir='.', **kwargs):
     """Initialize the development environment.
 
     :keyword verbose: Display detail about each settings choice?
@@ -203,14 +205,20 @@ def goldstone_init(verbose=False):
     from installer_fabfile import syncmigrate, django_admin_init,\
         load_es_templates
 
-    # Get the desired settings from the user.
-    settings = _django_settings_module(verbose)
+    # Get the desired settings from the user unless supplied as an argument.
+    if settings is None:
+        settings = _django_settings_module(verbose)
 
     # Do the initialization with the user's settings, on the current directory.
     load_es_templates(proj_settings=settings, install_dir='.')
     syncmigrate(settings=settings, install_dir='.')
-    django_admin_init(settings=settings, install_dir='.')
-    installer_goldstone_init(settings=settings, install_dir='.')
+
+    django_admin_init(username=django_admin_user,
+                      password=django_admin_password,
+                      email=django_admin_email,
+                      settings=settings, install_dir='.')
+    
+    installer_goldstone_init(settings=settings, install_dir='.', **kwargs)
 
 
 @task

@@ -18,12 +18,13 @@ GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
 
 REGISTRY_ORG=solinea
 
-declare -a need_source=( $GS_APP_DIR )
-declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
-             $GS_LOG_DIR $GS_DB_DIR $GS_DB_DVC_DIR )
+# declare -a need_source=( $GS_APP_DIR )
+declare -a need_source=( )
+
 # declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
-#              $GS_LOG_DIR $GS_DB_DIR $GS_TASK_DIR \
-#              $GS_TASK_Q_DIR $GS_DB_DVC_DIR )
+#              $GS_LOG_DIR $GS_DB_DIR $GS_DB_DVC_DIR )
+declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
+              $GS_DB_DVC_DIR )
 
 cd $TOP_DIR || exit 1 
 
