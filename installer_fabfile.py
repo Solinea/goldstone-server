@@ -64,7 +64,6 @@ INSTALL_DIR = '/opt/goldstone'
 # The Goldstone settings path, relative to the Goldstone root where we're
 # executing from.
 PROD_SETTINGS = "goldstone.settings.production"
-PROD_DOCKER_SETTINGS = "goldstone.settings.production"
 
 # used to collect configuration data, then presented at completion
 # of install.
