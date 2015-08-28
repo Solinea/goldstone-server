@@ -46,24 +46,30 @@ URLS_PY = "\n# Include the {0} add-on.  Don't edit this entry!\n" \
           "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
 
 # The path, under the add-on's Python installation directory, where we find its
-# JavaScript files.
+# static (JavaScript and CSS) files.
 STATIC_SOURCE = "static"
 
 # The path, under INSTALL_DIR, in which we create a *directory* for the
-# add-on's JavaScript files. So, the JavaScript files will be found in
+# add-on's static files. So, the JavaScript and CSS files will be found in
 # INSTALL_DIR/STATIC_ADDONS_HOME/<addon name>/*.js.
 STATIC_ADDONS_HOME = "goldstone/static/addons"
 
 # An add-on's script tag is inserted into base.html, after these lines.
-STATIC_START = \
+SCRIPT_START = \
     '<!-- append addon script tags via "fab install_addon" command here ' \
     '-->\n' \
     '<!-- example script tag: -->\n' \
     '<!-- <script src="{% static \'addons/yourapp/main.js\' %}"></script> ' \
     '-->\n'
 
-# The add-on's script tag template.
-STATIC_TAG = '<script src="{%% static \'addons/%s/main.js\' %%}"></script>\n'
+# An add-on's LINK tag is inserted into base.html, after these lines.
+LINK_START = \
+    '<!-- Append add-on link tags via "fab install_addon" command here -->'
+
+# The add-on's script and link tag templates.
+SCRIPT_TAG = '<script src="{%% static \'addons/%s/main.js\' %%}"></script>\n'
+LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s/main.css ' \
+           'rel="stylesheet" media="screen">\n'
 
 # Used for searching and inserting into CELERYBEAT_SCHEDULE. Don't terminate
 # these strings with \n.
@@ -285,7 +291,7 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
         row_action = red("We'll replace an existing row in")
         base_urls = red("\nWe won't change anything else.\n\n")
         celery_tasks = ''
-        javascript_changes = ''
+        static_changes = ''
     else:
         row_action = red("We'll add a row to")
         base_urls = \
@@ -298,12 +304,14 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
             red("We'll add these lines to CELERYBEAT_SCHEDULE:\n") + \
             CELERYBEAT_APP_INCLUDE.format(name)
 
-        javascript_changes = \
-            "\nWe'll copy {0}/*.* to {1}/*.*, and add this line to " \
+        static_changes = \
+            "\nWe'll copy {0}/*.* to {1}/*.*, and add these lines to " \
             "base.html:\n".format(addon_install["static_source"],
                                   addon_install["static_dest"])
-        javascript_changes = \
-            red(javascript_changes) + STATIC_TAG % name + '\n'
+        static_changes = \
+            red(static_changes) + \
+            SCRIPT_TAG % name + \
+            LINK_TAG % name + '\n'
 
     # Tell the user what we're about to do.
     fastprint("\nPlease confirm this:\n\n" +
@@ -312,13 +320,13 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
               ROW.format(**addon_db) +
               base_urls +
               celery_tasks +
-              javascript_changes)
+              static_changes)
 
     return (addon_db, addon_install)
 
 
-def _install_addon_javascript(name, addon_install, install_dir):
-    """Install an add-on's JavaScript files, and insert a script tag into
+def _install_addon_static(name, addon_install, install_dir):
+    """Install an add-on's static files, and insert script and link tags into
     base.html.
 
     :param name: The add-on name
@@ -330,35 +338,43 @@ def _install_addon_javascript(name, addon_install, install_dir):
 
     """
 
-    # Delete the destination directory if it already exisets, and then copy the
-    # add-on's JavaScript files to it.
+    # Delete the destination directory if it already exists, and then copy the
+    # add-on's static files to it.
     rmtree(addon_install["static_dest"], ignore_errors=True)
     copytree(addon_install["static_source"], addon_install["static_dest"])
 
-    # Create the script tag line, and read base.html.
-    tag = STATIC_TAG % name
+    # Create the script and link tag lines.
+    script_tag = SCRIPT_TAG % name
+    link_tag = LINK_TAG % name
+
+    # Go to the start of the line after the add-on-script-tag-section's
+    # herald. Because the herald is multiple lines, we must advance N newlines
+    # to get past it.
     filepath = os.path.join(install_dir, "goldstone/templates/base.html")
 
     with open(filepath) as f:
         filedata = f.read()
 
-    # Go to the start of the line after the the add-on-script-tag-section's
-    # herald. Because the herald is multiple lines, we must advance N newlines
-    # to get past it.
-    insert = filedata.index(STATIC_START)
-    for _ in range(STATIC_START.count('\n')):
+    insert = filedata.index(SCRIPT_START)
+    for _ in range(SCRIPT_START.count('\n')):
         insert = filedata.index('\n', insert) + 1
 
     # Insert the script tag line right after the herald.
-    filedata = filedata[:insert] + tag + filedata[insert:]
+    filedata = filedata[:insert] + script_tag + filedata[insert:]
+
+    # Go to the start of the line after the add-on-link-tag-section's
+    # herald, and insert the link tag line right there.
+    insert = filedata.index(LINK_START)
+    insert = filedata.index('\n', insert) + 1
+    filedata = filedata[:insert] + link_tag + filedata[insert:]
 
     # Update the file.
     with open(filepath, 'w') as f:
         f.write(filedata)
 
 
-def _remove_addon_javascript(name, install_dir):
-    """Remove an add-on's JavaScript files, and its base.html script tag.
+def _remove_addon_static(name, install_dir):
+    """Remove an add-on's static files, and its base.html script and link tags.
 
     :param name: The add-on name
     :type name: str
@@ -367,13 +383,15 @@ def _remove_addon_javascript(name, install_dir):
 
     """
 
-    # Delete the add-on's JavaScript files, if they exist. We re-create the
+    # Delete the add-on's static files, if they exist. We re-create the
     # "static_dest" path.
     static_dest = os.path.join(install_dir, STATIC_ADDONS_HOME, name)
     rmtree(static_dest, ignore_errors=True)
 
-    # Create the script tag line, and read base.html.
-    tag = STATIC_TAG % name
+    # Create the script and link tag lines, and read base.html.
+    script_tag = SCRIPT_TAG % name
+    link_tag = LINK_TAG % name
+
     filepath = os.path.join(install_dir, "goldstone/templates/base.html")
 
     with open(filepath) as f:
@@ -381,8 +399,16 @@ def _remove_addon_javascript(name, install_dir):
 
     # Find the add-on script tag section, then find the add-on's static tag
     # line, then find the line after it. Then remove the script tag line.
-    insert = filedata.index(STATIC_START)
-    insert = filedata.index(tag, insert)
+    insert = filedata.index(SCRIPT_START)
+    insert = filedata.index(script_tag, insert)
+    end = filedata.index('\n', insert) + 1
+
+    filedata = filedata[:insert] + filedata[end:]
+
+    # Find the add-on link tag section, then find the add-on's link tag
+    # line, then find the line after it. Then remove the link tag line.
+    insert = filedata.index(LINK_START)
+    insert = filedata.index(link_tag, insert)
     end = filedata.index('\n', insert) + 1
 
     filedata = filedata[:insert] + filedata[end:]
@@ -502,12 +528,12 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                     with open(filepath, 'a') as f:
                         f.write(addon_install["urlpatterns"])
 
-                    # Now move the client's JavaScript files, and insert the
-                    # script tag.
-                    error = "copying the static files. You best " \
-                            "check them, and base.html's script tag."
+                    # Now move the add-on's JavaScript and CSS files, and
+                    # insert the script and link tags.
+                    error = "copying the static files. You best check them, " \
+                            "and base.html's script tag."
 
-                    _install_addon_javascript(name, addon_install, install_dir)
+                    _install_addon_static(name, addon_install, install_dir)
 
                     # Finally, expire all user tokens to force users to
                     # re-login, which will reset their client-side localStorage
@@ -581,7 +607,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
                 error = "reading base.py. The Addon table was " \
                         "modified. You must manually edit settings/base.py " \
                         "and urls.py, and remove the base.html script tag, " \
-                        "and delete the add-on's JavaScript directory."
+                        "and delete the add-on's static directory."
 
                 filepath = os.path.join(install_dir,
                                         "goldstone/settings/base.py")
@@ -618,7 +644,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
                 error = "writing base.py. The Addon table was " \
                         "modified. You must manually edit settings/base.py " \
                         "and urls.py, and remove the base.html script tag, " \
-                        "and delete the add-on's JavaScript directory."
+                        "and delete the add-on's static directory."
 
                 with open(filepath, 'w') as f:
                     f.write(filedata)
@@ -627,7 +653,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
                 error = "writing urls.py. The Addon table and " \
                         "settings/base.py were updated. You must edit " \
                         "urls.py, and remove the base.html script tag, and " \
-                        "delete the add-on's JavaScript directory."
+                        "delete the add-on's static directory."
 
                 filepath = os.path.join(install_dir, "goldstone/urls.py")
 
@@ -645,12 +671,12 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
                 with open(filepath, 'w') as f:
                     f.write(filedata)
 
-                # Now remove the client's JavaScript files, and its base.html
-                # script tag
-                error = "removing JavaScript files. You must " \
-                        "delete the add-on's JavaScript directory."
+                # Now remove the client's static files, and its base.html
+                # script and link tags.
+                error = "removing static files. You must delete the " \
+                        "add-on's static directory."
 
-                _remove_addon_javascript(name, install_dir)
+                _remove_addon_static(name, install_dir)
 
                 # Finally, expire all user tokens to force users to re-login,
                 # which will reset their client-side localStorage 'addons'
