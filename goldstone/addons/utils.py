@@ -23,7 +23,13 @@ def update_addon_node():
     the Addon node needs to be created. If it's already there, we leave it
     alone.
 
+    This also differs from update_xxxxx_nodes by returning the Addon node that
+    is found or created.
+
     """
     from goldstone.core.models import Addon
 
-    Addon.objects.get_or_create(native_id="Add-on", native_name="Add-on")
+    result, _ = Addon.objects.get_or_create(native_id="Add-on",
+                                            native_name="Add-on")
+
+    return result
