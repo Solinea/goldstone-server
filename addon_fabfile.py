@@ -68,8 +68,8 @@ LINK_START = \
 
 # The add-on's script and link tag templates.
 SCRIPT_TAG = '<script src="{%% static \'addons/%s/main.js\' %%}"></script>\n'
-LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s/main.css ' \
-           'rel="stylesheet" media="screen">\n'
+LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s/main.css"' \
+           ' rel="stylesheet" media="screen">\n'
 
 # Used for searching and inserting into CELERYBEAT_SCHEDULE. Don't terminate
 # these strings with \n.
