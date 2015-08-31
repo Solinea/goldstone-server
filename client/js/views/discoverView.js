@@ -30,26 +30,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
-        var LauncherView = Backbone.View.extend({
-            initialize: function(options) {
-                this.render();
-            },
-
-            render: function() {
-                this.$el.html(this.template());
-                return this;
-            },
-
-            // inner views will be bound to ".launcher-container" via
-            // their .el property passed into the options hash.
-            template: _.template('' +
-                '<div id="launcher-r1" class="row">' +
-                '<div id="launcher-r1-c1" class="col-md-6"></div>' +
-                '<div id="launcher-r1-c2" class="col-md-6"></div>' +
-                '</div>'
-            )
-        });
-
         //---------------------------
         // instantiate event timeline chart
 
@@ -79,178 +59,74 @@ var DiscoverView = GoldstoneBasePageView.extend({
             width: $('#goldstone-discover-r1-c2').width()
         });
 
+
         //---------------------------
-        // fetch cloud topology
+        // instantiate Cloud Topology chart
+        // Style of chart depends on user pref selected in settings page
+
+        var topoTreePref = JSON.parse(localStorage.getItem('userPrefs'));
 
         this.discoverTree = new ZoomablePartitionCollection({});
 
-        //---------------------------
-        // instantiate Collapsable Tree chart
+        if (topoTreePref && topoTreePref.topoTreeStyle &&
+            topoTreePref.topoTreeStyle === 'zoom') {
 
-        var topologyTreeView = new TopologyTreeView({
-            blueSpinnerGif: blueSpinnerGif,
-            collection: this.discoverTree,
-            chartHeader: ['#c1-r1', 'Cloud Topology', 'discoverCloudTopology'],
-            el: '#c1-r1',
-            h: 600,
-            leafDataUrls: {
-                "services-leaf": "/services",
-                "endpoints-leaf": "/endpoints",
-                "roles-leaf": "/roles",
-                "users-leaf": "/users",
-                "tenants-leaf": "/tenants",
-                "agents-leaf": "/agents",
-                "aggregates-leaf": "/aggregates",
-                "availability-zones-leaf": "/availability_zones",
-                "cloudpipes-leaf": "/cloudpipes",
-                "flavors-leaf": "/flavors",
-                "floating-ip-pools-leaf": "/floating_ip_pools",
-                "hosts-leaf": "/hosts",
-                "hypervisors-leaf": "/hypervisors",
-                "networks-leaf": "/networks",
-                "secgroups-leaf": "/security_groups",
-                "servers-leaf": "/servers",
-                "images-leaf": "/images",
-                "volumes-leaf": "/volumes",
-                "backups-leaf": "/backups",
-                "snapshots-leaf": "/snapshots",
-                "transfers-leaf": "/transfers",
-                "volume-types-leaf": "/volume_types"
-            },
-            multiRsrcViewEl: '#r1-c2',
-            width: $('#goldstone-discover-r1-c1').width(),
+            // if user prefs designate 'zoom'able style
+            this.zoomableTreeView = new ZoomablePartitionView({
+                blueSpinnerGif: blueSpinnerGif,
+                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                    'discoverZoomTopology'
+                ],
+                collection: this.discoverTree,
+                el: '#goldstone-discover-r2-c1',
+                h: 600,
+                leafDataUrls: this.leafDataUrls,
+                multiRsrcViewEl: '#goldstone-discover-r2-c2',
+                width: $('#goldstone-discover-r2-c1').width()
+            });
 
-        });
+        } else {
 
+            // if user prefs designate collapsable style
+            var topologyTreeView = new TopologyTreeView({
+                blueSpinnerGif: blueSpinnerGif,
+                collection: this.discoverTree,
+                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                    'discoverCloudTopology'
+                ],
+                el: '#goldstone-discover-r2-c1',
+                h: 600,
+                leafDataUrls: this.leafDataUrls,
+                multiRsrcViewEl: '#goldstone-discover-r2-c2',
+                width: $('#goldstone-discover-r2-c1').width(),
+            });
+        }
+    },
 
-        //---------------------------
-        // instantiate Zoomable Tree chart
-
-        this.zoomableTreeView = new ZoomablePartitionView({
-            blueSpinnerGif: blueSpinnerGif,
-            chartHeader: ['#c2-r1', 'Cloud Topology', 'discoverZoomTopology'],
-            collection: this.discoverTree,
-            el: '#c2-r1',
-            h: 600,
-            leafDataUrls: {
-                "services-leaf": "/services",
-                "endpoints-leaf": "/endpoints",
-                "roles-leaf": "/roles",
-                "users-leaf": "/users",
-                "tenants-leaf": "/tenants",
-                "agents-leaf": "/agents",
-                "aggregates-leaf": "/aggregates",
-                "availability-zones-leaf": "/availability_zones",
-                "cloudpipes-leaf": "/cloudpipes",
-                "flavors-leaf": "/flavors",
-                "floating-ip-pools-leaf": "/floating_ip_pools",
-                "hosts-leaf": "/hosts",
-                "hypervisors-leaf": "/hypervisors",
-                "networks-leaf": "/networks",
-                "secgroups-leaf": "/security_groups",
-                "servers-leaf": "/servers",
-                "images-leaf": "/images",
-                "volumes-leaf": "/volumes",
-                "backups-leaf": "/backups",
-                "snapshots-leaf": "/snapshots",
-                "transfers-leaf": "/transfers",
-                "volume-types-leaf": "/volume_types"
-            },
-            multiRsrcViewEl: '#r1-c2',
-            width: $('#goldstone-discover-r1-c1').width()
-        });
-
-        // button swaps out tree view
-        var mapCount = 0;
-        var launcherView;
-        $('#changeMap').on('click', function() {
-
-            if (launcherView) {
-                launcherView.remove();
-            }
-
-            launcherView = new LauncherView({});
-            $('#goldstone-discover-launcher-container').append(launcherView.el);
-
-            if (mapCount++ % 2 === 0) {
-
-                this.discoverTree = new ZoomablePartitionCollection({});
-
-                var topologyTreeView = new TopologyTreeView({
-                    blueSpinnerGif: blueSpinnerGif,
-                    collection: this.discoverTree,
-                    chartHeader: ['#launcher-r1-c1', 'Cloud Topology', 'discoverCloudTopology'],
-                    el: '#launcher-r1-c1',
-                    h: 600,
-                    leafDataUrls: {
-                        "services-leaf": "/services",
-                        "endpoints-leaf": "/endpoints",
-                        "roles-leaf": "/roles",
-                        "users-leaf": "/users",
-                        "tenants-leaf": "/tenants",
-                        "agents-leaf": "/agents",
-                        "aggregates-leaf": "/aggregates",
-                        "availability-zones-leaf": "/availability_zones",
-                        "cloudpipes-leaf": "/cloudpipes",
-                        "flavors-leaf": "/flavors",
-                        "floating-ip-pools-leaf": "/floating_ip_pools",
-                        "hosts-leaf": "/hosts",
-                        "hypervisors-leaf": "/hypervisors",
-                        "networks-leaf": "/networks",
-                        "secgroups-leaf": "/security_groups",
-                        "servers-leaf": "/servers",
-                        "images-leaf": "/images",
-                        "volumes-leaf": "/volumes",
-                        "backups-leaf": "/backups",
-                        "snapshots-leaf": "/snapshots",
-                        "transfers-leaf": "/transfers",
-                        "volume-types-leaf": "/volume_types"
-                    },
-                    multiRsrcViewEl: '#launcher-r1-c2',
-                    width: $('#launcher-r1-c1').width(),
-
-                });
-
-            } else {
-                this.discoverTree = new ZoomablePartitionCollection({});
-
-                this.zoomableTreeView = new ZoomablePartitionView({
-                    blueSpinnerGif: blueSpinnerGif,
-                    chartHeader: ['#launcher-r1-c1', 'Cloud Topology', 'discoverZoomTopology'],
-                    collection: this.discoverTree,
-                    el: '#launcher-r1-c1',
-                    h: 600,
-                    leafDataUrls: {
-                        "services-leaf": "/services",
-                        "endpoints-leaf": "/endpoints",
-                        "roles-leaf": "/roles",
-                        "users-leaf": "/users",
-                        "tenants-leaf": "/tenants",
-                        "agents-leaf": "/agents",
-                        "aggregates-leaf": "/aggregates",
-                        "availability-zones-leaf": "/availability_zones",
-                        "cloudpipes-leaf": "/cloudpipes",
-                        "flavors-leaf": "/flavors",
-                        "floating-ip-pools-leaf": "/floating_ip_pools",
-                        "hosts-leaf": "/hosts",
-                        "hypervisors-leaf": "/hypervisors",
-                        "networks-leaf": "/networks",
-                        "secgroups-leaf": "/security_groups",
-                        "servers-leaf": "/servers",
-                        "images-leaf": "/images",
-                        "volumes-leaf": "/volumes",
-                        "backups-leaf": "/backups",
-                        "snapshots-leaf": "/snapshots",
-                        "transfers-leaf": "/transfers",
-                        "volume-types-leaf": "/volume_types"
-                    },
-                    multiRsrcViewEl: '#launcher-r1-c2',
-                    width: $('#launcher-r1-c1').width()
-                });
-            }
-
-        }).click();
-
+    // defined on the object to be used as common to both topo tree views above
+    leafDataUrls: {
+        "services-leaf": "/services",
+        "endpoints-leaf": "/endpoints",
+        "roles-leaf": "/roles",
+        "users-leaf": "/users",
+        "tenants-leaf": "/tenants",
+        "agents-leaf": "/agents",
+        "aggregates-leaf": "/aggregates",
+        "availability-zones-leaf": "/availability_zones",
+        "cloudpipes-leaf": "/cloudpipes",
+        "flavors-leaf": "/flavors",
+        "floating-ip-pools-leaf": "/floating_ip_pools",
+        "hosts-leaf": "/hosts",
+        "hypervisors-leaf": "/hypervisors",
+        "networks-leaf": "/networks",
+        "secgroups-leaf": "/security_groups",
+        "servers-leaf": "/servers",
+        "images-leaf": "/images",
+        "volumes-leaf": "/volumes",
+        "backups-leaf": "/backups",
+        "snapshots-leaf": "/snapshots",
+        "transfers-leaf": "/transfers",
+        "volume-types-leaf": "/volume_types"
     },
 
     template: _.template('' +
@@ -259,12 +135,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div><button class="btn btn-standard" id="changeMap">Change Layout</button></div><br>' +
         '<div id="goldstone-discover-r2" class="row">' +
-        '<div id="goldstone-discover-launcher-container" class="col-md-12"></div>' +
+        '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
+        '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div id="goldstone-discover-r2" class="row"><br><br></div>'
+        '<div id="goldstone-discover-r3" class="row"><br><br></div>'
 
     )
 

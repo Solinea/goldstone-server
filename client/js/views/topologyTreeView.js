@@ -13,7 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// view is linked to collection when instantiated in goldstone_discover.html
+
+/*
+instantiated on discoverView when user prefs for topoTreeStyle === 'collapse' as
+
+this.discoverTree = new ZoomablePartitionCollection({});
+
+var topologyTreeView = new TopologyTreeView({
+    blueSpinnerGif: blueSpinnerGif,
+    collection: this.discoverTree,
+    chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
+    el: '#goldstone-discover-r2-c1',
+    h: 600,
+    leafDataUrls: {
+        "services-leaf": "/services",
+        "endpoints-leaf": "/endpoints",
+        "roles-leaf": "/roles",
+        "users-leaf": "/users",
+        "tenants-leaf": "/tenants",
+        "agents-leaf": "/agents",
+        "aggregates-leaf": "/aggregates",
+        "availability-zones-leaf": "/availability_zones",
+        "cloudpipes-leaf": "/cloudpipes",
+        "flavors-leaf": "/flavors",
+        "floating-ip-pools-leaf": "/floating_ip_pools",
+        "hosts-leaf": "/hosts",
+        "hypervisors-leaf": "/hypervisors",
+        "networks-leaf": "/networks",
+        "secgroups-leaf": "/security_groups",
+        "servers-leaf": "/servers",
+        "images-leaf": "/images",
+        "volumes-leaf": "/volumes",
+        "backups-leaf": "/backups",
+        "snapshots-leaf": "/snapshots",
+        "transfers-leaf": "/transfers",
+        "volume-types-leaf": "/volume_types"
+    },
+    multiRsrcViewEl: '#goldstone-discover-r2-c2',
+    width: $('#goldstone-discover-r2-c1').width(),
+});
+
+*/
+
 
 var TopologyTreeView = GoldstoneBaseView.extend({
 
@@ -78,7 +119,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             top: 10,
             bottom: 10,
             right: 10,
-            left: 30
+            left: 35
         };
         ns.mw = ns.w - ns.margin.left - ns.margin.right;
         ns.mh = ns.h - ns.margin.top - ns.margin.bottom;

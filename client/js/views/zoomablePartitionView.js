@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated in goldstone_discover.html
-
 /*
-instantiated on discoverView as:
+instantiated on discoverView when user prefs for topoTreeStyle === 'zoom' as:
 
-var zoomableTreeView = new ZoomablePartitionView({
+this.discoverTree = new ZoomablePartitionCollection({});
+
+this.zoomableTreeView = new ZoomablePartitionView({
     blueSpinnerGif: blueSpinnerGif,
     chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-    // collection: zoomableTree,
-    data: data,
+    collection: this.discoverTree,
     el: '#goldstone-discover-r2-c1',
     h: 600,
     leafDataUrls: {
