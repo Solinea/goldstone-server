@@ -45,17 +45,17 @@ Execute the following script to complete the virtualenv wrapper package setup (n
 
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
 
-    $ export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-    $ export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
-    $ export WORKON_HOME=$HOME/.virtualenvs
-    $ export PROJECT_HOME=$HOME/devel
-    $ source /usr/local/bin/virtualenvwrapper.sh
+    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/devel
+    source /usr/local/bin/virtualenvwrapper.sh
 
    Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
+   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
 
 
 ## Install the Development OpenStack VM
@@ -98,8 +98,6 @@ The first time you enter the virtualenv, you should also install the project req
     $ pip install -r test-requirements.txt
 
 If the requirements files change, you should rerun the `pip install` commands.
-
-**_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
 
 ## Building the Goldstone Containers
