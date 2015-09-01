@@ -33,14 +33,14 @@ class ElasticFilter(BaseFilterBackend):
         :param view: the calling view
         :param queryset: the base queryset
         :param operation: the query operation
-        :rtype Search
         :return: the update Search object
+        :rtype Search
 
         """
 
-        model_class = view.Meta.model
-        param = param if not model_class.field_has_raw(param) \
-            else param + '.raw'
+        if view.Meta.model.field_has_raw(param):
+            param += ".raw"
+
         return queryset.query(operation, **{param: value})
 
     @staticmethod
@@ -87,13 +87,25 @@ class ElasticFilter(BaseFilterBackend):
             split_param = param.split(LOOKUP_SEP)
 
             if len(split_param) == 1:
-                # standard match query
-                queryset = self._update_queryset(param, value, view, queryset)
+                if split_param[0] == "terms":
+                    # Terms' value is a dict of fields, all of which
+                    # must match at least one of their value's entries.
+                    queryset = queryset.query("terms", **value)
+                else:
+                    # Standard match query
+                    queryset = self._update_queryset(param,
+                                                     value,
+                                                     view,
+                                                     queryset)
             else:
-                # first term is the field, second term is the query operation
+                # First term is the field, second term is the query operation.
                 param = split_param[0]
                 operation = split_param[1]
-                queryset = self._update_queryset(
-                    param, value, view, queryset, operation)
+
+                queryset = self._update_queryset(param,
+                                                 value,
+                                                 view,
+                                                 queryset,
+                                                 operation)
 
         return queryset

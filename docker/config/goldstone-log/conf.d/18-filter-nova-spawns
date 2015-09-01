@@ -1,0 +1,84 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# categorize openstack syslog messages related to instance
+# spawning.  
+#
+filter {
+    if [type] == "nova_spawns_resub" {
+        if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
+            mutate {
+                    remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_START}" }
+                add_field => ["event", "start"]
+                add_tag => ["nova_spawn_start"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_SUCCESS}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", true]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_ABORT}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", false]
+                add_field => ["failure_mode", "ABORTED"]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_FAIL}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", false]
+                add_field => ["failure_mode", "ERROR"]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            if ("nova_spawn_start" not in [tags] and "nova_spawn_finish" not in [tags]) {
+                drop { }
+            } else {
+                mutate {
+                    replace => [ "type", "nova_spawns" ]
+                    remove_field => [
+                          syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                          syslog_severity_code, syslog_facility_code,
+                          syslog_severity, syslog_facility, program, component,
+                          openstack_message, request_id, instance_id, timestamp,
+                          request_id_list, message, tags ]
+                }
+            }
+        } else {
+            drop { }
+        }
+    }
+}
+

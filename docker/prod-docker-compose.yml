@@ -1,0 +1,104 @@
+# Goldstone Docker Compose Configuration
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# This script starts the boot2docker and OpenStack VirtualBox VMs, then
+# brings up the docker containers that support Goldstone.  It is known
+# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
+#
+# It assumes that you are running in a virtualenv, and that you have cloned
+# the goldstone-docker and goldstone-server Github repos into the
+# PROJECT_HOME associated with the virtual environment.
+#
+# Caution should be taken to ensure that the OpenStack VM is not in the
+# process of shutting down when this script is executed, otherwise you
+# may end up with a successful run, but the VM will be down.  If you use
+# the sibling stop_dev_env.sh script to shut down, the condition will be
+# rare since the script waits until the VM is powered off before exiting.
+#
+
+# Goldstone Proxy & Static
+gsweb:
+  image: solinea/goldstone-web
+  volumes:
+    - config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
+    - config/goldstone-web/conf.d:/etc/nginx/conf.d
+  ports:
+    - "8888:8888"
+  links:
+    - gsapp:gsapp
+
+# Goldstone Server Container
+gsapp:
+  image: solinea/goldstone-app
+  env_file: config/goldstone-app/goldstone.env
+  ports:
+    - "8000:8000"
+  links:
+    - gsdb
+    - gssearch
+
+# Database Container
+gsdb:
+  image: solinea/goldstone-db
+  env_file: config/goldstone-db/pgsql.env
+  volumes_from:
+    - gsdbdvc
+  ports:
+    - "5432:5432"
+
+# Database Data Volume Container
+gsdbdvc:
+  image: solinea/goldstone-db-dvc
+  volumes:
+    - /var/lib/postgresql/data
+
+# Logstash Container
+gslog:
+  image: solinea/goldstone-log
+  command: logstash -f /logstash/conf.d -w 1
+  volumes:
+    - config/goldstone-log/conf.d:/logstash/conf.d
+    - config/goldstone-log/patterns:/opt/logstash/patterns
+  ports:
+    - "5514:5514"
+    - "5515:5515"
+    - "5516:5516"
+  links:
+    - gssearch
+
+# Elasticsearch Container
+gssearch:
+  image: solinea/goldstone-search
+  #volumes:
+    #- config/goldstone-search:/usr/share/elasticsearch/config
+    # Mount a local volume for data
+    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
+# Celery Worker Container
+#gstask:
+#image: solinea/goldstone
+#command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
+#links:
+#- gstaskq
+
+# Redis Container
+#gstaskq:
+#  image: redis
+#  ports:
+#    - "6379:6379"

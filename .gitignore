@@ -85,7 +85,7 @@ Icon
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
 .Python
-[Bb]in
+# [Bb]in
 [Ii]nclude
 [Ll]ib
 [Ss]cripts
@@ -147,3 +147,7 @@ docs/site/
 # OpenTrail
 client/js/addons/opentrail/
 test/openTrail/
+
+# docker static data
+docker/Dockerfiles/goldstone-nginx/goldstone-server
+docker/Dockerfiles/goldstone-django/goldstone-server

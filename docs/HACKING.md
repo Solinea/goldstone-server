@@ -1,7 +1,9 @@
 # Goldstone Server Hacking Guide
 
 
-This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
+This explains how to install and run Goldstone Server locally (mostly in docker containers), so you can do code development on the project.  The instructions assume a Mac OS X Yosemite development environment with [homebrew](http://brew.sh/) and [Docker Toolbox](http://www.docker.com/toolbox) installed.  
+
+**_Note: if you have manually installed docker-machine and docker-compose, make sure your docker-machine VM name is 'default' in order to be compatible with the supporting scripts._**
 
 [TOC]
 
@@ -13,26 +15,22 @@ Install various prerequisite packages:
     $ brew doctor # (Resolve any any errors or warnings)
     $ brew install python
     $ brew install git
-    $ brew install boot2docker
-    $ brew install docker-compose
     $ brew install postgres
     $ brew install pyenv-virtualenvwrapper
-    $ boot2docker init
 
 You must have Python 2, at least at the version 2.7.10.
 
 **_Note: the postgres server does not need to be started.  It is installed in order to support some of the Goldstone dependencies._**
 
 
-## Fork and Clone Goldstone Repos
+## Fork and Clone Goldstone Repo
 
-Depending on your contributor status (core or community), you will either create forks of the [goldstone-server](https://github.com/Solinea/goldstone-server) and [goldstone-docker](https://github.com/Solinea/goldstone-docker) Github repositories, or you will be working on on branches from the main repos.
+Depending on your contributor status (core or community), you will either create a fork of the [goldstone-server](https://github.com/Solinea/goldstone-server) Github repositories, or you will be working on branches from the main repo.
 
-The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repositories](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.
+The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repository](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.
 
     $ mkdir ~/devel
     $ cd ~/devel
-    $ git clone https://github.com/Solinea/goldstone-docker.git
     $ git clone https://github.com/Solinea/goldstone-server.git
 
 
@@ -47,22 +45,22 @@ Execute the following script to complete the virtualenv wrapper package setup (n
 
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
 
-    $ export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-    $ export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
-    $ export WORKON_HOME=$HOME/.virtualenvs
-    $ export PROJECT_HOME=$HOME/devel
-    $ source /usr/local/bin/virtualenvwrapper.sh
+    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/devel
+    source /usr/local/bin/virtualenvwrapper.sh
 
    Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
+   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
 
 
 ## Install the Development OpenStack VM
 
-For convenience, you can [download an OpenStack VM image](https://horizon.hpcloud.com/project/containers/RDO-Images/RDO-kilo.ova/download) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
+For convenience, you can [download an OpenStack VM image](https://region-a.geo-1.objects.hpcloudsvc.com/v1/10815605991908/RDO-Images/RDO-kilo-201508.ova) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
 
 
 ## Configure VirtualBox Networking
@@ -72,12 +70,18 @@ The recommended developement environment uses a prebuilt OpenStack image.  This 
 * Creates a new host-only network
 * Ensures that the OpenStack VM has the correct network interfaces
 * Creates a DHCP server on the host-only network
-* Configures NAT rules for boot2docker VM
+* Configures NAT rules for docker VM
 
 If your environment is different than the typical dev environment, you may be able to use the script as a reference or adapt it to your needs.  To execute the changes, run:
 
-    $ $PROJECT_HOME/goldstone-server/bin/configure_vbox.sh
+    $ cd $PROJECT_HOME/goldstone-server
+    $ bin/stop_dev_env.sh
+    $ bin/configure_vbox.sh
 
+**_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
+particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
+your docker VM, you could run configure_vbox.sh --no-stack.  This would only configure the docker
+related NAT rules. _**
 
 ## Activate the Virtualenv
 
@@ -92,58 +96,73 @@ The first time you enter the virtualenv, you should also install the project req
     $ pip install --upgrade pip
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
-    $ pip install flower
 
 If the requirements files change, you should rerun the `pip install` commands.
 
-**_Note that the goldstone-server virtualenv is only meant to be run in a single terminal window._**
 
+## Building the Goldstone Containers
 
-## Initialize Goldstone Server
-
-This step configures the Goldstone Server database, and is the final step before running the application.  You can rerun this step if you want to wipe the database clean; however, it will not remove existing data in Elasticsearch.
-
-To initialize Goldstone Server, use the goldstone_init fabric task:
+All supporting services are available as docker containers. This step configures the Goldstone Server database, and is the final step before running the application.  It only needs to be done the first time you start Goldstone, and when you change ES or PostgreSQL schema.  You can rerun this step if you want to reinitialize, but realize that it will remove existing data in PostgreSQL and Elasticsearch.
 
     $ cd $PROJECT_HOME/goldstone-server
-    $ fab goldstone_init
+    $ bin/init_dev_env.sh
 
-You will be prompted for the settings to use (select `local_docker`), passwords for the Django admin and goldstone user, and your OpenStack cloud settings.
-
-### Re-initializing Goldstone Server
-
-If there have been significant data model changes in Goldstone, you may need to drop and recreate the database, then rerun the goldstone_init task.  To do that, execute the following commands while the postgres docker ontainer is running (the password will be the one you provided when running goldstone_init the last time):
-
-    $ dropdb -U postgres -h 127.0.0.1 goldstone_docker
-    $ createdb -U postgres -h 127.0.0.1 goldstone_docker
-
-
-## Configure the OpenStack VM 
-
-After the goldstone_init task has been completed, it will advise you to run another task to configure the OpenStack server.  For the developer environment, the command looks like this:
-
-    $ fab -H 172.24.4.100 configure_stack
-
+Here is an [example of the output](https://gist.github.com/jxstanford/8abace13d7ed2d036e09#file-init_dev_env-out) from a successful run.
 If you prefer to configure your own OpenStack, you will need to follow the instructions for configuring OpenStack hosts in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide.  You should also update your `postactivate` script to use proper values for the `OS_*` settings.
 
 ## Starting/Stopping Goldstone Server
 
 There are some convenience scripts in `$PROJECT_HOME/goldstone-server/bin` for starting and stopping the virtual machines and docker containers that support the goldstone test environment.  For developer flexibilty, starting/stopping the django application has been omitted from the scripts.  To start the development environment, execute:
 
+    $ workon goldstone-server
     $ cd $PROJECT_HOME/goldstone-server
     $ ./bin/start_dev_env.sh
-    $ fab runserver   # select local_docker settings
 
-To stop the development environment, exit the running server (Ctrl-C), then:
+Then, in a new window, execute:
+    $ workon goldstone-server
+    $ cd $PROJECT_HOME/goldstone-server
+    $ fab runserver   # select `local_docker` settings
 
+To stop the development environment:
+
+In the window running `fab runserver`:
+   
+    $ <Ctrl-C>  # exits the Django server
+
+In the window running `start_dev_env.sh`:
+
+    $ <Ctrl-C>  # executes `stop_dev_env.sh`
+
+or: 
+
+    $ workon goldstone-server
     $ cd $PROJECT_HOME/goldstone-server
     $ ./bin/stop_dev_env.sh
 
+## What to Expect When Running For the First Time
 
-## Verify the Development Environment
+The first time you start Golstone Server, you may see errors and missing data in the user interface. You may aloso see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, please submit an issue!
+
+It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
+
+    $ workon goldstone-server
+    $ cd $PROJECT_HOME/goldstone-server
+    $ nova boot --image cirros --flavor m1.tiny ceilo0
+
+Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
+
+
+## Running Tests
 
 To ensure that the installation is working properly, you can run the test suite.  If all goes will complete with a congratulatory message (though you may see some exceptions in the output from individual tests):
 
+    $ workon goldstone-server
+    $ cd $PROJECT_HOME/goldstone-server
+    $ bin/start_dev_env.sh
+
+Then, in another window
+
+    $ workon goldstone-server
     $ cd $PROJECT_HOME/goldstone-server
     $ tox -e py27
     <-- snip -->
