@@ -29,6 +29,7 @@ var UserPrefsView = Backbone.View.extend({
     setUpListeners: function() {
         var self = this;
 
+        // triggered on settingsPageView
         this.listenTo(this, 'lightThemeSelected', function() {
 
             self.applyLightTheme();
@@ -38,6 +39,7 @@ var UserPrefsView = Backbone.View.extend({
 
         });
 
+        // triggered on settingsPageView
         this.listenTo(this, 'darkThemeSelected', function() {
 
             self.applyDarkTheme();
@@ -45,6 +47,20 @@ var UserPrefsView = Backbone.View.extend({
             self.defaults.userPrefs.theme = 'dark';
             self.setUserPrefs();
 
+        });
+
+        // triggered on settingsPageView
+        this.listenTo(this, 'collapseTreeSelected', function() {
+            self.getUserPrefs();
+            self.defaults.userPrefs.topoTreeStyle = 'collapse';
+            self.setUserPrefs();
+        });
+
+        // triggered on settingsPageView
+        this.listenTo(this, 'zoomTreeSelected', function() {
+            self.getUserPrefs();
+            self.defaults.userPrefs.topoTreeStyle = 'zoom';
+            self.setUserPrefs();
         });
     },
 
