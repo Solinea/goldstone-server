@@ -95,10 +95,18 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 goldstone.raiseInfo('Could not load user settings');
             });
 
-        // set dropdown for theme selection to currently theme preference
+        // get current user prefs
         var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
+
+        // set dropdown for theme selection to current theme preference
         if (userTheme && userTheme.theme) {
             $('#theme-name').val(userTheme.theme);
+        }
+
+        // set dropdown for topology tree style selection
+        // to current style preference
+        if (userTheme && userTheme.topoTreeStyle) {
+            $('#topo-tree-name').val(userTheme.topoTreeStyle);
         }
 
     },
@@ -144,6 +152,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 goldstone.userPrefsView.trigger('lightThemeSelected');
             }
         });
+
+        // add listener to theme selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#topo-tree-name').on('change', function() {
+            var topoStyle = $('#topo-tree-name').val();
+            if (topoStyle === 'collapse') {
+                goldstone.userPrefsView.trigger('collapseTreeSelected');
+            }
+            if (topoStyle === 'zoom') {
+                goldstone.userPrefsView.trigger('zoomTreeSelected');
+            }
+        });
+
     },
 
     trimInputField: function(selector) {
@@ -157,12 +178,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="container">' +
 
         // theme switcher
-        '<div class="row">' +
-        '<div class="col-md-8 col-md-offset-2">' +
+        '<div class="row col-md-offset-2">' +
 
         '<h3>User Settings</h3>' +
-        '<h5>Theme Settings</h5>' +
 
+        // dark/light theme selector
+        '<div class="col-md-2">' +
+        '<h5>Theme Settings</h5>' +
         '<form class="theme-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
@@ -175,10 +197,30 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '</div>' +
         '</div>' +
         '</form>' +
-        '<hr>' +
+        '</div>' +
 
+
+        // topology tree style
+        '<div class="col-md-2">' +
+        '<h5>Topology Tree Style</h5>' +
+        '<form class="topo-tree-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="topo-tree-name">' +
+        '<option value="collapse">collapse</option>' +
+        '<option value="zoom">zoom</option>' +
+        '</select>' +
         '</div>' +
         '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+
+        // closes row
+        '</div>' +
+
+        '<hr>' +
 
         // popup message row
         '<div class="row">' +
