@@ -205,18 +205,16 @@ def get_client(service):
         raise GoldstoneAuthError(NO_AUTH % service.capitalize())
 
 
-# These must be defined here, because they're based on get_client.
-# pylint: disable=C0103
-get_cinder_client = functools.partial(get_client, 'cinder')
-get_glance_client = functools.partial(get_client, 'glance')
-get_keystone_client = functools.partial(get_client, 'keystone')
-get_nova_client = functools.partial(get_client, 'nova')
-# pylint: enable=C0103
-
-
 class TopologyMixin(object):
+    """A base class that is used by "DiscoverTree" classes."""
 
     def _get_children(self, children, rsrc_type):
+        """Return a list or dict of the children, or children of the children,
+        that match rsrc_type.
+
+        TODO: Fix this so it returns only one data type.
+
+        """
 
         assert (isinstance(children, dict) or isinstance(children, list)), \
             "children must be a list or dict"
@@ -234,6 +232,7 @@ class TopologyMixin(object):
         elif children.get('children'):
             result = [self._get_children(c, rsrc_type)
                       for c in children['children']]
+
             if result and isinstance(result[0], list):
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]
@@ -250,6 +249,7 @@ class TopologyMixin(object):
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
 
         try:
+            # pylint: disable=W0123
             return eval(cond,
                         {'__builtins__': {}},
                         {"sc": source, "tc": target, "len": len})
@@ -394,3 +394,10 @@ def partition_hostname(hostname):
     parts = hostname.partition('.')
     return dict(hostname=parts[0],
                 domainname=parts[2] if parts[1] == '.' else None)
+
+
+# pylint: disable=C0103
+get_cinder_client = functools.partial(get_client, 'cinder')
+get_glance_client = functools.partial(get_client, 'glance')
+get_keystone_client = functools.partial(get_client, 'keystone')
+get_nova_client = functools.partial(get_client, 'nova')
