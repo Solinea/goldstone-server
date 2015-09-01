@@ -67,12 +67,9 @@ DHCP_LO=172.24.4.50
 DHCP_HI=172.24.4.59
 OPENSTACK_HOST_INT=2
 OPENSTACK_NAT_INT=1
-COMMON_RULE_LIST='es_9200_RDO,tcp,172.24.4.1,9200,,9200 
-                  es_9200_local,tcp,,9200,,9200 
+COMMON_RULE_LIST='es_9200_local,tcp,,9200,,9200 
                   es_9300_local,tcp,,9300,,9300 
-                  logstash_syslog_RDO,tcp,172.24.4.1,5514,,5514 
                   logstash_syslog_local,tcp,,5514,,5514 
-                  logstash_metrics_RDO,udp,172.24.4.1,5516,,5516 
                   logstash_metrics_local,udp,,5516,,5516 
                   postgres_local,tcp,,5432,,5432 
                   redis_local,tcp,,6379,,6379' 
