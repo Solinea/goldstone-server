@@ -108,7 +108,6 @@ describe('goldstoneBaseView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.checkReturnedDataSet(this.testCollection.toJSON());
             expect($('.popup-message').text()).to.equal('No Data Returned');
