@@ -72,7 +72,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
             return 'Cleared token = ' + a;
         }), "WARN_BAR");
 
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
         test.assertExists('form.login-form');
         this.echo('page url after redirect: ' + this.evaluate(function() {
             return document.location.href;
@@ -96,7 +96,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
         // 'true/false' is whether to submit form
         this.fill('form.login-form', {
             'username': "gsadmin",
-            'password': "solinea"
+            'password': "admin"
         }, true);
     });
 
@@ -120,7 +120,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
         this.echo('timed out on redirect to /discover', "WARN_BAR");
     });
 
-    casper.waitForSelector('#goldstone-discover-r2-c1 svg rect.parent', function() {
+    casper.waitForSelector('#goldstone-discover-r2-c1 div #topology-tree svg g', function() {
         this.echo('svg chart loaded');
     });
 
@@ -133,7 +133,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
 casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
     casper.start('http://localhost:8000/#login', function() {
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
     });
 
     casper.then(function() {
@@ -256,8 +256,8 @@ casper.test.begin('/settings page updates user personal settings / password', 10
 
         // submit new password (use same one, tho)
         this.fill('form.password-reset-form', {
-            'current_password': 'solinea',
-            'new_password': 'solinea'
+            'current_password': 'admin',
+            'new_password': 'admin'
         }, true);
 
         // what does the Change Password form say post-submit?
@@ -366,7 +366,7 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
 //         }), "WARN_BAR");
 
 //         //title
-//         test.assertTitle("Goldstone", "Page title is 'goldstone'");
+//         test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
 //         // navbar
 //         test.assertExists('.navbar-brand > img', 'Favicon should load');
@@ -595,7 +595,7 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
 casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     casper.start('http://localhost:8000', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -609,7 +609,7 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     casper.waitForSelector('#goldstone-node-panel div.panel-body svg g text', function() {
         this.echo('node avail svg loaded');
     });
-    casper.waitForSelector('div#goldstone-discover-r2-c1.col-md-6 div.chart svg g', function() {
+    casper.waitForSelector('div#goldstone-discover-r2-c1 div #topology-tree svg g', function() {
         this.echo('cloud topology svg loaded');
     });
 
@@ -747,7 +747,7 @@ casper.test.begin('API Perf Page is loading properly', 65, function suite(test) 
 
     casper.start('http://localhost:8000/#metrics/api_perf', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -886,7 +886,7 @@ casper.test.begin('API Perf Page is loading properly', 65, function suite(test) 
 casper.test.begin('Nova (compute) Page is loading properly', 52, function suite(test) {
     casper.start('http://localhost:8000/#metrics/nova_report', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1037,7 +1037,7 @@ casper.test.begin('Nova (compute) Page is loading properly', 52, function suite(
 casper.test.begin('Neutron (network) Page is loading properly', 17, function suite(test) {
     casper.start('http://localhost:8000/#metrics/neutron_report', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1078,7 +1078,7 @@ casper.test.begin('Neutron (network) Page is loading properly', 17, function sui
 casper.test.begin('Block Storage (cinder) Page is loading properly', 17, function suite(test) {
     casper.start('http://localhost:8000/#metrics/cinder_report', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1120,7 +1120,7 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 17, functio
 casper.test.begin('Image (glance) Page is loading properly', 17, function suite(test) {
     casper.start('http://localhost:8000/#metrics/glance_report', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1161,7 +1161,7 @@ casper.test.begin('Image (glance) Page is loading properly', 17, function suite(
 casper.test.begin('Identity (keystone) Page is loading properly', 17, function suite(test) {
     casper.start('http://localhost:8000/#metrics/keystone_report', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1203,7 +1203,7 @@ casper.test.begin('Identity (keystone) Page is loading properly', 17, function s
 casper.test.begin('Logging page is loading properly', 27, function suite(test) {
     casper.start('http://localhost:8000/#reports/logbrowser', function() {
         //title
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
@@ -1277,7 +1277,7 @@ casper.test.begin('Logging out removes the auth token and redirects to the login
     });
 
     casper.then(function() {
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button means', 'WARN_BAR');
         this.echo('the user was not logged in and this test is dubious', 'WARN_BAR');
         test.assertVisible('.fa-sign-out', "Logout button is present");
@@ -1310,7 +1310,7 @@ casper.test.begin('Now that user is logged out, checking that unauthorized api c
     });
 
     casper.then(function() {
-        test.assertTitle("Goldstone", "Page title is 'goldstone'");
+        test.assertTitle("Goldstone", "Page title is 'Goldstone'");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button is expected', 'WARN_BAR');
         this.echo('the user is not logged in and there should be no logout button', 'WARN_BAR');
         test.assertNotVisible('.fa-sign-out', "Logout button is NOT present (expected)");
