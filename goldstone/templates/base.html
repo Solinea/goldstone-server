@@ -30,11 +30,17 @@
         <link rel="stylesheet" href="/static/css/client/scss/styleLight.css" rel="stylesheet" media="screen">
         <link rel="alternate stylesheet" href="/static/css/client/scss/styleDark.css" rel="stylesheet" media="screen">
         <link rel="icon" href="/static/images/favicon.ico">
+
+        <!-- Example addon css link: -->
+        <!-- <link rel="stylesheet" href="/static/addons/<yourapp>/main.css" rel="stylesheet" media="screen"> -->
+        <!-- Append add-on link tags via "fab install_addon" command here -->
+
+
+        <!-- Append addon script tags via fab routine prior to here -->
         {% block localcss %}
         {% endblock %}
     </head>
     <body>
-        <!-- Append add-on link tags via "fab install_addon" command here -->
         <div id="wrap">
             <!-- Fixed navbar -->
             <div class="navbar navbar-default navbar-fixed-top" role="navigation">
