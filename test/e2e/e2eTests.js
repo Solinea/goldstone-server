@@ -31,6 +31,10 @@ WARN_BAR: white text on orange background
 */
 
 // default viewportSize inherited from PhantomJS: 400wx300h
+
+var USERNAME = "gsadmin";
+var PASSWORD = "solinea";
+
 casper.options.viewportSize = {
     width: 1430,
     height: 779
@@ -95,8 +99,8 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
         // fills in form with "field: value"
         // 'true/false' is whether to submit form
         this.fill('form.login-form', {
-            'username': "gsadmin",
-            'password': "admin"
+            'username': USERNAME,
+            'password': PASSWORD
         }, true);
     });
 
@@ -256,8 +260,8 @@ casper.test.begin('/settings page updates user personal settings / password', 10
 
         // submit new password (use same one, tho)
         this.fill('form.password-reset-form', {
-            'current_password': 'admin',
-            'new_password': 'admin'
+            'current_password': PASSWORD,
+            'new_password': PASSWORD
         }, true);
 
         // what does the Change Password form say post-submit?
