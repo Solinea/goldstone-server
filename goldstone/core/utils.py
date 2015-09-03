@@ -19,6 +19,8 @@ from rest_framework import status, serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
+from goldstone.core.models import PolyResource
 from goldstone.drfes.utils import es_custom_exception_handler
 
 logger = logging.getLogger(__name__)
@@ -166,7 +168,7 @@ def process_resource_type(nodetype):
 
     """
     from django.core.exceptions import ObjectDoesNotExist
-    from goldstone.core.models import Host, PolyResource
+    from goldstone.core.models import Host
 
     # Remove Resource graph nodes that no longer exist. First get the cloud
     # instances of the desired type, and nodes of that type in the persistent
@@ -319,3 +321,23 @@ def query_filter_map(key):
                }
 
     return MAPPING.get(key)
+
+
+def resource_types(name):
+    """Return a module's types that are derived from PolyResource.
+
+    :param name: A module name
+    :type name: str
+    :return: The classes from <name>.models that are subclasses from
+             PolyResource.  PolyResource itself will not be included.
+    :rtype: list of class
+
+    """
+    from importlib import import_module
+    from inspect import getmro, getmembers, isclass
+
+    the_app = import_module("%s.models" % name)
+    addon_classes = [x[1] for x in getmembers(the_app, isclass)]
+
+    return [x for x in addon_classes
+            if PolyResource in getmro(x) and x != PolyResource]

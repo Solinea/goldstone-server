@@ -137,6 +137,8 @@ def check_response_without_uuid(response, expected_status_code,
     those checks pass, we assume the uuid is correct, and then do an exact
     comparison of the remainder of the response.
 
+    The uuid key may be, "UUID," or, "uuid".
+
     The extra_keys hook allows the caller to specify the same treatment (except
     for the length of the value) for arbitrary keys.
 
@@ -148,8 +150,8 @@ def check_response_without_uuid(response, expected_status_code,
     :type expected_content: dict
     :keyword uuid_under_results: If True, response.content contains a 'results'
                                  key. Its value is a list of dicts, and each
-                                 dict contains a 'uuid' key. If False,
-                                 response.content contains a 'uuid' key.
+                                 dict contains a "uuid" key. If False,
+                                 response.content contains a "uuid" key.
     :type uuid_under_results: bool
     :keyword extra_keys: If not None, a list of keys. These keys will be
                          checked for their existence, and their values must
@@ -162,8 +164,9 @@ def check_response_without_uuid(response, expected_status_code,
     def uuid_check(response_dict):
         """Check the uuid key and value."""
 
-        assert isinstance(response_dict["uuid"], basestring)
-        assert len(response_dict["uuid"]) >= 32
+        assert isinstance(response_dict.get("uuid", response_dict.get("UUID")),
+                          basestring)
+        assert len(response_dict.get("uuid", response_dict.get("UUID"))) >= 32
 
     assert response.status_code == expected_status_code
 
@@ -171,15 +174,21 @@ def check_response_without_uuid(response, expected_status_code,
     response_content = json.loads(response.content)
 
     if uuid_under_results:
-        # Look under the 'results' key for a list of dicts. Each dict should
+        # Look under the 'results' key for a list of dicts. Each dict must
         # have a 'uuid' key.
         for entry in response_content["results"]:
             uuid_check(entry)
-            del entry["uuid"]
+            if "uuid" in entry:
+                del entry["uuid"]
+            else:
+                del entry["UUID"]
     else:
         # Look under response_content for the single 'uuid' key.
         uuid_check(response_content)
-        del response_content["uuid"]
+        if "uuid" in response_content:
+            del response_content["uuid"]
+        else:
+            del response_content["UUID"]
 
     # Check the extra_keys keys for existence, and their values must be
     # strings.
@@ -188,5 +197,11 @@ def check_response_without_uuid(response, expected_status_code,
             assert isinstance(response_content[key], basestring)
             del response_content[key]
 
-    # Now check that every other key is in the response.
+    if uuid_under_results:
+        # assertEqual compares nested dict values with order sensitivity, if
+        # the values are lists.
+        response_content["results"].sort()
+        expected_content["results"].sort()
+
+    # Now check every other key in the response.
     assert response_content == expected_content
