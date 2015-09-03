@@ -42,20 +42,40 @@ GS_SEARCH_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-search
 GS_LOG_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-log
 GS_DB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db
 GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
-# GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
-# GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
+GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
+GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
 
 REGISTRY_ORG=solinea
 
-# declare -a need_source=( $GS_APP_DIR )
 declare -a need_source=( )
+declare -a prod_need_source=( $GS_APP_DIR $GS_TASK_DIR )
 
-# declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
-#              $GS_LOG_DIR $GS_DB_DIR $GS_DB_DVC_DIR )
 declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
               $GS_DB_DVC_DIR )
+declare -a prod_to_build=( $$GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
+              $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR \
+              $GS_TASK_Q_DIR $GS_TASK_DIR )
 
 cd $TOP_DIR || exit 1 
+
+for arg in "$@" ; do
+    case $arg in
+        --prod)
+            need_source=$prod_need_source
+            to_build=$dev_to_build
+        ;;
+        --help)
+            echo "Usage: $0 [--prod]"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0"
+            exit 1
+        ;;
+    esac
+done
+
 
 if [[ -d $DIST_DIR ]] ; then
     rm -rf ${DIST_DIR}/*
