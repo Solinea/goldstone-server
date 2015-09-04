@@ -235,13 +235,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +
         '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="username" required>' +
+        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
         '<label for="inputFirstname">First name</label>' +
-        '<input name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
+        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
         '<label for="inputLastname">Last name</label>' +
-        '<input name="last_name" type="text" class="form-control" placeholder="Last name">' +
+        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Email">' +
+        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
@@ -251,9 +251,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<form class="password-reset-form">' +
         '<h3>Change Password</h3>' +
         '<label for="inputCurrentPassword">Current password</label>' +
-        '<input name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
+        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
         '<label for="inputNewPassword">New password</label>' +
-        '<input name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
+        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
         '</form>' +
         '</div>' +
