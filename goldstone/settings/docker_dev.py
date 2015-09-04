@@ -16,11 +16,9 @@ from .base import *            # pylint: disable=W0614,W0401
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = bool(os.environ.get('DEBUG', False))
+DEBUG = bool(os.environ.get('DEBUG', True))
 
-TEMPLATE_DEBUG = False
-
-QUNIT_ENABLED = False
+TEMPLATE_DEBUG = True
 
 DATABASES = {
     'default': {

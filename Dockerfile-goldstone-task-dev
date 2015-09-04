@@ -29,7 +29,7 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-FROM solinea/goldstone-app
+FROM solinea/goldstone-app-dev
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-COPY ./docker_entrypoint.sh /
+COPY docker/Dockerfiles/goldstone-task/dev_docker_entrypoint.sh /docker_entrypoint.sh

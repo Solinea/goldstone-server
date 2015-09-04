@@ -33,6 +33,7 @@
 # goldstone-server docker container context for build. Once copied, it 
 # performs a build of the docker container, and pushes it to the repo.  
 
+DOCKER_VM=default
 TOP_DIR=${PROJECT_HOME}/goldstone-server
 DIST_DIR=${TOP_DIR}/dist
 
@@ -47,12 +48,9 @@ GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
 
 REGISTRY_ORG=solinea
 
-declare -a need_source=( )
-declare -a prod_need_source=( $GS_APP_DIR $GS_TASK_DIR )
+declare -a need_source=( $GS_APP_DIR )
 
 declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_DB_DVC_DIR )
-declare -a prod_to_build=( $$GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
               $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR \
               $GS_TASK_Q_DIR $GS_TASK_DIR )
 
@@ -60,12 +58,8 @@ cd $TOP_DIR || exit 1
 
 for arg in "$@" ; do
     case $arg in
-        --prod)
-            need_source=$prod_need_source
-            to_build=$dev_to_build
-        ;;
         --help)
-            echo "Usage: $0 [--prod]"
+            echo "Usage: $0"
             exit 0
         ;;
         *)
@@ -75,6 +69,9 @@ for arg in "$@" ; do
         ;;
     esac
 done
+
+docker-machine start ${DOCKER_VM}
+eval "$(docker-machine env ${DOCKER_VM})"
 
 
 if [[ -d $DIST_DIR ]] ; then

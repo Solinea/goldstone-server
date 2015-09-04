@@ -151,3 +151,8 @@ test/openTrail/
 # docker static data
 docker/Dockerfiles/goldstone-nginx/goldstone-server
 docker/Dockerfiles/goldstone-django/goldstone-server
+
+# docker dev environment data
+.cache/
+.cinderclient/
+.novaclient/

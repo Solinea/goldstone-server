@@ -29,21 +29,12 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-# Goldstone Proxy & Static
-gsweb:
-  image: solinea/goldstone-web
-  volumes:
-    - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
-    - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
-  ports:
-    - "8888:8888"
-  links:
-    - gsapp:gsapp
-
 # Goldstone Server Container
 gsapp:
-  image: solinea/goldstone-app
-  env_file: ./config/goldstone-app/goldstone.env
+  image: solinea/goldstone-app-dev
+  env_file: ./docker/config/goldstone-app/goldstone-dev.env
+  volumes:
+    - .:/app
   ports:
     - "8000:8000"
   links:
@@ -53,7 +44,7 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db
-  env_file: ./config/goldstone-db/pgsql.env
+  env_file: ./docker/config/goldstone-db/pgsql.env
   volumes_from:
     - gsdbdvc
   ports:
@@ -70,8 +61,8 @@ gslog:
   image: solinea/goldstone-log
   command: logstash -f /logstash/conf.d -w 1
   volumes:
-    - ./config/goldstone-log/conf.d:/logstash/conf.d
-    - ./config/goldstone-log/patterns:/opt/logstash/patterns
+    - ./docker/config/goldstone-log/conf.d:/logstash/conf.d
+    - ./docker/config/goldstone-log/patterns:/opt/logstash/patterns
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -83,17 +74,17 @@ gslog:
 gssearch:
   image: solinea/goldstone-search
   volumes:
-    - ./config/goldstone-search:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
+    - ./docker/config/goldstone-search:/usr/share/elasticsearch/config
   ports:
     - "9200:9200"
     - "9300:9300"
 
 # Celery Worker Container
 gstask:
-  image: solinea/goldstone-task
-  env_file: ./config/goldstone-task/goldstone.env
+  image: solinea/goldstone-task-dev
+  env_file: ./docker/config/goldstone-task/goldstone-dev.env
+  volumes:
+    - .:/app
   links:
     - gstaskq
     - gssearch

@@ -29,6 +29,6 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-FROM solinea/redis
+FROM redis
 
 MAINTAINER Luke Heidecke <luke@solinea.com>

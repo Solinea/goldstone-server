@@ -1,4 +1,4 @@
-# vim:set ft=dockerfile:
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,47 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-FROM solinea/goldstone-app
-MAINTAINER Luke Heidecke <luke@solinea.com>
+# builds the software dist of the django project, and extracts it to the
+# goldstone-server docker container context for build. Once copied, it 
+# performs a build of the docker container, and pushes it to the repo.  
 
-COPY ./docker_entrypoint.sh /
+DOCKER_VM=default
+TOP_DIR=${PROJECT_HOME}/goldstone-server
+
+GS_APP_DOCKERFILE=${TOP_DIR}/Dockerfile-goldstone-app-dev
+GS_TASK_DOCKERFILE=${TOP_DIR}/Dockerfile-goldstone-task-dev
+
+REGISTRY_ORG=solinea
+
+declare -a to_build=( $GS_APP_DOCKERFILE $GS_TASK_DOCKERFILE )
+
+cd $TOP_DIR || exit 1 
+
+for arg in "$@" ; do
+    case $arg in
+        --help)
+            echo "Usage: $0"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0"
+            exit 1
+        ;;
+    esac
+done
+
+docker-machine start ${DOCKER_VM}
+eval "$(docker-machine env ${DOCKER_VM})"
+
+
+# 
+# build containers
+#
+for dockerfile in "${to_build[@]}" ; do
+    echo "##########################################################"
+    echo "Building ${REGISTRY_ORG}/${dockerfile##*Dockerfile-}..."
+    echo "##########################################################"
+    docker build -t ${REGISTRY_ORG}/${dockerfile##*Dockerfile-} -f $dockerfile .
+    echo "Done building ${REGISTRY_ORG}/${dockerfile##*Dockerfile-}."
+done

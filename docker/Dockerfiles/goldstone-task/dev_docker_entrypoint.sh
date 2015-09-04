@@ -1,4 +1,4 @@
-# vim:set ft=dockerfile:
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,30 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-FROM solinea/goldstone-app
-MAINTAINER Luke Heidecke <luke@solinea.com>
+. ${ENVDIR}/bin/activate 
 
-COPY ./docker_entrypoint.sh /
+#need to install these here since we have a volume mount for /app
+pip install -r requirements.txt
+pip install -r test-requirements.txt
+
+#test if postgres service is up
+PORT=5432
+HOST=gsdb
+
+status="DOWN"
+i="0"
+
+while [ "$status" == "DOWN" -a $i -lt 20 ] ; do
+     status=`(echo > /dev/tcp/$HOST/$PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
+     echo -e "Database connection status: $status"
+     sleep 5
+     let i++
+done
+
+if [[ $status == "DOWN" ]] ; then
+    echo "PostgreSQL not available.  Exiting."
+    exit 1
+fi
+
+exec celery worker --app goldstone --queues default --beat --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} "$@"
+

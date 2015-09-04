@@ -1,4 +1,4 @@
-# Goldstone Docker Compose Configuration
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,55 +29,24 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-# Database Container
-gsdb:
-  image: solinea/goldstone-db
-  env_file: ./config/goldstone-db/pgsql.env
-  volumes_from:
-    - gsdbdvc
-  ports:
-    - "5432:5432"
+#test if postgres service is up
+PORT=5432
+HOST=gsdb
 
-# Database Data Volume Container
-gsdbdvc:
-  image: solinea/goldstone-db-dvc
-  volumes:
-    - /var/lib/postgresql/data
+status="DOWN"
+i="0"
 
-# Logstash Container
-gslog:
-  image: solinea/goldstone-log
-  command: logstash -f /logstash/conf.d -w 1
-  volumes:
-    - ./config/goldstone-log/conf.d:/logstash/conf.d
-    - ./config/goldstone-log/patterns:/opt/logstash/patterns
-  ports:
-    - "5514:5514"
-    - "5515:5515"
-    - "5516:5516"
-  links:
-    - gssearch
+while [ "$status" == "DOWN" -a $i -lt 20 ] ; do
+     status=`(echo > /dev/tcp/$HOST/$PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
+     echo -e "Database connection status: $status"
+     sleep 5
+     let i++
+done
 
-# Elasticsearch Container
-gssearch:
-  image: solinea/goldstone-search
-  volumes:
-    - ./config/goldstone-search:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
-  ports:
-    - "9200:9200"
-    - "9300:9300"
+if [[ $status == "DOWN" ]] ; then
+    echo "PostgreSQL not available.  Exiting."
+    exit 1
+fi
 
-# Celery Worker Container
-#gstask:
-#image: solinea/goldstone
-#command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
-#links:
-#- gstaskq
+exec celery worker --app goldstone --queues default --beat --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} "$@"
 
-# Redis Container
-gstaskq:
-  image: redis
-  ports:
-    - "6379:6379"
