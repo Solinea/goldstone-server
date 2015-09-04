@@ -31,6 +31,7 @@ CONTENT_NO_PERMISSION = \
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
 CONTENT_NOT_BLANK_USERNAME = '"username":["This field is required."]'
+CONTENT_NOT_FOUND = "Not found."
 CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied."}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
