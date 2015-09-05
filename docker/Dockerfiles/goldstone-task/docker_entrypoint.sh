@@ -29,6 +29,8 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
+. ${ENVDIR}/bin/activate 
+
 #test if postgres service is up
 PORT=5432
 HOST=gsdb
