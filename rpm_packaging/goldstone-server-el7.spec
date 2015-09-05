@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, docker
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, docker, curl
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -39,13 +39,16 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %post
 if [[ $# == 1 && $1 == 1 ]] ; then
-    curl -L https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
-         > /usr/local/bin/docker-compose
-    chmod +x /opt/goldstone/bin/docker-compose
+    echo " Installing docker-compose to /opt/goldstone/bin"
+    echo ""
+    /usr/bin/curl -L \
+        https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
+        > /usr/local/bin/docker-compose \
+        && chmod +x /opt/goldstone/bin/docker-compose
 fi
 
 echo "*****************************************************************************"
-echo " Modify configs under %{prefix}/goldstone/docker/config
+echo " Modify configs under %{prefix}/goldstone/docker/config"
 echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
 echo " for details."
 echo ""
