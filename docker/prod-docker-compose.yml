@@ -13,22 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned
-# the goldstone-docker and goldstone-server Github repos into the
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
-
 # Goldstone Proxy & Static
 gsweb:
   image: solinea/goldstone-web
@@ -39,31 +23,35 @@ gsweb:
     - "8888:8888"
   links:
     - gsapp:gsapp
+  log_driver: "syslog"
 
 # Goldstone Server Container
 gsapp:
   image: solinea/goldstone-app
-  env_file: ./config/goldstone-app/goldstone.env
+  env_file: ./goldstone.conf
   ports:
     - "8000:8000"
   links:
     - gsdb
     - gssearch
+  log_driver: "syslog"
 
 # Database Container
 gsdb:
   image: solinea/goldstone-db
-  env_file: ./config/goldstone-db/pgsql.env
+  env_file: ./goldstone.conf
   volumes_from:
     - gsdbdvc
   ports:
     - "5432:5432"
+  log_driver: "syslog"
 
 # Database Data Volume Container
 gsdbdvc:
   image: solinea/goldstone-db-dvc
   volumes:
     - /var/lib/postgresql/data
+  log_driver: "syslog"
 
 # Logstash Container
 gslog:
@@ -78,6 +66,7 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
+  log_driver: "syslog"
 
 # Elasticsearch Container
 gssearch:
@@ -89,18 +78,21 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+  log_driver: "syslog"
 
 # Celery Worker Container
 gstask:
   image: solinea/goldstone-task
-  env_file: ./config/goldstone-task/goldstone.env
+  env_file: ./goldstone.conf
   links:
     - gstaskq
     - gssearch
     - gsdb
+  log_driver: "syslog"
 
 # Celery Task Queue Container
 gstaskq:
  image: solinea/goldstone-task-queue
  ports:
     - "6379:6379"
+ log_driver: "syslog"
