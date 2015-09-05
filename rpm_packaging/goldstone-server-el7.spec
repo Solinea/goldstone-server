@@ -28,12 +28,25 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires: docker
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, docker
+Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
+
+%pre
+/usr/bin/getent group goldstone \
+    || /usr/sbin/groupadd -r goldstone
+/usr/bin/getent passwd goldstone \
+    || /usr/sbin/useradd -r -g goldstone -d /opt/goldstone -s /sbin/nologin goldstone
 
 %post
 echo "*****************************************************************************"
 echo " Modify your config before starting goldstone-server."
 echo "*****************************************************************************"
+
+%postun
+if [[ $# == 1 && $1 == 0 ]] ; then
+    /usr/sbin/userdel goldstone
+    /usr/sbin/groupdel goldstone
+fi
 
 %description
 For the most up-to-date information please visit the project website
