@@ -41,9 +41,8 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 if [[ $# == 1 && $1 == 1 ]] ; then
     echo " Installing docker-compose to /opt/goldstone/bin"
     echo ""
-    /usr/bin/curl -L \
+    /usr/bin/curl -# -o /opt/goldstone/bin/docker-compose --create-dirs -L \
         https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
-        > /usr/local/bin/docker-compose \
         && chmod +x /opt/goldstone/bin/docker-compose
 fi
 
