@@ -94,6 +94,7 @@ for folder in "${need_source[@]}" ; do
     rm -rf goldstone-server 2> /dev/null || /bin/true
     tar xf ${DIST_DIR}/${DIST_FILE}
     mv ${DIST_FILE%%.tar.gz} goldstone-server
+    cp -R ${TOP_DIR}/external goldstone-server
 done
 echo "##########################################################"
 
