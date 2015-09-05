@@ -60,13 +60,16 @@ echo "**************************************************************************
 
 %preun
 if [[ $# == 1 && $1 == 0 ]] ; then
-    rm /opt/goldstone/bin/docker-compose
+    rm -rf /opt/goldstone/bin > /dev/null 2>&1 \
+        || /bin/true
 fi
 
 %postun
 if [[ $# == 1 && $1 == 0 ]] ; then
-    /usr/sbin/userdel goldstone
-    /usr/sbin/groupdel goldstone
+    /usr/sbin/userdel goldstone > /dev/null 2>&1 \
+        || /bin/true
+    /usr/sbin/groupdel goldstone > /dev/null 2>&1 \
+        || /bin/true
 fi
 
 %description
