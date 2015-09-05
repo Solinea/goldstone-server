@@ -38,9 +38,28 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
     || /usr/sbin/useradd -r -g goldstone -d /opt/goldstone -s /sbin/nologin goldstone
 
 %post
+if [[ $# == 1 && $1 == 1 ]] ; then
+    curl -L https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
+         > /usr/local/bin/docker-compose
+    chmod +x /opt/goldstone/bin/docker-compose
+fi
+
 echo "*****************************************************************************"
-echo " Modify your config before starting goldstone-server."
+echo " Modify configs under %{prefix}/goldstone/docker/config
+echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
+echo " for details."
+echo ""
+echo " To enable and start goldstone-server, run:"
+echo ""
+echo "     systemctl enable goldstone-server"
+echo "     systemctl start goldstone-server"
+echo ""
 echo "*****************************************************************************"
+
+%preun
+if [[ $# == 1 && $1 == 0 ]] ; then
+    rm /opt/goldstone/bin/docker-compose
+fi
 
 %postun
 if [[ $# == 1 && $1 == 0 ]] ; then
