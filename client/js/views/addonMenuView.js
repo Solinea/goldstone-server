@@ -149,7 +149,6 @@ var AddonMenuView = GoldstoneBaseView2.extend({
             // passedValue will be created by routes with /:foo
             // passed value = 'foo'
             if (passedValue) {
-                console.log(passedValue);
                 this.switchView(routeToAdd[2], {'passedValue': passedValue});
             } else {
                 this.switchView(routeToAdd[2]);
