@@ -260,7 +260,7 @@ def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     print(green("\n%s add-ons in the table." % count))
 
 
-def _install_addon_info(name, install_dir):           # pylint: disable=R0914
+def _install_addon_info(name, install_dir, verbose):    # pylint: disable=R0914
     """Gather the package installation information, and display our intentions
     to the user.
 
@@ -272,6 +272,8 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
     :type name: str
     :param install_dir: The path to the Goldstone installation directory.
     :type install_dir: str
+    :param verbose: Display more informational messages?
+    :type verbose: bool
     :return: The add-on's database table values, and some values related
              to the installation environment
     :rtype: (dict, dict)
@@ -293,7 +295,8 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
           "\turl_root: {url_root}\n" \
           "\tnotes: {notes}\n"
 
-    fastprint("\nCollecting information about %s ..." % name)
+    if verbose:
+        fastprint("\nCollecting information about %s ..." % name)
 
     try:
         the_app = import_module(name)
@@ -362,13 +365,14 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
             static_changes + SCRIPT_TAG % name + LINK_TAG % name + '\n'
 
     # Tell the user what we're about to do.
-    fastprint("\nPlease confirm this:\n\n" +
-              row_action +
-              " the addon table. It will contain:\n" +
-              ROW.format(**addon_db) +
-              base_urls +
-              celery_tasks +
-              static_changes)
+    if verbose:
+        fastprint("\nPlease confirm this:\n\n" +
+                  row_action +
+                  " the addon table. It will contain:\n" +
+                  ROW.format(**addon_db) +
+                  base_urls +
+                  celery_tasks +
+                  static_changes)
 
     return (addon_db, addon_install)
 
@@ -500,7 +504,10 @@ def _add_root_node(name):
 
 
 @task
-def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def install_addon(name,
+                  settings=PROD_SETTINGS,
+                  install_dir=INSTALL_DIR,
+                  verbose=False):
     """Install a user add-on.
 
     The name is supplied on the command line. The version, manufacturer,
@@ -512,6 +519,8 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     :type settings: str
     :keyword install_dir: The path to the Goldstone installation directory.
     :type install_dir: str
+    :keyword verbose: Display more informational messages?
+    :type verbose: bool
 
     """
 
@@ -523,7 +532,8 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
         # Gather the package installation information from the package or user.
         # (The package has already been installed into Python's execution
         # environment.)
-        addon_db, addon_install = _install_addon_info(name, install_dir)
+        addon_db, addon_install = \
+            _install_addon_info(name, install_dir, verbose)
 
         # Get permission to proceed.
         if confirm(cyan('Proceed?'), default=False):
