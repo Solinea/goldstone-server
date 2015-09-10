@@ -12,17 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from goldstone.utils import TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
+    """A topology class for cinder nodes."""
 
     def __init__(self):
         """Initialization.
 
-        To minimize payload here, we'll assume that there are no zones
-        that don't have at least one service.
+        To minimize payload here, we'll assume that all zones have at least one
+        service.
 
         """
         from .models import TransfersData, VolTypesData, ServicesData
@@ -32,140 +32,107 @@ class DiscoverTree(TopologyMixin):
         self.services = ServicesData().get()
 
     def _get_service_regions(self):
-        if self.services is None:
-            return []
-        else:
-            return set([s['region'] for s in self.services])
+        """Return the regions of all the cinder services."""
+
+        return [] if self.services is None \
+            else set([s['region'] for s in self.services])
 
     def get_regions(self):
+        """Return an rsrcType+label dict the regions in the cinder services."""
+
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_service_regions()]
 
     def _populate_regions(self):
-        result = []
+        """Return boilerplate dicts for the regions in the cinder services."""
+
         updated = self.services[0]['@timestamp']
-        for region in self._get_service_regions():
-            result.append(
-                {"rsrcType": "region",
-                 "label": region,
-                 "info": {"last_updated": updated},
-                 "children": [
-                     {
-                         "rsrcType": "volume-types-leaf",
-                         "label": "volume types",
-                         "region": region,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
-                         "rsrcType": "snapshots-leaf",
-                         "label": "snapshots",
-                         "region": region,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
-                         "rsrcType": "transfers-leaf",
-                         "label": "transfers",
-                         "region": region,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                 ]}
-            )
+
+        result = [{"rsrcType": "region",
+                   "label": region,
+                   "info": {"last_updated": updated},
+                   "children": [{"rsrcType": "volume-types-leaf",
+                                 "label": "volume types",
+                                 "region": region,
+                                 "info": {"last_update": updated}
+                                 },
+                                {"rsrcType": "snapshots-leaf",
+                                 "label": "snapshots",
+                                 "region": region,
+                                 "info": {"last_update": updated}
+                                 },
+                                {"rsrcType": "transfers-leaf",
+                                 "label": "transfers",
+                                 "region": region,
+                                 "info": {"last_update": updated}
+                                 }]}
+                  for region in self._get_service_regions()]
 
         return result
 
     def _get_zones(self, updated, region):
-        """
-        returns the zone structure derived from both services.
-        has children hosts populated as the attachment point for the services
-        and volumes in the graph.
-        """
-        zones = set(
-            z['zone']
-            for z in self.services[0]['services']
-        )
+        """Return zone boilerplate dicts."""
 
-        result = []
-        for zone in zones:
-            # create children for services, volumes, backups, and snapshots
-            result.append({
-                "rsrcType": "zone",
-                "label": zone,
-                "region": region,
-                "info": {
-                    "last_update": updated
-                },
-                "children": [
-                    {
-                        "rsrcType": "services-leaf",
-                        "label": "services",
-                        "region": region,
-                        "zone": zone,
-                        "info": {
-                            "last_update": updated
-                        }
-                    },
-                    {
-                        "rsrcType": "volumes-leaf",
-                        "label": "volumes",
-                        "region": region,
-                        "zone": zone,
-                        "info": {
-                            "last_update": updated
-                        }
-                    },
-                    {
-                        "rsrcType": "backups-leaf",
-                        "label": "backups",
-                        "region": region,
-                        "zone": zone,
-                        "info": {
-                            "last_update": updated
-                        }
-                    },
+        zones = set(z['zone'] for z in self.services[0]['services'])
 
-                ]
-            })
+        result = [{"rsrcType": "zone",
+                   "label": zone,
+                   "region": region,
+                   "info": {"last_update": updated},
+                   "children": [{"rsrcType": "services-leaf",
+                                 "label": "services",
+                                 "region": region,
+                                 "zone": zone,
+                                 "info": {"last_update": updated},
+                                 },
+                                {"rsrcType": "volumes-leaf",
+                                 "label": "volumes",
+                                 "region": region,
+                                 "zone": zone,
+                                 "info": {"last_update": updated}
+                                 },
+                                {"rsrcType": "backups-leaf",
+                                 "label": "backups",
+                                 "region": region,
+                                 "zone": zone,
+                                 "info": {"last_update": updated}
+                                 },
+                                ]}
+                  for zone in zones]
 
         return result
 
     def build_topology_tree(self):
-        from goldstone.utils import GoldstoneAuthError, NoResourceFound
+        """Return a cinder topology tree."""
+        from goldstone.utils import NoResourceFound
 
         try:
             if self.services is None or len(self.services.hits) == 0:
-                raise NoResourceFound(
-                    "No cinder services found in database")
+                raise NoResourceFound("No cinder services found in database")
 
             updated = self.services[0]['@timestamp']
-            rl = self._populate_regions()
-            new_rl = []
+            regionlist = self._populate_regions()
+            new_regionlist = []
 
-            for region in rl:
-                zl = self._get_zones(updated, region['label'])
-                ad = {'sourceRsrcType': 'zone',
-                      'targetRsrcType': 'region',
-                      'conditions': "%source%['region'] == %target%['label']"}
-                region = self._attach_resource(ad, zl, [region])[0]
+            for region in regionlist:
+                zonelist = self._get_zones(updated, region['label'])
+                node = {'sourceRsrcType': 'zone',
+                        'targetRsrcType': 'region',
+                        'conditions':
+                        "%source%['region'] == %target%['label']"}
+                region = self._attach_resource(node, zonelist, [region])[0]
 
-                new_rl.append(region)
+                new_regionlist.append(region)
 
-            if len(new_rl) > 1:
-                return {"rsrcType": "cloud", "label": "Cloud",
-                        "children": new_rl}
+            if len(new_regionlist) > 1:
+                return {"rsrcType": "cloud",
+                        "label": "Cloud",
+                        "children": new_regionlist}
             else:
-                return new_rl[0]
+                return new_regionlist[0]
 
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
-
-        except GoldstoneAuthError:
-            raise
 
 
 def update_cinder_nodes():
