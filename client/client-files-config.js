@@ -40,7 +40,7 @@ module.exports = {
         'client/js/addons/opentrail/tail/routes.js',
     ],
     opentrailCss: 'client/js/addons/opentrail/*.css',
-    lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
+    lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js', 'client/js/lib/jed.js'],
     test: [
         'test/unit/*.js',
         'test/integration/*.js'
