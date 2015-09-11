@@ -68,30 +68,34 @@ class SerializerTests(APITestCase):
         """Test excluding key from serialized data"""
 
         expectation = {'include': 'the good stuff'}
+
         response = Response(dummy_response())
         instance = response[0]
+
         ser = ReadOnlyElasticSerializer(instance)
         ser.Meta.exclude = ['exclude']
-        result = ser.data
-        self.assertEqual(result, expectation)
+
+        self.assertEqual(ser.data, expectation)
 
     def test_nonexistent_exclusion(self):
         """Test proper handling of nonexistent key in exclusion list"""
 
         expectation = {"include": "the good stuff",
                        "exclude": "the bad stuff"}
+
         response = Response(dummy_response())
         instance = response[0]
+
         ser = ReadOnlyElasticSerializer(instance)
         ser.Meta.exclude = ['bad_key']
-        result = ser.data
-        self.assertDictEqual(result, expectation)
+
+        self.assertDictEqual(ser.data, expectation)
 
 
 class FilterTests(APITestCase):
     """Filter tests."""
 
-    def test__update_queryset_no_raw(self):
+    def test__add_query_no_raw(self):
         """Test proper handling of mapping without raw field."""
 
         view = ElasticListAPIView()
@@ -103,14 +107,11 @@ class FilterTests(APITestCase):
         queryset = Search()
 
         # pylint: disable=W0212
-        result = elasticfilter._update_queryset('param1',
-                                                'value1',
-                                                view,
-                                                queryset)
+        result = elasticfilter._add_query('param1', 'value1', view, queryset)
         self.assertTrue(view.Meta.model.field_has_raw.called)
         self.assertEqual(result.to_dict(), expectation)
 
-    def test__update_queryset_with_raw(self):
+    def test__add_query_with_raw(self):
         """Test proper handling of mapping with raw field."""
 
         view = ElasticListAPIView()
@@ -122,10 +123,7 @@ class FilterTests(APITestCase):
         queryset = Search()
 
         # pylint: disable=W0212
-        result = elasticfilter._update_queryset('param1',
-                                                'value1',
-                                                view,
-                                                queryset)
+        result = elasticfilter._add_query('param1', 'value1', view, queryset)
         self.assertTrue(view.Meta.model.field_has_raw.called)
         self.assertEqual(result.to_dict(), expectation)
 
@@ -151,7 +149,7 @@ class FilterTests(APITestCase):
         self.assertEqual(result, expectation)
 
     def test_filter_queryset(self):
-        """Test filtering of search objects."""
+        """Test search object filtering."""
 
         view = ElasticListAPIView()
         view.Meta.model = MagicMock()
@@ -159,43 +157,78 @@ class FilterTests(APITestCase):
 
         elasticfilter = ElasticFilter()
         request = MagicMock()
-        params = QueryDict('', mutable=True)
-        params.update(
+
+        # Set up the query terms for the test.
+        request.query_params = QueryDict('', mutable=True)
+
+        request.query_params.update(
             {view.pagination_class.page_query_param: 'ignored',
              'name': 'value',
              'name__terms': '["value1","value2"]'}
         )
-        request.query_params = params
 
-        result = elasticfilter.filter_queryset(request,
-                                               Search(),
-                                               view).to_dict()
-        self.assertTrue({'terms': {u'name': ['value1', 'value2']}} in
-                        result['query']['bool']['must'])
-        self.assertTrue(
-            {'match': {u'name': 'value'}} in result['query']['bool']['must'])
+        result = \
+            elasticfilter.filter_queryset(request, Search(), view).to_dict()
 
+        self.assertEqual([{'terms': {u'name': ['value1', 'value2']}},
+                          {'match': {u'name': 'value'}}],
+                         result['query']['bool']['must'])
 
-class PaginationTests(APITestCase):
-    """Not going to do it.
+    def test_filter_terms_regexp(self):
+        """Test search object filtering using terms and regexp.
 
-    The paginator is mostly the same as the Django paginator.  The only
-    difference is that ours executes the search object.
-    """
-    pass
+        Because their values are dicts, these take a different code path than
+        "standard" match queries.
+
+        """
+
+        view = ElasticListAPIView()
+        view.Meta.model = MagicMock()
+        view.Meta.model.field_has_raw.return_value = False
+
+        elasticfilter = ElasticFilter()
+        request = MagicMock()
+
+        # Set up the query terms for the test.
+        request.query_params = QueryDict('', mutable=True)
+        request.query_params.update(
+            {view.pagination_class.page_query_param: 'ignored',
+             'terms':
+             {"_type":
+              ["audit.http.request", "audit.http.response", "identity.*"],
+              },
+             'regexp': {"this.is.a.nested.field": ".+12345666666666"},
+             },
+
+        )
+
+        result = \
+            elasticfilter.filter_queryset(request, Search(), view).to_dict()
+
+        self.assertEqual([{'regexp':
+                           {'this.is.a.nested.field': '.+12345666666666'}},
+                          {'terms':
+                           {'_type':
+                            ["audit.http.request",
+                             "audit.http.response",
+                             "identity.*"]}}],
+                         result['query']['bool']['must'])
 
 
 class ViewTests(APITestCase):
-    """View testing
+    """View testing.
 
     Testing the actual get would take a lot of mocking for little value since
-    it is pretty generic."""
+    it is pretty generic.
+
+    """
 
     def test_model_not_set(self):
         """Test handling of no model"""
 
         view = ElasticListAPIView()
         view.Meta.model = None
+
         with self.assertRaises(AssertionError):
             view.get_queryset()
 
@@ -203,76 +236,77 @@ class ViewTests(APITestCase):
         """Test handling when model is set"""
 
         expectation = Search().query('match', field='value')
+
         view = ElasticListAPIView()
         view.Meta.model = MagicMock()
         view.Meta.model.return_value = 'Some'
         view.Meta.model.search.return_value = expectation
+
         self.assertEqual(view.get_queryset(), expectation)
 
 
 class CustomExceptionHandlerTests(APITestCase):
     """Tests for DRF custom exception handling."""
 
-    def test_drf_handled_exception(self):
+    @patch('goldstone.drfes.utils.exception_handler')
+    def test_drf_handled_exception(self, exception_handler):
         """Test that we pass DRF recognized exceptions through unmodified"""
-        with patch(
-                'goldstone.drfes.utils.exception_handler') \
-                as exception_handler:
 
-            exception_handler.return_value = "it's handled"
-            result = custom_exception_handler(None, None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result, "it's handled")
+        exception_handler.return_value = "it's handled"
 
-    def test_502_error_exceptions(self):
+        result = custom_exception_handler(None, None)
+
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result, "it's handled")
+
+    @patch('goldstone.drfes.utils.exception_handler')
+    def test_502_error_exceptions(self, exception_handler):
         """Test ES connection exception is handled"""
-        with patch(
-                'goldstone.drfes.utils.exception_handler') \
-                as exception_handler:
 
-            exception_handler.return_value = None
-            result = custom_exception_handler(
-                elasticsearch.exceptions.ConnectionError("oops"), None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result.status_code, 502)
+        exception_handler.return_value = None
 
-    def test_500_error_exceptions(self):
+        result = custom_exception_handler(
+            elasticsearch.exceptions.ConnectionError("oops"), None)
+
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result.status_code, 502)
+
+    @patch('goldstone.drfes.utils.exception_handler')
+    def test_500_error_exceptions(self, exception_handler):
         """Test ES connection exception is handled"""
-        with patch(
-                'goldstone.drfes.utils.exception_handler') \
-                as exception_handler:
 
-            exception_handler.return_value = None
-            result = custom_exception_handler(
-                elasticsearch.exceptions.SerializationError("oops"), None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result.status_code, 500)
+        exception_handler.return_value = None
 
-            result = custom_exception_handler(
-                elasticsearch.exceptions.ImproperlyConfigured("oops"), None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result.status_code, 500)
+        result = custom_exception_handler(
+            elasticsearch.exceptions.SerializationError("oops"), None)
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result.status_code, 500)
 
-            result = custom_exception_handler(
-                elasticsearch.exceptions.TransportError("oops"), None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result.status_code, 500)
+        result = custom_exception_handler(
+            elasticsearch.exceptions.ImproperlyConfigured("oops"), None)
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result.status_code, 500)
 
-            exception_handler.return_value = None
-            result = custom_exception_handler(Exception("oops"), None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result.status_code, 500)
+        result = custom_exception_handler(
+            elasticsearch.exceptions.TransportError("oops"), None)
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result.status_code, 500)
 
-    def test_not_exception(self):
+        exception_handler.return_value = None
+        result = custom_exception_handler(Exception("oops"), None)
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result.status_code, 500)
+
+    @patch('goldstone.drfes.utils.exception_handler')
+    def test_not_exception(self, exception_handler):
         """Test ES connection exception is handled"""
-        with patch(
-                'goldstone.drfes.utils.exception_handler') \
-                as exception_handler:
 
-            exception_handler.return_value = None
-            result = custom_exception_handler('what??', None)
-            self.assertTrue(exception_handler.called)
-            self.assertEqual(result, None)
+        exception_handler.return_value = None
+
+        result = custom_exception_handler('what??', None)
+
+        self.assertTrue(exception_handler.called)
+        self.assertEqual(result, None)
 
 
 class DailyIndexDocTypeTests(APITestCase):
