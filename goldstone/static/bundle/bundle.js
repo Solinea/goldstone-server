@@ -12905,10 +12905,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 $(self.el).find('[name="email"]').val(result.email);
 
                 // result object contains tenant_admin field (true|false)
-                if (result.tenant_admin) {
+                if (result.tenant_admin || result.is_superuser) {
 
                     // if true, render link to tenant admin settings page
-                    if (result.tenant_admin === true) {
+                    if (result.tenant_admin === true || result.is_superuser === true) {
                         self.renderTenantSettingsPageLink();
                     }
                 }
