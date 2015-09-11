@@ -182,11 +182,13 @@ class EventSerializer(ReadOnlyElasticSerializer):
 
                     # For every node in the resource graph...
                     for node in resource.instances.graph.nodes():
-                        # Look for an id match.
+                        # Look for a match against values in id-like fields. We
+                        # filter out non-stering id-values because those will
+                        # be add-ons. (Add-on ids (i.e., pks) are integers.)
                         id_values = \
                             [node.attributes[x].replace('-', '')
                              for x in self.NODE_ID_KEYS
-                             if node.attributes.get(x)]
+                             if isinstance(node.attributes.get(x), basestring)]
 
                         if target_value in id_values:
                             # We found this instance! Plug in the resource type
