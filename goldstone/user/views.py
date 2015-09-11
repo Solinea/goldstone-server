@@ -130,7 +130,6 @@ class UserSerializer(ModelSerializer):
                    "groups",
                    "is_staff",
                    "is_active",
-                   "is_superuser",
                    "password",
                    )
 

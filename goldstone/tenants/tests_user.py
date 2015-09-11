@@ -1,4 +1,4 @@
-"""Unit tests for /tenants/<id>/users endpoints."""
+"""Unit tests for /tenants/<id>/users/ endpoints."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,6 @@ from goldstone.test_utils import Setup, create_and_login, login, \
     BAD_TOKEN, BAD_UUID, CONTENT_NOT_BLANK_USERNAME
 from .models import Tenant
 from .tests_tenants import TENANTS_ID_URL
-
-# HTTP response content.
-CONTENT_MISSING_OS_USERNAME = '"username":["This field may not be blank."]'
-CONTENT_MISSING_OS_NAME = '"tenant_name":["This field may not be blank."]'
-CONTENT_MISSING_OS_PASSWORD = '"password":["This field may not be blank."]'
-CONTENT_MISSING_OS_URL = '"auth_url":["This field may not be blank."]'
 
 # URLs used by this module.
 TENANTS_ID_USERS_URL = TENANTS_ID_URL + "users/"
@@ -166,19 +160,22 @@ class TenantsIdUsers(Setup):
                             "email": "a@b.com",
                             "default_tenant_admin": False,
                             "tenant_name": "tennet",
-                            "tenant_admin": True},
+                            "tenant_admin": True,
+                            "is_superuser": False},
                            {"username": "b",
                             "first_name": '',
                             "last_name": '',
                             "email": "b@b.com",
                             "default_tenant_admin": False,
-                            "tenant_admin": False},
+                            "tenant_admin": False,
+                            "is_superuser": False},
                            {"username": "c",
                             "first_name": '',
                             "last_name": '',
                             "email": "c@b.com",
                             "default_tenant_admin": False,
-                            "tenant_admin": False},
+                            "tenant_admin": False,
+                            "is_superuser": False},
                            ]
 
         # Make a tenant
@@ -275,12 +272,14 @@ class TenantsIdUsers(Setup):
                             "last_name": '',
                             "email": "a@b.com",
                             "tenant_admin": False,
+                            "is_superuser": False,
                             "default_tenant_admin": False},
                            {"username": "b",
                             "first_name": '',
                             "last_name": '',
                             "email": "b@b.com",
                             "tenant_admin": False,
+                            "is_superuser": False,
                             "default_tenant_admin": False}]
 
         # Make a tenant
@@ -461,6 +460,7 @@ class TenantsIdUsersId(Setup):
                              "last_name": "",
                              "email": "fred@fred.com",
                              "tenant_admin": True,
+                             "is_superuser": False,
                              "tenant_name": "tennent",
                              "default_tenant_admin": False},
                             {"username": "Traci",
@@ -468,6 +468,7 @@ class TenantsIdUsersId(Setup):
                              "last_name": "",
                              "email": '',
                              "tenant_admin": False,
+                             "is_superuser": False,
                              "default_tenant_admin": False},
                             ]
 
@@ -543,6 +544,7 @@ class TenantsIdUsersId(Setup):
              "last_name": "",
              "email": "",
              "tenant_admin": False,
+             "is_superuser": False,
              "default_tenant_admin": False},
             # PUTting to an unrecognized field.
             {"username": "Beth",
@@ -550,6 +552,7 @@ class TenantsIdUsersId(Setup):
              "last_name": "",
              "email": "",
              "tenant_admin": False,
+             "is_superuser": False,
              "default_tenant_admin": False},
         ]
 
@@ -620,6 +623,7 @@ class TenantsIdUsersId(Setup):
                              "last_name": "2",
                              "email": "x@y.com",
                              "tenant_admin": False,
+                             "is_superuser": False,
                              "default_tenant_admin": False}
 
         # Make a tenant.

@@ -17,7 +17,7 @@ from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from elasticsearch_dsl import String, Date, Integer, A
-from elasticsearch_dsl.query import Q, QueryString
+from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 from picklefield.fields import PickledObjectField
@@ -84,14 +84,19 @@ class MetricData(DailyIndexDocType):
 
     @classmethod
     def stats_agg(cls):
+        """Return extended statistics."""
+
         return A('extended_stats', field='value')
 
     @classmethod
     def units_agg(cls):
+        """Return term units."""
+
         return A('terms', field='unit')
 
 
 class ReportData(DailyIndexDocType):
+    """Report data model."""
 
     INDEX_PREFIX = 'goldstone_reports-'
 
@@ -119,8 +124,7 @@ class ApiPerfData(DailyIndexDocType):
     INDEX_PREFIX = 'goldstone-'
     SORT = '-@timestamp'
 
-    # Field declarations.  The types are generated dynamically, so PyCharm
-    # thinks the imports are unresolved references.
+    # Field declarations.
     response_status = Integer()
     creation_time = Date()
     component = String()
@@ -133,11 +137,13 @@ class ApiPerfData(DailyIndexDocType):
 
     @classmethod
     def stats_agg(cls):
+        """Return extended statistics."""
 
         return A('extended_stats', field='response_time')
 
     @classmethod
     def range_agg(cls):
+        """Return range information."""
 
         return A('range',
                  field='response_status',
@@ -153,11 +159,7 @@ class ApiPerfData(DailyIndexDocType):
 ######################################
 
 def _utc_now():
-    """Convenient, and possibly necessary.
-
-    :return: timezone aware current UTC datetime
-
-    """
+    """Return a timezone-aware current UTC datetime."""
     import arrow
 
     return arrow.utcnow().datetime

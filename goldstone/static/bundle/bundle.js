@@ -12905,10 +12905,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 $(self.el).find('[name="email"]').val(result.email);
 
                 // result object contains tenant_admin field (true|false)
-                if (result.tenant_admin) {
+                if (result.tenant_admin || result.is_superuser) {
 
                     // if true, render link to tenant admin settings page
-                    if (result.tenant_admin === true) {
+                    if (result.tenant_admin === true || result.is_superuser === true) {
                         self.renderTenantSettingsPageLink();
                     }
                 }
@@ -13730,6 +13730,16 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 $form.find('[name="os_name"]').val(result.os_name);
                 $form.find('[name="os_password"]').val(result.os_password);
                 $form.find('[name="os_username"]').val(result.os_username);
+
+                // in case of landing on this page via is_superuser === true,
+                // OpenStack settings are not a valid target for updating.
+                // Check for this via presence of the OpenStack tenant name
+                if(result.os_name === undefined) {
+
+                    // disable all form fields and update button
+                    $form.find('input').attr('disabled', 'true');
+                    $form.find('button').attr('disabled', true);
+                }
             })
             .fail(function(fail) {
                 goldstone.raiseInfo('could not load OpenStack settings');
