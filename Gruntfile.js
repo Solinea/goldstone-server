@@ -37,6 +37,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-mocha');
     grunt.loadNpmTasks('grunt-notify');
+    grunt.loadNpmTasks('grunt-po2json');
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // list of files for concatenation order / watching / linting, etc
@@ -81,6 +82,11 @@ module.exports = function(grunt) {
             copy_message_openTrailCss: {
                 options: {
                     message: "OpenTrail css copied to external repo"
+                }
+            },
+            pojson: {
+                options: {
+                    message: ".po > json conversion complete"
                 }
             }
         },
@@ -185,6 +191,10 @@ module.exports = function(grunt) {
             opentrailCss: {
                 files: clientIncludeOrder.opentrailCss,
                 tasks: ['copy-otCss']
+            },
+            po2json: {
+                files: clientIncludeOrder.poSourceFiles,
+                tasks: ['pojson']
             }
         },
 
@@ -295,7 +305,17 @@ module.exports = function(grunt) {
                     force: true
                 }
             }
-        }
+        },
+
+        po2json: {
+            options: {
+                format: 'jed1.x',
+            },
+            all: {
+                src: [clientIncludeOrder.poSourceFiles],
+                dest: clientIncludeOrder.poJsonDest
+            }
+        },
 
     });
 
@@ -315,4 +335,5 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['karma', 'casperjs:e2e']);
     grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
     grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
+    grunt.registerTask('pojson', ['po2json', 'notify:pojson']);
 };
