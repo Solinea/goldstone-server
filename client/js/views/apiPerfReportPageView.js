@@ -34,6 +34,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
+        var gt = goldstone.translation;
         var ns = this.defaults;
 
         //----------------------------
@@ -49,7 +50,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: gt.dgettext(gt.domain, "Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
