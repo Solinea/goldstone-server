@@ -1,0 +1,56 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: goldstone-server"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2015-09-11 14:47-0700\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apiPerfReportPageView.js
+msgid "Nova API Performance"
+msgstr "新星のAPIのパフォーマンス"
+
+#: apiPerfReportPageView.js
+msgid "Neutron API Performance"
+msgstr "中性子のAPIパフォーマンス"
+
+#: apiPerfReportPageView.js
+msgid "Keystone API Performance"
+msgstr ""
+
+#: apiPerfReportPageView.js
+msgid "Glance API Performance"
+msgstr "キーストーンのAPIパフォーマンス"
+
+#: apiPerfReportPageView.js
+msgid "Cinder API Performance"
+msgstr "シンダーAPIパフォーマンス"
+
+#: apiPerfReportPageView.js
+msgid "API Call"
+msgstr "API呼び出し"
+
+#: apiPerfReportPageView.js
+msgid "All"
+msgstr "凡ゆる"
+
+#: apiPerfReportPageView.js
+msgid "Start"
+msgstr "始まり"
+
+#: apiPerfReportPageView.js
+msgid "End"
+msgstr "終わり"
+
+#: apiPerfReportPageView.js
+msgid "Interval"
+msgstr "インターバル"
+
+#: Put one translator per line, in the form of NAME <EMAIL>, YEAR1, YEAR2.
+#: help-boot.html:0(None)
+#: msgid "translator-credits"
+#: msgstr ""
+#: \n"
