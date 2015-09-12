@@ -1599,8 +1599,6 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "api_perf/report": "apiPerfReport",
-        "cinder/report": "cinderReport",
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
@@ -2717,6 +2715,107 @@ var GoldstoneColors = GoldstoneBaseModel.extend({
                 0: ['#332288', '#44AA99', '#88CCEE', '#DDCC77', '#AA4466', '#117733', '#6699CC', '#661100', '#999933', '#CC6677', '#882255', '#AA4499'],
                 openStackSeverity8: ['#AA4499', '#332288', '#999933', '#CC6677', '#DDCC77', '#88CCEE', '#44AA99', '#117733']
             }
+        }
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var I18nModel = Backbone.Model.extend({
+
+    initialize: function() {
+        goldstone.translation = new Jed(this.combinedPoJsonFiles);
+        this.checkCurrentLanguage();
+        this.addListeners();
+    },
+
+    addListeners: function() {
+
+        // this would be triggered on userPrefsView
+        this.listenTo(this, 'setLanguage', function(language) {
+
+            // .domain is used by the dgettext calls throughout
+            // the site to determine which language set to
+            // draw from when determining the appropriate tranlation.
+            goldstone.translation.domain = language;
+        });
+    },
+
+    checkCurrentLanguage: function() {
+
+        // if there is a currently selected language in localStorage,
+        // use that to set the current .domain, or set to the
+        // english default if none found.
+        var uP = localStorage.getItem('userPrefs');
+        if (uP !== null) {
+            var lang = JSON.parse(uP).i18n;
+            if (lang !== undefined) {
+                this.setCurrentLanguage(lang);
+            } else {
+                this.setCurrentLanguage('english');
+            }
+        } else {
+            this.setCurrentLanguage('english');
+        }
+    },
+
+    setCurrentLanguage: function(language) {
+        goldstone.translation.domain = language;
+    },
+
+    combinedPoJsonFiles: {
+        "domain": "english",
+        "locale_data": {
+            "english": {
+                "": {
+                    "domain": "english",
+                    "plural_forms": "nplurals=2; plural=(n != 1);",
+                    "lang": "en"
+                },
+                "User Settings": [""],
+                "Nova API Performance": [""],
+                "Neutron API Performance": [""],
+                "Keystone API Performance": [""],
+                "Glance API Performance": [""],
+                "Cinder API Performance": [""],
+                "API Call": [""],
+                "All": [""],
+                "Start": [""],
+                "End": [""],
+                "Interval": [""]
+            },
+            "japanese": {
+                "": {
+                    "domain": "japanese",
+                    "plural_forms": "nplurals=1; plural=0;",
+                    "lang": "ja"
+                },
+                "User Settings": ["ユーザ設定"],
+                "Nova API Performance": ["新星のAPIのパフォーマンス"],
+                "Neutron API Performance": ["中性子のAPIパフォーマンス"],
+                "Keystone API Performance": [""],
+                "Glance API Performance": ["キーストーンのAPIパフォーマンス"],
+                "Cinder API Performance": ["シンダーAPIパフォーマンス"],
+                "API Call": ["API呼び出し"],
+                "All": ["凡ゆる"],
+                "Start": ["始まり"],
+                "End": ["終わり"],
+                "Interval": ["インターバル"]
+            },
         }
     }
 });
@@ -4967,6 +5066,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
+        var gt = goldstone.translation;
         var ns = this.defaults;
 
         //----------------------------
@@ -4982,7 +5082,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: gt.dgettext(gt.domain, "Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
@@ -12931,6 +13031,12 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             $('#topo-tree-name').val(userTheme.topoTreeStyle);
         }
 
+        // set dropdown for language selection to
+        // current language preference
+        if (userTheme && userTheme.i18n) {
+            $('#language-name').val(userTheme.i18n);
+        }
+
     },
 
 
@@ -12987,6 +13093,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
+        // add listener to language selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#language-name').on('change', function() {
+            var language = $('#language-name').val();
+            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+
+            // for this page only, re-render content upon language page
+            // to reflect translatable fields immediately
+            self.render();
+            self.getUserSettings();
+            self.addHandlers();
+        });
+
     },
 
     trimInputField: function(selector) {
@@ -13002,7 +13121,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3>User Settings</h3>' +
+        '<h3><%= goldstone.translation.dgettext(goldstone.translation.domain,"User Settings")%></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -13032,6 +13151,23 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<select class="form-control" id="topo-tree-name">' +
         '<option value="collapse">collapse</option>' +
         '<option value="zoom">zoom</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+
+        // language preference
+        '<div class="col-md-2">' +
+        '<h5>Language</h5>' +
+        '<form class="language-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="language-name">' +
+        '<option value="english">English</option>' +
+        '<option value="japanese">日本語</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -14718,6 +14854,14 @@ var UserPrefsView = Backbone.View.extend({
             self.getUserPrefs();
             self.defaults.userPrefs.topoTreeStyle = 'zoom';
             self.setUserPrefs();
+        });
+
+        // triggered on settingsPageView
+        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
+            self.getUserPrefs();
+            self.defaults.userPrefs.i18n = selection;
+            self.setUserPrefs();
+            goldstone.i18n.trigger('setLanguage', selection);
         });
     },
 

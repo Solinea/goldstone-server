@@ -45,6 +45,11 @@
                 el: ".logout-icon-container"
             });
 
+            // instantiate translation data that can be set on settingsPageView.
+            // Settings page drop-down triggers userPrefsView to store pref
+            // and triggers i18nModel to set selected language domain.
+            goldstone.i18n = new I18nModel();
+
             // instantiate object that will manage user prefs / theme
             goldstone.userPrefsView = new UserPrefsView();
 
