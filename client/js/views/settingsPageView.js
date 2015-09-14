@@ -199,7 +199,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3><%= goldstone.translation.dgettext(goldstone.translation.domain,"User Settings")%></h3>' +
+        '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -238,7 +238,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // language preference
         '<div class="col-md-2">' +
-        '<h5>Language</h5>' +
+        '<h5><%= goldstone.translate("Language") %></h5>' +
         '<form class="language-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
