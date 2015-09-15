@@ -2738,22 +2738,44 @@ var GoldstoneColors = GoldstoneBaseModel.extend({
 var I18nModel = Backbone.Model.extend({
 
     initialize: function() {
-        goldstone.translation = new Jed(this.combinedPoJsonFiles);
+        this.setTranslationObject();
         this.checkCurrentLanguage();
+        this.translateBaseTemplate();
         this.addListeners();
     },
 
-    addListeners: function() {
-
-        // this would be triggered on userPrefsView
-        this.listenTo(this, 'setLanguage', function(language) {
-
-            // .domain is used by the dgettext calls throughout
-            // the site to determine which language set to
-            // draw from when determining the appropriate tranlation.
-            goldstone.translation.domain = language;
-        });
+    setTranslationObject: function() {
+        goldstone.translationObject = new Jed(this.combinedPoJsonFiles);
+        this.setTranslationFunction();
     },
+
+    /*
+    these are the function signatures for the api returned by
+    creating a new Jed object:
+
+    gettext = function ( key )
+    dgettext = function ( domain, key )
+    dcgettext = function ( domain, key, category )
+    ngettext = function ( singular_key, plural_key, value )
+    dngettext = function ( domain, singular_ley, plural_key, value )
+    dcngettext = function ( domain, singular_key, plural_key, value, category )
+    pgettext = function ( context, key )
+    dpgettext = function ( domain, context, key )
+    npgettext = function ( context, singular_key, plural_key, value )
+    dnpgettext = function ( domain, context, singular_key, plural_key, value )
+    dcnpgettext = function ( domain, context, singular_key, plural_key, value, category )
+
+    the most common one will be dgettext, so that is how we are setting up
+    goldstone.translate.
+    */
+
+    setTranslationFunction: function() {
+        goldstone.translate = function(string) {
+            var domain = goldstone.translationObject.domain;
+            return goldstone.translationObject.dgettext(domain, string);
+        };
+    },
+
 
     checkCurrentLanguage: function() {
 
@@ -2761,20 +2783,36 @@ var I18nModel = Backbone.Model.extend({
         // use that to set the current .domain, or set to the
         // english default if none found.
         var uP = localStorage.getItem('userPrefs');
+
+        // if localStorage item is not present,
+        // or i18n hasn't been set yet, just default to 'english'
         if (uP !== null) {
             var lang = JSON.parse(uP).i18n;
             if (lang !== undefined) {
                 this.setCurrentLanguage(lang);
-            } else {
-                this.setCurrentLanguage('english');
+                return;
             }
-        } else {
-            this.setCurrentLanguage('english');
         }
+        this.setCurrentLanguage('english');
+        return;
     },
 
     setCurrentLanguage: function(language) {
-        goldstone.translation.domain = language;
+        goldstone.translationObject.domain = language;
+    },
+
+    addListeners: function() {
+        var self = this;
+
+        // this would be triggered on userPrefsView
+        this.listenTo(this, 'setLanguage', function(language) {
+
+            // .domain is used by the dgettext calls throughout
+            // the site to determine which language set to
+            // draw from when determining the appropriate tranlation.
+            self.setCurrentLanguage(language);
+            self.translateBaseTemplate();
+        });
     },
 
     combinedPoJsonFiles: {
@@ -2786,7 +2824,10 @@ var I18nModel = Backbone.Model.extend({
                     "plural_forms": "nplurals=2; plural=(n != 1);",
                     "lang": "en"
                 },
+                "goldstone": [""],
+                "Metrics": [""],
                 "User Settings": [""],
+                "Language": [""],
                 "Nova API Performance": [""],
                 "Neutron API Performance": [""],
                 "Keystone API Performance": [""],
@@ -2804,7 +2845,10 @@ var I18nModel = Backbone.Model.extend({
                     "plural_forms": "nplurals=1; plural=0;",
                     "lang": "ja"
                 },
+                "goldstone": ["ゴールドストーン"],
+                "Metrics": ["メトリック"],
                 "User Settings": ["ユーザ設定"],
+                "Language": ["言語"],
                 "Nova API Performance": ["新星のAPIのパフォーマンス"],
                 "Neutron API Performance": ["中性子のAPIパフォーマンス"],
                 "Keystone API Performance": [""],
@@ -2817,6 +2861,13 @@ var I18nModel = Backbone.Model.extend({
                 "Interval": ["インターバル"]
             },
         }
+    },
+
+    translateBaseTemplate: function() {
+        _.each($('.i18n'), function(item) {
+            $(item).text(goldstone.translate($(item).data().i18n));
+
+        });
     }
 });
 ;
@@ -5082,7 +5133,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: gt.dgettext(gt.domain, "Nova API Performance"),
+            chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
@@ -13121,7 +13172,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3><%= goldstone.translation.dgettext(goldstone.translation.domain,"User Settings")%></h3>' +
+        '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -13160,7 +13211,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // language preference
         '<div class="col-md-2">' +
-        '<h5>Language</h5>' +
+        '<h5><%= goldstone.translate("Language") %></h5>' +
         '<form class="language-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +

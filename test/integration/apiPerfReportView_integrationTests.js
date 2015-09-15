@@ -69,6 +69,7 @@ describe('apiPerfReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        goldstone.i18n = new I18nModel();
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new ApiPerfReportView({

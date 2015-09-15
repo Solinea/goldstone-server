@@ -27,10 +27,15 @@ describe('settingsPageView.js spec', function() {
 
         this.testView = new UserPrefsView();
 
+        this.getUserPrefsProto = sinon.spy(this.testView, "getUserPrefs");
+        this.setLanguageProto = sinon.spy(goldstone.i18n, "setCurrentLanguage");
+
     });
     afterEach(function() {
         this.server.restore();
         localStorage.clear();
+        this.getUserPrefsProto.restore();
+        this.setLanguageProto.restore();
     });
     describe('individual functions', function() {
         it('responds properly to empty localStorage', function() {
@@ -47,6 +52,18 @@ describe('settingsPageView.js spec', function() {
                 'theme': 'light'
             }));
             this.testView.applyUserPrefs();
+        });
+        it('reponds properly to triggers', function() {
+            expect(this.getUserPrefsProto.callCount).to.equal(0);
+            this.testView.trigger('collapseTreeSelected');
+            this.testView.trigger('zoomTreeSelected');
+            this.testView.trigger('i18nLanguageSelected');
+            expect(this.getUserPrefsProto.callCount).to.equal(3);
+        });
+        it('triggers goldstone.i18n', function() {
+            this.testView.trigger('i18nLanguageSelected');
+            expect(this.getUserPrefsProto.callCount).to.equal(1);
+            expect(this.setLanguageProto.callCount).to.equal(1);
         });
     });
 });
