@@ -14,6 +14,7 @@
 # limitations under the License.
 from __future__ import unicode_literals
 
+import arrow
 import json
 
 from django.conf import settings
@@ -24,7 +25,6 @@ from django.views.generic import TemplateView
 def validate(arg_list, context):
     """Validate an argument list within a particular context, and return
     an updated context or HttpResponseBadRequest."""
-    import arrow
 
     # A "bad parameter" message string.
     BAD_PARAMETER = "malformed parameter [%s]"
@@ -84,9 +84,13 @@ class TopLevelView(TemplateView):
     """
 
     def get_context_data(self, **kwargs):
+        """Return template context data.
 
-        import arrow
-        context = TemplateView.get_context_data(self, **kwargs)
+        :rtype: dict
+
+        """
+
+        context = super(TopLevelView, self).get_context_data(**kwargs)
 
         # Use "now" if not provided. Validate will calculate the start and
         # interval.
@@ -98,10 +102,11 @@ class TopLevelView(TemplateView):
         return context
 
     def render_to_response(self, context, **response_kwargs):
+        """A custom render_to_response that does some additional work."""
 
         context = validate(['start', 'end', 'interval'], context)
 
-        # heck for a validation error.
+        # Hack for a validation error.
         if isinstance(context, HttpResponseBadRequest):
             return context
 
@@ -112,9 +117,26 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-# IMPORTANT: this view is required to serve the router.html page that
-# instantiates the goldstone router.
 class RouterView(TemplateView):
     """Return the Goldstone Router page."""
 
     template_name = 'router.html'
+
+    def get_context_data(self, **kwargs):
+        """Return template context data.
+
+        :rtype: dict
+
+        """
+
+        context = super(RouterView, self).get_context_data(**kwargs)
+
+        # Include this file's contents as a template variable.
+        try:
+            with open("goldstone/static/i18n/po_json/i18n_combined.json") \
+                    as f:
+                context["i18n_po_json_i18n_combined_json"] = f.read()
+        except IOError:
+            context["i18n_po_json_i18n_combined_json"] = "file not found"
+
+        return context
