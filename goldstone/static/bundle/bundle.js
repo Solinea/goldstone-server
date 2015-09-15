@@ -2751,7 +2751,7 @@ var I18nModel = Backbone.Model.extend({
 
     /*
     these are the function signatures for the api returned by
-    createing a new Jed object:
+    creating a new Jed object:
 
     gettext = function ( key )
     dgettext = function ( domain, key )
