@@ -2865,9 +2865,6 @@ var I18nModel = Backbone.Model.extend({
 
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
-            console.log(item);
-            console.log($(item).data());
-            console.log($(item).data().i18n);
             $(item).text(goldstone.translate($(item).data().i18n));
 
         });

@@ -307,6 +307,7 @@ module.exports = function(grunt) {
             }
         },
 
+        // translate files from .po format to a Jed.js compatible json file
         po2json: {
             options: {
                 format: 'jed1.x',
