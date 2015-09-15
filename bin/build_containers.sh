@@ -22,6 +22,7 @@ TOP_DIR=${PROJECT_HOME}/goldstone-server
 DIST_DIR=${TOP_DIR}/dist
 GIT_BRANCH=$(git symbolic-ref --short HEAD)
 GIT_COMMIT=$(git rev-parse --short HEAD)
+TAGGED=false
 
 GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
 GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
@@ -47,6 +48,9 @@ for arg in "$@" ; do
         --docker-vm=*)
             DOCKER_VM="${arg#*=}"
             shift
+        ;;
+        --tagged)
+            TAGGED=true
         ;;
         --help)
             echo "Usage: $0"
@@ -99,16 +103,28 @@ echo "##########################################################"
 # 
 # build containers
 #
-for folder in "${to_build[@]}" ; do
-    cd $folder || exit 1
+
+if [[ $TAGGED == 'true' ]] ; then
     echo "##########################################################"
-    echo "Building ${REGISTRY_ORG}/${folder##*/}..."
+    echo "Building tagged containers"
     echo "##########################################################"
-    # NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} $GIT_BRANCH --commit-id $GIT_COMMIT`
-    NEXT_TAG=latest
-    docker build -t ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG} .
-    echo "Done building ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG}."
-done
+    for folder in "${to_build[@]}" ; do
+        cd $folder || exit 1
+        echo "##########################################################"
+        echo "Building ${REGISTRY_ORG}/${folder##*/}..."
+        echo "##########################################################"
+        NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} $GIT_BRANCH --commit-id $GIT_COMMIT`
+        docker build -t ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG} .
+        echo "Done building ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG}."
+    done
+
+else
+    echo "##########################################################"
+    echo "Building development containers"
+    echo "##########################################################"
+    cd $TOP_DIR || exit 1
+    docker-compose build
+fi
 
 #
 # clean up the containers that need access to source

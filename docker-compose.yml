@@ -15,7 +15,7 @@
 
 # Goldstone Server Container
 gsappdev:
-  image: solinea/goldstone-app
+  build: ./docker/Dockerfiles/goldstone-app
   env_file: ./docker/config/goldstone-dev.env
   volumes:
     - ./goldstone:/home/app/goldstone
@@ -29,7 +29,7 @@ gsappdev:
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db
+  build: ./docker/Dockerfiles/goldstone-db
   env_file: ./docker/config/goldstone-dev.env
   volumes_from:
     - gsdbdvc
@@ -38,13 +38,13 @@ gsdb:
 
 # Database Data Volume Container
 gsdbdvc:
-  image: solinea/goldstone-db-dvc
+  build: ./docker/Dockerfiles/goldstone-db-dvc
   volumes:
     - /var/lib/postgresql/data
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log
+  build: ./docker/Dockerfiles/goldstone-log
   command: logstash -f /logstash/conf.d -w 1
   volumes:
     - ./docker/config/goldstone-log/conf.d:/logstash/conf.d
@@ -58,7 +58,7 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search
+  build: ./docker/Dockerfiles/goldstone-search
   volumes:
     - ./docker/config/goldstone-search:/usr/share/elasticsearch/config
   ports:
@@ -67,7 +67,7 @@ gssearch:
 
 # Celery Worker Container
 gstaskdev:
-  image: solinea/goldstone-task
+  build: ./docker/Dockerfiles/goldstone-task
   env_file: ./docker/config/goldstone-dev.env
   volumes:
     - ./goldstone:/home/app/goldstone
@@ -78,6 +78,6 @@ gstaskdev:
 
 # Celery Task Queue Container
 gstaskq:
- image: solinea/goldstone-task-queue
+ build: ./docker/Dockerfiles/goldstone-task-queue
  ports:
     - "6379:6379"
