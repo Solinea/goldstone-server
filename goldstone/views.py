@@ -129,14 +129,18 @@ class RouterView(TemplateView):
 
         """
 
+        # The i18n JSON file we read, and the template variable we load its
+        # contents into.
+        I18N_FILE = "goldstone/static/i18n/po_json/i18n_combined.json"
+        I18N_VARIABLE = "i18n_po_json_i18n_combined_json"
+
         context = super(RouterView, self).get_context_data(**kwargs)
 
         # Include this file's contents as a template variable.
         try:
-            with open("goldstone/static/i18n/po_json/i18n_combined.json") \
-                    as f:
-                context["i18n_po_json_i18n_combined_json"] = f.read()
+            with open(I18N_FILE) as f:
+                context[I18N_VARIABLE] = f.read()
         except IOError:
-            context["i18n_po_json_i18n_combined_json"] = "file not found"
+            context[I18N_VARIABLE] = "file not found"
 
         return context
