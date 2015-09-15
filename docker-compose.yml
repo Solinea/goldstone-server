@@ -13,28 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned
-# the goldstone-docker and goldstone-server Github repos into the
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
-
 # Goldstone Server Container
-gsapp:
-  image: solinea/goldstone-app-dev
-  env_file: ./docker/config/goldstone-app/goldstone-dev.env
+gsappdev:
+  image: solinea/goldstone-app
+  env_file: ./docker/config/goldstone-dev.env
   volumes:
-    - .:/app
+    - ./goldstone:/home/app/goldstone
+    - ./client:/home/app/client
+    - ./docker/config/goldstone-app:/home/app/config
   ports:
     - "8000:8000"
   links:
@@ -44,7 +30,7 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db
-  env_file: ./docker/config/goldstone-db/pgsql.env
+  env_file: ./docker/config/goldstone-dev.env
   volumes_from:
     - gsdbdvc
   ports:
@@ -80,11 +66,11 @@ gssearch:
     - "9300:9300"
 
 # Celery Worker Container
-gstask:
-  image: solinea/goldstone-task-dev
-  env_file: ./docker/config/goldstone-task/goldstone-dev.env
+gstaskdev:
+  image: solinea/goldstone-task
+  env_file: ./docker/config/goldstone-dev.env
   volumes:
-    - .:/app
+    - ./goldstone:/home/app/goldstone
   links:
     - gstaskq
     - gssearch

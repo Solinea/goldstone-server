@@ -13,22 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned
-# the goldstone-docker and goldstone-server Github repos into the
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
-
 FROM solinea/gunicorn
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
@@ -38,6 +22,7 @@ ADD goldstone-server ${APPDIR}
 WORKDIR ${APPDIR}
 
 USER root
+
 
 RUN buildReqs=' \
     python2.7-dev \
@@ -63,7 +48,7 @@ USER root
 RUN apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
 ## Have to re-install due to python2.7-dev uninstalling libqp-dev
-  && apt-get install libpq-dev \
+##   && apt-get install libpq-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

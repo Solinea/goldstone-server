@@ -16,20 +16,14 @@
 # 
 # This script starts the boot2docker and OpenStack VirtualBox VMs, then
 # brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
+# to work with VirtualBox 4.3.30 or greater, and Docker Toolbox.
 #
 # It assumes that you are running in a virtualenv, and that you have cloned 
-# the goldstone-docker and goldstone-server Github repos into the 
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
+# the goldstone-server Github repo into the PROJECT_HOME associated with 
+# the virtual environment.
 #
 
-export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
+export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 
@@ -76,15 +70,4 @@ fi
 docker-machine start ${DOCKER_VM}
 eval "$(docker-machine env ${DOCKER_VM})"
 
-echo "starting celery"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery worker --app=goldstone --loglevel=info --queues=default \
-               --beat --without-heartbeat > \
-               /tmp/goldstone-server-celery.log 2>&1 &)
-
-echo "starting flower on port 5555"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery flower -A goldstone --address=127.0.0.1 --port=5555 > \
-                            /tmp/goldstone-server-flower.log 2>&1 &)
-
-(cd $PROJECT_HOME/goldstone-server/docker;docker-compose up)
+(cd $PROJECT_HOME/goldstone-server;docker-compose up)

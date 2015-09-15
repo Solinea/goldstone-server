@@ -29,7 +29,7 @@
 # rare since the script waits until the VM is powered off before exiting.
 #
 
-export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
+export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 

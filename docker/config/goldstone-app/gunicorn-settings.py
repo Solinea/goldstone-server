@@ -4,7 +4,7 @@ import multiprocessing
 # listen address
 bind = "0.0.0.0:8000"
 
-chdir = "/app"
+chdir = "/home/app"
 
 # raw_env = "DJANGO_SETTINGS_MODULE=goldstone.settings.docker"
 

@@ -28,7 +28,7 @@ gsweb:
 # Goldstone Server Container
 gsapp:
   image: solinea/goldstone-app
-  env_file: ./goldstone.conf
+  env_file: ./config/goldstone-prod.env
   ports:
     - "8000:8000"
   links:
@@ -39,7 +39,7 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db
-  env_file: ./goldstone.conf
+  env_file: ./config/goldstone-prod.env
   volumes_from:
     - gsdbdvc
   ports:
@@ -83,7 +83,7 @@ gssearch:
 # Celery Worker Container
 gstask:
   image: solinea/goldstone-task
-  env_file: ./goldstone.conf
+  env_file: ./config/goldstone-prod.env
   links:
     - gstaskq
     - gssearch

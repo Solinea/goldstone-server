@@ -14,14 +14,11 @@
 # limitations under the License.
 
 #
-# Stops the OpenStack and boot2docker VirtualBox VMs.  It does an ACPI
-# shutdown for the OpenStack VM, and will poll to see that the shutdown
-# has completed.  If it never com
-# succeed to shut down safely after 300 seconds, it will forcefully power 
-# it off.  
+# Stops the OpenStack and Docker VirtualBox VMs.  It does an ACPI
+# shutdowns for the OpenStack VM, and will poll to see that the shutdown
+# has completed.  If it can't shut down safely after 300 seconds, it will
+# forcefully power it off.  
 #
-# It assumes that there are no other celery or flower processes running
-# on the system, and optimistically kills processes.
 
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
@@ -70,16 +67,8 @@ wait_for_shutdown()
     printf "    \b\b\b\b"
 }
 
-# echo "shutting down celery"
-pkill -f celery
-pkill -f flower
-
-echo "cleaning up celery log files"
-rm /tmp/goldstone-server-celery.log
-rm /tmp/goldstone-server-flower.log
-
 echo "shutting down docker VM"
-(cd $PROJECT_HOME/goldstone-server/docker;docker-compose stop)
+(cd $PROJECT_HOME/goldstone-server;docker-compose stop)
 docker-machine stop ${DOCKER_VM}
 
 VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null

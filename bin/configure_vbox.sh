@@ -142,13 +142,13 @@ fi
 
 if [[ $DOCKER == "true" ]] ; then
     # Restore the original ssh NAT rule if it has been deleted.  Ignore errors.
-    VBoxManage modifyvm "boot2docker-vm" --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
+    VBoxManage modifyvm ${DOCKER_VM} --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
 
     # Track errors with Docker image NAT settings
     err_count="0"
     for rule in $COMMON_RULE_LIST ; do
         echo "processing rule: $rule"
-        VBoxManage modifyvm $DOCKER_VM --natpf1 "$rule" || \
+        VBoxManage modifyvm ${DOCKER_VM} --natpf1 "$rule" || \
             err_count=$[$err_count+$?]
     done
 
