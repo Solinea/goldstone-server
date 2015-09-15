@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import arrow
 from django.conf import settings
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
@@ -158,13 +159,6 @@ class ApiPerfData(DailyIndexDocType):
 # Resource graph types and instances #
 ######################################
 
-def _utc_now():
-    """Return a timezone-aware current UTC datetime."""
-    import arrow
-
-    return arrow.utcnow().datetime
-
-
 class PolyResource(PolymorphicModel):
     """The base type for resources.
 
@@ -191,7 +185,7 @@ class PolyResource(PolymorphicModel):
 
     created = CreationDateTimeField(editable=False,
                                     blank=True,
-                                    default=_utc_now)
+                                    default=arrow.utcnow().datetime)
     updated = ModificationDateTimeField(editable=True, blank=True)
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
