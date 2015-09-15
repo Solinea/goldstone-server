@@ -93,6 +93,6 @@ module.exports = {
     cssLight: 'goldstone/static/css',
 
     // location of .po files and resulting json blobs
-    poSourceFiles: 'client/po_files/*.po',
-    poJsonDest: 'client/po_files/'
+    poSourceFiles: 'goldstone/static/i18n/po_files/*.po',
+    poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json'
 };
