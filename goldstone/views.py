@@ -139,7 +139,7 @@ class RouterView(TemplateView):
         # Include this file's contents as a template variable.
         try:
             with open(I18N_FILE) as f:
-                context[I18N_VARIABLE] = f.read()
+                context[I18N_VARIABLE] = json.loads(f.read())
         except IOError:
             context[I18N_VARIABLE] = "file not found"
 
