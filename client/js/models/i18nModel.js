@@ -31,7 +31,13 @@ var I18nModel = Backbone.Model.extend({
         var originalObject = goldstone.i18nJSON;
 
         var finalResult = {};
-        finalResult.domain = "english";
+        finalResult.domain = "English";
+
+        // if goldstone.translate is called on a key not in the .po file
+        finalResult.missing_key_callback = function(key) {
+            console.error('missing .po file translation for: `' + key + '`');
+        };
+
         finalResult.locale_data = {};
 
         _.each(goldstone.i18nJSON, function(val, key, orig) {
@@ -47,11 +53,11 @@ var I18nModel = Backbone.Model.extend({
         this constructs an initialization object like:
 
         this.combinedPoJsonFiles: {
-            "domain": "english",
+            "domain": "English",
             "locale_data": {
-                "english": {
+                "English": {
                     "": {
-                        "domain": "english",
+                        "domain": "English",
                         "plural_forms": "nplurals=2; plural=(n != 1);",
                         "lang": "en"
                     },
@@ -112,21 +118,37 @@ var I18nModel = Backbone.Model.extend({
 
     checkCurrentLanguage: function() {
 
+        // first determine which lanaguage .po files are installed
+        var existingPos = _.keys(goldstone.i18nJSON);
+
         // if there is a currently selected language in localStorage,
         // use that to set the current .domain, or set to the
-        // english default if none found.
-        var uP = localStorage.getItem('userPrefs');
+        // English default if none found.
+        var userPrefs = localStorage.getItem('userPrefs');
 
-        // if localStorage item is not present,
-        // or i18n hasn't been set yet, just default to 'english'
-        if (uP !== null) {
-            var lang = JSON.parse(uP).i18n;
-            if (lang !== undefined) {
+        // set current language
+        if (userPrefs !== null) {
+            var lang = JSON.parse(userPrefs).i18n;
+
+            // check if language is set && the po exists
+            if (lang !== undefined && existingPos.indexOf(lang) > -1) {
                 this.setCurrentLanguage(lang);
                 return;
             }
         }
-        this.setCurrentLanguage('english');
+
+        // if lang preference hasn't been set yet,
+        // or lang set in localStorage does not have a .po file,
+        // just default to 'English' and set the
+        // localStorage item to 'English'
+        this.setCurrentLanguage('English');
+        userPrefs = JSON.parse(userPrefs);
+
+        // in case of initial load, userPrefs will be null
+        userPrefs = userPrefs || {};
+        userPrefs.i18n = 'English';
+        localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
+
         return;
     },
 

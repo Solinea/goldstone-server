@@ -257,8 +257,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
-        // '<option value="english">English</option>' +
-        // '<option value="japanese">日本語</option>' +
+        // dynamically filled in via renderLanguageChoices()
+        // '<option value="English">English</option>' +
+        // '<option value="Japanese">Japanese</option>' +
         '</select>' +
         '</div>' +
         '</div>' +

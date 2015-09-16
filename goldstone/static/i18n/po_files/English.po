@@ -9,6 +9,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: base.html
+msgid "goldstone"
+msgstr ""
+
+#: base.html
+msgid "Metrics"
+msgstr ""
+
+#: settingsPageView.js
+msgid "User Settings"
+msgstr ""
+
+#: settingsPageView.js
+msgid "Language"
+msgstr ""
+
 #: apiPerfReportPageView.js
 msgid "Nova API Performance"
 msgstr ""
