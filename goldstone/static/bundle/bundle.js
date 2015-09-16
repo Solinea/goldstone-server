@@ -2750,19 +2750,54 @@ var I18nModel = Backbone.Model.extend({
         // the contents of the json object stored in the
         // goldstone/static/i18n/po_json/ directory
         var originalObject = goldstone.i18nJSON;
-        console.log('orig', originalObject);
 
-        var result = {};
-        result.domain = "english";
-        result.locale_data = {};
+        var finalResult = {};
+        finalResult.domain = "english";
+        finalResult.locale_data = {};
 
         _.each(goldstone.i18nJSON, function(val, key, orig) {
-            console.log('item', val, key, orig[key]);
-
+            var result = {};
+            result = _.omit(orig[key].locale_data.messages, "");
+            result[""] = orig[key].locale_data.messages[""];
+            result[""].domain = key;
+            finalResult.locale_data[key] = result;
         });
+        this.combinedPoJsonFiles = finalResult;
+
+        /*
+        this constructs an initialization object like:
+
+        this.combinedPoJsonFiles: {
+            "domain": "english",
+            "locale_data": {
+                "english": {
+                    "": {
+                        "domain": "english",
+                        "plural_forms": "nplurals=2; plural=(n != 1);",
+                        "lang": "en"
+                    },
+                    "goldstone": [""],
+                    "Metrics": [""],
+                    "User Settings": [""],
+                },
+                "japanese": {
+                    "": {
+                        "domain": "japanese",
+                        "plural_forms": "nplurals=1; plural=0;",
+                        "lang": "ja"
+                    },
+                    "goldstone": ["ゴールドストーン"],
+                    "Metrics": ["メトリック"],
+                    "User Settings": ["ユーザ設定"],
+                }
+            }
+        }
+        */
     },
 
     setTranslationObject: function() {
+
+        // this.combinedPoJsonFiles created via this.createTranslationObject()
         goldstone.translationObject = new Jed(this.combinedPoJsonFiles);
         this.checkCurrentLanguage();
         this.setTranslationFunction();
@@ -2832,54 +2867,6 @@ var I18nModel = Backbone.Model.extend({
             self.setCurrentLanguage(language);
             self.translateBaseTemplate();
         });
-    },
-
-    combinedPoJsonFiles: {
-        "domain": "english",
-        "locale_data": {
-            "english": {
-                "": {
-                    "domain": "english",
-                    "plural_forms": "nplurals=2; plural=(n != 1);",
-                    "lang": "en"
-                },
-                "goldstone": [""],
-                "Metrics": [""],
-                "User Settings": [""],
-                "Language": [""],
-                "Nova API Performance": [""],
-                "Neutron API Performance": [""],
-                "Keystone API Performance": [""],
-                "Glance API Performance": [""],
-                "Cinder API Performance": [""],
-                "API Call": [""],
-                "All": [""],
-                "Start": [""],
-                "End": [""],
-                "Interval": [""]
-            },
-            "japanese": {
-                "": {
-                    "domain": "japanese",
-                    "plural_forms": "nplurals=1; plural=0;",
-                    "lang": "ja"
-                },
-                "goldstone": ["ゴールドストーン"],
-                "Metrics": ["メトリック"],
-                "User Settings": ["ユーザ設定"],
-                "Language": ["言語"],
-                "Nova API Performance": ["新星のAPIのパフォーマンス"],
-                "Neutron API Performance": ["中性子のAPIパフォーマンス"],
-                "Keystone API Performance": [""],
-                "Glance API Performance": ["キーストーンのAPIパフォーマンス"],
-                "Cinder API Performance": ["シンダーAPIパフォーマンス"],
-                "API Call": ["API呼び出し"],
-                "All": ["凡ゆる"],
-                "Start": ["始まり"],
-                "End": ["終わり"],
-                "Interval": ["インターバル"]
-            },
-        }
     },
 
     translateBaseTemplate: function() {
@@ -13060,7 +13047,20 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        // iterate through goldstone.i18nJSON and render a dropdown
+        // selector item for each of the languages present
+        this.renderLanguageChoices();
+
         return this;
+    },
+
+    renderLanguageChoices: function() {
+
+        // defined on router.html
+        _.each(goldstone.i18nJSON, function(item, key) {
+            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+        });
     },
 
     getUserSettings: function() {
@@ -13235,8 +13235,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
-        '<option value="english">English</option>' +
-        '<option value="japanese">日本語</option>' +
+        // '<option value="english">English</option>' +
+        // '<option value="japanese">日本語</option>' +
         '</select>' +
         '</div>' +
         '</div>' +

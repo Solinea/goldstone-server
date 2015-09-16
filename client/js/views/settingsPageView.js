@@ -69,7 +69,20 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        // iterate through goldstone.i18nJSON and render a dropdown
+        // selector item for each of the languages present
+        this.renderLanguageChoices();
+
         return this;
+    },
+
+    renderLanguageChoices: function() {
+
+        // defined on router.html
+        _.each(goldstone.i18nJSON, function(item, key) {
+            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+        });
     },
 
     getUserSettings: function() {
@@ -244,8 +257,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
-        '<option value="english">English</option>' +
-        '<option value="japanese">日本語</option>' +
+        // '<option value="english">English</option>' +
+        // '<option value="japanese">日本語</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
