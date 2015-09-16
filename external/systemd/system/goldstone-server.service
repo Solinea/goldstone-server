@@ -1,0 +1,14 @@
+[Unit]
+Description=Goldstone Server
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+User=goldstone
+Group=goldstone
+ExecStart=/usr/bin/docker-compose -f /opt/golstone/docker/docker-compose.yml up
+ExecStop=/usr/bin/docker-compose -f /opt/goldstone/docker/docker-compose.yml stop
+
+[Install]
+WantedBy=local.target

@@ -103,7 +103,7 @@ install -m 640 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
 install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
 install -m 640 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
-# install -m 640 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
+install -m 640 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
 
 %clean
 rm -rf %{buildroot}
@@ -116,6 +116,6 @@ rm -rf %{buildroot}
 /opt/goldstone/LICENSE
 /opt/goldstone/docker/
 /var/log/goldstone/
-# %config /usr/lib/systemd/system/goldstone-server.service
+%config /usr/lib/systemd/system/goldstone-server.service
 
 %changelog
