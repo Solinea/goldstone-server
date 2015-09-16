@@ -17,14 +17,33 @@
 var I18nModel = Backbone.Model.extend({
 
     initialize: function() {
+        this.createTranslationObject();
         this.setTranslationObject();
-        this.checkCurrentLanguage();
         this.translateBaseTemplate();
         this.addListeners();
     },
 
+    createTranslationObject: function() {
+
+        // goldstone.i18nJSON is assigned on router.html, and is
+        // the contents of the json object stored in the
+        // goldstone/static/i18n/po_json/ directory
+        var originalObject = goldstone.i18nJSON;
+        console.log('orig', originalObject);
+
+        var result = {};
+        result.domain = "english";
+        result.locale_data = {};
+
+        _.each(goldstone.i18nJSON, function(val, key, orig) {
+            console.log('item', val, key, orig[key]);
+
+        });
+    },
+
     setTranslationObject: function() {
         goldstone.translationObject = new Jed(this.combinedPoJsonFiles);
+        this.checkCurrentLanguage();
         this.setTranslationFunction();
     },
 
