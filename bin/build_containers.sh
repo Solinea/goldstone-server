@@ -18,7 +18,7 @@
 # performs a build of the docker container, and pushes it to the repo.  
 
 DOCKER_VM=default
-TOP_DIR=${PROJECT_HOME}/goldstone-server
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
 GIT_BRANCH=$(git symbolic-ref --short HEAD)
 GIT_COMMIT=$(git rev-parse --short HEAD)
