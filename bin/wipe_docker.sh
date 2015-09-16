@@ -33,8 +33,10 @@ for arg in "$@" ; do
     esac
 done
 
-docker-machine start ${DOCKER_VM}
-eval "$(docker-machine env ${DOCKER_VM})"
+if [[ ${DOCKER_VM} != "false" ]] ; then
+    docker-machine start ${DOCKER_VM}
+    eval "$(docker-machine env ${DOCKER_VM})"
+fi
 
 
 docker ps -a | awk '{print $1}' | tail +2 | while read c ; do
