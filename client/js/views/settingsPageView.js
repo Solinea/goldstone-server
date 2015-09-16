@@ -69,7 +69,20 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        // iterate through goldstone.i18nJSON and render a dropdown
+        // selector item for each of the languages present
+        this.renderLanguageChoices();
+
         return this;
+    },
+
+    renderLanguageChoices: function() {
+
+        // defined on router.html
+        _.each(goldstone.i18nJSON, function(item, key) {
+            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+        });
     },
 
     getUserSettings: function() {
@@ -107,6 +120,12 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // to current style preference
         if (userTheme && userTheme.topoTreeStyle) {
             $('#topo-tree-name').val(userTheme.topoTreeStyle);
+        }
+
+        // set dropdown for language selection to
+        // current language preference
+        if (userTheme && userTheme.i18n) {
+            $('#language-name').val(userTheme.i18n);
         }
 
     },
@@ -165,6 +184,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
+        // add listener to language selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#language-name').on('change', function() {
+            var language = $('#language-name').val();
+            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+
+            // for this page only, re-render content upon language page
+            // to reflect translatable fields immediately
+            self.render();
+            self.getUserSettings();
+            self.addHandlers();
+        });
+
     },
 
     trimInputField: function(selector) {
@@ -180,7 +212,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3>User Settings</h3>' +
+        '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -210,6 +242,23 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<select class="form-control" id="topo-tree-name">' +
         '<option value="collapse">collapse</option>' +
         '<option value="zoom">zoom</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+
+        // language preference
+        '<div class="col-md-2">' +
+        '<h5><%= goldstone.translate("Language") %></h5>' +
+        '<form class="language-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="language-name">' +
+        // '<option value="english">English</option>' +
+        // '<option value="japanese">日本語</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
