@@ -353,7 +353,7 @@ class Addon(PolyResource):
 # These classes represent entities within a Keystone integration. #
 ###################################################################
 
-# TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Domain, Group, Token,
+# TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Group, Token,
 # Credential, Role, Region, Endpoint, Service.
 
 class User(PolyResource):
@@ -385,13 +385,18 @@ class User(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["user_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Domain,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("domain_id") and f["domain_id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
                 {TO: Group,
                  MATCHING_FN:
                  lambda f, t:
                  f.get("domain_id") and f["domain_id"] == t["domain_id"],
-                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
                 {TO: Project,
                  MATCHING_FN:
                  lambda f, t:
@@ -418,14 +423,34 @@ class Domain(PolyResource):
     """An OpenStack domain."""
 
     @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.domains.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
+
+    @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Group,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["domain_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
                 {TO: Project,
-                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                {TO: User,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["domain_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
                 ]
 
@@ -439,6 +464,34 @@ class Domain(PolyResource):
 
 class Group(PolyResource):
     """An OpenStack group."""
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.groups.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Domain,
+                 MATCHING_FN:
+                 lambda f, t: f.get("domain_id") and f["domain_id"] == t["id"],
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+                ]
 
     @classmethod
     def display_attributes(cls):
