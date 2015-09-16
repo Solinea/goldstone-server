@@ -5117,7 +5117,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
-        var gt = goldstone.translation;
         var ns = this.defaults;
 
         //----------------------------
