@@ -9,6 +9,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+#: base.html
+msgid "goldstone"
+msgstr "ゴールドストーン"
+
+#: base.html
+msgid "Metrics"
+msgstr "メトリック"
+
+#: base.html
+msgid "User Settings"
+msgstr "ユーザ設定"
+
 #: apiPerfReportPageView.js
 msgid "Nova API Performance"
 msgstr "新星のAPIのパフォーマンス"
@@ -19,7 +31,7 @@ msgstr "中性子のAPIパフォーマンス"
 
 #: apiPerfReportPageView.js
 msgid "Keystone API Performance"
-msgstr ""
+msgstr "キーストーンのAPIパフォーマンス"
 
 #: apiPerfReportPageView.js
 msgid "Glance API Performance"
