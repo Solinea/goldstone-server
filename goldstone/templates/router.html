@@ -23,6 +23,9 @@
         // assign "ajax-loader-solinea-blue" spinner gif
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
+        // assign json object from /static/i18n/po_json/
+        goldstone.i18nJSON = {{i18n_po_json_i18n_combined_json|to_js}};
+
         $(function () {
 
             /*
