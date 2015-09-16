@@ -31,47 +31,7 @@ describe('i18nModel.js spec', function() {
 
         goldstone.userPrefsView = new UserPrefsView();
 
-        this.testJSON = {
-            "domain": "english",
-            "locale_data": {
-                "english": {
-                    "": {
-                        "domain": "english",
-                        "plural_forms": "nplurals=2; plural=(n != 1);",
-                        "lang": "en"
-                    },
-                    "goldstone": [""],
-                    "Metrics": [""],
-                    "User Settings": [""],
-                },
-                "japanese": {
-                    "": {
-                        "domain": "japanese",
-                        "plural_forms": "nplurals=1; plural=0;",
-                        "lang": "ja"
-                    },
-                    "goldstone": ["ゴールドストーン"],
-                    "Metrics": ["メトリック"],
-                    "User Settings": ["ユーザ設定"],
-                },
-                "globish": {
-                    "": {
-                        "domain": "esperanto",
-                        "plural_forms": "nplurals=1; plural=0;",
-                        "lang": "ep"
-                    },
-                    "goldstone": ["goldo stono"],
-                    "Metrics": ["metrico"],
-                    "User Settings": ["usero settingo"],
-                },
-            }
-        };
-
-        this.testViewModel = I18nModel.extend({
-            combinedPoJsonFiles: this.testJSON
-        });
-
-        this.testView = new this.testViewModel();
+        this.testView = new I18nModel();
 
     });
     afterEach(function() {
