@@ -39,9 +39,9 @@ if [[ ${DOCKER_VM} != "false" ]] ; then
 fi
 
 
-docker ps -a | awk '{print $1}' | tail +2 | while read c ; do
+docker ps -a | awk '{print $1}' | sed '1d' | while read c ; do
     docker rm -f $c
 done
-docker images | tail +2 | awk '{print $3}' | while read i ; do
+docker images | sed '1d' | awk '{print $3}' | while read i ; do
     docker rmi -f $i
 done
