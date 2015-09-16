@@ -1599,8 +1599,6 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "api_perf/report": "apiPerfReport",
-        "cinder/report": "cinderReport",
         "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
@@ -2718,6 +2716,164 @@ var GoldstoneColors = GoldstoneBaseModel.extend({
                 openStackSeverity8: ['#AA4499', '#332288', '#999933', '#CC6677', '#DDCC77', '#88CCEE', '#44AA99', '#117733']
             }
         }
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var I18nModel = Backbone.Model.extend({
+
+    initialize: function() {
+        this.createTranslationObject();
+        this.setTranslationObject();
+        this.translateBaseTemplate();
+        this.addListeners();
+    },
+
+    createTranslationObject: function() {
+
+        // goldstone.i18nJSON is assigned on router.html, and is
+        // the contents of the json object stored in the
+        // goldstone/static/i18n/po_json/ directory
+        var originalObject = goldstone.i18nJSON;
+
+        var finalResult = {};
+        finalResult.domain = "english";
+        finalResult.locale_data = {};
+
+        _.each(goldstone.i18nJSON, function(val, key, orig) {
+            var result = {};
+            result = _.omit(orig[key].locale_data.messages, "");
+            result[""] = orig[key].locale_data.messages[""];
+            result[""].domain = key;
+            finalResult.locale_data[key] = result;
+        });
+        this.combinedPoJsonFiles = finalResult;
+
+        /*
+        this constructs an initialization object like:
+
+        this.combinedPoJsonFiles: {
+            "domain": "english",
+            "locale_data": {
+                "english": {
+                    "": {
+                        "domain": "english",
+                        "plural_forms": "nplurals=2; plural=(n != 1);",
+                        "lang": "en"
+                    },
+                    "goldstone": [""],
+                    "Metrics": [""],
+                    "User Settings": [""],
+                },
+                "japanese": {
+                    "": {
+                        "domain": "japanese",
+                        "plural_forms": "nplurals=1; plural=0;",
+                        "lang": "ja"
+                    },
+                    "goldstone": ["ゴールドストーン"],
+                    "Metrics": ["メトリック"],
+                    "User Settings": ["ユーザ設定"],
+                }
+            }
+        }
+        */
+    },
+
+    setTranslationObject: function() {
+
+        // this.combinedPoJsonFiles created via this.createTranslationObject()
+        goldstone.translationObject = new Jed(this.combinedPoJsonFiles);
+        this.checkCurrentLanguage();
+        this.setTranslationFunction();
+    },
+
+    /*
+    these are the function signatures for the api returned by
+    creating a new Jed object:
+
+    gettext = function ( key )
+    dgettext = function ( domain, key )
+    dcgettext = function ( domain, key, category )
+    ngettext = function ( singular_key, plural_key, value )
+    dngettext = function ( domain, singular_ley, plural_key, value )
+    dcngettext = function ( domain, singular_key, plural_key, value, category )
+    pgettext = function ( context, key )
+    dpgettext = function ( domain, context, key )
+    npgettext = function ( context, singular_key, plural_key, value )
+    dnpgettext = function ( domain, context, singular_key, plural_key, value )
+    dcnpgettext = function ( domain, context, singular_key, plural_key, value, category )
+
+    the most common one will be dgettext, so that is how we are setting up
+    goldstone.translate.
+    */
+
+    setTranslationFunction: function() {
+        goldstone.translate = function(string) {
+            var domain = goldstone.translationObject.domain;
+            return goldstone.translationObject.dgettext(domain, string);
+        };
+    },
+
+
+    checkCurrentLanguage: function() {
+
+        // if there is a currently selected language in localStorage,
+        // use that to set the current .domain, or set to the
+        // english default if none found.
+        var uP = localStorage.getItem('userPrefs');
+
+        // if localStorage item is not present,
+        // or i18n hasn't been set yet, just default to 'english'
+        if (uP !== null) {
+            var lang = JSON.parse(uP).i18n;
+            if (lang !== undefined) {
+                this.setCurrentLanguage(lang);
+                return;
+            }
+        }
+        this.setCurrentLanguage('english');
+        return;
+    },
+
+    setCurrentLanguage: function(language) {
+        goldstone.translationObject.domain = language;
+    },
+
+    addListeners: function() {
+        var self = this;
+
+        // this would be triggered on userPrefsView
+        this.listenTo(this, 'setLanguage', function(language) {
+
+            // .domain is used by the dgettext calls throughout
+            // the site to determine which language set to
+            // draw from when determining the appropriate tranlation.
+            self.setCurrentLanguage(language);
+            self.translateBaseTemplate();
+        });
+    },
+
+    translateBaseTemplate: function() {
+        _.each($('.i18n'), function(item) {
+            $(item).text(goldstone.translate($(item).data().i18n));
+
+        });
     }
 });
 ;
@@ -4982,7 +5138,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
@@ -12891,7 +13047,20 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        // iterate through goldstone.i18nJSON and render a dropdown
+        // selector item for each of the languages present
+        this.renderLanguageChoices();
+
         return this;
+    },
+
+    renderLanguageChoices: function() {
+
+        // defined on router.html
+        _.each(goldstone.i18nJSON, function(item, key) {
+            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+        });
     },
 
     getUserSettings: function() {
@@ -12929,6 +13098,12 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // to current style preference
         if (userTheme && userTheme.topoTreeStyle) {
             $('#topo-tree-name').val(userTheme.topoTreeStyle);
+        }
+
+        // set dropdown for language selection to
+        // current language preference
+        if (userTheme && userTheme.i18n) {
+            $('#language-name').val(userTheme.i18n);
         }
 
     },
@@ -12987,6 +13162,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
+        // add listener to language selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#language-name').on('change', function() {
+            var language = $('#language-name').val();
+            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+
+            // for this page only, re-render content upon language page
+            // to reflect translatable fields immediately
+            self.render();
+            self.getUserSettings();
+            self.addHandlers();
+        });
+
     },
 
     trimInputField: function(selector) {
@@ -13002,7 +13190,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3>User Settings</h3>' +
+        '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -13032,6 +13220,23 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<select class="form-control" id="topo-tree-name">' +
         '<option value="collapse">collapse</option>' +
         '<option value="zoom">zoom</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+
+        // language preference
+        '<div class="col-md-2">' +
+        '<h5><%= goldstone.translate("Language") %></h5>' +
+        '<form class="language-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="language-name">' +
+        // '<option value="english">English</option>' +
+        // '<option value="japanese">日本語</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -14718,6 +14923,14 @@ var UserPrefsView = Backbone.View.extend({
             self.getUserPrefs();
             self.defaults.userPrefs.topoTreeStyle = 'zoom';
             self.setUserPrefs();
+        });
+
+        // triggered on settingsPageView
+        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
+            self.getUserPrefs();
+            self.defaults.userPrefs.i18n = selection;
+            self.setUserPrefs();
+            goldstone.i18n.trigger('setLanguage', selection);
         });
     },
 
