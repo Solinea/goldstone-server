@@ -66,10 +66,10 @@ echo "**************************************************************************
 
 # shut down service
 systemctl stop goldstone-server
-systemctl disable golstone-server
+systemctl disable goldstone-server
 
 # remove stopped containers
-%{prefix}/golstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml rm -f
+%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml rm -f
 
 %postun
 
