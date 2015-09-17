@@ -115,6 +115,7 @@ install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.
 install -m 640 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 640 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
+install -m 640 %{_sourcedir}/external/rsyslog/rsyslog.conf.goldstone-server %{buildroot}/etc/rsyslog.conf
 
 %clean
 rm -rf %{buildroot}
@@ -128,5 +129,6 @@ rm -rf %{buildroot}
 /opt/goldstone/docker/
 /var/log/goldstone/
 %config /usr/lib/systemd/system/goldstone-server.service
+%config(-, root, root) /etc/rsyslog.conf
 
 %changelog

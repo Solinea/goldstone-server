@@ -30,7 +30,6 @@ The Goldstone web client is developed and tested with [Firefox](https://www.mozi
 Download the [latest release](https://github.com/Solinea/goldstone-server/releases) and execute these commands:
 
 ```bash
-root# yum update ; reboot
 root# yum localinstall -y goldstone-server-{version}.rpm
 ```
 
@@ -46,6 +45,9 @@ root# systemctl start goldstone-server
 ```
 
 ## Direct Logs and Events to the Goldstone Server
+
+**_ Note that this procedure will modify the configuration of your OpenStack server(s).  All changed configuration files will be backed up with a file of the form name.{timestamp}. _**
+
 
 With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting appropriate values for names and addresses:
 The final configuration 
@@ -63,8 +65,31 @@ Restart OpenStack and syslog services after configuration changes(yes/no)? [yes]
 Goldstone server's hostname or IP accessible to OpenStack hosts? {your goldstone ip}  # this is the IP address of your Goldstone server
 ```
 
-**_ Note that this procedure will modify the configuration of your OpenStack server(s).  All changed configuration files will be backed up with a file of the form name.{timestamp}. _**
+**List of modified files**
 
+* /etc/rsyslog.conf
+* /etc/rsyslog.d/10-goldstone.conf
+* /etc/ceilometer/ceilometer.conf
+* /etc/ceilometer/pipeline.yaml
+* /etc/ceilometer/event_pipeline.yaml
+* /etc/ceilometer/event_definitions.yaml
+* /etc/ceilometer/api_paste.ini
+* /etc/nova/nova.conf
+* /etc/nova/api-paste.ini
+* /etc/nova/nova_api_audit_map.conf
+* /etc/cinder/cinder.conf
+* /etc/cinder/api-paste.ini
+* /etc/cinder/cinder_api_audit_map.conf
+* /etc/neutron/neutron.conf
+* /etc/neutron/api-paste.ini
+* /etc/neutron/neutron_api_audit_map.conf
+* /etc/keystone/cinder.conf
+* /etc/glance/glance-cache.conf
+* /etc/glance/glance-api.conf
+* /etc/glance/glance-registry.conf
+* /etc/glance/glance-scrubber.conf
+* /etc/glance/glance-api-paste.ini
+* /etc/glance/glance_api_audit_map.conf
 
 ## Access the client
 
