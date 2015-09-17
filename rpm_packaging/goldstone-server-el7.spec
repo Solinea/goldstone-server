@@ -103,19 +103,20 @@ rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
 %install
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
-install -d -m 750 %{buildroot}/usr/lib/systemd/system/
-install -d -m 750 %{buildroot}/var/log/goldstone/
+install -d -m 755 %{buildroot}/usr/lib/systemd/system/
+install -d -m 755 %{buildroot}/etc/
+install -d -m 755 %{buildroot}/var/log/goldstone/
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
 cp -R %{_sourcedir}/docker %{buildroot}/opt/goldstone
 
-install -m 640 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
-install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
-install -m 640 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
-install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
-install -m 640 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
-install -m 640 %{_sourcedir}/external/rsyslog/rsyslog.conf.goldstone-server %{buildroot}/etc/rsyslog.conf
+install -m 644 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
+install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
+install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
+install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
+install -m 644 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
+install -m 644 %{_sourcedir}/external/rsyslog/rsyslog.conf.goldstone-server %{buildroot}/etc/rsyslog.conf
 
 %clean
 rm -rf %{buildroot}
@@ -128,7 +129,7 @@ rm -rf %{buildroot}
 /opt/goldstone/LICENSE
 /opt/goldstone/docker/
 /var/log/goldstone/
-%config /usr/lib/systemd/system/goldstone-server.service
+%config(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config(-, root, root) /etc/rsyslog.conf
 
 %changelog
