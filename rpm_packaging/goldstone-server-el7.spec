@@ -129,7 +129,7 @@ rm -rf %{buildroot}
 /opt/goldstone/LICENSE
 /opt/goldstone/docker/
 /var/log/goldstone/
-%config(-, root, root) /usr/lib/systemd/system/goldstone-server.service
-%config(-, root, root) /etc/rsyslog.conf
+%config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
+%config %attr(-, root, root) /etc/rsyslog.conf
 
 %changelog
