@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl, docker-selinux
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -50,7 +50,8 @@ echo "Pulling goldstone containers"
 %{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml pull
 
 echo "*****************************************************************************"
-echo " Modify configs under %{prefix}/goldstone/docker/config"
+echo ""
+echo " Modify %{prefix}/goldstone/docker/config/goldstone-prod.env"
 echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
 echo " for details."
 echo ""
