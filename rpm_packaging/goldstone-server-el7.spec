@@ -35,16 +35,19 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 /usr/bin/getent group goldstone \
     || /usr/sbin/groupadd -r goldstone
 /usr/bin/getent passwd goldstone \
-    || /usr/sbin/useradd -r -g goldstone -d /opt/goldstone -s /sbin/nologin goldstone
+    || /usr/sbin/useradd -r -g goldstone -d %{prefix}/goldstone -s /sbin/nologin goldstone
 
 %post
 if [[ $# == 1 && $1 == 1 ]] ; then
-    echo " Installing docker-compose to /opt/goldstone/bin"
+    echo "Installing docker-compose to %{prefix}/goldstone/bin"
     echo ""
-    /usr/bin/curl -# -o /opt/goldstone/bin/docker-compose --create-dirs -L \
+    /usr/bin/curl -# -o %{prefix}/goldstone/bin/docker-compose --create-dirs -L \
         https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
-        && chmod +x /opt/goldstone/bin/docker-compose
+        && chmod +x %{prefix}/goldstone/bin/docker-compose
+   
 fi
+echo "Pulling goldstone containers"
+%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml pull
 
 echo "*****************************************************************************"
 echo " Modify configs under %{prefix}/goldstone/docker/config"
@@ -59,13 +62,20 @@ echo ""
 echo "*****************************************************************************"
 
 %preun
+
+# shut down service
+systemctl stop goldstone-server
+systemctl disable golstone-server
+
+# remove stopped containers
+%{prefix}/golstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml rm -f
+
+%postun
+
+# delete the goldstone user and group if this is the last instance
 if [[ $# == 1 && $1 == 0 ]] ; then
     rm -rf /opt/goldstone/bin > /dev/null 2>&1 \
         || /bin/true
-fi
-
-%postun
-if [[ $# == 1 && $1 == 0 ]] ; then
     /usr/sbin/userdel goldstone > /dev/null 2>&1 \
         || /bin/true
     /usr/sbin/groupdel goldstone > /dev/null 2>&1 \
