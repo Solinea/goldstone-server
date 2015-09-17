@@ -678,7 +678,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl
+                el: ns.multiRsrcViewEl,
+                chartTitle: goldstone.translate("Resource List")
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');

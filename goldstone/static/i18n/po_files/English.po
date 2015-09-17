@@ -9,64 +9,270 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: base.html
-msgid "goldstone"
-msgstr ""
-
-#: base.html
-msgid "Metrics"
-msgstr ""
-
-#: settingsPageView.js
-msgid "User Settings"
-msgstr ""
-
-#: settingsPageView.js
-msgid "Language"
-msgstr ""
+#: apiPerfReportPageView.js
 
 #: apiPerfReportPageView.js
 msgid "Nova API Performance"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Neutron API Performance"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Keystone API Performance"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Glance API Performance"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Cinder API Performance"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "API Call"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "All"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Start"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "End"
-msgstr ""
+msgstr "Børk"
 
 #: apiPerfReportPageView.js
 msgid "Interval"
-msgstr ""
+msgstr "Børk"
 
-#: Put one translator per line, in the form of NAME <EMAIL>, YEAR1, YEAR2.
-#: help-boot.html:0(None)
-#: msgid "translator-credits"
-#: msgstr ""
+#: base.html
+
+#: base.html
+msgid "goldstone"
+msgstr "Børk"
+
+#: base.html
+msgid "Metrics"
+msgstr "Børk"
+
+#: base.html
+msgid "API Performance"
+msgstr "Børk"
+
+#: base.html
+msgid "Compute"
+msgstr "Børk"
+
+#: base.html
+msgid "Network"
+msgstr "Børk"
+
+#: base.html
+msgid "Block Storage"
+msgstr "Børk"
+
+#: base.html
+msgid "Image"
+msgstr "Børk"
+
+#: base.html
+msgid "Identity"
+msgstr "Børk"
+
+#: base.html
+msgid "Metric Report"
+msgstr "Børk"
+
+#: base.html
+msgid "Reports"
+msgstr "Børk"
+
+#: base.html
+msgid "Log Browser"
+msgstr "Børk"
+
+#: base.html
+msgid "Event Browser"
+msgstr "Børk"
+
+#: base.html
+msgid "Api Browser"
+msgstr "Børk"
+
+#: base.html
+msgid "Copyright"
+msgstr "Børk"
+
+#: base.html
+msgid "License"
+msgstr "Børk"
+
+#: discoverView.js
+
+#: discoverView.js
+msgid "Event Timeline"
+msgstr "Børk"
+
+#: discoverView.js
+msgid "Node Availability"
+msgstr "Børk"
+
+#: discoverView.js
+msgid "Cloud Topology"
+msgstr "Børk"
+
+#: goldstoneBaseView.js
+
+#: goldstoneBaseView.js
+msgid "Response Time (s)"
+msgstr "Børk"
+
+#: goldstoneBaseView.js
+msgid "No Data Returned"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 15 minutes
+msgid "lookback 15m"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 1 hour
+msgid "lookback 1h"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 6 hours
+msgid "lookback 6h"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 1 day
+msgid "lookback 1d"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 3 days
+msgid "lookback 3d"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 7 days
+msgid "lookback 7d"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 30 seconds
+msgid "refresh 30s"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+#: designates 1 minute
+msgid "refresh 1m"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+msgid "refresh 5m"
+msgstr "Børk"
+
+#: globalLookbackRefreshButtonsView.js
+msgid "refresh off"
+msgstr "Børk"
+
+#: helpView.js
+
+#: helpView.js
+msgid "Getting Help"
+msgstr "Børk"
+
+#: helpView.js
+msgid "If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>."
+msgstr "Børk"
+
+#: helpView.js
+msgid "Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>."
+msgstr "Børk"
+
+#: helpView.js
+msgid "License"
+msgstr "Børk"
+
+#: novaReportView.js
+
+#: novaReportView.js
+msgid "Nova API Performance"
+msgstr "Børk"
+
+#: novaReportView.js
+msgid "VM Spawns"
+msgstr "Børk"
+
+#: novaReportView.js
+msgid "CPU Resources"
+msgstr "Børk"
+
+#: novaReportView.js
+msgid "Memory Resources"
+msgstr "Børk"
+
+#: novaReportView.js
+msgid "Cores"
+msgstr "Børk"
+
+#: settingsPageView.js
+
+#: settingsPageView.js
+msgid "User Settings"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Theme Settings"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Update Personal Settings"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Additional Actions"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Change Password"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Modify Tenant Settings"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Update"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Topology Tree Style"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Language"
+msgstr "Børk"
+
+#: settingsPageView.js
+msgid "Username"
+msgstr "Børk"
+
+#: topologyTreeView.js
+msgid "Resource List"
+msgstr "Børk"
+
+#: translator-credits
+#: Put one translator per line - name / url / year
 #: "Alex Jacobs github.com/lexjacobs 2015\n"

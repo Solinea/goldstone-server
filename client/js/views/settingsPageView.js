@@ -30,8 +30,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
-            '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
+            '<h3>' + goldstone.translate("Additional Actions") + '</h3>' +
+            '<button class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -216,7 +216,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // dark/light theme selector
         '<div class="col-md-2">' +
-        '<h5>Theme Settings</h5>' +
+        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
         '<form class="theme-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
@@ -234,7 +234,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // topology tree style
         '<div class="col-md-2">' +
-        '<h5>Topology Tree Style</h5>' +
+        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
         '<form class="topo-tree-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
@@ -283,8 +283,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
-        '<h3>Update Personal Settings</h3>' +
-        '<label for="inputUsername">Username</label>' +
+        '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
+        '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
         '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
         '<label for="inputFirstname">First name</label>' +
         '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
@@ -292,19 +292,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
         '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Update")%></button>' +
         '</form>' +
         '</div>' +
 
         // password reset form
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Change Password</h3>' +
+        '<h3><%=goldstone.translate("Change Password")%></h3>' +
         '<label for="inputCurrentPassword">Current password</label>' +
         '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
         '<label for="inputNewPassword">New password</label>' +
         '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Change Password")%></button>' +
         '</form>' +
         '</div>' +
 

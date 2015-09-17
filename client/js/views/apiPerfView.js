@@ -52,9 +52,9 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 return e.key + ": " + e.value + "<br>";
             });
             var result = '<div class="infoButton"><br>' + custom +
-                'Start: ' + start + '<br>' +
-                'End: ' + end + '<br>' +
-                'Interval: ' + ns.interval + '<br>' +
+                goldstone.translate('Start') + ': ' + start + '<br>' +
+                goldstone.translate('End') + ': ' + end + '<br>' +
+                goldstone.translate('Interval') + ': ' + ns.interval + '<br>' +
                 '<br></div>';
             return result;
         };

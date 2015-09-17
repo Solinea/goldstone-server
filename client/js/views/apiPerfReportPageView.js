@@ -53,8 +53,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width()
@@ -69,12 +69,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
+            chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width()
@@ -88,12 +88,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
-            chartTitle: "Keystone API Performance",
+            chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
@@ -107,12 +107,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
-            chartTitle: "Glance API Performance",
+            chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
@@ -126,12 +126,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
-            chartTitle: "Cinder API Performance",
+            chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()

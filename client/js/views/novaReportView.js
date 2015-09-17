@@ -37,7 +37,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
@@ -57,13 +57,13 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.vmSpawnChartView = new SpawnsView({
-            chartTitle: "VM Spawns",
+            chartTitle: goldstone.translate("VM Spawns"),
             collection: this.vmSpawnChart,
             height: 300,
             infoCustom: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
-            yAxisLabel: 'Spawn Events'
+            yAxisLabel: goldstone.translate('Spawn Events')
         });
 
         /*
@@ -75,14 +75,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.cpuResourcesChartView = new MultiMetricBarView({
-            chartTitle: "CPU Resources",
+            chartTitle: goldstone.translate("CPU Resources"),
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
             height: 300,
             infoCustom: 'novaCpuResources',
             el: '#nova-report-r2-c1',
             width: $('#nova-report-r2-c1').width(),
-            yAxisLabel: 'Cores'
+            yAxisLabel: goldstone.translate('Cores')
         });
 
         /*
@@ -94,14 +94,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.memResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Memory Resources",
+            chartTitle: goldstone.translate("Memory Resources"),
             collection: this.memResourcesChart,
             featureSet: 'mem',
             height: 300,
             infoCustom: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
-            yAxisLabel: 'MB'
+            yAxisLabel: goldstone.translate('MB')
         });
 
         /*
@@ -113,14 +113,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.diskResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Disk Resources",
+            chartTitle: goldstone.translate("Disk Resources"),
             collection: this.diskResourcesChart,
             featureSet: 'disk',
             height: 300,
             infoCustom: 'novaDiskResources',
             el: '#nova-report-r3-c1',
             width: $('#nova-report-r3-c1').width(),
-            yAxisLabel: 'GB'
+            yAxisLabel: goldstone.translate('GB')
         });
 
     },

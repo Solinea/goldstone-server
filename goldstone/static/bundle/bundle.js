@@ -274,7 +274,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         } else {
-            this.defaults.yAxisLabel = "Response Time (s)";
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
         }
     },
 
@@ -491,7 +491,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         // any existing alert or error messages.
 
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(goldstone.translate('No Data Returned'));
             return false;
         } else {
             this.clearDataErrorMessage();
@@ -5167,8 +5167,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width()
@@ -5183,12 +5183,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
+            chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width()
@@ -5202,12 +5202,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
-            chartTitle: "Keystone API Performance",
+            chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
@@ -5221,12 +5221,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
-            chartTitle: "Glance API Performance",
+            chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
@@ -5240,12 +5240,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
-            chartTitle: "Cinder API Performance",
+            chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
@@ -5324,9 +5324,9 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 return e.key + ": " + e.value + "<br>";
             });
             var result = '<div class="infoButton"><br>' + custom +
-                'Start: ' + start + '<br>' +
-                'End: ' + end + '<br>' +
-                'Interval: ' + ns.interval + '<br>' +
+                goldstone.translate('Start') + ': ' + start + '<br>' +
+                goldstone.translate('End') + ': ' + end + '<br>' +
+                goldstone.translate('Interval') + ': ' + ns.interval + '<br>' +
                 '<br></div>';
             return result;
         };
@@ -6004,7 +6004,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.eventTimelineChartView = new EventTimelineView({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
-            chartTitle: 'Event Timeline',
+            chartTitle: goldstone.translate('Event Timeline'),
             width: $('#goldstone-discover-r1-c1').width()
         });
 
@@ -6014,7 +6014,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.nodeAvailChart = new NodeAvailCollection({});
 
         this.nodeAvailChartView = new NodeAvailView({
-            chartTitle: 'Node Availability',
+            chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
             h: {
@@ -6039,7 +6039,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             // if user prefs designate 'zoom'able style
             this.zoomableTreeView = new ZoomablePartitionView({
                 blueSpinnerGif: blueSpinnerGif,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverZoomTopology'
                 ],
                 collection: this.discoverTree,
@@ -6056,7 +6056,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             var topologyTreeView = new TopologyTreeView({
                 blueSpinnerGif: blueSpinnerGif,
                 collection: this.discoverTree,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r2-c1',
@@ -7294,12 +7294,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
-                '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>' +
-                '<option value="4320">lookback 3d</option>' +
-                '<option value="10080">lookback 7d</option>';
+            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
+                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
+                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
+                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
+                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
+                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
         }
     },
 
@@ -7315,10 +7315,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
-                '<option value="60">refresh 1m</option>' +
-                '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+            return '<option value="30">' + goldstone.translate('refresh 30s') + '</option>' +
+                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
+                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
+                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
         }
     },
 
@@ -7394,25 +7394,15 @@ var HelpView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<h3>Help Topics</h3>' +
-        '<ul>' +
-        '<li><a href="#getting_help">Getting help</a></li>' +
-        '<li><a href="#license">License</a></li>' +
-        '</ul>' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
+        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
 
-        '<a name="getting_help"></a><h3>Getting Help</h3>' +
-        'If you would like to contact Solinea regarding issues, feature requests, ' +
-        'or other Goldstone related feedback, check out the ' +
-        '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
-        'goldstone-users forum</a>, or ' +
-        '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
-        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' +
-        'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
-
-        '<a name="license"></a><h3>License</h3>' +
-        'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
-        'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
-        'https://www.apache.org/licenses/LICENSE-2.0</a>.'
+        '<h3><%=goldstone.translate("License")%></h3>' +
+        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
+        '</div>' +
+        '</div>'
     )
 
 });
@@ -10715,7 +10705,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        ' Resource List<span class="panel-header-resource-title"></span>' +
+        ' <%= this.options.chartTitle %><span class="panel-header-resource-title"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '</h3>' +
         '</div>' +
@@ -12287,7 +12277,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
@@ -12307,13 +12297,13 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.vmSpawnChartView = new SpawnsView({
-            chartTitle: "VM Spawns",
+            chartTitle: goldstone.translate("VM Spawns"),
             collection: this.vmSpawnChart,
             height: 300,
             infoCustom: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
-            yAxisLabel: 'Spawn Events'
+            yAxisLabel: goldstone.translate('Spawn Events')
         });
 
         /*
@@ -12325,14 +12315,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.cpuResourcesChartView = new MultiMetricBarView({
-            chartTitle: "CPU Resources",
+            chartTitle: goldstone.translate("CPU Resources"),
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
             height: 300,
             infoCustom: 'novaCpuResources',
             el: '#nova-report-r2-c1',
             width: $('#nova-report-r2-c1').width(),
-            yAxisLabel: 'Cores'
+            yAxisLabel: goldstone.translate('Cores')
         });
 
         /*
@@ -12344,14 +12334,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.memResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Memory Resources",
+            chartTitle: goldstone.translate("Memory Resources"),
             collection: this.memResourcesChart,
             featureSet: 'mem',
             height: 300,
             infoCustom: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
-            yAxisLabel: 'MB'
+            yAxisLabel: goldstone.translate('MB')
         });
 
         /*
@@ -12363,14 +12353,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.diskResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Disk Resources",
+            chartTitle: goldstone.translate("Disk Resources"),
             collection: this.diskResourcesChart,
             featureSet: 'disk',
             height: 300,
             infoCustom: 'novaDiskResources',
             el: '#nova-report-r3-c1',
             width: $('#nova-report-r3-c1').width(),
-            yAxisLabel: 'GB'
+            yAxisLabel: goldstone.translate('GB')
         });
 
     },
@@ -13033,8 +13023,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
-            '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
+            '<h3>' + goldstone.translate("Additional Actions") + '</h3>' +
+            '<button class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -13219,7 +13209,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // dark/light theme selector
         '<div class="col-md-2">' +
-        '<h5>Theme Settings</h5>' +
+        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
         '<form class="theme-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
@@ -13237,7 +13227,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // topology tree style
         '<div class="col-md-2">' +
-        '<h5>Topology Tree Style</h5>' +
+        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
         '<form class="topo-tree-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
@@ -13286,8 +13276,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
-        '<h3>Update Personal Settings</h3>' +
-        '<label for="inputUsername">Username</label>' +
+        '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
+        '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
         '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
         '<label for="inputFirstname">First name</label>' +
         '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
@@ -13295,19 +13285,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
         '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Update")%></button>' +
         '</form>' +
         '</div>' +
 
         // password reset form
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Change Password</h3>' +
+        '<h3><%=goldstone.translate("Change Password")%></h3>' +
         '<label for="inputCurrentPassword">Current password</label>' +
         '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
         '<label for="inputNewPassword">New password</label>' +
         '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Change Password")%></button>' +
         '</form>' +
         '</div>' +
 
@@ -14771,7 +14761,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl
+                el: ns.multiRsrcViewEl,
+                chartTitle: goldstone.translate("Resource List")
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');
