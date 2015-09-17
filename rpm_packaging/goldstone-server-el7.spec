@@ -38,6 +38,10 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
     || /usr/sbin/useradd -r -g goldstone -d %{prefix}/goldstone -s /sbin/nologin goldstone
 
 %post
+
+# restart the syslog daemon
+systemctl restart rsyslog
+
 if [[ $# == 1 && $1 == 1 ]] ; then
     echo "Installing docker-compose to %{prefix}/goldstone/bin"
     echo ""

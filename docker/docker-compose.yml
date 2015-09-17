@@ -15,7 +15,7 @@
 
 # Goldstone Proxy & Static
 gsweb:
-  image: solinea/goldstone-web
+  image: solinea/goldstone-web:v1-8618233-docker_celery
   volumes:
     - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
     - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
@@ -30,8 +30,10 @@ gsweb:
 
 # Goldstone Server Container
 gsapp:
-  image: solinea/goldstone-app
+  image: solinea/goldstone-app:v1-8618233-docker_celery
   env_file: ./config/goldstone-prod.env
+  volumes:
+    - ./docker/config/goldstone-app:/home/app/config
   ports:
     - "8000:8000"
   links:
@@ -44,7 +46,7 @@ gsapp:
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db
+  image: solinea/goldstone-db:v1-8618233-docker_celery
   env_file: ./config/goldstone-prod.env
   volumes_from:
     - gsdbdvc
@@ -57,7 +59,7 @@ gsdb:
 
 # Database Data Volume Container
 gsdbdvc:
-  image: solinea/goldstone-db-dvc
+  image: solinea/goldstone-db-dvc:v1-8618233-docker_celery
   volumes:
     - /var/lib/postgresql/data
   log_driver: "syslog"
@@ -67,7 +69,7 @@ gsdbdvc:
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log
+  image: solinea/goldstone-log:v1-8618233-docker_celery
   command: logstash -f /logstash/conf.d -w 1
   volumes:
     - ./config/goldstone-log/conf.d:/logstash/conf.d
@@ -85,11 +87,9 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search
+  image: solinea/goldstone-search:v1-8618233-docker_celery
   volumes:
     - ./config/goldstone-search:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
   ports:
     - "9200:9200"
     - "9300:9300"
@@ -100,7 +100,7 @@ gssearch:
 
 # Celery Worker Container
 gstask:
-  image: solinea/goldstone-task
+  image: solinea/goldstone-task:v1-8618233-docker_celery
   env_file: ./config/goldstone-prod.env
   links:
     - gstaskq
@@ -113,7 +113,7 @@ gstask:
 
 # Celery Task Queue Container
 gstaskq:
-  image: solinea/goldstone-task-queue
+  image: solinea/goldstone-task-queue:v1-8618233-docker_celery
   ports:
     - "6379:6379"
   log_driver: "syslog"
