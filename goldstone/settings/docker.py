@@ -20,14 +20,12 @@ DEBUG = bool(os.environ.get('DEBUG', False))
 
 TEMPLATE_DEBUG = False
 
-QUNIT_ENABLED = False
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': "goldstone",
         'USER': 'goldstone',
-        'PASSWORD': 'goldstone',
+        'PASSWORD': os.environ.get('GOLDSTONE_PASSWORD', 'goldstone'),
         "HOST": "gsdb",
         "PORT": '5432',
     }

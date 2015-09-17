@@ -23,6 +23,7 @@ DIST_DIR=${TOP_DIR}/dist
 GIT_BRANCH=$(git symbolic-ref --short HEAD)
 GIT_COMMIT=$(git rev-parse --short HEAD)
 TAGGED=false
+TAG=""
 
 GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
 GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
@@ -51,6 +52,10 @@ for arg in "$@" ; do
         ;;
         --tagged)
             TAGGED=true
+        ;;
+        --tag=*)
+            TAG="${arg#*=}"
+            shift
         ;;
         --help)
             echo "Usage: $0"
@@ -114,7 +119,11 @@ if [[ $TAGGED == 'true' ]] ; then
         echo "##########################################################"
         echo "Building ${REGISTRY_ORG}/${folder##*/}..."
         echo "##########################################################"
-        NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} $GIT_BRANCH --commit-id $GIT_COMMIT`
+        if [[ ${TAG} == "" ]] ; then
+            NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} $GIT_BRANCH --commit-id $GIT_COMMIT`
+        else
+            NEXT_TAG=${TAG}
+        fi
         docker build -t ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG} .
         echo "Done building ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG}."
     done

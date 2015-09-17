@@ -13,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-pass="'$GOLDSTONE_PASSWORD'"
-echo "goldstone user password = $GOLDSTONE_PASSWORD" >> /initdb.log
+
+pg_pass="'$POSTGRES_PASSWORD'"
+gs_pass="'$GOLDSTONE_PASSWORD'"
 
 gosu postgres psql <<- EOF
-    CREATE USER goldstone PASSWORD $pass;
+    CREATE USER goldstone PASSWORD $gs_pass;
     CREATE DATABASE goldstone;
     GRANT ALL PRIVILEGES ON DATABASE goldstone TO goldstone;
     ALTER USER goldstone CREATEDB;
+    ALTER USER postgres PASSWORD $pg_pass;
+    ALTER USER goldstone PASSWORD $gs_pass;
 EOF
 
 # Adjust PostgreSQL configuration so that remote connections to the
