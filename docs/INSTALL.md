@@ -1,16 +1,29 @@
 # Goldstone Installation
 
-Before installing Goldstone, your server must meet the following prerequisites:
+Before installing Goldstone, your environment must meet the following prerequisites:
+
+**Server requirements**
 
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 7.x
 * Docker >= 1.8.2 ([Install instructions](https://docs.docker.com/installation/centos/))
+* Docker running (`systemctl start docker`)
+* Docker configured to start at boot (`systemctl enable docker`)
 
-Goldstone server is intended for use with OpenStack *Kilo* clouds, specifically, *RedHat's RDO*. 
+**Cloud requirements**
 
-To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
+* RDO Kilo
+* OpenStack hosts must be permitted send data to Goldstone
+ * TCP/5514
+ * TCP/5515
+ * TCP/5516
+* Goldstone server must be permitted to access OpenStack API
+
+**Browser requirements**
+
+The Goldstone web client is developed and tested with [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).  We do not currently have a definitive list of supported browser versions, but the [compatibility chart](http://caniuse.com/#feat=es5) reflects what we think should work.
 
 ## Install RPMs (as root)
 
