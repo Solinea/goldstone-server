@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, docker, curl
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre

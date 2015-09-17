@@ -6,9 +6,7 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 7.x
-* Python 2, >= 2.7.10
-
-* The Goldstone installer installs, and modifies packages and libraries.  It is highly recommended that it only be installed on dedicated systems. *  A [CentOS 7.1 x86 cloud image](http://cloud.centos.org/centos/7/images/) is an ideal starting point for a virtual machine based Goldstone installation.
+* Docker >= 1.8.2 ([Install instructions](https://docs.docker.com/installation/centos/))
 
 To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 

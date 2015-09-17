@@ -5,8 +5,8 @@ After=docker.service
 
 [Service]
 Restart=always
-User=goldstone
-Group=goldstone
+User=root
+Group=root
 ExecStart=/usr/bin/docker-compose -f /opt/golstone/docker/docker-compose.yml up
 ExecStop=/usr/bin/docker-compose -f /opt/goldstone/docker/docker-compose.yml stop
 
