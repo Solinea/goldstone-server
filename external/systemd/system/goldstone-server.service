@@ -7,8 +7,8 @@ After=docker.service
 Restart=always
 User=root
 Group=root
-ExecStart=/usr/bin/docker-compose -f /opt/golstone/docker/docker-compose.yml up
-ExecStop=/usr/bin/docker-compose -f /opt/goldstone/docker/docker-compose.yml stop
+ExecStart=/opt/goldstone/bin/docker-compose -f /opt/golstone/docker/docker-compose.yml up -d
+ExecStop=/opt/goldstone/bin/docker-compose -f /opt/goldstone/docker/docker-compose.yml stop
 
 [Install]
 WantedBy=local.target
