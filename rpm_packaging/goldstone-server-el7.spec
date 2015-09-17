@@ -69,7 +69,10 @@ systemctl stop goldstone-server
 systemctl disable goldstone-server
 
 # remove stopped containers
+echo "Removing containers..."
 %{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml rm -f
+echo "Removing images..."
+docker rmi $(docker images | grep goldstone | awk '{print $3}' | xargs)
 
 %postun
 

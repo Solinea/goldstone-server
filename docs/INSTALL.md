@@ -15,38 +15,30 @@ Before installing Goldstone, your environment must meet the following prerequisi
 **Cloud requirements**
 
 * RDO Kilo
-* OpenStack hosts must be permitted send data to Goldstone
+* OpenStack hosts must be permitted send data to Goldstone on ports:
  * TCP/5514
  * TCP/5515
  * TCP/5516
+ * TCP/9200
 * Goldstone server must be permitted to access OpenStack API
 
 **Browser requirements**
 
 The Goldstone web client is developed and tested with [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).  We do not currently have a definitive list of supported browser versions, but the [compatibility chart](http://caniuse.com/#feat=es5) reflects what we think should work.
 
-## Install RPMs (as root)
+## Install (as root)
 
-Download the [latest release](https://github.com/Solinea/goldstone-server/releases) and execute these commands:
+This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
 
-```bash
-root# yum localinstall -y goldstone-server-{version}.rpm
-```
-
-## Edit configuration and enable service (as root)
-
-Edit the `/opt/goldstone/docker/config/goldstone-prod.env` file, and set values appropriate for your environment. 
-
-Execute the following commands to enable the service at boot and start immediately:
-
-```bash
-root# systemctl enable goldstone-server
-root# systemctl start goldstone-server
-```
+* Download the [latest release](https://github.com/Solinea/goldstone-server/releases)
+* `yum localinstall -y goldstone-server-{version}.rpm`
+* Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
+* `systemctl enable goldstone-server`
+* `systemctl start goldstone-server`
 
 ## Direct Logs and Events to the Goldstone Server
 
-**_ Note that this procedure will modify the configuration of your OpenStack server(s).  All changed configuration files will be backed up with a file of the form name.{timestamp}. _**
+This procedure will modify the configuration of your OpenStack server(s).  All changed configuration files will be backed up with a file of the form name.{timestamp}. 
 
 
 With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting appropriate values for names and addresses:
@@ -97,11 +89,8 @@ Point your browser at the Goldstone server IP address or name and begin using Go
 
 `http://{your ip address}:8888`
 
-## Uninstallation
+## Uninstallation (as root)
 
-To uninstall Goldstone:
-```bash
-root# yum remove goldstone-server
-```
+This process may take a long time while it removes the Goldstone containers and images. It does not revert configuration changes made to OpenStack via the configure_stack task.
 
-This will remove the Goldstone server software and containers, but will not remove container images.  It also does not revert configuration changes made by the `fab configure_stack` command.
+* `yum remove goldstone-server`
