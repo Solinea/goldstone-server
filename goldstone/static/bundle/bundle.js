@@ -2775,6 +2775,9 @@ var I18nModel = Backbone.Model.extend({
 
         this.combinedPoJsonFiles: {
             "domain": "English",
+            "missing_key_callback": function(key) {
+            console.error('missing .po file translation for: `' + key + '`');
+            }
             "locale_data": {
                 "English": {
                     "": {
