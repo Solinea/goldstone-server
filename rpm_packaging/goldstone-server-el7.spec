@@ -104,7 +104,7 @@ rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 755 %{buildroot}/usr/lib/systemd/system/
-install -d -m 755 %{buildroot}/etc/
+install -d -m 755 %{buildroot}/etc/rsyslog.d/
 install -d -m 755 %{buildroot}/var/log/goldstone/
 
 # handle multiple and empty files
@@ -116,7 +116,7 @@ install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.
 install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 644 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
-install -m 644 %{_sourcedir}/external/rsyslog/rsyslog.conf.goldstone-server %{buildroot}/etc/rsyslog.conf
+install -m 644 %{_sourcedir}/external/rsyslog/goldstone.conf %{buildroot}/etc/rsyslog.d/goldstone.conf
 
 %clean
 rm -rf %{buildroot}
