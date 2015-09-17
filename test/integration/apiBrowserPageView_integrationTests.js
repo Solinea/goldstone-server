@@ -59,6 +59,11 @@ describe('ApiBrowserPageView.js spec', function() {
             '</form>' +
             '</div>');
 
+        // mock i18n
+        goldstone = goldstone || {};
+        goldstone.i18nJSON = {"English":{"domain":"messages","locale_data":{"messages":{"":{"domain":"messages","plural_forms":"nplurals=2; plural=(n != 1);","lang":"en"},"Nova API Performance":["Børk"]}}}};
+        goldstone.i18n = new I18nModel();
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;

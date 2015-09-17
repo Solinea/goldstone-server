@@ -35,6 +35,10 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
+        // mock i18n
+        goldstone = goldstone || {};
+        goldstone.i18nJSON = {"English":{"domain":"messages","locale_data":{"messages":{"":{"domain":"messages","plural_forms":"nplurals=2; plural=(n != 1);","lang":"en"},"Nova API Performance":["Børk"]}}}};
+        goldstone.i18n = new I18nModel();
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new GlobalLookbackRefreshButtonsView({});
