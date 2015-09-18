@@ -41,8 +41,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width()

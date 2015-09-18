@@ -222,8 +222,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="theme-name">' +
-        '<option value="light">light</option>' +
-        '<option value="dark">dark</option>' +
+        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -240,8 +240,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse">collapse</option>' +
-        '<option value="zoom">zoom</option>' +
+        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
+        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +

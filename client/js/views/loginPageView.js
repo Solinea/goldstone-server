@@ -97,14 +97,14 @@ var LoginPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="login-form">' +
-        '<h3>Please sign in</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="Username" required autofocus>' +
-        '<label for="inputPassword">Password</label>' +
-        '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
+        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
+        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
+        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
+        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
+        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'

@@ -327,7 +327,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
                 }
             } else {
-                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
+                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
             }
 
         }).fail(function(error) {

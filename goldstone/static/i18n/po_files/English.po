@@ -13,265 +13,473 @@ msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Nova API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Neutron API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Keystone API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Glance API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Cinder API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "API Call"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "All"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Start"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "End"
-msgstr "Børk"
+msgstr ""
 
 #: apiPerfReportPageView.js
 msgid "Interval"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 
 #: base.html
 msgid "goldstone"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Metrics"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Compute"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Network"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Block Storage"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Image"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Identity"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Metric Report"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Reports"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Log Browser"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Event Browser"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Api Browser"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "Copyright"
-msgstr "Børk"
+msgstr ""
 
 #: base.html
 msgid "License"
-msgstr "Børk"
+msgstr ""
 
 #: discoverView.js
 
 #: discoverView.js
 msgid "Event Timeline"
-msgstr "Børk"
+msgstr ""
 
 #: discoverView.js
 msgid "Node Availability"
-msgstr "Børk"
+msgstr ""
 
 #: discoverView.js
 msgid "Cloud Topology"
-msgstr "Børk"
+msgstr ""
+
+#: eventTimelineView.js
+
+#: eventTimelineView.js
+msgid "Event Type Filters"
+msgstr ""
+
+#: eventTimelineView.js
+msgid "Uncheck event-type to hide from display"
+msgstr ""
+
+#: eventTimelineView.js
+msgctxt "eventtimeline"
+msgid "Exit"
+msgstr ""
 
 #: goldstoneBaseView.js
 
 #: goldstoneBaseView.js
 msgid "Response Time (s)"
-msgstr "Børk"
+msgstr ""
 
 #: goldstoneBaseView.js
 msgid "No Data Returned"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 15 minutes
 msgid "lookback 15m"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 hour
 msgid "lookback 1h"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 6 hours
 msgid "lookback 6h"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 day
 msgid "lookback 1d"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 3 days
 msgid "lookback 3d"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 7 days
 msgid "lookback 7d"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 30 seconds
 msgid "refresh 30s"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 minute
 msgid "refresh 1m"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 msgid "refresh 5m"
-msgstr "Børk"
+msgstr ""
 
 #: globalLookbackRefreshButtonsView.js
 msgid "refresh off"
-msgstr "Børk"
+msgstr ""
 
 #: helpView.js
 
 #: helpView.js
 msgid "Getting Help"
-msgstr "Børk"
+msgstr ""
 
 #: helpView.js
 msgid "If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>."
-msgstr "Børk"
+msgstr ""
 
 #: helpView.js
 msgid "Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>."
-msgstr "Børk"
+msgstr ""
 
 #: helpView.js
 msgid "License"
-msgstr "Børk"
+msgstr ""
+
+#: infoButtonText.js
+
+#: infoButtonText.js
+msgid "This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This is the OpenStack topology map.  Clicking branches will zoom in, clicking on leaf nodes will bring up information about resources.  Click on the far left section to zoom out."
+msgstr ""
+
+#: infoButtonText.js
+msgid "The event timeline displays key events that have occurred in your cloud.  You can adjust the displayed data with the filter and time settings in the menu bar.  Hovering on an event brings up the event detail."
+msgstr ""
+
+#: infoButtonText.js
+msgid "The node presence chart keeps track of the last time each node in the cloud was seen.  Nodes on the right have been seen more recently than nodes on the left.  The center lane shows nodes that have been detected in the log stream.  The top lane shows nodes that are not logging, but can be pinged."
+msgstr ""
+
+#: infoButtonText.js
+msgid "The service status panel shows the last known state of all OS services on the node."
+msgstr ""
+
+#: infoButtonText.js
+msgid "The utilization charts show the OS level utilization of the node."
+msgstr ""
+
+#: infoButtonText.js
+msgid "The hypervisor charts show the last known allocation and usage of resources across all of the VMs on the node."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This is the OpenStack Nova topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, such as hypervisors, clicking a resource in the table will navigate you to a resource specific view."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This is the OpenStack Cinder topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This is the OpenStack Glance topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This is the OpenStack Keystone topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This chart displays VM spawn success and failure counts across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This chart displays aggregate CPU core allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This chart displays aggregate memory allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This chart displays aggregate disk allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
+msgstr ""
+
+#: infoButtonText.js
+msgid "This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings."
+msgstr ""
+
+#: infoButtonText.js
+msgid "Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages."
+msgstr ""
+
+#: loginPageView.js
+
+#: loginPageView.js
+msgid "Please Sign In"
+msgstr ""
+
+#: loginPageView.js
+msgid "Forgot Username or Password?"
+msgstr ""
+
+#: loginPageView.js
+msgctxt "loginpage"
+msgid "Username"
+msgstr ""
+
+#: loginPageView.js
+msgctxt "loginpage"
+msgid "Enter Username"
+msgstr ""
+
+#: loginPageView.js
+msgctxt "loginpage"
+msgid "Password"
+msgstr ""
+
+#: loginPageView.js
+msgctxt "loginpage"
+msgid "Enter Password"
+msgstr ""
+
+#: loginPageView.js
+msgctxt "loginpage"
+msgid "Sign in"
+msgstr ""
+
+#: nodeAvailView.js
+
+#: nodeAvailView.js
+msgid "Log Severity Filters"
+msgstr ""
+
+#: nodeAvailView.js
+msgctxt "nodeavail"
+msgid "Uncheck log-type to hide from display"
+msgstr ""
+
+#: eventTimelineView.js
+msgctxt "nodeavail"
+msgid "Exit"
+msgstr ""
 
 #: novaReportView.js
 
 #: novaReportView.js
 msgid "Nova API Performance"
-msgstr "Børk"
+msgstr ""
 
 #: novaReportView.js
 msgid "VM Spawns"
-msgstr "Børk"
+msgstr ""
 
 #: novaReportView.js
 msgid "CPU Resources"
-msgstr "Børk"
+msgstr ""
 
 #: novaReportView.js
 msgid "Memory Resources"
-msgstr "Børk"
+msgstr ""
+
+#: novaReportView.js
+msgid "Disk Resources"
+msgstr ""
 
 #: novaReportView.js
 msgid "Cores"
-msgstr "Børk"
+msgstr ""
+
+#: novaReportView.js
+msgid "Spawn Events"
+msgstr ""
+
+#: novaReportView.js
+#: Megabytes
+msgid "MB"
+msgstr ""
+
+#: novaReportView.js
+#: Gigabytes
+msgid "GB"
+msgstr ""
+
+#: passwordResetView.js
+
+#: passwordResetView.js
+msgctxt "passwordreset"
+msgid "Reset Password"
+msgstr ""
+
+#: passwordResetView.js
+msgctxt "passwordreset"
+msgid "Email Address"
+msgstr ""
+
+#: passwordResetView.js
+msgctxt "passwordreset"
+msgid "Enter email associated with your account"
+msgstr ""
+
+#: passwordResetView.js
+msgctxt "passwordreset"
+msgid "Send Reset Email"
+msgstr ""
+
+#: passwordResetView.js
+msgid "Cancel and Return to Login"
+msgstr ""
 
 #: settingsPageView.js
 
 #: settingsPageView.js
 msgid "User Settings"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Theme Settings"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Update Personal Settings"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Additional Actions"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Change Password"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Modify Tenant Settings"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Update"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Topology Tree Style"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Language"
-msgstr "Børk"
+msgstr ""
 
 #: settingsPageView.js
 msgid "Username"
-msgstr "Børk"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Light"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Dark"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Collapse"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Zoom"
+msgstr ""
+
+#: spawnsView.js
+msgid "Success"
+msgstr ""
 
 #: topologyTreeView.js
 msgid "Resource List"
-msgstr "Børk"
+msgstr ""
+
+#: topologyTreeView.js
+msgid "No data"
+msgstr ""
 
 #: translator-credits
 #: Put one translator per line - name / url / year

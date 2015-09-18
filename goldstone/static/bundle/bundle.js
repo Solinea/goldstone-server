@@ -6546,13 +6546,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
     setInfoButtonPopover: function() {
 
         var infoButtonText = new InfoButtonText().get('infoText');
-
+        var htmlGen = function() {
+            var result = infoButtonText.eventTimeline;
+            return result;
+        };
         // attach click listeners to chart heading info button
         $('#goldstone-event-info').popover({
             trigger: 'manual',
-            content: '<div class="infoButton">' +
-                infoButtonText.eventTimeline +
-                '</div>',
+            content: htmlGen.apply(this),
             placement: 'bottom',
             html: 'true'
         })
@@ -6613,12 +6614,12 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '<div class="modal-header">' +
 
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Event Type Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck event-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.translate(\'Uncheck event-type to hide from display\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
 
 
@@ -6627,7 +6628,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'eventtimeline\')%></button>' +
         '</div>' +
 
         '</div>' +
@@ -9000,14 +9001,14 @@ var LoginPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="login-form">' +
-        '<h3>Please sign in</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="Username" required autofocus>' +
-        '<label for="inputPassword">Password</label>' +
-        '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
+        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
+        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
+        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
+        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
+        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -11681,13 +11682,14 @@ TODO: probably change this to d.timestamp
     setInfoButtonPopover: function() {
 
         var infoButtonText = new InfoButtonText().get('infoText');
-
+        var htmlGen = function() {
+            var result = infoButtonText.nodeAvailability;
+            return result;
+        };
         // attach click listeners to chart heading info button
         $('#goldstone-node-info').popover({
             trigger: 'manual',
-            content: '<div class="infoButton">' +
-                infoButtonText.nodeAvailability +
-                '</div>',
+            content: htmlGen.apply(this),
             placement: 'bottom',
             html: 'true'
         })
@@ -11793,19 +11795,19 @@ TODO: probably change this to d.timestamp
         // header
         '<div class="modal-header">' +
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Log Severity Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck log-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.contextTranslate(\'Uncheck log-type to hide from display\', \'nodeavail\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
         '</div>' +
 
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'nodeavail\')%></button>' +
         '</div>' +
 
         '</div>' +
@@ -12282,8 +12284,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width()
@@ -12454,12 +12456,12 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Reset password</h3>' +
-        '<label for="email">Email address</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
+        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
+        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
+        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -13216,8 +13218,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="theme-name">' +
-        '<option value="light">light</option>' +
-        '<option value="dark">dark</option>' +
+        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -13234,8 +13236,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse">collapse</option>' +
-        '<option value="zoom">zoom</option>' +
+        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
+        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -13339,7 +13341,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated on nodeReportPage similar to:
+instantiated on novaReportView similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
     urlPrefix: '/nova/hypervisor/spawns/'
@@ -14411,7 +14413,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
                 }
             } else {
-                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
+                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
             }
 
         }).fail(function(error) {

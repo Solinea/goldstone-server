@@ -69,12 +69,12 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Reset password</h3>' +
-        '<label for="email">Email address</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
+        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
+        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
+        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
