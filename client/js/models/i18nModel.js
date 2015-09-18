@@ -112,10 +112,20 @@ var I18nModel = Backbone.Model.extend({
     */
 
     setTranslationFunction: function() {
+
+        var domain = goldstone.translationObject.domain;
+
+        // lookup for entered string and domain set to current language
         goldstone.translate = function(string) {
-            var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dgettext(domain, string);
         };
+
+        // lookup with context applied, for simple words that may have
+        // different translations in varying contexts
+        goldstone.contextTranslate = function(string, context) {
+            return goldstone.translationObject.dpgettext(domain, context, string);
+        };
+
     },
 
 
