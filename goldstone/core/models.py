@@ -158,7 +158,7 @@ class ApiPerfData(DailyIndexDocType):
 # Resource graph types and instances #
 ######################################
 
-def _utc_now():
+def utc_now():
     """Return a timezone-aware current UTC datetime.
 
     This is needed for a model field's default. It's called every time a row is
@@ -197,7 +197,8 @@ class PolyResource(PolymorphicModel):
 
     created = CreationDateTimeField(editable=False,
                                     blank=True,
-                                    default=_utc_now)
+                                    default=utc_now)
+
     updated = ModificationDateTimeField(editable=True, blank=True)
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
