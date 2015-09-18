@@ -36,7 +36,7 @@ GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
 
 REGISTRY_ORG=solinea
 
-declare -a need_source=( $GS_APP_DIR )
+declare -a need_source=( $GS_APP_DIR $GS_TASK_DIR )
 
 declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
               $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR \
