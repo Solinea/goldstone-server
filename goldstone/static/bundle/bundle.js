@@ -4398,7 +4398,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> ' + goldstone.translate(item.name) + '</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -4418,7 +4418,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                         // pointing to index 0 of the route, and a menu label
                         // derived from index 1 of the item
                         result += '<li><a href="#' + route[0] +
-                            '">' + route[1] +
+                            '">' + goldstone.translate(route[1]) +
                             '</a>';
                     }
 
@@ -8935,7 +8935,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
         }).fail(function(fail) {
-            console.log('failed to initialize installed apps');
+            console.log(goldstone.translate("Failed to initialize installed addons"));
 
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
@@ -13048,7 +13048,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             url: url,
             data: data
         }).done(function(success) {
-            self.dataErrorMessage(message + ' update successful');
+            self.dataErrorMessage(message);
         })
             .fail(function(fail) {
                 try {
@@ -13077,7 +13077,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
-            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+            $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
     },
 
@@ -13143,13 +13143,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user/', $(this).serialize(), 'Settings');
+            self.submitRequest('PUT', '/user/', $(this).serialize(), goldstone.contextTranslate('Settings update successful', 'settingspage'));
         });
 
         // add listener to password form submission button
         $('.password-reset-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), 'Password');
+            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), goldstone.contextTranslate('Password update successful', 'settingspage'));
 
             // clear password form after submission, success or not
             $('.password-reset-form').find('[name="current_password"]').val('');
@@ -13282,12 +13282,12 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
         '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
         '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
-        '<label for="inputFirstname">First name</label>' +
-        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
-        '<label for="inputLastname">Last name</label>' +
-        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
-        '<label for="inputEmail">Email</label>' +
-        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
+        '<label for="inputFirstname"><%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%></label>' +
+        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%>" autofocus>' +
+        '<label for="inputLastname"><%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%></label>' +
+        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%>">' +
+        '<label for="inputEmail"><%=goldstone.contextTranslate(\'Email\', \'settingspage\')%></label>' +
+        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Email\', \'settingspage\')%>">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Update")%></button>' +
         '</form>' +
         '</div>' +
@@ -13296,10 +13296,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
         '<h3><%=goldstone.translate("Change Password")%></h3>' +
-        '<label for="inputCurrentPassword">Current password</label>' +
-        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
-        '<label for="inputNewPassword">New password</label>' +
-        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
+        '<label for="inputCurrentPassword"><%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%></label>' +
+        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%>" required>' +
+        '<label for="inputNewPassword"><%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%></label>' +
+        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%>" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Change Password")%></button>' +
         '</form>' +
         '</div>' +
@@ -13848,7 +13848,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
 
             // if there is no selected tenant, prevent ability to submit form
             if ($('#formTenantId').text() === '') {
-                self.dataErrorMessage('Must select tenant from list above');
+                self.dataErrorMessage(goldstone.contextTranslate("Must select tenant from list above", "tenantsettings"));
                 return;
             }
 
@@ -13861,7 +13861,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings', $('.tenant-settings-form'));
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), goldstone.contextTranslate('Tenant Settings update successful', 'tenantsettings'));
         });
 
         $('.openstack-settings-form').on('submit', function(e) {
@@ -13875,7 +13875,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             self.trimInputField('[name="os_username"]');
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user/', $(this).serialize(), 'OS settings', $('.openstack-settings-form'));
+            self.submitRequest('PUT', '/user/', $(this).serialize(), goldstone.contextTranslate('OS Settings update successful', 'tenantsettings'));
         });
     },
 
@@ -13903,13 +13903,13 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 "paging": true,
                 "searching": true,
                 "columns": [{
-                    "title": "Tenant"
+                    "title": goldstone.contextTranslate("Tenant", "tenantsettings")
                 }, {
-                    "title": "Owner's Username"
+                    "title": goldstone.contextTranslate("Owner Username", "tenantsettings")
                 }, {
-                    "title": "Owner Contact"
+                    "title": goldstone.contextTranslate("Owner Contact", "tenantsettings")
                 }, {
-                    "title": "Tenant Id"
+                    "title": goldstone.contextTranslate("Tenant ID", "tenantsettings")
                 }]
             };
             oTable = $(location).DataTable(oTableParams);
@@ -13943,7 +13943,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load tenant settings');
+                goldstone.raiseInfo(goldstone.contextTranslate("Could not load tenant settings", "tenantsettings"));
             });
 
         $.get('/user/')
@@ -13966,7 +13966,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('could not load OpenStack settings');
+                goldstone.raiseInfo(goldstone.contextTranslate("Could not load OpenStack settings", "tenantsettings"));
             });
     },
 
@@ -13985,7 +13985,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             data: data
         })
             .done(function(success) {
-                self.dataErrorMessage(message + ' update successful');
+                self.dataErrorMessage(message);
             })
             .fail(function(fail) {
                 try {
@@ -14005,7 +14005,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
-        this.dataErrorMessage('Click row above to edit');
+        this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
 
@@ -14021,7 +14021,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // dataTable
         '<div class="panel panel-primary tenant_results_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Tenants' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Tenants\', \'tenantsettings\')%>' +
         '</h3>' +
         '</div>' +
         '</div>' +
@@ -14046,33 +14046,33 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // update settings form
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="tenant-settings-form">' +
-        '<h3>Goldstone Tenant Settings</h3>' +
-        '<label for="name">Tenant Name</label>' +
-        '<input name="name" type="text" class="form-control" placeholder="Tenant Name" required>' +
-        '<label for="owner">Owner Name</label>' +
-        '<input name="owner" type="text" class="form-control" placeholder="Username of Owner" required>' +
-        '<label for="owner_contact">Owner Email</label>' +
-        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner Email Address">' +
-        '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<h3><%=goldstone.contextTranslate(\'Goldstone Tenant Settings\', \'tenantsettings\')%></h3>' +
+        '<label for="name"><%=goldstone.contextTranslate(\'Tenant Name\', \'tenantsettings\')%></label>' +
+        '<input name="name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Tenant Name\', \'tenantsettings\')%>" required>' +
+        '<label for="owner"><%=goldstone.contextTranslate(\'Owner Name\', \'tenantsettings\')%></label>' +
+        '<input name="owner" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Owner Name\', \'tenantsettings\')%>" required>' +
+        '<label for="owner_contact"><%=goldstone.contextTranslate(\'Owner Email\', \'tenantsettings\')%></label>' +
+        '<input name="owner_contact" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Owner Email\', \'tenantsettings\')%>">' +
+        '<br><div><%=goldstone.contextTranslate(\'Tenant ID\', \'tenantsettings\')%>: <span id="formTenantId"><%=goldstone.contextTranslate(\'select from above\', \'tenantsettings\')%></span></div>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Update\', \'tenantsettings\')%></button>' +
         '</form>' +
         '</div>' +
 
         // update openstack settings form
         '<div class="col-md-4">' +
         '<form class="openstack-settings-form">' +
-        '<h3>OpenStack Settings</h3>' +
-        '<label for="os_name">OpenStack Tenant Name</label>' +
-        '<input name="os_name" type="text" class="form-control" placeholder="OpenStack Tenant Name">' +
-        '<label for="os_username">OpenStack Username</label>' +
-        '<input name="os_username" type="text" class="form-control" placeholder="OpenStack Username">' +
-        '<label for="os_password">OpenStack Password</label>' +
-        '<input name="os_password" type="text" class="form-control" placeholder="OpenStack Password">' +
-        '<label for="os_auth_url">OpenStack Auth URL</label>' +
+        '<h3><%=goldstone.contextTranslate(\'OpenStack Settings\', \'tenantsettings\')%></h3>' +
+        '<label for="os_name"><%=goldstone.contextTranslate(\'OpenStack Tenant Name\', \'tenantsettings\')%></label>' +
+        '<input name="os_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Tenant Name\', \'tenantsettings\')%>">' +
+        '<label for="os_username"><%=goldstone.contextTranslate(\'OpenStack Username\', \'tenantsettings\')%></label>' +
+        '<input name="os_username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Username\', \'tenantsettings\')%>">' +
+        '<label for="os_password"><%=goldstone.contextTranslate(\'OpenStack Password\', \'tenantsettings\')%></label>' +
+        '<input name="os_password" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Password\', \'tenantsettings\')%>">' +
+        '<label for="os_auth_url"><%=goldstone.contextTranslate(\'OpenStack Auth URL\', \'tenantsettings\')%></label>' +
         '<input name="os_auth_url" type="text" class="form-control" placeholder="http://...">' +
         // username must be submitted with request, so including as hidden
         '<input name="username" type="hidden" class="form-control" placeholder="">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Update\', \'tenantsettings\')%></button>' +
         '</form>' +
         '</div>' +
 

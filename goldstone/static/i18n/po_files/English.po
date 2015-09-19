@@ -1,9 +1,19 @@
+# goldstone Englis.po file
+# This file is distributed under the same license as goldstone-server
+# https://www.apache.org/licenses/LICENSE-2.0
+# Alex Jacobs github.com/lexjacobs, 2015
+# additional authors, year
+#: add context comments like this
+#. add notes to traslators like this
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: goldstone-server"
-"Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2015-09-11 14:47-0700\n"
-"Language: en\n"
+"Project-Id-Version: goldstone-server\n"
+"Report-Msgid-Bugs-To: https://github.com/Solinea/goldstone-server/issues\n"
+"PO-Creation-Date: 2015-09-11 14:47-0700\n"
+"PO-Revision-Date: 2015-09-18 14:47-0700\n"
+"Last-Translator: Alex Jacobs github.com/lexjacobs\n"
+"Language-Team:\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -111,6 +121,19 @@ msgstr ""
 
 #: base.html
 msgid "License"
+msgstr ""
+
+#: dataTable plugin
+#: to be used with dataTable initialization object
+
+#: dataTable plugin
+msgctxt "datatable"
+msgid "Search: "
+msgstr ""
+
+#: dataTable plugin
+msgctxt "datatable"
+msgid "No data available in table"
 msgstr ""
 
 #: discoverView.js
@@ -325,6 +348,10 @@ msgctxt "loginpage"
 msgid "Sign in"
 msgstr ""
 
+#: loginPageView.js
+msgid "Failed to initialize installed addons"
+msgstr ""
+
 #: nodeAvailView.js
 
 #: nodeAvailView.js
@@ -371,13 +398,13 @@ msgstr ""
 msgid "Spawn Events"
 msgstr ""
 
+#. Megabytes
 #: novaReportView.js
-#: Megabytes
 msgid "MB"
 msgstr ""
 
+#. Gigabytes
 #: novaReportView.js
-#: Gigabytes
 msgid "GB"
 msgstr ""
 
@@ -469,8 +496,155 @@ msgctxt "settingspage"
 msgid "Zoom"
 msgstr ""
 
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "First Name"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Last Name"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Email"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Current Password"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "New Password"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Settings update successful"
+msgstr ""
+
+#: settingsPageView.js
+msgctxt "settingspage"
+msgid "Password update successful"
+msgstr ""
+
 #: spawnsView.js
 msgid "Success"
+msgstr ""
+
+#: tenantSettingsPageView.js
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Tenant"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Owner Username"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Owner Contact"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Tenant ID"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Goldstone Tenant Settings"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Tenant Name"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Owner Name"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Owner Email"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "select from above"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OpenStack Settings"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OpenStack Tenant Name"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OpenStack Username"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OpenStack Password"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OpenStack Auth URL"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Update"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Tenants"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Click row above to edit"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Could not load OpenStack settings"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Could not load tenant settings"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "OS Settings update successful"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Tenant Settings update successful"
+msgstr ""
+
+#: tenantSettingsPageView.js
+msgctxt "tenantsettings"
+msgid "Must select tenant from list above"
 msgstr ""
 
 #: topologyTreeView.js
@@ -479,6 +653,17 @@ msgstr ""
 
 #: topologyTreeView.js
 msgid "No data"
+msgstr ""
+
+#: addons
+#: opentrail
+
+#: server-generated data for addon name
+msgid "opentrail"
+msgstr ""
+
+#: opentrail main.js
+msgid "OpenTrail Manager"
 msgstr ""
 
 #: translator-credits

@@ -87,7 +87,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> ' + goldstone.translate(item.name) + '</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -107,7 +107,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                         // pointing to index 0 of the route, and a menu label
                         // derived from index 1 of the item
                         result += '<li><a href="#' + route[0] +
-                            '">' + route[1] +
+                            '">' + goldstone.translate(route[1]) +
                             '</a>';
                     }
 

@@ -31,7 +31,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
         }).fail(function(fail) {
-            console.log('failed to initialize installed apps');
+            console.log(goldstone.translate("Failed to initialize installed addons"));
 
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
