@@ -368,6 +368,122 @@ msgctxt "nodeavail"
 msgid "Exit"
 msgstr ""
 
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "No resources returned"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "No metric reports available"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Metric report list fetch failed"
+msgstr ""
+
+#: metricViewerView.js
+#. refers to 'all resources' for a chart selector
+msgctxt "metricviewer"
+msgid "all"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "min"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "max"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "avg"
+msgstr ""
+
+#: metricViewerView.js
+#. refers to showing min,max, and avg as a graphical band
+msgctxt "metricviewer"
+msgid "band"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Resource"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Statistic"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Metric"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Resource"
+msgstr ""
+
+#: metricViewerView.js
+msgid "Standard Deviation Bands"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Lookback"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Charting Interval"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "default=1"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "seconds"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "minutes"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "hours"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "days"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Submit"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Cancel"
+msgstr ""
+
+#: metricViewerView.js
+msgctxt "metricviewer"
+msgid "Select chart parameters"
+msgstr ""
+
 #: novaReportView.js
 
 #: novaReportView.js
