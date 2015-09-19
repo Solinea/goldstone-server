@@ -117,6 +117,7 @@ def create_and_login(is_superuser=False, tenant=None):
     user = get_user_model().objects.create_user(*TEST_USER)
 
     user.is_superuser = is_superuser
+    user.is_staff = is_superuser
 
     if tenant:
         user.tenant = tenant
