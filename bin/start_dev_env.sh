@@ -27,10 +27,32 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
+DIST_DIR=${TOP_DIR}/dist
+
+GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
+GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
+GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
+
+declare -a need_source=( $GS_APP_DIR $GS_TASK_DIR )
+
 # trap ctrl-c and call ctrl_c()
 trap stop_dev_env INT
 
 function stop_dev_env() {
+    #
+    # clean up the containers that need access to source
+    #
+    for folder in "${need_source[@]}" ; do
+        echo "Removing source from $folder..."
+        cd $folder || exit 1
+        rm -rf goldstone-server/*
+    done
+
+    echo "Removing static files from $GS_WEB_DIR..."
+    cd $GS_WEB_DIR
+    rm -rf static/*
+
     echo "Shutting down Goldstone dev env"
     $PROJECT_HOME/goldstone-server/bin/stop_dev_env.sh
     exit 0
@@ -59,6 +81,14 @@ for arg in "$@" ; do
     esac
 done
 
+echo ""
+echo "The first time this is run (or after removing docker images), it will"
+echo "take several minutes to build the containers.  Subsequent runs should"
+echo "be faster."
+echo ""
+
+cd $TOP_DIR || exit 1
+
 VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
@@ -70,4 +100,41 @@ fi
 docker-machine start ${DOCKER_VM}
 eval "$(docker-machine env ${DOCKER_VM})"
 
-(cd $PROJECT_HOME/goldstone-server;docker-compose up)
+if [[ -d $DIST_DIR ]] ; then
+    rm -rf ${DIST_DIR}/*
+fi
+
+#
+# create source distribution and get the filename.
+#
+python setup.py sdist || exit 1
+DIST_FILE=$(ls -1rt $DIST_DIR | head -1)
+
+#
+# set up the containers that need access to source
+# this is necessary to build the containers successfully.
+# changes to top level files like requirements.txt, installer_fabfiles.py,
+# etc. will require new container builds.
+#
+echo "##########################################################"
+for folder in "${need_source[@]}" ; do
+    echo "Copying source to $folder..."
+    cd $folder || exit 1
+    rm -rf goldstone-server 2> /dev/null || /bin/true
+    tar xf ${DIST_DIR}/${DIST_FILE}
+    mv ${DIST_FILE%%.tar.gz} goldstone-server
+    cp -R ${TOP_DIR}/external goldstone-server
+done
+echo "##########################################################"
+
+
+echo "##########################################################"
+echo "Copying static files to to $GS_WEB_DIR..."
+rm -rf $GS_WEB_DIR/static 2> /dev/null || /bin/true
+cd $TOP_DIR
+python manage.py collectstatic --noinput --settings=goldstone.settings.docker
+echo "##########################################################"
+
+docker-compose up
+
+
