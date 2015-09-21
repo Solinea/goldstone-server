@@ -149,8 +149,9 @@ client/js/addons/opentrail/
 test/openTrail/
 
 # docker static data
-docker/Dockerfiles/goldstone-nginx/goldstone-server
-docker/Dockerfiles/goldstone-django/goldstone-server
+docker/Dockerfiles/goldstone-app/goldstone-server/
+docker/Dockerfiles/goldstone-task/goldstone-server/
+docker/Dockerfiles/goldstone-web/static/
 
 # docker dev environment data
 .cache/
