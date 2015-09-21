@@ -135,9 +135,9 @@ def check_response_without_uuid(response, expected_status_code,
     comparing the "uuid" key.
 
     A uuid is random. For responses that contain one, we confirm that the uuid
-    key existst, and its value is a string that's at least N digits long. If
-    those checks pass, we assume the uuid is correct, and then do an exact
-    comparison of the remainder of the response.
+    key exists and its string value is at least N digits long. If those checks
+    pass, we assume the uuid is correct, and then do an exact comparison of the
+    remainder of the response.
 
     The uuid key may be, "UUID," or, "uuid".
 
