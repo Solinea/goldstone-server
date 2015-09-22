@@ -42,7 +42,7 @@ USER ${APPUSER}
 
 RUN . ${ENVDIR}/bin/activate \
   && pip install -r requirements.txt \
-  && echo ". ${ENVDIR}/bin/activate" >> .bashrc
+  && echo ". ${ENVDIR}/bin/activate" >> /etc/profile
 
 USER root
 
