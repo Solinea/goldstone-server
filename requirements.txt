@@ -27,7 +27,7 @@ django-polymorphic==0.7.1
 django-rest-params==1.0.2
 django-rest-swagger==0.2.9
 djangorestframework==3.1.0
-djoser==0.3.0
+djoser==0.3.1
 drf-extensions==0.2.7
 elasticsearch-curator==3.1.0
 elasticsearch-dsl==0.0.4

@@ -62,6 +62,14 @@ var UserPrefsView = Backbone.View.extend({
             self.defaults.userPrefs.topoTreeStyle = 'zoom';
             self.setUserPrefs();
         });
+
+        // triggered on settingsPageView
+        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
+            self.getUserPrefs();
+            self.defaults.userPrefs.i18n = selection;
+            self.setUserPrefs();
+            goldstone.i18n.trigger('setLanguage', selection);
+        });
     },
 
     initLocalStorageUserPrefs: function() {

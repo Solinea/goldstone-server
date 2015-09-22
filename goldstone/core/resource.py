@@ -124,8 +124,7 @@ class Types(Graph):
                  cloud.
 
         """
-        from importlib import import_module
-        from inspect import getmro, getmembers, isclass
+        from .utils import resource_types
 
         super(Types, self).__init__()
 
@@ -144,15 +143,7 @@ class Types(Graph):
         # Now the add-on resource types.
         for row in AddonTable.objects.all():
             try:
-                the_app = import_module("%s.models" % row.name)
-                addon_classes = [x[1] for x in getmembers(the_app, isclass)]
-                addon_types = [x for x in addon_classes
-                               if PolyResource in getmro(x) and
-                               x != PolyResource]
-
-                # Addon_types contains the add-on's model classes that are
-                # derived from PolyResource, excluding PolyResource itself.
-                for source_type in addon_types:
+                for source_type in resource_types(row.name):
                     self.graph.add_node(source_type)
 
                     # If this is the add-on's root, make an edge from the Addon
@@ -286,8 +277,8 @@ class Instances(Graph):
                 source_node = get_uuid(node.uuid)
                 dest_node = get_uuid(edge[0])
 
-                # If either aren't there, we have a database inconsistency. Log
-                # it as evidence of a db shear, and skip this edge.
+                # If either aren't there, it could be because of a database
+                # inonsistency or a deleted add-on. Log it and skip it.
                 if not source_node or not dest_node:
                     logger.warning("Missing source or destination node in "
                                    "unpacked graph state: source uuid %s, "

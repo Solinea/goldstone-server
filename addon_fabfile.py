@@ -26,6 +26,15 @@ from fabric.operations import prompt
 import os
 import sys
 
+from goldstone.core.utils import resource_types
+
+# Aliases to make the Resource Graph definitions less verbose.
+from django.conf import settings as simple_settings
+MAX = simple_settings.R_ATTRIBUTE.MAX
+MIN = simple_settings.R_ATTRIBUTE.MIN
+TYPE = simple_settings.R_ATTRIBUTE.TYPE
+OWNS = simple_settings.R_EDGE.OWNS
+
 # The Goldstone install dir
 INSTALL_DIR = '/opt/goldstone'
 
@@ -80,6 +89,47 @@ CELERYBEAT_APP_INCLUDE = \
     "# Tasks for {0}.\n" \
     "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
     "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n"
+
+
+def _django_manage(command,
+                   target='',
+                   proj_settings=None,
+                   install_dir=INSTALL_DIR,
+                   daemon=False):
+    """Run manage.py <command>.
+
+    We can't import directly from installer_fabfile, because it's renamed to
+    fabfile in production. We can't import directly from fabfile, because the
+    _django_manage functions have different signatures in fabfile and
+    installer_fabfile.
+
+    TODO: Have one copy of _django_manage in the code.
+
+    :param command: The command to send to manage. E.g., test
+    :type command: str
+    :keyword target:A subcommand to send to manage. E.g., test user
+    :type target: str
+    :keyword proj_settings: The project settings to use
+    :type proj_settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+    :keyword daemon: True if the command should be run in a background process
+    :type daemon: bool
+
+    """
+    from fabric.api import local
+    from fabric.context_managers import lcd
+
+    # Create the --settings argument, if requested.
+    settings_opt = '' if proj_settings is None \
+                   else " --settings=%s " % proj_settings
+
+    # Run this command as a background process, if requested.
+    daemon_opt = "&" if daemon else ''
+
+    with lcd(install_dir):
+        local("./manage.py %s %s %s %s" %
+              (command, target, settings_opt, daemon_opt))
 
 
 @contextmanager
@@ -210,7 +260,7 @@ def verify_addons(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     print(green("\n%s add-ons in the table." % count))
 
 
-def _install_addon_info(name, install_dir):           # pylint: disable=R0914
+def _install_addon_info(name, install_dir, verbose):    # pylint: disable=R0914
     """Gather the package installation information, and display our intentions
     to the user.
 
@@ -222,6 +272,8 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
     :type name: str
     :param install_dir: The path to the Goldstone installation directory.
     :type install_dir: str
+    :param verbose: Display more informational messages?
+    :type verbose: bool
     :return: The add-on's database table values, and some values related
              to the installation environment
     :rtype: (dict, dict)
@@ -243,7 +295,8 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
           "\turl_root: {url_root}\n" \
           "\tnotes: {notes}\n"
 
-    fastprint("\nCollecting information about %s ..." % name)
+    if verbose:
+        fastprint("\nCollecting information about %s ..." % name)
 
     try:
         the_app = import_module(name)
@@ -312,13 +365,14 @@ def _install_addon_info(name, install_dir):           # pylint: disable=R0914
             static_changes + SCRIPT_TAG % name + LINK_TAG % name + '\n'
 
     # Tell the user what we're about to do.
-    fastprint("\nPlease confirm this:\n\n" +
-              row_action +
-              " the addon table. It will contain:\n" +
-              ROW.format(**addon_db) +
-              base_urls +
-              celery_tasks +
-              static_changes)
+    if verbose:
+        fastprint("\nPlease confirm this:\n\n" +
+                  row_action +
+                  " the addon table. It will contain:\n" +
+                  ROW.format(**addon_db) +
+                  base_urls +
+                  celery_tasks +
+                  static_changes)
 
     return (addon_db, addon_install)
 
@@ -416,8 +470,44 @@ def _remove_addon_static(name, install_dir):
         f.write(filedata)
 
 
+def _add_root_node(name):
+    """Add an add-on's root node to the persistent resource graph, and add
+    an "owns" edge to it from the Addon node.
+
+    Using Django hooks to add the root node when the server starts, or after
+    the add-on is installed, is problematic in Django 1.6. Django 1.8 or later
+    versions may allow us to simplify this.
+
+    :param name: The add-on's name
+    :type name: str
+
+    """
+    from goldstone.core.models import Addon
+
+    # Get the add-on's root type.
+    roottype = [x for x in resource_types(name) if hasattr(x, "root")][0]
+
+    # Add the root node to the persisten resource graph.
+    rootnode = roottype.objects.create(native_name=name, native_id=name)
+
+    # Get the Addon node, and add an edge from it to the root. Note, calling
+    # .append() on a PickledObjectField list will sometimes result in odd
+    # behavior.
+    addonnode, _ = Addon.objects.get_or_create(native_id="Add-on",
+                                               native_name="Add-on")
+
+    edges = addonnode.edges
+    edges.append((rootnode.uuid, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}))
+    addonnode.edges = edges
+
+    addonnode.save()
+
+
 @task
-def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def install_addon(name,
+                  settings=PROD_SETTINGS,
+                  install_dir=INSTALL_DIR,
+                  verbose=False):
     """Install a user add-on.
 
     The name is supplied on the command line. The version, manufacturer,
@@ -429,23 +519,26 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     :type settings: str
     :keyword install_dir: The path to the Goldstone installation directory.
     :type install_dir: str
+    :keyword verbose: Display more informational messages?
+    :type verbose: bool
 
     """
 
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
-        from goldstone.addons.utils import update_addon_node
         from rest_framework.authtoken.models import Token
 
-        # Gather the package installation information from the package or the
-        # user. Remember, the package has already been installed into Python's
-        # execution environment.
-        addon_db, addon_install = _install_addon_info(name, install_dir)
+        # Gather the package installation information from the package or user.
+        # (The package has already been installed into Python's execution
+        # environment.)
+        addon_db, addon_install = \
+            _install_addon_info(name, install_dir, verbose)
 
         # Get permission to proceed.
         if confirm(cyan('Proceed?'), default=False):
             if addon_install["replacement"]:
+                # Replacing an existing add-on.
                 row = Addon.objects.get(name=name)
                 row.version = addon_db["version"]
                 row.manufacturer = addon_db["manufacturer"]
@@ -456,21 +549,11 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
                 # Installing a new add-on. We'll track where we are, in case an
                 # exception occurs.
                 try:
-                    # If Goldstone has been running for at least five minutes,
-                    # the Addon node already exists in the PolyResource table.
-                    # But if not, it doesn't. The add-on's APIs may throw
-                    # exceptions if the Addon node doesn't exist, so take this
-                    # opportunity to ensure that it will.
-                    error = "creating the persistent resource graph's Addon " \
-                            "node"
-
-                    update_addon_node()
-
-                    # Add the new row.
+                    # Add an Addon table row for this add-on.
                     error = "updating the Addon table. It's probably OK, " \
                             "but check it."
 
-                    Addon.objects.create(**addon_db)
+                    row = Addon.objects.create(**addon_db)
 
                     # Now add the add-on to INSTALLED_APPS and
                     # CELERYBEAT_SCHEDULE. SED is scary, so we'll use Python
@@ -515,6 +598,20 @@ def install_addon(name, settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
 
                     with open(filepath, 'w') as f:
                         f.write(filedata)
+
+                    # Do a syncdb, to add the add-on's models. (This can't be
+                    # done before INSTALLED_APPS is updated.)
+                    error = "doing a syncdb."
+
+                    _django_manage("syncdb --noinput --migrate",
+                                   proj_settings=settings,
+                                   install_dir=install_dir)
+
+                    # Add this add-on's root node to the persistent resource
+                    # graph. (Can't be done before the syncdb.)
+                    error = "updating the persistent resource graph."
+
+                    _add_root_node(row.name)
 
                     # Now add the add-on to the end of the URLconf.
                     error = "writing urls.py. The Addon table and " \

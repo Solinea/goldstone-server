@@ -69,7 +69,20 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        // iterate through goldstone.i18nJSON and render a dropdown
+        // selector item for each of the languages present
+        this.renderLanguageChoices();
+
         return this;
+    },
+
+    renderLanguageChoices: function() {
+
+        // defined on router.html
+        _.each(goldstone.i18nJSON, function(item, key) {
+            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+        });
     },
 
     getUserSettings: function() {
@@ -83,10 +96,10 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 $(self.el).find('[name="email"]').val(result.email);
 
                 // result object contains tenant_admin field (true|false)
-                if (result.tenant_admin) {
+                if (result.tenant_admin || result.is_superuser) {
 
                     // if true, render link to tenant admin settings page
-                    if (result.tenant_admin === true) {
+                    if (result.tenant_admin === true || result.is_superuser === true) {
                         self.renderTenantSettingsPageLink();
                     }
                 }
@@ -107,6 +120,12 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // to current style preference
         if (userTheme && userTheme.topoTreeStyle) {
             $('#topo-tree-name').val(userTheme.topoTreeStyle);
+        }
+
+        // set dropdown for language selection to
+        // current language preference
+        if (userTheme && userTheme.i18n) {
+            $('#language-name').val(userTheme.i18n);
         }
 
     },
@@ -165,6 +184,19 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
+        // add listener to language selection drop-down
+        // userPrefsView is instantiated in router.html
+        $('#language-name').on('change', function() {
+            var language = $('#language-name').val();
+            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+
+            // for this page only, re-render content upon language page
+            // to reflect translatable fields immediately
+            self.render();
+            self.getUserSettings();
+            self.addHandlers();
+        });
+
     },
 
     trimInputField: function(selector) {
@@ -180,7 +212,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
-        '<h3>User Settings</h3>' +
+        '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
         // dark/light theme selector
         '<div class="col-md-2">' +
@@ -217,6 +249,23 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '</form>' +
         '</div>' +
 
+        // language preference
+        '<div class="col-md-2">' +
+        '<h5><%= goldstone.translate("Language") %></h5>' +
+        '<form class="language-selector" role="form">' +
+        '<div class="form-group">' +
+        '<div class="col-xl-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="language-name">' +
+        // '<option value="english">English</option>' +
+        // '<option value="japanese">日本語</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+
         // closes row
         '</div>' +
 
@@ -235,13 +284,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +
         '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="username" required>' +
+        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
         '<label for="inputFirstname">First name</label>' +
-        '<input name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
+        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
         '<label for="inputLastname">Last name</label>' +
-        '<input name="last_name" type="text" class="form-control" placeholder="Last name">' +
+        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Email">' +
+        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
@@ -251,9 +300,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<form class="password-reset-form">' +
         '<h3>Change Password</h3>' +
         '<label for="inputCurrentPassword">Current password</label>' +
-        '<input name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
+        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
         '<label for="inputNewPassword">New password</label>' +
-        '<input name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
+        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
         '</form>' +
         '</div>' +

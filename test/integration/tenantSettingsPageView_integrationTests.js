@@ -37,7 +37,9 @@ describe('tenantSettingsPageView.js spec', function() {
     });
     describe('basic test for chart triggering', function() {
         it('renders view', function() {
+            this.testView.onClose();
             this.testView.render();
+            this.server.respond();
             this.testView.submitRequest();
             this.server.respond();
             this.testView.getTenantAndOSSettings();

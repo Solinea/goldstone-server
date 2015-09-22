@@ -64,7 +64,7 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
 
 ## Install the Development OpenStack VM
 
-For convenience, you can [download an OpenStack VM image](https://region-a.geo-1.objects.hpcloudsvc.com/v1/10815605991908/RDO-Images/RDO-kilo-201508.ova) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
+For convenience, you can [download an OpenStack VM image](https://a248.e.akamai.net/cdn.hpcloudsvc.com/he27fba417855517f7da9656d4eedbfdc/prodaw2//RDO-kilo-20150902.ova) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
 
 
 ## Configure VirtualBox Networking

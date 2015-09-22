@@ -155,7 +155,6 @@ describe('goldstoneBaseView.js spec', function() {
             this.testView.update();
 
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
                     status_code: 246,

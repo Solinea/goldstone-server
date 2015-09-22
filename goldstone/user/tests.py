@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from copy import deepcopy
 from django.contrib.auth import get_user_model
 import json
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
@@ -21,6 +22,15 @@ from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
     CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid, \
     BAD_TOKEN
+
+# Test content.
+EXPECTED_CONTENT = {"username": TEST_USER[0],
+                    "first_name": '',
+                    "last_name": '',
+                    "email": TEST_USER[1],
+                    "tenant_admin": False,
+                    "is_superuser": False,
+                    "default_tenant_admin": False}
 
 
 class NoAccess(Setup):
@@ -117,13 +127,6 @@ class GetPut(Setup):
     def test_get(self):                   # pylint: disable=R0201
         """Get data from the default created account."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
-
         # Create a user and get their authorization token.
         token = create_and_login()
 
@@ -139,12 +142,8 @@ class GetPut(Setup):
     def test_change_one_field(self):
         """Change one field in the account."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": "Dirk",
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["first_name"] = "Dirk"
 
         # Create a user and get their authorization token.
         token = create_and_login()
@@ -168,18 +167,15 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_some_fields(self):
         """Get data from an account, after we've modified some fields."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": "Dirk",
-                            "last_name": "Diggler",
-                            "email": TEST_USER[1],
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["first_name"] = "Dirk"
+        expected_content["last_name"] = "Diggler"
 
         # Create a user and get their authorization token.
         token = create_and_login()
@@ -204,19 +200,18 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_all_fields(self):
         """Get data from an account, after we've modified all the
         user-modifiable fields."""
 
-        EXPECTED_CONTENT = {"username": "Heywood",
-                            "first_name": "Dirk",
-                            "last_name": "Diggler",
-                            "email": "john@siberia.com",
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["username"] = "Heywood"
+        expected_content["first_name"] = "Dirk"
+        expected_content["last_name"] = "Diggler"
+        expected_content["email"] = "john@siberia.com"
 
         # Create a user and get their authorization token.
         token = create_and_login()
@@ -242,18 +237,11 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_get_restricted_fields(self):
         """Try getting fields that are restricted to tenant_admins."""
-
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
 
         cloud_fields = {"tenant_name": "cloud name 0",
                         "username": "abracadabra",
@@ -283,13 +271,6 @@ class GetPut(Setup):
 
     def test_post_restricted_fields(self):
         """Try changing fields that are restricted to tenant_admins."""
-
-        expected_content = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}
 
         cloud_fields = {"tenant_name": "cloud name 0",
                         "username": "abracadabra",
@@ -329,7 +310,7 @@ class GetPut(Setup):
         # None of the Tenant or Cloud fields should be in the response.
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
 
@@ -339,12 +320,8 @@ class GetPutTenantAdmin(Setup):
     def test_no_tenant(self):
         """Get or change Cloud data when there's no Goldstone tenant."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": True,
-                            "default_tenant_admin": False}
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["tenant_admin"] = True
 
         # Make a tenant
         tenant = Tenant.objects.create(name='hellothere',
@@ -363,19 +340,15 @@ class GetPutTenantAdmin(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_no_cloud(self):
         """Get or change Cloud data when there's no Cloud."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": True,
-                            "tenant_name": "hellothere",
-                            "default_tenant_admin": False}
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["tenant_admin"] = True
+        expected_content["tenant_name"] = "hellothere"
 
         # Make a tenant.  Don't make a Cloud under it.
         tenant = Tenant.objects.create(name='hellothere',
@@ -391,18 +364,11 @@ class GetPutTenantAdmin(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_get_data(self):
         """Get Cloud data."""
-
-        expected_content = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": True,
-                            "default_tenant_admin": False}
 
         cloud_fields = {"tenant_name": "cloud name 0",
                         "username": "abracadabra",
@@ -425,6 +391,8 @@ class GetPutTenantAdmin(Setup):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Concoct the results we expect, which includes the cloud credentials.
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["tenant_admin"] = True
         expected_content["tenant_name"] = tenant.name
         expected_content["os_name"] = cloud_fields["tenant_name"]
         expected_content["os_username"] = cloud_fields["username"]
@@ -438,13 +406,6 @@ class GetPutTenantAdmin(Setup):
 
     def test_change_bogus_field(self):
         """Try changing fields that don't exist."""
-
-        expected_content = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": True,
-                            "default_tenant_admin": False}
 
         cloud_fields = {"tenant_name": "cloud name 0",
                         "username": "abracadabra",
@@ -481,6 +442,8 @@ class GetPutTenantAdmin(Setup):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Concoct the results we expect, which includes the cloud credentials.
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["tenant_admin"] = True
         expected_content["tenant_name"] = tenant.name
         expected_content["os_name"] = cloud_fields["tenant_name"]
         expected_content["os_username"] = cloud_fields["username"]
@@ -494,13 +457,6 @@ class GetPutTenantAdmin(Setup):
 
     def test_change_some_fields(self):
         """Get Cloud data and change some fields."""
-
-        expected_content = {"username": TEST_USER[0],
-                            "first_name": '',
-                            "last_name": '',
-                            "email": TEST_USER[1],
-                            "tenant_admin": True,
-                            "default_tenant_admin": False}
 
         cloud_fields = {"tenant_name": "cloud name 0",
                         "username": "abracadabra",
@@ -538,6 +494,8 @@ class GetPutTenantAdmin(Setup):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Concoct the results we expect, which includes the cloud credentials.
+        expected_content = deepcopy(EXPECTED_CONTENT)
+        expected_content["tenant_admin"] = True
         expected_content["tenant_name"] = tenant.name
         expected_content["os_name"] = cloud_fields["tenant_name"]
         expected_content["os_username"] = "B minus"

@@ -86,7 +86,6 @@ describe('eventsReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
-            expect($(this.testView.el).text()).to.equal(' Test Topologyservicesinstanceshostsaggregatesinternalservicesinstanceshostsaggregateseast-zoneservicesinstanceshostsaggregateswest-zonehypervisorsflavorsRegionOne');
         });
         it('properly filters data for table fields with filterMultiRsrcDataOverride', function() {
             var test1 = this.testView.filterMultiRsrcData([{
