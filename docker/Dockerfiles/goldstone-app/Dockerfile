@@ -41,7 +41,8 @@ RUN buildReqs=' \
 USER ${APPUSER}
 
 RUN . ${ENVDIR}/bin/activate \
-  && pip install -r requirements.txt 
+  && pip install -r requirements.txt \
+  && echo ". ${ENVDIR}/bin/activate" >> .bashrc
 
 USER root
 

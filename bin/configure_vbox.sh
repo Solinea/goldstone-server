@@ -167,5 +167,5 @@ if [[ $DOCKER == "true" ]] ; then
         echo "Finished configuring VM network interfaces"
     fi
 else
-    echo "Skipping Boot2Docker network configuration"
+    echo "Skipping docker VM network configuration"
 fi

@@ -13,16 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# 
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and Docker Toolbox.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned 
-# the goldstone-server Github repo into the PROJECT_HOME associated with 
-# the virtual environment.
-#
-
 export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
@@ -31,10 +21,9 @@ TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
 
 GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
-GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
 GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
 
-declare -a need_source=( $GS_APP_DIR $GS_TASK_DIR )
+declare -a need_source=( $GS_APP_DIR )
 
 # trap ctrl-c and call ctrl_c()
 trap stop_dev_env INT
@@ -54,7 +43,7 @@ function stop_dev_env() {
     rm -rf static/*
 
     echo "Shutting down Goldstone dev env"
-    $PROJECT_HOME/goldstone-server/bin/stop_dev_env.sh
+    ${TOP_DIR}/bin/stop_dev_env.sh
     exit 0
 }
 

@@ -42,6 +42,11 @@ python manage.py syncdb --noinput --migrate  # Apply database migrations
 #
 fab -f installer_fabfile.py docker_install
 
+echo Starting Celery.
+exec celery worker --app goldstone --queues default --beat --purge \
+    --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \
+    --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+
 echo Starting Gunicorn.
 exec gunicorn ${GUNICORN_RELOAD} \
     --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \

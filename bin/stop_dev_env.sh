@@ -20,6 +20,7 @@
 # forcefully power it off.  
 #
 
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 ACPI_SHUTDOWN_WAIT=300
@@ -68,7 +69,7 @@ wait_for_shutdown()
 }
 
 echo "shutting down docker VM"
-(cd $PROJECT_HOME/goldstone-server;docker-compose stop)
+(cd ${TOP_DIR};docker-compose stop)
 docker-machine stop ${DOCKER_VM}
 
 VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null

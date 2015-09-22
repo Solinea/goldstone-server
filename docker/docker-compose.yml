@@ -39,6 +39,7 @@ gsapp:
   links:
     - gsdb
     - gssearch
+    - gstaskq
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"
@@ -97,19 +98,6 @@ gssearch:
   log_opt:
     syslog-facility: "local0"
     syslog-tag: "gssearch"
-
-# Celery Worker Container
-gstask:
-  image: solinea/goldstone-task:v4-bedb7ee-docker_celery
-  env_file: ./config/goldstone-prod.env
-  links:
-    - gstaskq
-    - gssearch
-    - gsdb
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gstask"
 
 # Celery Task Queue Container
 gstaskq:

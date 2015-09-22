@@ -43,6 +43,8 @@ python manage.py collectstatic --noinput
 #
 fab -f installer_fabfile.py docker_install
 
+exec celery worker --app goldstone --queues default --beat --purge --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+
 echo Starting Gunicorn.
 exec gunicorn --reload --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} --config=gunicorn-settings.py goldstone.wsgi "$@"
 

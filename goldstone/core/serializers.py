@@ -201,11 +201,6 @@ class EventSerializer(ReadOnlyElasticSerializer):
                         logger.warning("%s[%s] isn't in the resource graph",
                                        instance,
                                        source_key)
-                else:
-                    # This instance doesn't have an instance_id.graph.
-                    logger.warning("Didn't find the %s key in %s",
-                                   source_key,
-                                   instance)
 
         return result
 

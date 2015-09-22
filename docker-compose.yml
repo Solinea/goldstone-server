@@ -25,6 +25,7 @@ gsappdev:
   links:
     - gsdb
     - gssearch
+    - gstaskq
 
 # Database Container
 gsdb:
@@ -63,17 +64,6 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
-
-# Celery Worker Container
-gstaskdev:
-  build: ./docker/Dockerfiles/goldstone-task
-  env_file: ./docker/config/goldstone-dev.env
-  volumes:
-    - .:/home/app
-  links:
-    - gstaskq
-    - gssearch
-    - gsdb
 
 # Celery Task Queue Container
 gstaskq:
