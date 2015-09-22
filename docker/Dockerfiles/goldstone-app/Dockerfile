@@ -50,8 +50,7 @@ RUN apt-get remove -y $buildReqs \
 ## Have to re-install due to python2.7-dev uninstalling libqp-dev
 ##   && apt-get install libpq-dev \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-  && echo ". ${ENVDIR}/bin/activate" >> /etc/profile
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
 
 USER ${APPUSER}

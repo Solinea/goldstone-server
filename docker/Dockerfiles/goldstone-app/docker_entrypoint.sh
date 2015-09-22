@@ -15,6 +15,8 @@
 
 . ${ENVDIR}/bin/activate 
 
+echo ". ${ENVDIR}/bin/activate" > .bashrc
+
 #test if postgres service is up
 PORT=5432
 HOST=gsdb
