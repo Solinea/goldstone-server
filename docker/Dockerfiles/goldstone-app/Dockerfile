@@ -33,6 +33,7 @@ RUN buildReqs=' \
     libffi-dev \
     libssl-dev \
     libpq-dev \
+    git \
   ' \
   && apt-get update -y -q -q \
   && apt-get install -y -q $buildReqs \

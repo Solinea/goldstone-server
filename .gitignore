@@ -158,4 +158,5 @@ docker/Dockerfiles/goldstone-web/static/
 .cinderclient/
 .novaclient/
 .bashrc
-.bash_profile
+.bash_history
+.exrc

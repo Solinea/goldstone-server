@@ -22,7 +22,7 @@ APP_CONTAINER=goldstoneserver_gsappdev_1
 TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
 
 function usage() {
-    echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--app-container=name] |"
+    echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--app-container=name]"
 }
 
 
@@ -32,7 +32,7 @@ for arg in "$@" ; do
             DOCKER_VM="${arg#*=}"
             shift
         ;;
-        --docker-vm=*)
+        --stack-vm=*)
             STACK_VM="${arg#*=}"
             shift
         ;;

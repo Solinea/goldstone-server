@@ -8,8 +8,20 @@ This explains how to install and run Goldstone Server locally, so you can do cod
 
 ## Prerequisites
 
-* git client
-* Python >= 2.7.10
+Install [Docker Toolbox](https://github.com/docker/toolbox/releases).  ** There is an issue with release 1.8.2a, but earlier versions work **
+Using brew, install various prerequisite packages:
+
+    $ brew update
+    $ brew doctor # (Resolve any any errors or warnings)
+    $ brew install python # (python >= 2.7.10 < 2.8)
+    $ brew install git
+    $ brew install pyenv-virtualenvwrapper
+
+ 
+**_Note: if you have manually installed docker-machine and docker-compose, make sure your docker-machine VM name is 'default' in order to be compatible with the supporting scripts._**
+
+**_Note: There is a known compatibility issue with Docker Toolbox v1.8.2a / Docker Compose 1.4.1._**
+ 
 * [Docker Toolbox](http://www.docker.com/toolbox) 
 
 **_Note: if you have manually installed docker-machine and docker-compose, make sure your docker-machine VM name is 'default' in order to be compatible with the supporting scripts._**
@@ -25,7 +37,29 @@ The commands given below are for use by core contributors. If you are a communit
     $ cd ~/devel
     $ git clone https://github.com/Solinea/goldstone-server.git
 
-If you install in a location other than `~/devel/goldstone-server`, you will need to set the GS_PROJ_TOP_DIR environment variable accordingly.
+If you install in a location other than `~/devel/goldstone-server`, you will need to set the `GS_PROJ_TOP_DIR` environment variable to the directory containing the source.
+
+## Configure a Goldstone virtualenv
+
+Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different):
+
+
+     $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
+
+
+Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
+
+    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/devel
+    source /usr/local/bin/virtualenvwrapper.sh
+
+   Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
+
+    $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
+
+   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
 
 
 ## Install the Development OpenStack VM
@@ -69,62 +103,25 @@ To stop the development environment, either <Ctrl-C> from the window running `st
 
 ## Configuring OpenStack Instance
 
-With the development environment started in another window, execute the following command to configure the development OpenStack instance to ship logs and events back to Goldstone:
+With the development environment started in another window, execute the following command to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
-    $ ./bin/configure_stack.sh   # in another window
+
+Then in another window:
+
+    $ eval $(docker-machine env default)
+    $ ./bin/configure_stack.sh  
 
 
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
 
-    $ workon goldstone-server
-    $ cd $PROJECT_HOME/goldstone-server
-    $ nova boot --image cirros --flavor m1.tiny ceilo0
+    $ eval $(docker-machine env default)
+    $ docker exec -i -t goldstoneserver_gsappdev_1 bash -i -c 'nova boot --image cirros --flavor m1.tiny ceilo0'
 
 Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
 
 
-## Running Tests
-
-To ensure that the installation is working properly, you can run the test suite.  If all goes will complete with a congratulatory message (though you may see some exceptions in the output from individual tests):
-
-    $ workon goldstone-server
-    $ cd $PROJECT_HOME/goldstone-server
-    $ bin/start_dev_env.sh
-
-Then, in another window
-
-    $ workon goldstone-server
-    $ cd $PROJECT_HOME/goldstone-server
-    $ tox -e py27
-    <-- snip -->
-    -------------------------------------
-    Ran 215 tests in 42.295s
-    OK (skipped=11)
-    Destroying test database for alias 'default'...
-    _____________ summary _______________
-    py27: commands succeeded
-    congratulations :)
-
-Assuming the testing went well, you're ready to start the application:
-
-    $ cd $PROJECT_HOME/goldstone-server
-    $ fab runserver
-    [localhost] local: ls goldstone/settings | egrep "production|local_|dev_|test_" | egrep -v "pyc|~"
-
-	choose a settings file to use:
-	[0] local_docker.py
-	[1] production.py
-	Choice (0-1): 1
-	[localhost] local: ./manage.py runserver --settings=goldstone.settings.local_docker
-	Validating models...
-
-	0 errors found
-	June 05, 2015 - 19:01:29
-	Django version 1.6.11, using settings 'goldstone.settings.local_docker'
-	Starting development server at http://127.0.0.1:8000/
-	Quit the server with CONTROL-C.
 
 When startup is complete, you should be able to see the Goldstone application at http://127.0.0.1:8000.  Log in with the credentials you created during initialization.
 
@@ -135,58 +132,75 @@ When startup is complete, you should be able to see the Goldstone application at
 
 ### Backend Testing
 
-Goldstone uses the standard Django testing tools:
+Goldstone uses standard Django testing tools:
 
 * [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
 * [Django TestCase](https://docs.djangoproject.com/en/1.8/topics/testing/tools/#testcase) for unit testing.
 
 Code coverage reports can be created through the `tox -e cover` command:
 
-```bash
-$ tox -e cover
-GLOB sdist-make: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/setup.py
-cover inst-nodeps: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/.tox/dist/goldstone-ui-2014.1.dev56.g0558e73.zip
-cover runtests: commands[0] | coverage run --source=./goldstone manage.py test goldstone --settings=goldstone.settings.local_test
-Creating test database for alias 'default'...
-.........
-----------------------------------------------------------------------
-Ran 9 tests in 0.074s
+    $ cd ~/devel/goldstone-server
+    $ bin/start_dev_env.sh
+
+Then, in another window:
+
+    $ workon goldstone-server
+    $ cd ~/devel/goldstone-server
+    $ tox 
+    <-- snip -->
+    -------------------------------------
+    Ran 215 tests in 42.295s
+    OK (skipped=11)
+    Destroying test database for alias 'default'...
+    _____________ summary _______________
+    py27: commands succeeded
+    congratulations :)
+
+To generate a coverage report:
+
+    $ tox -e cover
+    GLOB sdist-make: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/setup.py
+    cover inst-nodeps: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/.tox/dist/goldstone-ui-2014.1.dev56.g0558e73.zip
+    cover runtests: commands[0] | coverage run --source=./goldstone manage.py test goldstone --settings=goldstone.settings.local_test
+    Creating test database for alias 'default'...
+    .........
+    ----------------------------------------------------------------------
+    Ran 9 tests in 0.074s
 
 
-OK
-Destroying test database for alias 'default'...
-cover runtests: commands[1] | coverage xml
-cover runtests: commands[2] | coverage report
-Name                                           Stmts   Miss  Cover
-------------------------------------------------------------------
-goldstone/__init__                                 0      0   100%
-goldstone/apps/__init__                            0      0   100%
-goldstone/apps/lease/__init__                      0      0   100%
-goldstone/apps/lease/admin                         1      0   100%
-goldstone/apps/lease/celery                        3      3     0%
-goldstone/apps/lease/migrations/0001_initial      18      3    83%
-goldstone/apps/lease/migrations/__init__           0      0   100%
-goldstone/apps/lease/models                       34      3    91%
-goldstone/apps/lease/tasks                        21     21     0%
-goldstone/apps/lease/tests                        77      0   100%
-goldstone/apps/lease/tests_celery                 10      0   100%
-goldstone/apps/lease/views                         7      4    43%
-goldstone/libs/__init__                            0      0   100%
-goldstone/settings                                 0      0   100%
-goldstone/settings/__init__                        0      0   100%
-goldstone/settings/base                           24      3    88%
-goldstone/settings/development                     7      7     0%
-goldstone/settings/production                      1      1     0%
-goldstone/settings/stage                           1      1     0%
-goldstone/settings/test                            2      0   100%
-goldstone/urls                                     4      0   100%
-goldstone/wsgi                                     4      4     0%
-------------------------------------------------------------------
-TOTAL                                            214     50    77%
-_______________________________________ summary ___________________
-cover: commands succeeded
-congratulations :)
-```
+    OK
+    Destroying test database for alias 'default'...
+    cover runtests: commands[1] | coverage xml
+    cover runtests: commands[2] | coverage report
+    Name                                           Stmts   Miss  Cover
+    ------------------------------------------------------------------
+    goldstone/__init__                                 0      0   100%
+    goldstone/apps/__init__                            0      0   100%
+    goldstone/apps/lease/__init__                      0      0   100%
+    goldstone/apps/lease/admin                         1      0   100%
+    goldstone/apps/lease/celery                        3      3     0%
+    goldstone/apps/lease/migrations/0001_initial      18      3    83%
+    goldstone/apps/lease/migrations/__init__           0      0   100%
+    goldstone/apps/lease/models                       34      3    91%
+    goldstone/apps/lease/tasks                        21     21     0%
+    goldstone/apps/lease/tests                        77      0   100%
+    goldstone/apps/lease/tests_celery                 10      0   100%
+    goldstone/apps/lease/views                         7      4    43%
+    goldstone/libs/__init__                            0      0   100%
+    goldstone/settings                                 0      0   100%
+    goldstone/settings/__init__                        0      0   100%
+    goldstone/settings/base                           24      3    88%
+    goldstone/settings/development                     7      7     0%
+    goldstone/settings/production                      1      1     0%
+    goldstone/settings/stage                           1      1     0%
+    goldstone/settings/test                            2      0   100%
+    goldstone/urls                                     4      0   100%
+    goldstone/wsgi                                     4      4     0%
+    ------------------------------------------------------------------
+    TOTAL                                            214     50    77%
+    _______________________________________ summary ___________________
+    cover: commands succeeded
+    congratulations :)
 
 
 ### Front-end testing
