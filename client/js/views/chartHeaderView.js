@@ -20,7 +20,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         this.columns = this.options.columns || 12;
         this.infoText = this.options.infoText;
         this.infoIcon = this.options.infoIcon || 'fa-dashboard';
-        this.chartTitle = this.options.chartTitle || 'Set Chart Title';
+        this.chartTitle = this.options.chartTitle || goldstone.translate('Set Chart Title');
         this.render();
     },
 
@@ -36,7 +36,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.infoText];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 

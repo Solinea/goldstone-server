@@ -190,15 +190,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
-        '<th>timestamp</th>' +
-        '<th>host</th>' +
-        '<th>client ip</th>' +
-        '<th>uri</th>' +
-        '<th>status</th>' +
-        '<th>response time</th>' +
-        '<th>length</th>' +
-        '<th>component</th>' +
-        '<th>type</th>' +
+        '<th><%=goldstone.contextTranslate(\'timestamp\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'host\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'client ip\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'uri\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'status\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });

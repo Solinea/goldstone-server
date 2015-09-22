@@ -21,12 +21,12 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: 'Api Calls vs Time',
+            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: 'Api Calls by Range',
+            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
@@ -40,7 +40,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: 'Api Browser',
+            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',

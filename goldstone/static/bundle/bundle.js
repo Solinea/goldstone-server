@@ -4668,15 +4668,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
-        '<th>timestamp</th>' +
-        '<th>host</th>' +
-        '<th>client ip</th>' +
-        '<th>uri</th>' +
-        '<th>status</th>' +
-        '<th>response time</th>' +
-        '<th>length</th>' +
-        '<th>component</th>' +
-        '<th>type</th>' +
+        '<th><%=goldstone.contextTranslate(\'timestamp\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'host\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'client ip\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'uri\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'status\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });
@@ -4704,12 +4704,12 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: 'Api Calls vs Time',
+            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: 'Api Calls by Range',
+            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
@@ -4723,7 +4723,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: 'Api Browser',
+            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
@@ -5767,7 +5767,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         this.columns = this.options.columns || 12;
         this.infoText = this.options.infoText;
         this.infoIcon = this.options.infoIcon || 'fa-dashboard';
-        this.chartTitle = this.options.chartTitle || 'Set Chart Title';
+        this.chartTitle = this.options.chartTitle || goldstone.translate('Set Chart Title');
         this.render();
     },
 
@@ -5783,7 +5783,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.infoText];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 
@@ -6822,18 +6822,18 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events vs Time',
+            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#events-histogram-visualization').width(),
-            yAxisLabel: 'Number of Events'
+            yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
         this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
 
         this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: 'Events Browser',
+            chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
@@ -8081,7 +8081,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var self = this;
         var ns = this.defaults;
-        ns.yAxisLabel = 'Log Events';
+        ns.yAxisLabel = goldstone.contextTranslate('Log Events', 'loganalysis');
         ns.urlRoot = this.options.urlRoot;
 
         // specificHost will only be passed in if instantiated on a node
@@ -8823,7 +8823,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Logs vs Time',
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logsearchpage'),
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard'
         }).el);
@@ -8872,7 +8872,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
-        ' Search Results' +
+        ' <%=goldstone.contextTranslate(\'Search Results\', \'logsearchpage\')%>' +
         '</h3>' +
         '</div>' +
 
@@ -8884,11 +8884,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         '<thead>' +
         '<tr class="header">' +
-        '<th>Timestamp</th>' +
-        '<th>Syslog Severity</th>' +
-        '<th>Component</th>' +
-        '<th>Host</th>' +
-        '<th>Message</th>' +
+        '<th><%=goldstone.contextTranslate(\'Timestamp\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Syslog Severity\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Component\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Host\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Message\', \'logsearchpage\')%></th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +
@@ -10568,7 +10568,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.defaults.infoCustom];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 

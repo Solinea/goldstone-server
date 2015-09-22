@@ -61,7 +61,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Logs vs Time',
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logsearchpage'),
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard'
         }).el);
@@ -110,7 +110,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
-        ' Search Results' +
+        ' <%=goldstone.contextTranslate(\'Search Results\', \'logsearchpage\')%>' +
         '</h3>' +
         '</div>' +
 
@@ -122,11 +122,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         '<thead>' +
         '<tr class="header">' +
-        '<th>Timestamp</th>' +
-        '<th>Syslog Severity</th>' +
-        '<th>Component</th>' +
-        '<th>Host</th>' +
-        '<th>Message</th>' +
+        '<th><%=goldstone.contextTranslate(\'Timestamp\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Syslog Severity\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Component\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Host\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Message\', \'logsearchpage\')%></th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +

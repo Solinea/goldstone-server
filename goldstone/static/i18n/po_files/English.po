@@ -19,6 +19,70 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: apiBrowserPageView.js
+
+#: apiBrowserPageView.js
+msgctxt "apibrowserpage"
+msgid "Api Calls vs Time"
+msgstr ""
+
+#: apiBrowserPageView.js
+msgctxt "apibrowserpage"
+msgid "Api Calls by Range"
+msgstr ""
+
+#: apiBrowserPageView.js
+msgctxt "apibrowserpage"
+msgid "Api Browser"
+msgstr ""
+
+#: apiBrowserPageView.js
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "timestamp"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "host"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "client ip"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "uri"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "status"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "response time"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "length"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "component"
+msgstr ""
+
+#: apiBrowserDataTableView.js
+msgctxt "apibrowserdata"
+msgid "type"
+msgstr ""
+
 #: apiPerfReportPageView.js
 
 #: apiPerfReportPageView.js
@@ -123,6 +187,14 @@ msgstr ""
 msgid "License"
 msgstr ""
 
+#: chartHeaderView.js
+msgid "Set Chart Title"
+msgstr ""
+
+#: chartHeaderView.js
+msgid "Set in InfoButtonText.js"
+msgstr ""
+
 #: dataTable plugin
 #: to be used with dataTable initialization object
 
@@ -148,6 +220,23 @@ msgstr ""
 
 #: discoverView.js
 msgid "Cloud Topology"
+msgstr ""
+
+#: eventsBrowserPageView.js
+
+#: eventsBrowserPageView.js
+msgctxt "eventsbrowser"
+msgid "Number of Events"
+msgstr ""
+
+#: eventsBrowserPageView.js
+msgctxt "eventsbrowser"
+msgid "Events vs Time"
+msgstr ""
+
+#: eventsBrowserPageView.js
+msgctxt "eventsbrowser"
+msgid "Events Browser"
 msgstr ""
 
 #: eventTimelineView.js
@@ -313,6 +402,13 @@ msgstr ""
 msgid "Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages."
 msgstr ""
 
+#: logAnalysisView.js
+
+#: logAnalysisView.js
+msgctxt "loganalysis"
+msgid "Log Events"
+msgstr ""
+
 #: loginPageView.js
 
 #: loginPageView.js
@@ -350,6 +446,41 @@ msgstr ""
 
 #: loginPageView.js
 msgid "Failed to initialize installed addons"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Timestamp"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Syslog Severity"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Component"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Host"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Message"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Logs vs Time"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logsearchpage"
+msgid "Search Results"
 msgstr ""
 
 #: nodeAvailView.js

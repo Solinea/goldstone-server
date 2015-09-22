@@ -86,7 +86,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var self = this;
         var ns = this.defaults;
-        ns.yAxisLabel = 'Log Events';
+        ns.yAxisLabel = goldstone.contextTranslate('Log Events', 'loganalysis');
         ns.urlRoot = this.options.urlRoot;
 
         // specificHost will only be passed in if instantiated on a node
