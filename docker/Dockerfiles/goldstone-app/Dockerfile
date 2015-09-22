@@ -41,8 +41,7 @@ RUN buildReqs=' \
 USER ${APPUSER}
 
 RUN . ${ENVDIR}/bin/activate \
-  && pip install -r requirements.txt \
-  && echo ". ${ENVDIR}/bin/activate" >> /etc/profile
+  && pip install -r requirements.txt
 
 USER root
 
@@ -51,7 +50,8 @@ RUN apt-get remove -y $buildReqs \
 ## Have to re-install due to python2.7-dev uninstalling libqp-dev
 ##   && apt-get install libpq-dev \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && echo ". ${ENVDIR}/bin/activate" >> /etc/profile
 
 
 USER ${APPUSER}
