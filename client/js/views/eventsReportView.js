@@ -279,7 +279,7 @@ var EventsReportView = GoldstoneBaseView.extend({
         '<div id="table-col" class="col-md-12">' +
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Events Report' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Events Report\', \'eventsreport\')%>' +
         '</h3>' +
         '</div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +

@@ -43,7 +43,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         if(data){
             this.drawSingleRsrcInfoTable(data);
         } else {
-            $('#details-single-rsrc-table').text('No additional details available');
+            $('#details-single-rsrc-table').text(goldstone.contextTranslate('No additional details available.', 'detailsreport'));
         }
     },
 
@@ -89,7 +89,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
     template: _.template('' +
         '<div class="panel panel-primary node_details_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Resource Details' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Resource Details\', \'detailsreport\')%>' +
         '</h3>' +
         '</div>' +
         '</div>' +

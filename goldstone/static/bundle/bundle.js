@@ -5950,7 +5950,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         if(data){
             this.drawSingleRsrcInfoTable(data);
         } else {
-            $('#details-single-rsrc-table').text('No additional details available');
+            $('#details-single-rsrc-table').text(goldstone.contextTranslate('No additional details available.', 'detailsreport'));
         }
     },
 
@@ -5996,7 +5996,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
     template: _.template('' +
         '<div class="panel panel-primary node_details_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Resource Details' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Resource Details\', \'detailsreport\')%>' +
         '</h3>' +
         '</div>' +
         '</div>' +
@@ -7189,7 +7189,7 @@ var EventsReportView = GoldstoneBaseView.extend({
         '<div id="table-col" class="col-md-12">' +
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Events Report' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Events Report\', \'eventsreport\')%>' +
         '</h3>' +
         '</div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
@@ -11980,26 +11980,27 @@ var NodeReportView = GoldstoneBasePageView.extend({
         $("#logsReport").hide();
 
         // Initialize click listener on tab buttons
-        $("button#headerBar").click(function() {
+        $("button.headerBar").click(function() {
 
+            console.log($(this).data('title'));
             // sets key corresponding to active tab to 'true'
             // on this.visiblePanel
-            self.flipVisiblePanel($(this).context.innerHTML);
+            self.flipVisiblePanel($(this).data('title'));
 
             // and triggers change
             self.triggerChange();
 
             // unstyle formerly 'active' button to appear 'unpressed'
-            $("button#headerBar.active").toggleClass("active");
+            $("button.headerBar.active").toggleClass("active");
 
             // style 'active' button to appear 'pressed'
             $(this).toggleClass("active");
 
             // pass the textual content of button to _.each to
             // show/hide the correct report section
-            var selectedButton = ($(this).context.innerHTML.toLowerCase());
-            _.each($("button#headerBar"), function(item) {
-                $("#node-report-panel").find('#' + item.innerHTML + 'Report').hide();
+            var selectedButton = ($(this).data('title').toLowerCase());
+            _.each($("button.headerBar"), function(item) {
+                $("#node-report-panel").find('#' + $(item).data('title') + 'Report').hide();
             });
             $("#node-report-panel").find('#' + selectedButton + 'Report').show();
         });
@@ -12028,12 +12029,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // ChartHeaderViews frame out chart header bars and populate info buttons
 
         $('#service-status-title-bar').append(new ChartHeaderView({
-            chartTitle: 'Service Status Report',
+            chartTitle: goldstone.contextTranslate('Service Status Report', 'nodereport'),
             infoText: 'serviceStatus'
         }).el);
 
         $('#utilization-title-bar').append(new ChartHeaderView({
-            chartTitle: 'Utilization',
+            chartTitle: goldstone.contextTranslate('Utilization', 'nodereport'),
             infoText: 'utilization'
         }).el);
 
@@ -12214,11 +12215,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         // buttons
         '<div class="btn-group" role="group">' +
-        '<button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>' +
-        '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
-        '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
-        '<button type="button" id="headerBar" class="detailsButton btn btn-default">Details</button>' +
-        '<button type="button" id="headerBar" class="logsButton btn btn-default">Logs</button>' +
+        '<button type="button" data-title="Services" class="headerBar servicesButton active btn btn-default"><%=goldstone.contextTranslate(\'Services\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Reports" class="headerBar reportsButton btn btn-default"><%=goldstone.contextTranslate(\'Reports\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Events" class="headerBar eventsButton btn btn-default"><%=goldstone.contextTranslate(\'Events\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Details" class="headerBar detailsButton btn btn-default"><%=goldstone.contextTranslate(\'Details\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Logs" class="headerBar logsButton btn btn-default"><%=goldstone.contextTranslate(\'Logs\', \'nodereport\')%></button>' +
         '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
@@ -12239,13 +12240,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-panel" class="panel panel-primary">' +
         '<div class="well col-md-12">' +
         '<div class="col-md-4" id="cpu-usage">' +
-        '<h4 class="text-center">CPU Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'CPU Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '<div class="col-md-4" id="memory-usage">' +
-        '<h4 class="text-center">Memory Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'Memory Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '<div class="col-md-4" id="network-usage">' +
-        '<h4 class="text-center">Network Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'Network Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '</div>' +
         '</div>' +
@@ -12594,7 +12595,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
             // if no reports available, appends 'No reports available'
             if (self.collection.toJSON()[0] === undefined || self.collection.toJSON()[0].result.length === 0) {
 
-                $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
+                $(self.el).find('.reports-available-dropdown-menu').append("<li id='report-result'>" + goldstone.contextTranslate('No reports available.', 'reportsreport') + "</li>");
+
 
             } else {
                 self.populateReportsDropdown();
@@ -12643,7 +12645,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof (tableData[0]) === "object") {
+        if (typeof(tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -12702,8 +12704,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
 
     drawSearchTable: function(location, data) {
 
-        if(data === null) {
-            data = ['No results within selected time range'];
+        if (data !== null) {
+            data = [goldstone.translate('No results within selected time range.')];
         }
 
         var ns = this.defaults;
@@ -12786,11 +12788,11 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render dropdown button
         '<div class="dropdown">' +
         '<button id="dLabel" type="button" class="btn btn-default" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">' +
-        'Reports Available ' +
+        '<%=goldstone.contextTranslate(\'Reports Available\', \'reportsreport\')%> ' +
         '<span class="caret"></span>' +
         '</button>' +
         '<ul class="reports-available-dropdown-menu dropdown-menu" role="menu" aria-labelledby="dLabel">' +
-        '<li>Reports list loading or not available</li>' +
+        '<li><%=goldstone.contextTranslate(\'Reports list loading or not available.\', \'reportsreport\')%></li>' +
         '</ul>' +
         '</div><br>' +
 
@@ -12800,7 +12802,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render report data title bar
         '<div class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Report Data' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Report Data\', \'reportsreport\')%>' +
         '<span class="panel-header-report-title"></span>' +
         '</h3>' +
         '</div>' +
@@ -12808,7 +12810,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initially rendered message this will be overwritten by dataTable
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="reports-info-container">' +
-        '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
+        '<br><%=goldstone.contextTranslate(\'Selecting a report from the dropdown above will populate this area with the report results.\', \'reportsreport\')%>' +
         '</div>' +
 
         '</div>' +
