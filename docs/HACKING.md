@@ -234,6 +234,32 @@ As the JavaScript files are concatenated and read from a common file `bundle.js`
 you will need to make sure the `grunt watch` task is live and running in order
 to see changes to JavaScript files reflected in the client.
 
+
+## Managing Goldstone Server Addons
+
+In the development environment, addons are managed via the `manage_addon.sh` script.  Using the `opentrail` addon as an example, here is the procedure to install the addon:
+
+    $ cd ~/devel/goldstone-server
+    $ bin/start_dev_env.sh
+
+In another window:
+ 
+    $ cd ~/devel/django-opentrail
+    $ python ./manage.py sdist
+    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server
+    $ cd ~/devel/goldstone-server
+    $ eval ${docker-machine env default)
+    $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
+
+Then restart the dev env by entering <Ctrl-C> in the first window and rerunning `bin/start_dev_env.sh`
+
+To uninstall the plugin:
+
+    $ cd ~/devel/goldstone-server
+    $ eval ${docker-machine env default)
+    $ bin/manage_addon.sh --uninstall --addon-name=opentrail --package-name='django-opentrail'
+
+
 ## Coding Guidelines
 
 ### Python code
@@ -346,18 +372,6 @@ Insert this text before the `</dict>`:
 <true/>
 ```
 
-
-## Building a Generic Goldstone VM
-
-* work in progress *
-
-Follow instructions in the [INSTALL](http://goldstone-server.readthedocs.org/en/latest/INSTALL/) guide for installing via an RPM inside your VM; however, instead of executing `fab install`, execute:
-
-    root# cd /opt/goldstone
-    root# . bin/activate
-    root# fab partial_install:django_admin_password=YOUR_PASSWORD
-
-This will deploy Goldstone Server, but will leave the connection to the OpenStack cloud unconfigured.  It can be configured later via the client or the API.
 
 ## Major Design Decisions
 

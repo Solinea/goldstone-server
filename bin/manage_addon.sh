@@ -25,7 +25,7 @@ TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
 
 function usage() {
     echo "Usage: $0 [--install] --addon-name=name --addon-file=filename [--docker-vm=name] [--app-container=name] |"
-    echo "          [--uninstall] --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
+    echo "          --uninstall --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
 }
 
 

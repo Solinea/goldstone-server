@@ -51,19 +51,6 @@ STATIC_ROOT = os.path.join(os.getcwd(),
                            'docker/Dockerfiles/goldstone-web/static')
 STATIC_URL = '/static/'
 
-# Settings for the Djoser package, which is used for login and
-# password-resetting. We automatically login and activate after registration.
-#
-# Please review the DOMAIN value.
-# Please review the SITE_NAME value.
-DJOSER = {'DOMAIN': getfqdn(),
-          'SITE_NAME': 'Goldstone',
-          'PASSWORD_RESET_CONFIRM_URL':
-          'accounts/password/reset/confirm/{uid}/{token}',
-          'ACTIVATION_URL': '#/activate/{uid}/{token}',
-          'LOGIN_AFTER_REGISTRATION': True,
-          }
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
