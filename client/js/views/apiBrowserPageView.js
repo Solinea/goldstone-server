@@ -44,6 +44,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#api-browser-table').width()
         });
 

@@ -4727,6 +4727,7 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#api-browser-table').width()
         });
 
@@ -5800,6 +5801,12 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
+
+        // instantiate with infoText = 'hide' for
+        // option to hide info button
+        if (this.infoText === "hide") {
+            $(this.el).find('#info-button').hide();
+        }
     },
 
     template: _.template('' +
@@ -6837,6 +6844,7 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 

@@ -53,6 +53,12 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
+
+        // instantiate with infoText = 'hide' for
+        // option to hide info button
+        if (this.infoText === "hide") {
+            $(this.el).find('#info-button').hide();
+        }
     },
 
     template: _.template('' +
