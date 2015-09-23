@@ -2847,6 +2847,17 @@ var I18nModel = Backbone.Model.extend({
             return goldstone.translationObject.dpgettext(domain, context, string);
         };
 
+        /*
+        implement the gettext sprintf string replacement function
+        as provided and documented by Jed.js. example:
+        goldstone.sprintf('hello, %s', 'world!');
+        ==> 'hello, world!'
+        goldstone.sprintf('I have %d apples', 3);
+        ==> 'I have 3 apples'
+        */
+
+        goldstone.sprintf = goldstone.translationObject.sprintf;
+
     },
 
 

@@ -615,6 +615,108 @@ msgctxt "metricviewer"
 msgid "Select chart parameters"
 msgstr ""
 
+#: nodeReportView.js
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "Services"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "Reports"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "Events"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "Details"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "Logs"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
+#: nodeReportView.js
+msgctxt "nodereport"
+msgid "inProgress"
+msgstr ""
+
 #: novaReportView.js
 
 #: novaReportView.js
@@ -645,14 +747,332 @@ msgstr ""
 msgid "Spawn Events"
 msgstr ""
 
-#. Megabytes
 #: novaReportView.js
+#. Megabytes
 msgid "MB"
 msgstr ""
 
-#. Gigabytes
 #: novaReportView.js
+#. Gigabytes
 msgid "GB"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Create New Trail"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Container Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Type"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Status"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Controls"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Trail Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project Name (audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project Name (optional audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project ID (audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project ID (optional audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Logging Status"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Logging"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Paused"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Change Swift Password"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Audit Filters (for reference only)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project ID - (can not be changed)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Project Name - (can not be changed)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "User ID - (can not be changed)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "User ID"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "User ID (optional audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "User ID (audit filter)"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Also log the results of unfiltered queries?"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "True"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "False"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Destination Type"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. Refers to Amazon S3
+msgctxt "opentrail"
+msgid "S3"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Destination Region"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift URL"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Username"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Password"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Tenant Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Container Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Swift Key Prefix"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Submit Swift Trail Credentials"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "S3 Region"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "S3 Username"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "S3 Password"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "S3 Bucket Name"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "S3 Key Prefix"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Submit S3 Trail Credentials"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Cancel"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Confirm"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Submit"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Creation of %s successful"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Failure to create %s"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Update of %s successful"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Failure to update %s"
+msgstr ""
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Deletion of %s complete"
+msgstr "Børk %s"
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "Failure to delete %s"
+msgstr "Børk %s"
+
+#: openTrailDataTableView.js
+#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
+msgctxt "opentrail"
+msgid "%s will be permanently deleted. Are you sure?"
+msgstr "Børk %s"
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Update Trail Details"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Delete Trail Confirmation"
+msgstr ""
+
+#: openTrailManagerPageView.js
+msgid "List of Trails"
+msgstr ""
+
+#: openTrailManagerPageView.js
+msgid "OpenTrail Manager"
+msgstr ""
+
+#: openTrailLogListPageView.js
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "Log History"
+msgstr ""
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "Trail Log History"
+msgstr ""
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "Name"
+msgstr ""
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "URL"
+msgstr ""
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "Start"
+msgstr ""
+
+#: openTrailLogListPageView.js
+msgctxt "opentrail"
+msgid "End"
 msgstr ""
 
 #: passwordResetView.js
@@ -912,7 +1332,3 @@ msgstr ""
 #: opentrail main.js
 msgid "OpenTrail Manager"
 msgstr ""
-
-#: translator-credits
-#: Put one translator per line - name / url / year
-#: "Alex Jacobs github.com/lexjacobs 2015\n"
