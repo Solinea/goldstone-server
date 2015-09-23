@@ -283,8 +283,8 @@ casper.test.begin('/settings page updates user personal settings / password', 10
 
     casper.then(function() {
         // there should be an additional actions section for tenant_admins
-        test.assertSelectorHasText('div#tenant-settings-button', 'Additional actions');
-        test.assertSelectorHasText('button.modify', 'Modify tenant settings');
+        test.assertSelectorHasText('div#tenant-settings-button', 'Additional Actions');
+        test.assertSelectorHasText('button.modify', 'Modify Tenant Settings');
     });
 
     casper.run(function() {
