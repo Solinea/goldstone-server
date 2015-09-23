@@ -25,7 +25,7 @@ class ElasticFilter(BaseFilterBackend):
     """
 
     @staticmethod
-    def _update_queryset(param, value, view, queryset, operation='match'):
+    def _add_query(param, value, view, queryset, operation='match'):
         """Return a query, preferring the raw field if available.
 
         :param param: the field name in ES
@@ -61,15 +61,19 @@ class ElasticFilter(BaseFilterBackend):
             return value
 
     def filter_queryset(self, request, queryset, view):
-        """Enhance the queryset with additional specificity, then return it.
+        """Return the queryset enhanced with additional specificity, as
+        determined by the request's query parameters.
 
-        Does an AND of all query conditions.
+        The returned queryset is effectively an AND of the conditions.
 
-        :param request: the HTTP request
-        :param queryset: the original queryset
-        :param view: the view
+        :param request: The HTTP request
+        :type request: Request
+        :param queryset: The base queryset
+        :type queryset: Search
+        :param view: The view
+        :type view: callable
+        :return: The base queryset enhanced with additional queries
         :rtype: Search
-        :return: the updated queryset
 
         """
         from django.db.models.constants import LOOKUP_SEP
@@ -79,7 +83,7 @@ class ElasticFilter(BaseFilterBackend):
              view.pagination_class.page_size_query_param]
 
         for param in request.query_params:
-            # don't want these in our queryset
+            # We don't want these in our queryset.
             if param in reserved_params:
                 continue
 
@@ -87,25 +91,23 @@ class ElasticFilter(BaseFilterBackend):
             split_param = param.split(LOOKUP_SEP)
 
             if len(split_param) == 1:
-                if split_param[0] == "terms":
-                    # Terms' value is a dict of fields, all of which
-                    # must match at least one of their value's entries.
-                    queryset = queryset.query("terms", **value)
+                # This is a field = value term.
+                if split_param[0] in ["regexp", "terms"]:
+                    # The terms and regexp "fields" have a value of a dict of
+                    # field:value terms.
+                    queryset = queryset.query(split_param[0], **value)
                 else:
-                    # Standard match query
-                    queryset = self._update_queryset(param,
-                                                     value,
-                                                     view,
-                                                     queryset)
+                    # This is a standard match query.
+                    queryset = self._add_query(param, value, view, queryset)
             else:
                 # First term is the field, second term is the query operation.
                 param = split_param[0]
                 operation = split_param[1]
 
-                queryset = self._update_queryset(param,
-                                                 value,
-                                                 view,
-                                                 queryset,
-                                                 operation)
+                queryset = self._add_query(param,
+                                           value,
+                                           view,
+                                           queryset,
+                                           operation)
 
         return queryset
