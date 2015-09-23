@@ -55,7 +55,7 @@ var I18nModel = Backbone.Model.extend({
         this.combinedPoJsonFiles: {
             "domain": "English",
             "missing_key_callback": function(key) {
-            console.error('missing .po file translation for: `' + key + '`');
+                console.error('missing .po file translation for: `' + key + '`');
             }
             "locale_data": {
                 "English": {
@@ -113,16 +113,17 @@ var I18nModel = Backbone.Model.extend({
 
     setTranslationFunction: function() {
 
-        var domain = goldstone.translationObject.domain;
 
         // lookup for entered string and domain set to current language
         goldstone.translate = function(string) {
+            var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dgettext(domain, string);
         };
 
         // lookup with context applied, for simple words that may have
         // different translations in varying contexts
         goldstone.contextTranslate = function(string, context) {
+            var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dpgettext(domain, context, string);
         };
 
@@ -197,7 +198,6 @@ var I18nModel = Backbone.Model.extend({
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
             $(item).text(goldstone.translate($(item).data().i18n));
-
         });
     }
 });
