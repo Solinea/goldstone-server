@@ -59,7 +59,10 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original.
+   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
+
+    $ workon goldstone-server
+    $ pip install tox
 
 
 ## Install the Development OpenStack VM
@@ -97,6 +100,13 @@ To start the development environment, execute:
 
 The first time you start Golstone Server, it will probably take several minutes to download docker containers and perform configuraiton tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, please submit an issue!
 
+After the containers have started, you can access the user interface with the following information:
+
+* url: http://127.0.0.1:8000
+* django admin username: admin
+* django admin password: goldstone
+* Goldstone admin username: gsadmin
+* Goldstone admin password: goldstone
 
 To stop the development environment, either <Ctrl-C> from the window running `start_dev_env.sh` or run `stop_dev_env.sh` from another window. This will stop both the docker VM and the OpenStack VM.
 
@@ -120,12 +130,6 @@ It may be helpful to create a couple of instances via the API in order to genera
     $ docker exec -i -t goldstoneserver_gsappdev_1 bash -i -c 'nova boot --image cirros --flavor m1.tiny ceilo0'
 
 Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
-
-
-
-When startup is complete, you should be able to see the Goldstone application at http://127.0.0.1:8000.  Log in with the credentials you created during initialization.
-
-![enter image description here](https://lh3.googleusercontent.com/p75_NPl7u54OxhqHYhDujVVqzRy7y0k-ZZtsjCYQV3o=w1057-h633-no)
 
 
 ## Testing
@@ -376,7 +380,6 @@ Insert this text before the `</dict>`:
 ## Major Design Decisions
 
 * The client code supplied with Goldstone may be used in production, or it may be used as a reference design for your own custom client. Goldstone has been designed to be used through its API without using Django's authentication or view+template subsystems.
-* Goldstone is currently based on the 1.6 version of [Django](http://www.djangoproject.com).
 * Goldstone uses [PostgreSQL](http://www.postgresql.org) for its main database.
 * For database and model migrations, Goldstone uses South.
 * [Celery](http://www.celeryproject.org) is used for asynchronous tasks.
