@@ -7,7 +7,7 @@ This explains how to install and run Goldstone Server locally, so you can do cod
 
 Install [Docker Toolbox](https://github.com/docker/toolbox/releases). 
 
-**_Note: there is an issue with release 1.8.2a of Docker Toolbox/1.4.1 of Docker Compose, but earlier versions work_**
+**_Note: there is an issue with release 1.8.2a of Docker Toolbox, but earlier versions work_**
 
 Using brew, install various prerequisite packages:
 
@@ -90,7 +90,7 @@ To start the development environment, execute:
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
 
-The first time you start Golstone Server, it will probably take several minutes to download docker containers and perform configuraiton tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
+The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
 
 ## Stopping Goldstone Server
@@ -144,7 +144,7 @@ Goldstone uses standard Django testing tools:
 * [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7, PEP8, and pylint by default.  There is also an additional `coverage` target available to evaluate code coverage.
 * [Django TestCase](https://docs.djangoproject.com/en/1.8/topics/testing/tools/#testcase) for unit testing.
 
-With the developerment enviornment started, execute the following commands in another window:
+With the development environment started, execute the following commands in another window:
 
     $ workon goldstone-server
     $ cd ~/devel/goldstone-server
