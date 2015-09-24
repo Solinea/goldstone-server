@@ -176,7 +176,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
     template: _.template('' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons<b class="caret"></b></a>' +
+        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons</span><b class="caret"></b></a>' +
         '<ul class="dropdown-menu addon-menu-li-elements">' +
         '</ul>'
     )
