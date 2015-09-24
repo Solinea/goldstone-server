@@ -68,12 +68,23 @@ wait_for_shutdown()
     printf "    \b\b\b\b"
 }
 
-echo "shutting down docker VM"
-(cd ${TOP_DIR};docker-compose stop)
-docker-machine stop ${DOCKER_VM}
+VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
+if [[ $RC != 0 ]] ; then
+    echo "${DOCKER_VM} is already stopped"
+else
+    echo "shutting down docker VM"
+    cd ${TOP_DIR}
+    eval $(docker-machine env ${DOCKER_VM})
+    docker-compose stop
+    docker-machine stop ${DOCKER_VM}
+fi
 
-VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
-echo "Waiting for $STACK_VM to poweroff..."
-wait_for_shutdown
-
+VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
+if [[ $RC != 0 ]] ; then
+    echo "${STACK_VM} is already stopped"
+else
+    VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
+    echo "Waiting for $STACK_VM to poweroff..."
+    wait_for_shutdown
+fi
 

@@ -25,11 +25,11 @@ Using brew, install various prerequisite packages:
 
 Depending on your contributor status (core or community), you will either create a fork of the [goldstone-server](https://github.com/Solinea/goldstone-server) Github repositories, or you will be working on branches from the main repo.
 
-The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repository](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone commands.
+The commands given below are for use by core contributors. If you are a community contributor, your first step will be to [fork the repository](https://help.github.com/articles/fork-a-repo/). You will also substitute your own github user id for "Solinea" in the following clone command.
 
     $ mkdir ~/devel
     $ cd ~/devel
-    $ git clone https://github.com/Solinea/goldstone-server.git
+    $ git clone git@github.com:Solinea/goldstone-server.git
 
 If you install in a location other than `~/devel/goldstone-server`, you will need to set the `GS_PROJ_TOP_DIR` environment variable to the directory containing the source.
 
@@ -49,11 +49,11 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     export PROJECT_HOME=$HOME/devel
     source /usr/local/bin/virtualenvwrapper.sh
 
-   Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
+Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-   Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
+Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
 
     $ workon goldstone-server
     $ pip install -r requirements.txt
@@ -66,7 +66,7 @@ Though Goldstone is intended to work with any supported cloud, it is suggested t
 
 ## Configure VirtualBox Networking
 
-The recommended developement environment uses a prebuilt OpenStack image.  This section assumes that the image has been downloaded and imported into VirtualBox. The `configure_vbox.sh` script in `$PROJECT_HOME/goldstone-server/bin` sets up the following aspects of networking:
+The recommended development environment uses a prebuilt OpenStack image.  This section assumes that the image has been downloaded and imported into VirtualBox. The `configure_vbox.sh` script in `$PROJECT_HOME/goldstone-server/bin` sets up the following aspects of networking:
 
 * Creates a new host-only network for OpenStack
 * Ensures that the OpenStack VM has the correct network interfaces
@@ -92,13 +92,6 @@ To start the development environment, execute:
 
 The first time you start Golstone Server, it will probably take several minutes to download docker containers and perform configuraiton tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
-After the containers have started, you can access the user interface with the following information:
-
-* url: **http://127.0.0.1:8000**
-* django admin username: **admin**
-* django admin password: **goldstone**
-* Goldstone admin username: **gsadmin**
-* Goldstone admin password: **goldstone**
 
 ## Stopping Goldstone Server
 
@@ -112,7 +105,7 @@ This will stop both the docker VM and the OpenStack VM.
 
 ## Configuring OpenStack Instance
 
-With the development environment started in another window, execute the following command to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
+With the development environment started in another window, execute the following commands to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
@@ -131,21 +124,27 @@ It may be helpful to create a couple of instances via the API in order to genera
 Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
 
 
+## Logging In
+
+After the containers have started and OpenStack has been configured to interact with Goldstone, you can access the user interface with the following information:
+
+* url: **http://127.0.0.1:8000**
+* django admin username: **admin**
+* django admin password: **goldstone**
+* Goldstone admin username: **gsadmin**
+* Goldstone admin password: **goldstone**
+
+
 ## Testing
 
 ### Backend Testing
 
 Goldstone uses standard Django testing tools:
 
-* [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
+* [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7, PEP8, and pylint by default.  There is also an additional `coverage` target available to evaluate code coverage.
 * [Django TestCase](https://docs.djangoproject.com/en/1.8/topics/testing/tools/#testcase) for unit testing.
 
-Code coverage reports can be created through the `tox -e cover` command:
-
-    $ cd ~/devel/goldstone-server
-    $ bin/start_dev_env.sh
-
-Then, in another window:
+With the developerment enviornment started, execute the following commands in another window:
 
     $ workon goldstone-server
     $ cd ~/devel/goldstone-server
@@ -208,34 +207,23 @@ To generate a coverage report:
 
 ### Front-end testing
 
-This information assumes you already have node/npm installed.
-At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7.:
+This information assumes you already have node/npm installed.  With the development environment started in another window, execute:
 
-```bash
-$ npm install -g grunt-cli
-$ npm install
-$ grunt
-```
+    $ npm install -g grunt-cli
+    $ npm install
+    $ grunt
 
-In order for the e2e tests to run, you *must* have the
-server running and access to live data.
+**_Note: The end to end testing requires an auth token, and currently assumes that you have a a `gsadmin` user with the password `goldstone`._**
 
-**In addition, the e2e testing suite is required to log in in order to received
-an auth token that is required for successful api calls.**
-You will need to enable a login, with tenant admin rights, for
-the username/password combo of "gsadmin / solinea".
+The Gruntfile.js is configured with the following combo tasks:
 
-At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
+* grunt (default task): lint / unit testing (no e2e tests) / watch.
+* grunt watch: watch for changes that will trigger unit/integration/e2e tests
+* grunt lint: lint only (no watch).
+* grunt test: unit/integration/e2e test only (no watch).
+* grunt lintAndTest: lint and test only (no watch).
 
-    grunt (default task): lint / unit testing (no e2e tests) / watch.
-    grunt watch: watch for changes that will trigger unit/integration/e2e tests
-    grunt lint: lint only (no watch).
-    grunt test: unit/integration/e2e test only (no watch).
-    grunt lintAndTest: lint and test only (no watch).
-
-As the JavaScript files are concatenated and read from a common file `bundle.js`,
-you will need to make sure the `grunt watch` task is live and running in order
-to see changes to JavaScript files reflected in the client.
+As the JavaScript files are concatenated and read from a common file `bundle.js`, you will need to make sure the `grunt watch` task is live and running in order to see changes to JavaScript files reflected in the client.
 
 
 ## Managing Goldstone Server Addons
