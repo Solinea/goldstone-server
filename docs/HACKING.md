@@ -3,12 +3,12 @@
 
 This explains how to install and run Goldstone Server locally, so you can do code development on the project.  These instructions are written for a Mac OS X Yosemite development.
 
-
-[TOC]
-
 ## Prerequisites
 
-Install [Docker Toolbox](https://github.com/docker/toolbox/releases).  ** There is an issue with release 1.8.2a, but earlier versions work **
+Install [Docker Toolbox](https://github.com/docker/toolbox/releases). 
+
+**_Note: there is an issue with release 1.8.2a of Docker Toolbox/1.4.1 of Docker Compose, but earlier versions work_**
+
 Using brew, install various prerequisite packages:
 
     $ brew update
@@ -17,14 +17,8 @@ Using brew, install various prerequisite packages:
     $ brew install git
     $ brew install pyenv-virtualenvwrapper
 
- 
-**_Note: if you have manually installed docker-machine and docker-compose, make sure your docker-machine VM name is 'default' in order to be compatible with the supporting scripts._**
 
-**_Note: There is a known compatibility issue with Docker Toolbox v1.8.2a / Docker Compose 1.4.1._**
- 
-* [Docker Toolbox](http://www.docker.com/toolbox) 
-
-**_Note: if you have manually installed docker-machine and docker-compose, make sure your docker-machine VM name is 'default' in order to be compatible with the supporting scripts._**
+**_Note: if you have manually installed Docker Machine and Docker Compose, make sure your Docker Machine VM name is 'default' in order to be compatible with the supporting scripts._**
 
 
 ## Fork and Clone Goldstone Repo
@@ -62,19 +56,19 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
    Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
 
     $ workon goldstone-server
-    $ pip install tox
+    $ pip install -r requirements.txt
+    $ pip install -r test-requirements.txt
 
 
 ## Install the Development OpenStack VM
 
-For convenience, you can [download an OpenStack VM image](https://a248.e.akamai.net/cdn.hpcloudsvc.com/he27fba417855517f7da9656d4eedbfdc/prodaw2//RDO-kilo-20150902.ova) with a Kilo version of [RDO](https://www.rdoproject.org/Main_Page).  Once downloaded, import the VM into VirtualBox.
-
+Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://a248.e.akamai.net/cdn.hpcloudsvc.com/he27fba417855517f7da9656d4eedbfdc/prodaw2//RDO-kilo-20150902.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
 
 ## Configure VirtualBox Networking
 
 The recommended developement environment uses a prebuilt OpenStack image.  This section assumes that the image has been downloaded and imported into VirtualBox. The `configure_vbox.sh` script in `$PROJECT_HOME/goldstone-server/bin` sets up the following aspects of networking:
 
-* Creates a new host-only network
+* Creates a new host-only network for OpenStack
 * Ensures that the OpenStack VM has the correct network interfaces
 * Creates a DHCP server on the host-only network
 * Configures NAT rules for docker VM
@@ -85,30 +79,35 @@ If your environment is different than the typical dev environment, you may be ab
     $ bin/stop_dev_env.sh
     $ bin/configure_vbox.sh
 
-**_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those
-particular components.  This helps address reconfiguration of specific components (for example, if you have recreated
-your docker VM, you could run configure_vbox.sh --no-stack.  This would only configure the docker
-related NAT rules. _**
+**_Note: configure_vbox.sh accepts --no-stack, and --no-docker flags to skip configuration of those particular components.  This helps address reconfiguration of specific components (for example, if you have recreated your docker VM, you could run `configure_vbox.sh --no-stack`.  This would only configure the docker
+related NAT rules._**
 
 
-## Starting/Stopping Goldstone Server
+## Starting Goldstone Server
 
 To start the development environment, execute:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
 
-The first time you start Golstone Server, it will probably take several minutes to download docker containers and perform configuraiton tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, please submit an issue!
+The first time you start Golstone Server, it will probably take several minutes to download docker containers and perform configuraiton tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
 After the containers have started, you can access the user interface with the following information:
 
-* url: http://127.0.0.1:8000
-* django admin username: admin
-* django admin password: goldstone
-* Goldstone admin username: gsadmin
-* Goldstone admin password: goldstone
+* url: **http://127.0.0.1:8000**
+* django admin username: **admin**
+* django admin password: **goldstone**
+* Goldstone admin username: **gsadmin**
+* Goldstone admin password: **goldstone**
 
-To stop the development environment, either <Ctrl-C> from the window running `start_dev_env.sh` or run `stop_dev_env.sh` from another window. This will stop both the docker VM and the OpenStack VM.
+## Stopping Goldstone Server
+
+To stop the development environment, either:
+
+* `<Ctrl-C>` from the window running `start_dev_env.sh`; or
+* run `stop_dev_env.sh` from another window. 
+ 
+This will stop both the docker VM and the OpenStack VM.
 
 
 ## Configuring OpenStack Instance
@@ -121,7 +120,7 @@ With the development environment started in another window, execute the followin
 Then in another window:
 
     $ eval $(docker-machine env default)
-    $ ./bin/configure_stack.sh  
+    $ ./bin/configure_stack.sh
 
 
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
@@ -150,7 +149,7 @@ Then, in another window:
 
     $ workon goldstone-server
     $ cd ~/devel/goldstone-server
-    $ tox 
+    $ tox
     <-- snip -->
     -------------------------------------
     Ran 215 tests in 42.295s
@@ -247,7 +246,7 @@ In the development environment, addons are managed via the `manage_addon.sh` scr
     $ bin/start_dev_env.sh
 
 In another window:
- 
+
     $ cd ~/devel/django-opentrail
     $ python ./manage.py sdist
     $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server
@@ -255,7 +254,7 @@ In another window:
     $ eval ${docker-machine env default)
     $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
 
-Then restart the dev env by entering <Ctrl-C> in the first window and rerunning `bin/start_dev_env.sh`
+Then restart the dev env by entering `<Ctrl-C>` in the first window and rerunning `bin/start_dev_env.sh`
 
 To uninstall the plugin:
 
@@ -278,10 +277,8 @@ Please follow the generally accepted practices, based on these style guidelines:
 
 To test that your code conforms to this project's standards:
 
-```bash
-$ tox -e checkin
-$ fab test
-```
+    $ tox -e checkin
+    $ fab test
 
 ## Configuring Postfix
 
@@ -297,37 +294,32 @@ configure it to relay outgoing mail to a Gmail account, on OS X.
 
 First, if you're in a virtual ("workon") environment, deactivate it. Then:
 
-```bash
     $ sudo bash
     root# cd /etc/postfix
-```
 
 Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
-```
-myhostname = localhost
-relayhost = [smtp.gmail.com]:587
-smtp_sasl_auth_enable = yes
-smtp_sasl_mechanism_filter = plain
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-smtp_sasl_security_options = noanonymous
-smtp_tls_CAfile = /etc/postfix/systemdefault.pem
-smtp_use_tls = yes
-```
+
+    myhostname = localhost
+    relayhost = [smtp.gmail.com]:587
+    smtp_sasl_auth_enable = yes
+    smtp_sasl_mechanism_filter = plain
+    smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+    smtp_sasl_security_options = noanonymous
+    smtp_tls_CAfile = /etc/postfix/systemdefault.pem
+    smtp_use_tls = yes
 
 Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
 and password:
-```
-[smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
-```
+
+    [smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
+    
 
 (For example, your line might read, `[smtp.gmail.com]:587
 dirk_diggler@mycompany.com:12344321`.
 
 Then:
 
-```bash
     root# postmap /etc/postfix/sasl_passwd
-```
 
 Now put a valid certificate into
 `/etc/postfix/systemdefault.pem`. Here's one way to do it:
@@ -341,16 +333,14 @@ Now put a valid certificate into
 Move the file you just saved to `/etc/postfix/systemdefault.pem`.
 
 Then, chown the file so that root owns it:
-```bash
+
     root# chown root /etc/postfix/systemdefault.pem
-```
+
 
 Now start postfix and test it:
 
-```bash
     root# postfix start
     root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
-```
 
 If you receive the test email, Postfix is running correctly!
 
@@ -361,21 +351,16 @@ If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
 If you want Postfix to always start when you boot your machine, edit
 `/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
 
-```
-<key>KeepAlive</key>
-<dict>
-   <key>SuccessfulExit</key>
-   <false/>
-</dict>
-```
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
 
 Insert this text before the `</dict>`:
 
-```
-<key>RunAtLoad</key>
-<true/>
-```
-
+    <key>RunAtLoad</key>
+    <true/>
 
 ## Major Design Decisions
 
