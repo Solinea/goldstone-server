@@ -529,6 +529,14 @@ msgid "Exit"
 msgstr "Børk"
 
 #: metricViewerView.js
+
+#: metricViewerView.js
+#. config = configuration.
+msgctxt "metricviewer"
+msgid "Click gear for config"
+msgstr "Børk"
+
+#: metricViewerView.js
 msgctxt "metricviewer"
 msgid "No resources returned"
 msgstr "Børk"

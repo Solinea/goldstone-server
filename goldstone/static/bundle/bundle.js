@@ -9917,7 +9917,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<div id="api-perf-panel-header" class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>">Click gear for config</span>' +
+        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>"><%=goldstone.contextTranslate(\'Click gear for config\', \'metricviewer\')%></span>' +
         '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
         '</h3></div>' +
 
