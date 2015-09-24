@@ -4411,6 +4411,11 @@ var AddonMenuView = GoldstoneBaseView2.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
+            // must trigger html template translation in order to display a
+            // language other than English upon initial render without
+            // having to toggle the language selector switch
+            goldstone.i18n.translateBaseTemplate();
+
             // the individual dropdowns and dropdown submenus are constructed
             // as a html string, and then appended into the menu drop-down list
             var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
@@ -4506,7 +4511,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
     template: _.template('' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> <%=goldstone.contextTranslate(\'Add-ons\', \'addonmenu\')%><b class="caret"></b></a>' +
+        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons<b class="caret"></b></a>' +
         '<ul class="dropdown-menu addon-menu-li-elements">' +
         '</ul>'
     )

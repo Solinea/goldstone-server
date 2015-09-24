@@ -22,7 +22,6 @@ msgstr ""
 #: addonMenuView.js
 
 #: addonMenuView.js
-msgctxt "addonmenu"
 msgid "Add-ons"
 msgstr "Børk"
 
