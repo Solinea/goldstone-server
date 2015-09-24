@@ -12000,7 +12000,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // Initialize click listener on tab buttons
         $("button.headerBar").click(function() {
 
-            console.log($(this).data('title'));
             // sets key corresponding to active tab to 'true'
             // on this.visiblePanel
             self.flipVisiblePanel($(this).data('title'));

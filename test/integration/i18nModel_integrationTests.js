@@ -24,13 +24,6 @@ describe('i18nModel.js spec', function() {
             '<span data-i18n="goldstone" class="i18n">goldstone</span>'
         );
 
-        // to answer GET requests
-        // this.server = sinon.fakeServer.create();
-        // this.server.autoRespond = true;
-        // this.server.respondWith('{}');
-
-        // goldstone.userPrefsView = new UserPrefsView();
-
         goldstone.i18nJSONorig = goldstone.i18nJSON;
 
         this.i18nJSON = {
@@ -51,7 +44,7 @@ describe('i18nModel.js spec', function() {
             }
         };
 
-        this.testView = new I18nModel();
+        this.testView = goldstone.i18n;
 
     });
     afterEach(function() {
@@ -65,7 +58,6 @@ describe('i18nModel.js spec', function() {
             goldstone.i18nJSON = this.i18nJSON;
             this.testView.createTranslationObject();
             expect(this.testView.combinedPoJsonFiles.domain).to.equal('English');
-            expect(this.testView.combinedPoJsonFiles.missing_key_callback).to.be.a('function');
         });
     });
     describe('individual functions', function() {
