@@ -239,7 +239,7 @@ In another window:
     $ python ./manage.py sdist
     $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server
     $ cd ~/devel/goldstone-server
-    $ eval ${docker-machine env default)
+    $ eval $(docker-machine env default)
     $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
 
 Then restart the dev env by entering `<Ctrl-C>` in the first window and rerunning `bin/start_dev_env.sh`
@@ -247,7 +247,7 @@ Then restart the dev env by entering `<Ctrl-C>` in the first window and rerunnin
 To uninstall the plugin:
 
     $ cd ~/devel/goldstone-server
-    $ eval ${docker-machine env default)
+    $ eval $(docker-machine env default)
     $ bin/manage_addon.sh --uninstall --addon-name=opentrail --package-name='django-opentrail'
 
 
