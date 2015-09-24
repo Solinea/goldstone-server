@@ -105,7 +105,7 @@ This will stop both the docker VM and the OpenStack VM.
 
 ## Configuring OpenStack Instance
 
-With the development environment started in another window, execute the following commands to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
+Execute the following commands to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
