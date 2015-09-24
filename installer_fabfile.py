@@ -993,7 +993,10 @@ def _configure_service(service_name, backup_postfix, single_value_edits,
                 file_name, backup_postfix, backed_up_files)
 
             # set StrOpt values
-            _set_single_value_configs(file_name, entry[1])
+            try:
+                _set_single_value_configs(file_name, entry[1])
+            except IOError:
+                pass
 
         # process config changes for multi value entries
         for entry in multi_value_edits.items():
@@ -1002,7 +1005,10 @@ def _configure_service(service_name, backup_postfix, single_value_edits,
                 file_name, backup_postfix, backed_up_files)
 
         # set MultiStrOpt values
-            _set_multi_value_configs(file_name, entry[1])
+            try:
+                _set_multi_value_configs(file_name, entry[1])
+            except IOError:
+                pass
 
         # upload template files
         for entry in template_files:
@@ -1587,15 +1593,15 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
             backup_timestamp,
             restart=restart_services)
 
+        _configure_neutron(
+            backup_timestamp,
+            restart=restart_services)
+
         _configure_cinder(
             backup_timestamp,
             restart=restart_services)
 
         _configure_glance(
-            backup_timestamp,
-            restart=restart_services)
-
-        _configure_neutron(
             backup_timestamp,
             restart=restart_services)
 

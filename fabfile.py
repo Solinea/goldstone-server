@@ -30,7 +30,7 @@ sys.path.append('')
 SETTINGS_DIR = "goldstone.settings"
 
 # The default settings are to run Elasticsearch and PostgreSQL locally.
-DEV_SETTINGS = SETTINGS_DIR + ".local_docker"
+DEV_SETTINGS = SETTINGS_DIR + ".local_dev"
 
 BREW_PGDATA = '/usr/local/var/postgres'
 CENTOS_PGDATA = '/var/lib/pgsql/data'
@@ -57,7 +57,7 @@ def _django_manage(command, target='', proj_settings=None, daemon=False):
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    local("./manage.py %s %s %s %s" %
+    local("python ./manage.py %s %s %s %s" %
           (command, target, settings_opt, daemon_opt))
 
 

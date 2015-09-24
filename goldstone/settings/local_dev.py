@@ -16,17 +16,17 @@ from .base import *            # pylint: disable=W0614,W0401
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = bool(os.environ.get('DEBUG', False))
+DEBUG = bool(os.environ.get('DEBUG', True))
 
-TEMPLATE_DEBUG = False
+TEMPLATE_DEBUG = True
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': "goldstone",
         'USER': 'goldstone',
-        'PASSWORD': os.environ.get('GOLDSTONE_PASSWORD', 'goldstone'),
-        "HOST": "gsdb",
+        'PASSWORD': 'goldstone',
+        "HOST": "127.0.0.1",
         "PORT": '5432',
     }
 }
@@ -50,19 +50,6 @@ if not SECRET_KEY:
 STATIC_ROOT = os.path.join(os.getcwd(),
                            'docker/Dockerfiles/goldstone-web/static')
 STATIC_URL = '/static/'
-
-# Settings for the Djoser package, which is used for login and
-# password-resetting. We automatically login and activate after registration.
-#
-# Please review the DOMAIN value.
-# Please review the SITE_NAME value.
-DJOSER = {'DOMAIN': getfqdn(),
-          'SITE_NAME': 'Goldstone',
-          'PASSWORD_RESET_CONFIRM_URL':
-          'accounts/password/reset/confirm/{uid}/{token}',
-          'ACTIVATION_URL': '#/activate/{uid}/{token}',
-          'LOGIN_AFTER_REGISTRATION': True,
-          }
 
 LOGGING = {
     'version': 1,
@@ -106,7 +93,7 @@ LOGGING = {
     },
 }
 
-ES_HOST = 'gssearch'
+ES_HOST = '127.0.0.1'
 ES_PORT = '9200'
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
 

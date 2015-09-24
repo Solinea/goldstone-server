@@ -13,40 +13,64 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned
-# the goldstone-docker and goldstone-server Github repos into the
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
+# Goldstone Proxy & Static
+gsweb:
+  image: solinea/goldstone-web:v4-bedb7ee-docker_celery
+  volumes:
+    - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
+    - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
+  ports:
+    - "8888:8888"
+  links:
+    - gsapp:gsapp
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsweb"
+
+# Goldstone Server Container
+gsapp:
+  image: solinea/goldstone-app:v4-bedb7ee-docker_celery
+  env_file: ./config/goldstone-prod.env
+  volumes:
+    - ./config/goldstone-app:/home/app/config
+  ports:
+    - "8000:8000"
+  links:
+    - gsdb
+    - gssearch
+    - gstaskq
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsapp"
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db
-  env_file: ./config/goldstone-db/pgsql.env
+  image: solinea/goldstone-db:v4-bedb7ee-docker_celery
+  env_file: ./config/goldstone-prod.env
   volumes_from:
     - gsdbdvc
   ports:
     - "5432:5432"
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsdb"
 
 # Database Data Volume Container
 gsdbdvc:
-  image: solinea/goldstone-db-dvc
+  image: solinea/goldstone-db-dvc:v4-bedb7ee-docker_celery
   volumes:
     - /var/lib/postgresql/data
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsdbdvc"
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log
+  image: solinea/goldstone-log:v4-bedb7ee-docker_celery
   command: logstash -f /logstash/conf.d -w 1
   volumes:
     - ./config/goldstone-log/conf.d:/logstash/conf.d
@@ -57,27 +81,30 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gslog"
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search
+  image: solinea/goldstone-search:v4-bedb7ee-docker_celery
   volumes:
     - ./config/goldstone-search:/usr/share/elasticsearch/config
-    # Mount a local volume for data
-    #- "$PWD/data/goldstone-search":/usr/share/elasticsearch/data
   ports:
     - "9200:9200"
     - "9300:9300"
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gssearch"
 
-# Celery Worker Container
-#gstask:
-#image: solinea/goldstone
-#command: celery worker -A celery.py -Q default -n default@%h --loglevel=info
-#links:
-#- gstaskq
-
-# Redis Container
+# Celery Task Queue Container
 gstaskq:
-  image: redis
+  image: solinea/goldstone-task-queue:v4-bedb7ee-docker_celery
   ports:
     - "6379:6379"
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gstaskq"
