@@ -126,10 +126,11 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                 // continuing the iteration through the addons localStorage entry.
                 result += '</ul></li>';
             } else {
-                goldstone.raiseInfo('Refresh browser to complete ' +
-                    'addon installation process.');
-                result += '<li>Refresh browser to complete addon' +
-                    ' installation process';
+
+                var refreshMessage = goldstone.translate('Refresh browser and/or log in to complete addon installation process.');
+
+                goldstone.raiseInfo(refreshMessage);
+                result += '<li>' + refreshMessage;
             }
 
         });
@@ -158,7 +159,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
     template: _.template('' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> Add-ons<b class="caret"></b></a>' +
+        '<i class = "fa fa-briefcase"></i> <%=goldstone.contextTranslate(\'Add-ons\', \'addonmenu\')%><b class="caret"></b></a>' +
         '<ul class="dropdown-menu addon-menu-li-elements">' +
         '</ul>'
     )

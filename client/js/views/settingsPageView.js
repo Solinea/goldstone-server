@@ -105,7 +105,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load user settings');
+                goldstone.raiseInfo(goldstone.contextTranslate('Could not load user settings.', 'settingspage'));
             });
 
         // get current user prefs
@@ -285,7 +285,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<form class="settings-form">' +
         '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
         '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
-        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
+        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Username\', \'settingspage\')%>" required>' +
         '<label for="inputFirstname"><%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%></label>' +
         '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%>" autofocus>' +
         '<label for="inputLastname"><%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%></label>' +
