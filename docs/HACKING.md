@@ -13,7 +13,7 @@ Using brew, install various prerequisite packages:
 
     $ brew update
     $ brew doctor # (Resolve any any errors or warnings)
-    $ brew install python # (python >= 2.7.10 < 2.8)
+    $ brew install python # (python 2.7.9 is the version used in the app container)
     $ brew install git
     $ brew install pyenv-virtualenvwrapper
 
