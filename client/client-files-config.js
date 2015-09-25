@@ -72,6 +72,7 @@ module.exports = {
     otTest: 'test/openTrail/*.js',
     otCopy: '../django-opentrail/client-dev/',
     otTestCopy: '../django-opentrail/client-test/',
+    otTestCopyTests: '../django-opentrail/client-test/*.js',
     otCssCopyGit: '../django-opentrail/client-css/',
     otCssCopyGoldstone: 'goldstone/static/addons/opentrail/',
     otCssCopy: '../django-opentrail/opentrail/static/',
