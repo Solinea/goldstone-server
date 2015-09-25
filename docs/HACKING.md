@@ -92,6 +92,14 @@ To start the development environment, execute:
 
 The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
+All output (database, search, task, app server, etc.) will be logged to the terminal window that you called start_dev_env.sh.  If you would like to send the output to a file, you could either:
+
+    $ ./bin/start_dev_env.sh | tee /tmp/goldstone.log  # sends output to console and file
+
+or:
+   
+    $ ./bin/start_dev_env.sh > /tmp/goldstone.log 2>&1  # sends output only to file
+
 
 ## Stopping Goldstone Server
 
@@ -249,6 +257,25 @@ To uninstall the plugin:
     $ cd ~/devel/goldstone-server
     $ eval $(docker-machine env default)
     $ bin/manage_addon.sh --uninstall --addon-name=opentrail --package-name='django-opentrail'
+
+## Troubleshooting, Rebuilding, and Interacting with Containers
+
+Here are some useful commands that you can help with managing the development process, data, and containers.  
+
+Removing a container will force it to be recreated next time you start the dev environment.  As an example, to remove the app server container:
+
+    $ cd ~/devel/goldstone-server
+    $ ./bin/stop_dev_env.sh
+    $ docker-machine start default
+    $ eval $(docker-machine env default)
+    $ docker rm goldstoneserver_gsappdev_1
+    $ ./bin/start_dev_env.sh
+
+Removing all containers and images will result in pulling the base images from upstream, and recreating all of the containers:
+
+    $ cd ~/devel/goldstone-server
+    $ ./bin/wipe_docker 
+    $ ./bin/start_dev_env.sh
 
 
 ## Coding Guidelines
