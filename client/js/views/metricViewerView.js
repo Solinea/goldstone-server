@@ -166,11 +166,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // add 'all' to the beginning of the array of resources which will
         // be appended as the first drop-down option
-        resourceNames.unshift(goldstone.contextTranslate('all', 'metricviewer'));
+        resourceNames.unshift('all');
 
         // append the options within the dropdown
         _.each(resourceNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option>' + item + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option value="' + item + '">' + item + "</option>");
         });
     },
 
