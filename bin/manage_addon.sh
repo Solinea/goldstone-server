@@ -26,7 +26,7 @@ TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
 
 function usage() {
     echo "Usage: $0 [--install] [--verbose] --addon-name=name --addon-file=filename [--docker-vm=name] [--app-container=name] |"
-    echo "          --uninstall [--verbose] --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
+    echo "          --uninstall --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
 }
 
 
@@ -103,7 +103,7 @@ else
         usage
         exit 1
     fi
-    FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
+    FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
     PIP_CMD="pip uninstall ${MODULE_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module"; exit 1; }
