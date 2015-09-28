@@ -56,6 +56,10 @@ if [[ $(docker ps -f name=goldstoneserver_gsappdev_1 --format "{{.ID}}" | sed -n
     exit 1
 fi
 
-docker exec -t ${APP_CONTAINER} bash -i -c "pip install -r test-requirements.txt" || { echo "Failed to install test requirements"; exit 1; }
+docker exec -t ${APP_CONTAINER} bash -i -c "mkdir /tmp/pip"
+docker exec -t ${APP_CONTAINER} bash -i -c "pip install --download /tmp/pip -r requirements.txt"
+docker exec -t ${APP_CONTAINER} bash -i -c "pip install --download /tmp/pip -r test-requirements.txt"
+docker exec -t ${APP_CONTAINER} bash -i -c "pip install --no-index --find-links=file://tmp/pip -r requirements.txt"
+docker exec -t ${APP_CONTAINER} bash -i -c "pip install --no-index --find-links=file://tmp/pip -r test-requirements.txt"
 
 docker commit ${APP_CONTAINER}
