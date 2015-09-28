@@ -700,7 +700,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.defaults.infoCustom];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 

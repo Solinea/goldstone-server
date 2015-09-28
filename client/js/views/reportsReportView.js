@@ -79,7 +79,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
             // if no reports available, appends 'No reports available'
             if (self.collection.toJSON()[0] === undefined || self.collection.toJSON()[0].result.length === 0) {
 
-                $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
+                $(self.el).find('.reports-available-dropdown-menu').append("<li id='report-result'>" + goldstone.contextTranslate('No reports available.', 'reportsreport') + "</li>");
+
 
             } else {
                 self.populateReportsDropdown();
@@ -128,7 +129,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof (tableData[0]) === "object") {
+        if (typeof(tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -187,8 +188,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
 
     drawSearchTable: function(location, data) {
 
-        if(data === null) {
-            data = ['No results within selected time range'];
+        if (data !== null) {
+            data = [goldstone.translate('No results within selected time range.')];
         }
 
         var ns = this.defaults;
@@ -271,11 +272,11 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render dropdown button
         '<div class="dropdown">' +
         '<button id="dLabel" type="button" class="btn btn-default" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">' +
-        'Reports Available ' +
+        '<%=goldstone.contextTranslate(\'Reports Available\', \'reportsreport\')%> ' +
         '<span class="caret"></span>' +
         '</button>' +
         '<ul class="reports-available-dropdown-menu dropdown-menu" role="menu" aria-labelledby="dLabel">' +
-        '<li>Reports list loading or not available</li>' +
+        '<li><%=goldstone.contextTranslate(\'Reports list loading or not available.\', \'reportsreport\')%></li>' +
         '</ul>' +
         '</div><br>' +
 
@@ -285,7 +286,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render report data title bar
         '<div class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Report Data' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Report Data\', \'reportsreport\')%>' +
         '<span class="panel-header-report-title"></span>' +
         '</h3>' +
         '</div>' +
@@ -293,7 +294,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initially rendered message this will be overwritten by dataTable
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="reports-info-container">' +
-        '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
+        '<br><%=goldstone.contextTranslate(\'Selecting a report from the dropdown above will populate this area with the report results.\', \'reportsreport\')%>' +
         '</div>' +
 
         '</div>' +

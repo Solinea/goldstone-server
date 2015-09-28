@@ -80,6 +80,11 @@ var UserPrefsView = Backbone.View.extend({
 
     getUserPrefs: function() {
         this.defaults.userPrefs = JSON.parse(localStorage.getItem('userPrefs'));
+
+        // cannot add property to null, so make sure this exists
+        if (this.defaults.userPrefs === null) {
+            this.defaults.userPrefs = {};
+        }
     },
 
     setUserPrefs: function() {

@@ -108,8 +108,7 @@ module.exports = function(grunt) {
         // karma headless browser unit/integration test runner
         karma: {
             options: {
-                configFile: 'karma.conf.js',
-                reporters: ['progress', 'coverage']
+                configFile: 'karma.conf.js'
             },
             // Single-run configuration for development
             single: {

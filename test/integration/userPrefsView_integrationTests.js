@@ -63,7 +63,6 @@ describe('settingsPageView.js spec', function() {
         it('triggers goldstone.i18n', function() {
             this.testView.trigger('i18nLanguageSelected');
             expect(this.getUserPrefsProto.callCount).to.equal(1);
-            expect(this.setLanguageProto.callCount).to.equal(1);
         });
     });
 });

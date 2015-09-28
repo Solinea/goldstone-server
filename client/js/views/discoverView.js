@@ -39,7 +39,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.eventTimelineChartView = new EventTimelineView({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
-            chartTitle: 'Event Timeline',
+            chartTitle: goldstone.translate('Event Timeline'),
             width: $('#goldstone-discover-r1-c1').width()
         });
 
@@ -49,7 +49,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.nodeAvailChart = new NodeAvailCollection({});
 
         this.nodeAvailChartView = new NodeAvailView({
-            chartTitle: 'Node Availability',
+            chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
             h: {
@@ -74,7 +74,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             // if user prefs designate 'zoom'able style
             this.zoomableTreeView = new ZoomablePartitionView({
                 blueSpinnerGif: blueSpinnerGif,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverZoomTopology'
                 ],
                 collection: this.discoverTree,
@@ -91,7 +91,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             var topologyTreeView = new TopologyTreeView({
                 blueSpinnerGif: blueSpinnerGif,
                 collection: this.discoverTree,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r2-c1',

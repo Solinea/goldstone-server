@@ -274,7 +274,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         } else {
-            this.defaults.yAxisLabel = "Response Time (s)";
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
         }
     },
 
@@ -491,7 +491,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         // any existing alert or error messages.
 
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(goldstone.translate('No Data Returned'));
             return false;
         } else {
             this.clearDataErrorMessage();
@@ -2752,7 +2752,13 @@ var I18nModel = Backbone.Model.extend({
         var originalObject = goldstone.i18nJSON;
 
         var finalResult = {};
-        finalResult.domain = "english";
+        finalResult.domain = "English";
+
+        // if goldstone.translate is called on a key not in the .po file
+        finalResult.missing_key_callback = function(key) {
+            console.error('missing .po file translation for: `' + key + '`');
+        };
+
         finalResult.locale_data = {};
 
         _.each(goldstone.i18nJSON, function(val, key, orig) {
@@ -2768,11 +2774,14 @@ var I18nModel = Backbone.Model.extend({
         this constructs an initialization object like:
 
         this.combinedPoJsonFiles: {
-            "domain": "english",
+            "domain": "English",
+            "missing_key_callback": function(key) {
+                console.error('missing .po file translation for: `' + key + '`');
+            }
             "locale_data": {
-                "english": {
+                "English": {
                     "": {
-                        "domain": "english",
+                        "domain": "English",
                         "plural_forms": "nplurals=2; plural=(n != 1);",
                         "lang": "en"
                     },
@@ -2824,30 +2833,68 @@ var I18nModel = Backbone.Model.extend({
     */
 
     setTranslationFunction: function() {
+
+
+        // lookup for entered string and domain set to current language
         goldstone.translate = function(string) {
             var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dgettext(domain, string);
         };
+
+        // lookup with context applied, for simple words that may have
+        // different translations in varying contexts
+        goldstone.contextTranslate = function(string, context) {
+            var domain = goldstone.translationObject.domain;
+            return goldstone.translationObject.dpgettext(domain, context, string);
+        };
+
+        /*
+        implement the gettext sprintf string replacement function
+        as provided and documented by Jed.js. example:
+        goldstone.sprintf('hello, %s', 'world!');
+        ==> 'hello, world!'
+        goldstone.sprintf('I have %d apples', 3);
+        ==> 'I have 3 apples'
+        */
+
+        goldstone.sprintf = goldstone.translationObject.sprintf;
+
     },
 
 
     checkCurrentLanguage: function() {
 
+        // first determine which lanaguage .po files are installed
+        var existingPos = _.keys(goldstone.i18nJSON);
+
         // if there is a currently selected language in localStorage,
         // use that to set the current .domain, or set to the
-        // english default if none found.
-        var uP = localStorage.getItem('userPrefs');
+        // English default if none found.
+        var userPrefs = localStorage.getItem('userPrefs');
 
-        // if localStorage item is not present,
-        // or i18n hasn't been set yet, just default to 'english'
-        if (uP !== null) {
-            var lang = JSON.parse(uP).i18n;
-            if (lang !== undefined) {
+        // set current language
+        if (userPrefs !== null) {
+            var lang = JSON.parse(userPrefs).i18n;
+
+            // check if language is set && the po exists
+            if (lang !== undefined && existingPos.indexOf(lang) > -1) {
                 this.setCurrentLanguage(lang);
                 return;
             }
         }
-        this.setCurrentLanguage('english');
+
+        // if lang preference hasn't been set yet,
+        // or lang set in localStorage does not have a .po file,
+        // just default to 'English' and set the
+        // localStorage item to 'English'
+        this.setCurrentLanguage('English');
+        userPrefs = JSON.parse(userPrefs);
+
+        // in case of initial load, userPrefs will be null
+        userPrefs = userPrefs || {};
+        userPrefs.i18n = 'English';
+        localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
+
         return;
     },
 
@@ -2872,7 +2919,6 @@ var I18nModel = Backbone.Model.extend({
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
             $(item).text(goldstone.translate($(item).data().i18n));
-
         });
     }
 });
@@ -2914,83 +2960,99 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             // populate info-button-text here.
             // accepts html markup such as <br>
 
-            discoverCloudTopology: 'This is the OpenStack topology map.  You ' +
-                'can use leaf nodes to navigate to specific types of resources.',
+            discoverCloudTopology: function() {
+                return goldstone.translate('This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.');
+            },
 
-            discoverZoomTopology: 'This is the OpenStack topology map.  Clicking ' +
-                'branches will zoom in, clicking on leaf nodes will bring up information about resources. Click on the far left section to zoom out.',
+            discoverZoomTopology: function() {
+                return goldstone.translate('This is the OpenStack topology map.  Clicking branches will zoom in, clicking on leaf nodes will bring up information about resources.  Click on the far left section to zoom out.');
+            },
 
-            eventTimeline: 'The event timeline displays key events that have occurred ' +
-                'in your cloud.  You can adjust the displayed data with the filter and ' +
-                'time settings in the menu bar.  Hovering on an event brings up the ' +
-                'event detail.',
+            eventTimeline: function() {
+                return goldstone.translate('The event timeline displays key events that have occurred in your cloud.  You can adjust the displayed data with the filter and time settings in the menu bar.  Hovering on an event brings up the event detail.');
+            },
 
-            nodeAvailability: 'The node presence chart keeps track of the last time each ' +
-                'node in the cloud was seen.  Nodes on the right have been seen more recently ' +
-                'than nodes on the left.  The center lane shows nodes that have been detected ' +
-                'in the log stream.  The top lane shows nodes that are not logging, but can be ' +
-                'pinged.',
+            nodeAvailability: function() {
+                return goldstone.translate('The node presence chart keeps track of the last time each node in the cloud was seen.  Nodes on the right have been seen more recently than nodes on the left.  The center lane shows nodes that have been detected in the log stream.  The top lane shows nodes that are not logging, but can be pinged.');
+            },
 
-            serviceStatus: 'The service status panel shows the last known state of all OS services ' +
-                'on the node.',
+            serviceStatus: function() {
+                return goldstone.translate('The service status panel shows the last known state of all OS services on the node.');
+            },
 
-            utilization: 'The utilization charts show the OS level utilization of the node.',
+            utilization: function() {
+                return goldstone.translate('The utilization charts show the OS level utilization of the node.');
+            },
 
-            hypervisor: 'The hypervisor charts show the last known allocation and usage of resources ' +
-                'across all of the VMs on the node.',
+            hypervisor: function() {
+                return goldstone.translate('The hypervisor charts show the last known allocation and usage of resources across all of the VMs on the node.');
+            },
 
-            novaTopologyDiscover: 'This is the OpenStack Nova topology map.  You ' +
-                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
-                'such as hypervisors, clicking a resource in the table will navigate you ' +
-                'to a resource specific view.',
+            novaTopologyDiscover: function() {
+                return goldstone.translate('This is the OpenStack Nova topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, such as hypervisors, clicking a resource in the table will navigate you to a resource specific view.');
+            },
 
-            cinderTopologyDiscover: 'This is the OpenStack Cinder topology map.  You ' +
-                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
-                'clicking a resource in the table will navigate you ' +
-                'to a resource specific view.',
+            cinderTopologyDiscover: function() {
+                return goldstone.translate('This is the OpenStack Cinder topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view.');
+            },
 
-            glanceTopologyDiscover: 'This is the OpenStack Glance topology map.  You ' +
-                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
-                'clicking a resource in the table will navigate you ' +
-                'to a resource specific view.',
+            glanceTopologyDiscover: function() {
+                return goldstone.translate('This is the OpenStack Glance topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view.');
+            },
 
-            keystoneTopologyDiscover: 'This is the OpenStack Keystone topology map.  You ' +
-                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
-                'clicking a resource in the table will navigate you ' +
-                'to a resource specific view.',
+            keystoneTopologyDiscover: function() {
+                return goldstone.translate('This is the OpenStack Keystone topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view.');
+            },
 
-            novaSpawns: 'This chart displays VM spawn success and failure counts ' +
-                'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar.  This data is derived from the ' +
-                'log stream, so if no logging occurs for a period of time, gaps may ' +
-                'appear in the data.',
+            novaSpawns: function() {
+                return goldstone.translate('This chart displays VM spawn success and failure counts across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
+            },
 
-            novaCpuResources: 'This chart displays aggregate CPU core allocation ' +
-                'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar.  This data is derived from the ' +
-                'log stream, so if no logging occurs for a period of time, gaps may ' +
-                'appear in the data.',
+            novaCpuResources: function() {
+                return goldstone.translate('This chart displays aggregate CPU core allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
+            },
 
-            novaMemResources: 'This chart displays aggregate memory allocation ' +
-                'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar.  This data is derived from the ' +
-                'log stream, so if no logging occurs for a period of time, gaps may ' +
-                'appear in the data.',
+            novaMemResources: function() {
+                return goldstone.translate('This chart displays aggregate memory allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
+            },
 
-            novaDiskResources: 'This chart displays aggregate disk allocation ' +
-                'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar.  This data is derived from the ' +
-                'log stream, so if no logging occurs for a period of time, gaps may ' +
-                'appear in the data.',
+            novaDiskResources: function() {
+                return goldstone.translate('This chart displays aggregate disk allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
+            },
 
-            searchLogAnalysis: 'This chart displays log stream data ' +
-                'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar, and with the filter settings that double ' +
-                'as a legend.  The table below contains the individual log entries for ' +
-                'the time range and filter settings.',
+            searchLogAnalysis: function() {
+                return goldstone.translate('This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings.');
+            },
 
-            cloudTopologyResourceList: 'Click row for additional resource info.<br><br>' +
-            'Clicking on hypervisor or hosts reports will navigate to additional report pages.'
+            cloudTopologyResourceList: function() {
+                return goldstone.translate('Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages.');
+
+            },
+
+            eventBrowserViz: function() {
+                return goldstone.translate('');
+
+            },
+
+            apiBrowserViz: function() {
+                return goldstone.translate('');
+
+            },
+
+            nodeReportLogTab: function() {
+                return goldstone.translate('');
+
+            },
+
+            openTrailManager: function() {
+                return goldstone.translate('');
+
+            },
+
+            openTrailLogHistory: function() {
+                return goldstone.translate('');
+
+            }
         }
     }
 });
@@ -4353,6 +4415,12 @@ var AddonMenuView = GoldstoneBaseView2.extend({
             // as a html string, and then appended into the menu drop-down list
             var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
             $(this.el).find('.addon-menu-li-elements').html(extraMenuItems());
+
+            // must trigger html template translation in order to display a
+            // language other than English upon initial render without
+            // having to toggle the language selector switch
+            goldstone.i18n.translateBaseTemplate();
+
         } else {
 
             // in the case that the addons key in localStorage
@@ -4370,9 +4438,20 @@ var AddonMenuView = GoldstoneBaseView2.extend({
         // for each object in the array of addons in 'list', do the following:
         _.each(list, function(item) {
 
+            /*
+            In keeping with the i18n scheme for dynamically tranlsating
+            elements that are appended to the base template, addon drop-down
+            are given the required <span> element with a class of 'i18n'
+            and a data-i18n atribute with a key equal to the string
+            to be translated.
+
+            example:
+            <li class="dropdown-submenu"><a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="opentrail">opentrail</a><ul class="dropdown-menu" role="menu"></li>
+            */
+
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name +'</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -4392,8 +4471,8 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                         // pointing to index 0 of the route, and a menu label
                         // derived from index 1 of the item
                         result += '<li><a href="#' + route[0] +
-                            '">' + route[1] +
-                            '</a>';
+                            '"><span class="i18n" data-i18n="' + route[1] +
+                            '">' + route[1] + '</a>';
                     }
 
                     // dynamically add a new route for each item
@@ -4411,10 +4490,11 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                 // continuing the iteration through the addons localStorage entry.
                 result += '</ul></li>';
             } else {
-                goldstone.raiseInfo('Refresh browser to complete ' +
-                    'addon installation process.');
-                result += '<li>Refresh browser to complete addon' +
-                    ' installation process';
+
+                var refreshMessage = goldstone.translate('Refresh browser and/or log in to complete addon installation process.');
+
+                goldstone.raiseInfo(refreshMessage);
+                result += '<li>' + refreshMessage;
             }
 
         });
@@ -4443,7 +4523,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
     template: _.template('' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> Add-ons<b class="caret"></b></a>' +
+        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons</span><b class="caret"></b></a>' +
         '<ul class="dropdown-menu addon-menu-li-elements">' +
         '</ul>'
     )
@@ -4642,15 +4722,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
-        '<th>timestamp</th>' +
-        '<th>host</th>' +
-        '<th>client ip</th>' +
-        '<th>uri</th>' +
-        '<th>status</th>' +
-        '<th>response time</th>' +
-        '<th>length</th>' +
-        '<th>component</th>' +
-        '<th>type</th>' +
+        '<th><%=goldstone.contextTranslate(\'timestamp\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'host\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'client ip\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'uri\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'status\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });
@@ -4678,12 +4758,12 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: 'Api Calls vs Time',
+            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: 'Api Calls by Range',
+            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
@@ -4697,10 +4777,11 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
         };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: 'Api Browser',
+            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#api-browser-table').width()
         });
 
@@ -5142,8 +5223,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width()
@@ -5158,12 +5239,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
+            chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width()
@@ -5177,12 +5258,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
-            chartTitle: "Keystone API Performance",
+            chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
@@ -5196,12 +5277,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
-            chartTitle: "Glance API Performance",
+            chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
@@ -5215,12 +5296,12 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
-            chartTitle: "Cinder API Performance",
+            chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
@@ -5299,9 +5380,9 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 return e.key + ": " + e.value + "<br>";
             });
             var result = '<div class="infoButton"><br>' + custom +
-                'Start: ' + start + '<br>' +
-                'End: ' + end + '<br>' +
-                'Interval: ' + ns.interval + '<br>' +
+                goldstone.translate('Start') + ': ' + start + '<br>' +
+                goldstone.translate('End') + ': ' + end + '<br>' +
+                goldstone.translate('Interval') + ': ' + ns.interval + '<br>' +
                 '<br></div>';
             return result;
         };
@@ -5741,7 +5822,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         this.columns = this.options.columns || 12;
         this.infoText = this.options.infoText;
         this.infoIcon = this.options.infoIcon || 'fa-dashboard';
-        this.chartTitle = this.options.chartTitle || 'Set Chart Title';
+        this.chartTitle = this.options.chartTitle || goldstone.translate('Set Chart Title');
         this.render();
     },
 
@@ -5757,7 +5838,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.infoText];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 
@@ -5774,6 +5855,12 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
+
+        // instantiate with infoText = 'hide' for
+        // option to hide info button
+        if (this.infoText === "hide") {
+            $(this.el).find('#info-button').hide();
+        }
     },
 
     template: _.template('' +
@@ -5881,7 +5968,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         if(data){
             this.drawSingleRsrcInfoTable(data);
         } else {
-            $('#details-single-rsrc-table').text('No additional details available');
+            $('#details-single-rsrc-table').text(goldstone.contextTranslate('No additional details available.', 'detailsreport'));
         }
     },
 
@@ -5927,7 +6014,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
     template: _.template('' +
         '<div class="panel panel-primary node_details_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Resource Details' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Resource Details\', \'detailsreport\')%>' +
         '</h3>' +
         '</div>' +
         '</div>' +
@@ -5979,7 +6066,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.eventTimelineChartView = new EventTimelineView({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
-            chartTitle: 'Event Timeline',
+            chartTitle: goldstone.translate('Event Timeline'),
             width: $('#goldstone-discover-r1-c1').width()
         });
 
@@ -5989,7 +6076,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         this.nodeAvailChart = new NodeAvailCollection({});
 
         this.nodeAvailChartView = new NodeAvailView({
-            chartTitle: 'Node Availability',
+            chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
             h: {
@@ -6014,7 +6101,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             // if user prefs designate 'zoom'able style
             this.zoomableTreeView = new ZoomablePartitionView({
                 blueSpinnerGif: blueSpinnerGif,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverZoomTopology'
                 ],
                 collection: this.discoverTree,
@@ -6031,7 +6118,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             var topologyTreeView = new TopologyTreeView({
                 blueSpinnerGif: blueSpinnerGif,
                 collection: this.discoverTree,
-                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology',
+                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r2-c1',
@@ -6520,13 +6607,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
     setInfoButtonPopover: function() {
 
         var infoButtonText = new InfoButtonText().get('infoText');
-
+        var htmlGen = function() {
+            var result = infoButtonText.eventTimeline;
+            return result;
+        };
         // attach click listeners to chart heading info button
         $('#goldstone-event-info').popover({
             trigger: 'manual',
-            content: '<div class="infoButton">' +
-                infoButtonText.eventTimeline +
-                '</div>',
+            content: htmlGen.apply(this),
             placement: 'bottom',
             html: 'true'
         })
@@ -6587,12 +6675,12 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '<div class="modal-header">' +
 
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Event Type Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck event-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.translate(\'Uncheck event-type to hide from display\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
 
 
@@ -6601,7 +6689,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'eventtimeline\')%></button>' +
         '</div>' +
 
         '</div>' +
@@ -6795,21 +6883,22 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events vs Time',
+            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#events-histogram-visualization').width(),
-            yAxisLabel: 'Number of Events'
+            yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
         this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
 
         this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: 'Events Browser',
+            chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 
@@ -7118,7 +7207,7 @@ var EventsReportView = GoldstoneBaseView.extend({
         '<div id="table-col" class="col-md-12">' +
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Events Report' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Events Report\', \'eventsreport\')%>' +
         '</h3>' +
         '</div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
@@ -7269,12 +7358,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
-                '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>' +
-                '<option value="4320">lookback 3d</option>' +
-                '<option value="10080">lookback 7d</option>';
+            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
+                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
+                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
+                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
+                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
+                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
         }
     },
 
@@ -7290,10 +7379,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
-                '<option value="60">refresh 1m</option>' +
-                '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+            return '<option value="30">' + goldstone.translate('refresh 30s') + '</option>' +
+                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
+                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
+                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
         }
     },
 
@@ -7369,25 +7458,15 @@ var HelpView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<h3>Help Topics</h3>' +
-        '<ul>' +
-        '<li><a href="#getting_help">Getting help</a></li>' +
-        '<li><a href="#license">License</a></li>' +
-        '</ul>' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
+        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
 
-        '<a name="getting_help"></a><h3>Getting Help</h3>' +
-        'If you would like to contact Solinea regarding issues, feature requests, ' +
-        'or other Goldstone related feedback, check out the ' +
-        '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
-        'goldstone-users forum</a>, or ' +
-        '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
-        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' +
-        'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
-
-        '<a name="license"></a><h3>License</h3>' +
-        'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
-        'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
-        'https://www.apache.org/licenses/LICENSE-2.0</a>.'
+        '<h3><%=goldstone.translate("License")%></h3>' +
+        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
+        '</div>' +
+        '</div>'
     )
 
 });
@@ -8064,7 +8143,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var self = this;
         var ns = this.defaults;
-        ns.yAxisLabel = 'Log Events';
+        ns.yAxisLabel = goldstone.contextTranslate('Log Events', 'loganalysis');
         ns.urlRoot = this.options.urlRoot;
 
         // specificHost will only be passed in if instantiated on a node
@@ -8806,7 +8885,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.$el.html(this.template());
 
         $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: 'Logs vs Time',
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logsearchpage'),
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard'
         }).el);
@@ -8855,7 +8934,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '<div class="panel panel-primary log_table_panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
-        ' Search Results' +
+        ' <%=goldstone.contextTranslate(\'Search Results\', \'logsearchpage\')%>' +
         '</h3>' +
         '</div>' +
 
@@ -8867,11 +8946,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         '<thead>' +
         '<tr class="header">' +
-        '<th>Timestamp</th>' +
-        '<th>Syslog Severity</th>' +
-        '<th>Component</th>' +
-        '<th>Host</th>' +
-        '<th>Message</th>' +
+        '<th><%=goldstone.contextTranslate(\'Timestamp\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Syslog Severity\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Component\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Host\', \'logsearchpage\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Message\', \'logsearchpage\')%></th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +
@@ -8918,7 +8997,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
         }).fail(function(fail) {
-            console.log('failed to initialize installed apps');
+            console.log(goldstone.translate("Failed to initialize installed addons"));
 
             // triggers view in addonMenuView.js
             goldstone.addonMenuView.trigger('installedAppsUpdated');
@@ -8984,14 +9063,14 @@ var LoginPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="login-form">' +
-        '<h3>Please sign in</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="Username" required autofocus>' +
-        '<label for="inputPassword">Password</label>' +
-        '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
+        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
+        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
+        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
+        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
+        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -9575,7 +9654,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         $.get("/nova/hosts/", function() {})
             .done(function(data) {
                 if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' No resources returned');
+                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
                     ns.resourceNames = data[0];
                     self.populateResources();
@@ -9594,14 +9673,14 @@ var MetricViewerView = GoldstoneBaseView.extend({
             .done(function(data) {
                 data = data.per_name;
                 if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' No metric reports available');
+                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
                     ns.metricNames = data;
                     self.populateMetrics();
                 }
             })
             .fail(function() {
-                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' Metric report list fetch failed');
+                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('Metric report list fetch failed', 'metricviewer'));
             })
             .always(function() {
                 self.attachModalTriggers();
@@ -9629,9 +9708,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
             self.setChartOptions('#gear-modal-content' + self.options.instance);
 
             // and append the metric name and resource to the chart header
-            $('span.metric-viewer-title' + self.options.instance).text('Metric: ' +
+            $('span.metric-viewer-title' + self.options.instance).text(goldstone.contextTranslate('Metric', 'metricviewer') + ': ' +
                 self.chartOptions.get('metric') +
-                '. Resource: ' +
+                '.' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
                 self.chartOptions.get('resource'));
         });
 
@@ -9695,7 +9774,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // append the options within the dropdown
         _.each(resourceNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option>' + item + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option value="' + item + '">' + item + "</option>");
         });
     },
 
@@ -9766,11 +9845,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<div id="gear-modal-content<%= this.options.instance %>">' +
 
         '<div class="modal-header">' +
-        '<h4 class="modal-title">Select chart parameters</h4>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Select chart parameters\', \'metricviewer\')%></h4>' +
         '</div>' + // end modal-header
 
         '<div class="modal-body">' +
-        '<h5>Metric</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Metric\', \'metricviewer\')%></h5>' +
         '<select class="metric-dropdown-options">' +
         // options will be populated by populateMetrics()
         '</select>' +
@@ -9779,47 +9858,47 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<span class="metric-dropdown-text"> Loading...</span>' +
 
         // loading text will be removed when options are populated
-        '<h5>Resource</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Resource\', \'metricviewer\')%></h5>' +
         '<select class="resource-dropdown-options">' +
         // options will be populated by populateMetrics()
         '</select>' +
         '<span class="resource-dropdown-text"> Loading...</span>' +
 
-        '<h5>Statistic</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Statistic\', \'metricviewer\')%></h5>' +
         '<select class="statistic-dropdown-options">' +
-        '<option value="band" selected>band</option>' +
-        '<option value="min">min</option>' +
-        '<option value="max">max</option>' +
-        '<option value="avg">avg</option>' +
+        '<option value="band" selected><%=goldstone.contextTranslate(\'band\', \'metricviewer\')%></option>' +
+        '<option value="min"><%=goldstone.contextTranslate(\'min\', \'metricviewer\')%></option>' +
+        '<option value="max"><%=goldstone.contextTranslate(\'max\', \'metricviewer\')%></option>' +
+        '<option value="avg"><%=goldstone.contextTranslate(\'avg\', \'metricviewer\')%></option>' +
         '</select>' +
 
-        '<h5>Standard Deviation Bands? <input class="standard-dev" type="checkbox"></h5>' +
+        '<h5><%=goldstone.translate(\'Standard Deviation Bands\')%> <input class="standard-dev" type="checkbox"></h5>' +
 
         // ES can handle s/m/h/d in the "interval" param
-        '<h5>Lookback</h5>' +
-        '<input class="modal-lookback-value" placeholder="default=1" required="required">' + ' ' +
+        '<h5><%=goldstone.contextTranslate(\'Lookback\', \'metricviewer\')%></h5>' +
+        '<input class="modal-lookback-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="1">seconds</option>' +
-        '<option value="60">minutes</option>' +
-        '<option value="3600" selected>hours</option>' +
-        '<option value="86400">days</option>' +
+        '<option value="1"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
+        '<option value="60"><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
+        '<option value="3600" selected><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
+        '<option value="86400"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
-        '<h5>Charting Interval</h5>' +
-        '<input class="modal-interval-value" placeholder="default=1" required="required">' + ' ' +
+        '<h5><%=goldstone.contextTranslate(\'Charting Interval\', \'metricviewer\')%></h5>' +
+        '<input class="modal-interval-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="s">seconds</option>' +
-        '<option value="m" selected>minutes</option>' +
-        '<option value="h">hours</option>' +
-        '<option value="d">days</option>' +
+        '<option value="s"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
+        '<option value="m" selected><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
+        '<option value="h"><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
+        '<option value="d"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
         '</select>' +
 
         '</div>' + // end modal-body
 
         '<div class="modal-footer">' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit">Submit</button> ' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel">Cancel</button>' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit"><%=goldstone.contextTranslate(\'Submit\', \'metricviewer\')%></button> ' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel"><%=goldstone.contextTranslate(\'Cancel\', \'metricviewer\')%></button>' +
         '</div>' + // end modal-footer
 
         '</div>' + // end gear-modal-content
@@ -9838,7 +9917,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<div id="api-perf-panel-header" class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>">Click gear for config</span>' +
+        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>"><%=goldstone.contextTranslate(\'Click gear for config\', \'metricviewer\')%></span>' +
         '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
         '</h3></div>' +
 
@@ -10551,7 +10630,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
             var result = infoButtonText[this.defaults.infoCustom];
-            result = result ? result : 'Set in InfoButtonText.js';
+            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
             return result;
         };
 
@@ -10690,7 +10769,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        ' Resource List<span class="panel-header-resource-title"></span>' +
+        ' <%= this.options.chartTitle %><span class="panel-header-resource-title"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '</h3>' +
         '</div>' +
@@ -10811,7 +10890,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
             var $confirm_password = $('#confirm_password');
 
             if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning("Passwords don't match");
+                goldstone.raiseWarning(goldstone.translate("Passwords don't match."));
             } else {
 
                 // options.uidToken is passed in when the view is
@@ -10842,7 +10921,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 self.clearFields();
 
                 // and add a success message to the top of the screen
-                goldstone.raiseInfo('You have successfully changed your password.');
+                goldstone.raiseInfo(goldstone.translate('You have successfully changed your password.'));
 
                 Backbone.history.navigate('#login', true);
 
@@ -10855,7 +10934,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 } else {
                     // clear input fields
                     self.clearFields();
-                    goldstone.raiseWarning('Password reset failed');
+                    goldstone.raiseWarning(goldstone.translate('Password reset failed.'));
                 }
 
             });
@@ -10871,12 +10950,12 @@ var NewPasswordView = GoldstoneBaseView.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="new-password-form">' +
-        '<h3>Enter new password</h3>' +
-        '<label for="new_password">New password</label>' +
-        '<input name="new_password" type="password" class="form-control" id="password" placeholder="Enter new password" required autofocus><br>' +
-        '<label>Password again for confirmation</label>' +
-        '<input type="password" class="form-control" id="confirm_password" placeholder="Confirm password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Reset password</button>' +
+        '<h3><%=goldstone.translate(\'Enter new password\')%></h3>' +
+        '<label for="new_password"><%=goldstone.contextTranslate(\'New password\', \'newpassword\')%></label>' +
+        '<input name="new_password" type="password" class="form-control" id="password" placeholder="<%=goldstone.contextTranslate(\'Enter new password\', \'newpassword\')%>" required autofocus><br>' +
+        '<label><%=goldstone.translate(\'Password again for confirmation\')%></label>' +
+        '<input type="password" class="form-control" id="confirm_password" placeholder="<%=goldstone.contextTranslate(\'Confirm password\', \'newpassword\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Reset password\', \'newpassword\')%></button>' +
         '</form>' +
         '</div>' +
         '</div>' +
@@ -11665,13 +11744,14 @@ TODO: probably change this to d.timestamp
     setInfoButtonPopover: function() {
 
         var infoButtonText = new InfoButtonText().get('infoText');
-
+        var htmlGen = function() {
+            var result = infoButtonText.nodeAvailability;
+            return result;
+        };
         // attach click listeners to chart heading info button
         $('#goldstone-node-info').popover({
             trigger: 'manual',
-            content: '<div class="infoButton">' +
-                infoButtonText.nodeAvailability +
-                '</div>',
+            content: htmlGen.apply(this),
             placement: 'bottom',
             html: 'true'
         })
@@ -11777,19 +11857,19 @@ TODO: probably change this to d.timestamp
         // header
         '<div class="modal-header">' +
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Log Severity Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck log-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.contextTranslate(\'Uncheck log-type to hide from display\', \'nodeavail\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
         '</div>' +
 
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'nodeavail\')%></button>' +
         '</div>' +
 
         '</div>' +
@@ -11918,26 +11998,26 @@ var NodeReportView = GoldstoneBasePageView.extend({
         $("#logsReport").hide();
 
         // Initialize click listener on tab buttons
-        $("button#headerBar").click(function() {
+        $("button.headerBar").click(function() {
 
             // sets key corresponding to active tab to 'true'
             // on this.visiblePanel
-            self.flipVisiblePanel($(this).context.innerHTML);
+            self.flipVisiblePanel($(this).data('title'));
 
             // and triggers change
             self.triggerChange();
 
             // unstyle formerly 'active' button to appear 'unpressed'
-            $("button#headerBar.active").toggleClass("active");
+            $("button.headerBar.active").toggleClass("active");
 
             // style 'active' button to appear 'pressed'
             $(this).toggleClass("active");
 
             // pass the textual content of button to _.each to
             // show/hide the correct report section
-            var selectedButton = ($(this).context.innerHTML.toLowerCase());
-            _.each($("button#headerBar"), function(item) {
-                $("#node-report-panel").find('#' + item.innerHTML + 'Report').hide();
+            var selectedButton = ($(this).data('title').toLowerCase());
+            _.each($("button.headerBar"), function(item) {
+                $("#node-report-panel").find('#' + $(item).data('title') + 'Report').hide();
             });
             $("#node-report-panel").find('#' + selectedButton + 'Report').show();
         });
@@ -11966,12 +12046,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // ChartHeaderViews frame out chart header bars and populate info buttons
 
         $('#service-status-title-bar').append(new ChartHeaderView({
-            chartTitle: 'Service Status Report',
+            chartTitle: goldstone.contextTranslate('Service Status Report', 'nodereport'),
             infoText: 'serviceStatus'
         }).el);
 
         $('#utilization-title-bar').append(new ChartHeaderView({
-            chartTitle: 'Utilization',
+            chartTitle: goldstone.contextTranslate('Utilization', 'nodereport'),
             infoText: 'utilization'
         }).el);
 
@@ -12152,11 +12232,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         // buttons
         '<div class="btn-group" role="group">' +
-        '<button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>' +
-        '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
-        '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
-        '<button type="button" id="headerBar" class="detailsButton btn btn-default">Details</button>' +
-        '<button type="button" id="headerBar" class="logsButton btn btn-default">Logs</button>' +
+        '<button type="button" data-title="Services" class="headerBar servicesButton active btn btn-default"><%=goldstone.contextTranslate(\'Services\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Reports" class="headerBar reportsButton btn btn-default"><%=goldstone.contextTranslate(\'Reports\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Events" class="headerBar eventsButton btn btn-default"><%=goldstone.contextTranslate(\'Events\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Details" class="headerBar detailsButton btn btn-default"><%=goldstone.contextTranslate(\'Details\', \'nodereport\')%></button>' +
+        '<button type="button" data-title="Logs" class="headerBar logsButton btn btn-default"><%=goldstone.contextTranslate(\'Logs\', \'nodereport\')%></button>' +
         '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
@@ -12177,13 +12257,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-panel" class="panel panel-primary">' +
         '<div class="well col-md-12">' +
         '<div class="col-md-4" id="cpu-usage">' +
-        '<h4 class="text-center">CPU Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'CPU Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '<div class="col-md-4" id="memory-usage">' +
-        '<h4 class="text-center">Memory Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'Memory Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '<div class="col-md-4" id="network-usage">' +
-        '<h4 class="text-center">Network Usage</h4>' +
+        '<h4 class="text-center"><%=goldstone.contextTranslate(\'Network Usage\', \'nodereport\')%></h4>' +
         '</div>' +
         '</div>' +
         '</div>' +
@@ -12262,12 +12342,12 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: "Nova API Performance",
+            chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 300,
             infoCustom: [{
-                key: "API Call",
-                value: "All"
+                key: goldstone.translate("API Call"),
+                value: goldstone.translate("All")
             }],
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width()
@@ -12282,13 +12362,13 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.vmSpawnChartView = new SpawnsView({
-            chartTitle: "VM Spawns",
+            chartTitle: goldstone.translate("VM Spawns"),
             collection: this.vmSpawnChart,
             height: 300,
             infoCustom: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
-            yAxisLabel: 'Spawn Events'
+            yAxisLabel: goldstone.translate('Spawn Events')
         });
 
         /*
@@ -12300,14 +12380,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.cpuResourcesChartView = new MultiMetricBarView({
-            chartTitle: "CPU Resources",
+            chartTitle: goldstone.translate("CPU Resources"),
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
             height: 300,
             infoCustom: 'novaCpuResources',
             el: '#nova-report-r2-c1',
             width: $('#nova-report-r2-c1').width(),
-            yAxisLabel: 'Cores'
+            yAxisLabel: goldstone.translate('Cores')
         });
 
         /*
@@ -12319,14 +12399,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.memResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Memory Resources",
+            chartTitle: goldstone.translate("Memory Resources"),
             collection: this.memResourcesChart,
             featureSet: 'mem',
             height: 300,
             infoCustom: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
-            yAxisLabel: 'MB'
+            yAxisLabel: goldstone.translate('MB')
         });
 
         /*
@@ -12338,14 +12418,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         });
 
         this.diskResourcesChartView = new MultiMetricBarView({
-            chartTitle: "Disk Resources",
+            chartTitle: goldstone.translate("Disk Resources"),
             collection: this.diskResourcesChart,
             featureSet: 'disk',
             height: 300,
             infoCustom: 'novaDiskResources',
             el: '#nova-report-r3-c1',
             width: $('#nova-report-r3-c1').width(),
-            yAxisLabel: 'GB'
+            yAxisLabel: goldstone.translate('GB')
         });
 
     },
@@ -12438,12 +12518,12 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Reset password</h3>' +
-        '<label for="email">Email address</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
+        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
+        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
+        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -12532,7 +12612,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
             // if no reports available, appends 'No reports available'
             if (self.collection.toJSON()[0] === undefined || self.collection.toJSON()[0].result.length === 0) {
 
-                $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
+                $(self.el).find('.reports-available-dropdown-menu').append("<li id='report-result'>" + goldstone.contextTranslate('No reports available.', 'reportsreport') + "</li>");
+
 
             } else {
                 self.populateReportsDropdown();
@@ -12581,7 +12662,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof (tableData[0]) === "object") {
+        if (typeof(tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -12640,8 +12721,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
 
     drawSearchTable: function(location, data) {
 
-        if(data === null) {
-            data = ['No results within selected time range'];
+        if (data !== null) {
+            data = [goldstone.translate('No results within selected time range.')];
         }
 
         var ns = this.defaults;
@@ -12724,11 +12805,11 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render dropdown button
         '<div class="dropdown">' +
         '<button id="dLabel" type="button" class="btn btn-default" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">' +
-        'Reports Available ' +
+        '<%=goldstone.contextTranslate(\'Reports Available\', \'reportsreport\')%> ' +
         '<span class="caret"></span>' +
         '</button>' +
         '<ul class="reports-available-dropdown-menu dropdown-menu" role="menu" aria-labelledby="dLabel">' +
-        '<li>Reports list loading or not available</li>' +
+        '<li><%=goldstone.contextTranslate(\'Reports list loading or not available.\', \'reportsreport\')%></li>' +
         '</ul>' +
         '</div><br>' +
 
@@ -12738,7 +12819,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // render report data title bar
         '<div class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Report Data' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Report Data\', \'reportsreport\')%>' +
         '<span class="panel-header-report-title"></span>' +
         '</h3>' +
         '</div>' +
@@ -12746,7 +12827,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // initially rendered message this will be overwritten by dataTable
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="reports-info-container">' +
-        '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
+        '<br><%=goldstone.contextTranslate(\'Selecting a report from the dropdown above will populate this area with the report results.\', \'reportsreport\')%>' +
         '</div>' +
 
         '</div>' +
@@ -13008,8 +13089,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
-            '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
+            '<h3>' + goldstone.translate("Additional Actions") + '</h3>' +
+            '<button class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -13030,7 +13111,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             url: url,
             data: data
         }).done(function(success) {
-            self.dataErrorMessage(message + ' update successful');
+            self.dataErrorMessage(message);
         })
             .fail(function(fail) {
                 try {
@@ -13059,7 +13140,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
-            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+            $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
     },
 
@@ -13083,7 +13164,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load user settings');
+                goldstone.raiseInfo(goldstone.contextTranslate('Could not load user settings.', 'settingspage'));
             });
 
         // get current user prefs
@@ -13125,13 +13206,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user/', $(this).serialize(), 'Settings');
+            self.submitRequest('PUT', '/user/', $(this).serialize(), goldstone.contextTranslate('Settings update successful', 'settingspage'));
         });
 
         // add listener to password form submission button
         $('.password-reset-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), 'Password');
+            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), goldstone.contextTranslate('Password update successful', 'settingspage'));
 
             // clear password form after submission, success or not
             $('.password-reset-form').find('[name="current_password"]').val('');
@@ -13194,14 +13275,14 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // dark/light theme selector
         '<div class="col-md-2">' +
-        '<h5>Theme Settings</h5>' +
+        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
         '<form class="theme-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="theme-name">' +
-        '<option value="light">light</option>' +
-        '<option value="dark">dark</option>' +
+        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -13212,14 +13293,14 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // topology tree style
         '<div class="col-md-2">' +
-        '<h5>Topology Tree Style</h5>' +
+        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
         '<form class="topo-tree-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse">collapse</option>' +
-        '<option value="zoom">zoom</option>' +
+        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
+        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -13235,8 +13316,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
-        // '<option value="english">English</option>' +
-        // '<option value="japanese">日本語</option>' +
+        // dynamically filled in via renderLanguageChoices()
+        // '<option value="English">English</option>' +
+        // '<option value="Japanese">Japanese</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -13260,28 +13342,28 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
-        '<h3>Update Personal Settings</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
-        '<label for="inputFirstname">First name</label>' +
-        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
-        '<label for="inputLastname">Last name</label>' +
-        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
-        '<label for="inputEmail">Email</label>' +
-        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
+        '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
+        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Username\', \'settingspage\')%>" required>' +
+        '<label for="inputFirstname"><%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%></label>' +
+        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%>" autofocus>' +
+        '<label for="inputLastname"><%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%></label>' +
+        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%>">' +
+        '<label for="inputEmail"><%=goldstone.contextTranslate(\'Email\', \'settingspage\')%></label>' +
+        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Email\', \'settingspage\')%>">' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Update")%></button>' +
         '</form>' +
         '</div>' +
 
         // password reset form
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Change Password</h3>' +
-        '<label for="inputCurrentPassword">Current password</label>' +
-        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
-        '<label for="inputNewPassword">New password</label>' +
-        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
+        '<h3><%=goldstone.translate("Change Password")%></h3>' +
+        '<label for="inputCurrentPassword"><%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%></label>' +
+        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%>" required>' +
+        '<label for="inputNewPassword"><%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%></label>' +
+        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Change Password")%></button>' +
         '</form>' +
         '</div>' +
 
@@ -13322,7 +13404,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated on nodeReportPage similar to:
+instantiated on novaReportView similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
     urlPrefix: '/nova/hypervisor/spawns/'
@@ -13829,7 +13911,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
 
             // if there is no selected tenant, prevent ability to submit form
             if ($('#formTenantId').text() === '') {
-                self.dataErrorMessage('Must select tenant from list above');
+                self.dataErrorMessage(goldstone.contextTranslate("Must select tenant from list above", "tenantsettings"));
                 return;
             }
 
@@ -13842,7 +13924,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings', $('.tenant-settings-form'));
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), goldstone.contextTranslate('Tenant Settings update successful', 'tenantsettings'));
         });
 
         $('.openstack-settings-form').on('submit', function(e) {
@@ -13856,7 +13938,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             self.trimInputField('[name="os_username"]');
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user/', $(this).serialize(), 'OS settings', $('.openstack-settings-form'));
+            self.submitRequest('PUT', '/user/', $(this).serialize(), goldstone.contextTranslate('OS Settings update successful', 'tenantsettings'));
         });
     },
 
@@ -13884,13 +13966,13 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 "paging": true,
                 "searching": true,
                 "columns": [{
-                    "title": "Tenant"
+                    "title": goldstone.contextTranslate("Tenant", "tenantsettings")
                 }, {
-                    "title": "Owner's Username"
+                    "title": goldstone.contextTranslate("Owner Username", "tenantsettings")
                 }, {
-                    "title": "Owner Contact"
+                    "title": goldstone.contextTranslate("Owner Contact", "tenantsettings")
                 }, {
-                    "title": "Tenant Id"
+                    "title": goldstone.contextTranslate("Tenant ID", "tenantsettings")
                 }]
             };
             oTable = $(location).DataTable(oTableParams);
@@ -13924,7 +14006,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load tenant settings');
+                goldstone.raiseInfo(goldstone.contextTranslate("Could not load tenant settings", "tenantsettings"));
             });
 
         $.get('/user/')
@@ -13947,7 +14029,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('could not load OpenStack settings');
+                goldstone.raiseInfo(goldstone.contextTranslate("Could not load OpenStack settings", "tenantsettings"));
             });
     },
 
@@ -13966,7 +14048,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
             data: data
         })
             .done(function(success) {
-                self.dataErrorMessage(message + ' update successful');
+                self.dataErrorMessage(message);
             })
             .fail(function(fail) {
                 try {
@@ -13986,7 +14068,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
-        this.dataErrorMessage('Click row above to edit');
+        this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
 
@@ -14002,7 +14084,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // dataTable
         '<div class="panel panel-primary tenant_results_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Tenants' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Tenants\', \'tenantsettings\')%>' +
         '</h3>' +
         '</div>' +
         '</div>' +
@@ -14027,33 +14109,33 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // update settings form
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="tenant-settings-form">' +
-        '<h3>Goldstone Tenant Settings</h3>' +
-        '<label for="name">Tenant Name</label>' +
-        '<input name="name" type="text" class="form-control" placeholder="Tenant Name" required>' +
-        '<label for="owner">Owner Name</label>' +
-        '<input name="owner" type="text" class="form-control" placeholder="Username of Owner" required>' +
-        '<label for="owner_contact">Owner Email</label>' +
-        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner Email Address">' +
-        '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<h3><%=goldstone.contextTranslate(\'Goldstone Tenant Settings\', \'tenantsettings\')%></h3>' +
+        '<label for="name"><%=goldstone.contextTranslate(\'Tenant Name\', \'tenantsettings\')%></label>' +
+        '<input name="name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Tenant Name\', \'tenantsettings\')%>" required>' +
+        '<label for="owner"><%=goldstone.contextTranslate(\'Owner Name\', \'tenantsettings\')%></label>' +
+        '<input name="owner" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Owner Name\', \'tenantsettings\')%>" required>' +
+        '<label for="owner_contact"><%=goldstone.contextTranslate(\'Owner Email\', \'tenantsettings\')%></label>' +
+        '<input name="owner_contact" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Owner Email\', \'tenantsettings\')%>">' +
+        '<br><div><%=goldstone.contextTranslate(\'Tenant ID\', \'tenantsettings\')%>: <span id="formTenantId"><%=goldstone.contextTranslate(\'select from above\', \'tenantsettings\')%></span></div>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Update\', \'tenantsettings\')%></button>' +
         '</form>' +
         '</div>' +
 
         // update openstack settings form
         '<div class="col-md-4">' +
         '<form class="openstack-settings-form">' +
-        '<h3>OpenStack Settings</h3>' +
-        '<label for="os_name">OpenStack Tenant Name</label>' +
-        '<input name="os_name" type="text" class="form-control" placeholder="OpenStack Tenant Name">' +
-        '<label for="os_username">OpenStack Username</label>' +
-        '<input name="os_username" type="text" class="form-control" placeholder="OpenStack Username">' +
-        '<label for="os_password">OpenStack Password</label>' +
-        '<input name="os_password" type="text" class="form-control" placeholder="OpenStack Password">' +
-        '<label for="os_auth_url">OpenStack Auth URL</label>' +
+        '<h3><%=goldstone.contextTranslate(\'OpenStack Settings\', \'tenantsettings\')%></h3>' +
+        '<label for="os_name"><%=goldstone.contextTranslate(\'OpenStack Tenant Name\', \'tenantsettings\')%></label>' +
+        '<input name="os_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Tenant Name\', \'tenantsettings\')%>">' +
+        '<label for="os_username"><%=goldstone.contextTranslate(\'OpenStack Username\', \'tenantsettings\')%></label>' +
+        '<input name="os_username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Username\', \'tenantsettings\')%>">' +
+        '<label for="os_password"><%=goldstone.contextTranslate(\'OpenStack Password\', \'tenantsettings\')%></label>' +
+        '<input name="os_password" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'OpenStack Password\', \'tenantsettings\')%>">' +
+        '<label for="os_auth_url"><%=goldstone.contextTranslate(\'OpenStack Auth URL\', \'tenantsettings\')%></label>' +
         '<input name="os_auth_url" type="text" class="form-control" placeholder="http://...">' +
         // username must be submitted with request, so including as hidden
         '<input name="username" type="hidden" class="form-control" placeholder="">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Update\', \'tenantsettings\')%></button>' +
         '</form>' +
         '</div>' +
 
@@ -14394,7 +14476,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
                 }
             } else {
-                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
+                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
             }
 
         }).fail(function(error) {
@@ -14745,7 +14827,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl
+                el: ns.multiRsrcViewEl,
+                chartTitle: goldstone.translate("Resource List")
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');
@@ -14942,6 +15025,11 @@ var UserPrefsView = Backbone.View.extend({
 
     getUserPrefs: function() {
         this.defaults.userPrefs = JSON.parse(localStorage.getItem('userPrefs'));
+
+        // cannot add property to null, so make sure this exists
+        if (this.defaults.userPrefs === null) {
+            this.defaults.userPrefs = {};
+        }
     },
 
     setUserPrefs: function() {

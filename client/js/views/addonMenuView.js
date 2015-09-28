@@ -68,6 +68,12 @@ var AddonMenuView = GoldstoneBaseView2.extend({
             // as a html string, and then appended into the menu drop-down list
             var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
             $(this.el).find('.addon-menu-li-elements').html(extraMenuItems());
+
+            // must trigger html template translation in order to display a
+            // language other than English upon initial render without
+            // having to toggle the language selector switch
+            goldstone.i18n.translateBaseTemplate();
+
         } else {
 
             // in the case that the addons key in localStorage
@@ -85,9 +91,20 @@ var AddonMenuView = GoldstoneBaseView2.extend({
         // for each object in the array of addons in 'list', do the following:
         _.each(list, function(item) {
 
+            /*
+            In keeping with the i18n scheme for dynamically tranlsating
+            elements that are appended to the base template, addon drop-down
+            are given the required <span> element with a class of 'i18n'
+            and a data-i18n atribute with a key equal to the string
+            to be translated.
+
+            example:
+            <li class="dropdown-submenu"><a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="opentrail">opentrail</a><ul class="dropdown-menu" role="menu"></li>
+            */
+
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> ' + item.name + '</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name +'</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -107,8 +124,8 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                         // pointing to index 0 of the route, and a menu label
                         // derived from index 1 of the item
                         result += '<li><a href="#' + route[0] +
-                            '">' + route[1] +
-                            '</a>';
+                            '"><span class="i18n" data-i18n="' + route[1] +
+                            '">' + route[1] + '</a>';
                     }
 
                     // dynamically add a new route for each item
@@ -126,10 +143,11 @@ var AddonMenuView = GoldstoneBaseView2.extend({
                 // continuing the iteration through the addons localStorage entry.
                 result += '</ul></li>';
             } else {
-                goldstone.raiseInfo('Refresh browser to complete ' +
-                    'addon installation process.');
-                result += '<li>Refresh browser to complete addon' +
-                    ' installation process';
+
+                var refreshMessage = goldstone.translate('Refresh browser and/or log in to complete addon installation process.');
+
+                goldstone.raiseInfo(refreshMessage);
+                result += '<li>' + refreshMessage;
             }
 
         });
@@ -158,7 +176,7 @@ var AddonMenuView = GoldstoneBaseView2.extend({
 
     template: _.template('' +
         '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> Add-ons<b class="caret"></b></a>' +
+        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons</span><b class="caret"></b></a>' +
         '<ul class="dropdown-menu addon-menu-li-elements">' +
         '</ul>'
     )

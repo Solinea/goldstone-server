@@ -77,7 +77,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         } else {
-            this.defaults.yAxisLabel = "Response Time (s)";
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
         }
     },
 
@@ -294,7 +294,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         // any existing alert or error messages.
 
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(goldstone.translate('No Data Returned'));
             return false;
         } else {
             this.clearDataErrorMessage();

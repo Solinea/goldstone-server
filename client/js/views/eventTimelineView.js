@@ -432,13 +432,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
     setInfoButtonPopover: function() {
 
         var infoButtonText = new InfoButtonText().get('infoText');
-
+        var htmlGen = function() {
+            var result = infoButtonText.eventTimeline;
+            return result;
+        };
         // attach click listeners to chart heading info button
         $('#goldstone-event-info').popover({
             trigger: 'manual',
-            content: '<div class="infoButton">' +
-                infoButtonText.eventTimeline +
-                '</div>',
+            content: htmlGen.apply(this),
             placement: 'bottom',
             html: 'true'
         })
@@ -499,12 +500,12 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '<div class="modal-header">' +
 
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Event Type Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck event-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.translate(\'Uncheck event-type to hide from display\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
 
 
@@ -513,7 +514,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'eventtimeline\')%></button>' +
         '</div>' +
 
         '</div>' +
