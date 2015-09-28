@@ -24,6 +24,7 @@ TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 ACPI_SHUTDOWN_WAIT=300
+STOP_STACK=false
 
 for arg in "$@" ; do
     case $arg in
@@ -35,13 +36,16 @@ for arg in "$@" ; do
             STACK_VM="${arg#*=}"
             shift
         ;;
+        --stop-stack)
+            STOP_STACK=true
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
             exit 1
         ;;
     esac
@@ -83,8 +87,10 @@ VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     echo "${STACK_VM} is already stopped"
 else
-    VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
-    echo "Waiting for $STACK_VM to poweroff..."
-    wait_for_shutdown
+    if [[ ${STOP_STACK} == "true" ]] ; then
+        VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
+        echo "Waiting for $STACK_VM to poweroff..."
+        wait_for_shutdown
+    fi
 fi
 
