@@ -545,28 +545,6 @@ def tenant_init(gs_tenant='default',
 
 
 @task
-def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Initialize the system's Elasticsearch templates.
-
-    This is the last installation step before executing a runserver command.
-
-    :keyword proj_settings: The path of the Django settings file to
-                            use.
-    :type proj_settings: str
-    :keyword install_dir: Thie path to the Goldstone installation directory.
-    :type install_dir: str
-
-    """
-
-    print(green("\nInitializing Goldstone's Elasticsearch templates."))
-
-    with _django_env(proj_settings, install_dir):
-        from goldstone.initial_load import initialize_elasticsearch
-
-        initialize_elasticsearch()
-
-
-@task
 def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
                    gs_tenant_owner='None',
                    gs_tenant_admin='gsadmin',
@@ -622,7 +600,6 @@ def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
 
     _collect_static(settings, install_dir)
     _configure_services()
-    load_es_templates(proj_settings=settings)
 
     _final_report()
 
@@ -749,7 +726,6 @@ def partial_install(django_admin_password,
 
         _collect_static(PROD_SETTINGS, INSTALL_DIR)
         _configure_services()
-        load_es_templates()
 
         _final_report()
 

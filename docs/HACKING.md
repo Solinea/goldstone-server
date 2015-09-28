@@ -127,7 +127,7 @@ Then in another window:
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
 
     $ eval $(docker-machine env default)
-    $ docker exec -i -t goldstoneserver_gsappdev_1 bash -i -c 'nova boot --image cirros --flavor m1.tiny ceilo0'
+    $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
 
 Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
 
@@ -274,9 +274,14 @@ Removing a container will force it to be recreated next time you start the dev e
 Removing all containers and images will result in pulling the base images from upstream, and recreating all of the containers:
 
     $ cd ~/devel/goldstone-server
-    $ ./bin/wipe_docker 
+    $ ./bin/wipe_docker.sh 
     $ ./bin/start_dev_env.sh
 
+Executing commands in a container can be done via docker exec.  There are some oddities when running python commands that require some special parameters.  The `gsexec` command has been provided to simplify interaction.  By default it is configured to connect to the application server, but you could also use the `--app-container` flag to target a different container.  Here are examples of running some simple python and non-python commands inside the application container:
+
+    $ $ cd ~/devel/goldstone-server
+    $ ./bin/gsexec ls   # list files in app user's home directory
+    $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0  # create a VM (--shell solves the interaction problem)
 
 ## Coding Guidelines
 

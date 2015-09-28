@@ -14,6 +14,9 @@
 # limitations under the License.
 
 DOCKER_VM=default
+GS_APP_CONTAINER=goldstoneserver_gsappdev_1
+GS_EXEC_CMD=""
+GS_APP_SHELL=""
 
 for arg in "$@" ; do
     case $arg in
@@ -21,14 +24,22 @@ for arg in "$@" ; do
             DOCKER_VM="${arg#*=}"
             shift
         ;;
+        --container=*)
+            GS_APP_CONTAINER="${arg#*=}"
+            shift
+        ;;
+        --shell)
+            GS_APP_SHELL="bash -i -c "
+            shift
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name]"
+            echo "Usage: $0 [--docker-vm=name] command"
             exit 0
         ;;
         *)
-            # unknown option
-            echo "Usage: $0 [--docker-vm=name]"
-            exit 1
+            # hopefully this is the command, not a typo
+            GS_EXEC_CMD=$@
+            break
         ;;
     esac
 done
@@ -38,10 +49,4 @@ if [[ ${DOCKER_VM} != "false" ]] ; then
     eval "$(docker-machine env ${DOCKER_VM})"
 fi
 
-
-docker ps -a | awk '{print $1}' | sed '1d' | while read c ; do
-    docker rm -f $c
-done
-docker images | sed '1d' | awk '{print $3}' | while read i ; do
-    docker rmi -f $i
-done
+docker exec -i -t ${GS_APP_CONTAINER} ${GS_APP_SHELL} "${GS_EXEC_CMD}"
