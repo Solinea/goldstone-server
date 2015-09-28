@@ -16,6 +16,7 @@
 export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 DOCKER_VM="default"
 APP_CONTAINER=goldstoneserver_gsappdev_1
+VERBOSE=False
 ADDON_NAME=""
 ADDON_FILE=""
 MODULE_NAME=""
@@ -24,8 +25,8 @@ OPERATION="install"
 TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
 
 function usage() {
-    echo "Usage: $0 [--install] --addon-name=name --addon-file=filename [--docker-vm=name] [--app-container=name] |"
-    echo "          --uninstall --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
+    echo "Usage: $0 [--install] [--verbose] --addon-name=name --addon-file=filename [--docker-vm=name] [--app-container=name] |"
+    echo "          --uninstall [--verbose] --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
 }
 
 
@@ -36,6 +37,9 @@ for arg in "$@" ; do
         ;;
         --uninstall)
             OPERATION=uninstall
+        ;;
+        --verbose)
+            VERBOSE=True
         ;;
         --docker-vm=*)
             DOCKER_VM="${arg#*=}"
@@ -91,7 +95,7 @@ if [[ ${OPERATION} == "install" ]] ; then
         exit 1
     fi
     PIP_CMD="pip install --upgrade ${ADDON_FILE}"
-    FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
+    FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
     docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip module"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
 else
@@ -99,7 +103,7 @@ else
         usage
         exit 1
     fi
-    FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
+    FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
     PIP_CMD="pip uninstall ${MODULE_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module"; exit 1; }

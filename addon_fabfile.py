@@ -128,7 +128,7 @@ def _django_manage(command,
     daemon_opt = "&" if daemon else ''
 
     with lcd(install_dir):
-        local("./manage.py %s %s %s %s" %
+        local("python ./manage.py %s %s %s %s" %
               (command, target, settings_opt, daemon_opt))
 
 
