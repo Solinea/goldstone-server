@@ -81,12 +81,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
-                '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>' +
-                '<option value="4320">lookback 3d</option>' +
-                '<option value="10080">lookback 7d</option>';
+            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
+                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
+                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
+                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
+                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
+                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
         }
     },
 
@@ -102,10 +102,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
-                '<option value="60">refresh 1m</option>' +
-                '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+            return '<option value="30">' + goldstone.translate('refresh 30s') + '</option>' +
+                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
+                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
+                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
         }
     },
 

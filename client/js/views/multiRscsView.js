@@ -94,7 +94,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        ' Resource List<span class="panel-header-resource-title"></span>' +
+        ' <%= this.options.chartTitle %><span class="panel-header-resource-title"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '</h3>' +
         '</div>' +

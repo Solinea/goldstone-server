@@ -30,8 +30,8 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
-            '<h3>Additional actions</h3>' +
-            '<button class="btn btn-lg btn-primary btn-block modify">Modify tenant settings</button>');
+            '<h3>' + goldstone.translate("Additional Actions") + '</h3>' +
+            '<button class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>');
 
         $('button.modify').on('click', function() {
             window.location.href = "#settings/tenants";
@@ -52,7 +52,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             url: url,
             data: data
         }).done(function(success) {
-            self.dataErrorMessage(message + ' update successful');
+            self.dataErrorMessage(message);
         })
             .fail(function(fail) {
                 try {
@@ -81,7 +81,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
-            $('#language-name').append('<option value="' + key + '">' + key+ '</option>');
+            $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
     },
 
@@ -105,7 +105,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load user settings');
+                goldstone.raiseInfo(goldstone.contextTranslate('Could not load user settings.', 'settingspage'));
             });
 
         // get current user prefs
@@ -147,13 +147,13 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user/', $(this).serialize(), 'Settings');
+            self.submitRequest('PUT', '/user/', $(this).serialize(), goldstone.contextTranslate('Settings update successful', 'settingspage'));
         });
 
         // add listener to password form submission button
         $('.password-reset-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), 'Password');
+            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), goldstone.contextTranslate('Password update successful', 'settingspage'));
 
             // clear password form after submission, success or not
             $('.password-reset-form').find('[name="current_password"]').val('');
@@ -216,14 +216,14 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // dark/light theme selector
         '<div class="col-md-2">' +
-        '<h5>Theme Settings</h5>' +
+        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
         '<form class="theme-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="theme-name">' +
-        '<option value="light">light</option>' +
-        '<option value="dark">dark</option>' +
+        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -234,14 +234,14 @@ var SettingsPageView = GoldstoneBaseView2.extend({
 
         // topology tree style
         '<div class="col-md-2">' +
-        '<h5>Topology Tree Style</h5>' +
+        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
         '<form class="topo-tree-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse">collapse</option>' +
-        '<option value="zoom">zoom</option>' +
+        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
+        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -257,8 +257,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
-        // '<option value="english">English</option>' +
-        // '<option value="japanese">日本語</option>' +
+        // dynamically filled in via renderLanguageChoices()
+        // '<option value="English">English</option>' +
+        // '<option value="Japanese">Japanese</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -282,28 +283,28 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
-        '<h3>Update Personal Settings</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="username" required>' +
-        '<label for="inputFirstname">First name</label>' +
-        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
-        '<label for="inputLastname">Last name</label>' +
-        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="Last name">' +
-        '<label for="inputEmail">Email</label>' +
-        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="Email">' +
-        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<h3><%=goldstone.translate("Update Personal Settings")%></h3>' +
+        '<label for="inputUsername"><%=goldstone.translate("Username")%></label>' +
+        '<input id="inputUsername" name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Username\', \'settingspage\')%>" required>' +
+        '<label for="inputFirstname"><%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%></label>' +
+        '<input id="inputFirstname" name="first_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'First Name\', \'settingspage\')%>" autofocus>' +
+        '<label for="inputLastname"><%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%></label>' +
+        '<input id="inputLastname" name="last_name" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Last Name\', \'settingspage\')%>">' +
+        '<label for="inputEmail"><%=goldstone.contextTranslate(\'Email\', \'settingspage\')%></label>' +
+        '<input id="inputEmail" name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Email\', \'settingspage\')%>">' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Update")%></button>' +
         '</form>' +
         '</div>' +
 
         // password reset form
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Change Password</h3>' +
-        '<label for="inputCurrentPassword">Current password</label>' +
-        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
-        '<label for="inputNewPassword">New password</label>' +
-        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
+        '<h3><%=goldstone.translate("Change Password")%></h3>' +
+        '<label for="inputCurrentPassword"><%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%></label>' +
+        '<input id="inputCurrentPassword" name="current_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Current Password\', \'settingspage\')%>" required>' +
+        '<label for="inputNewPassword"><%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%></label>' +
+        '<input id="inputNewPassword" name="new_password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'New Password\', \'settingspage\')%>" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.translate("Change Password")%></button>' +
         '</form>' +
         '</div>' +
 

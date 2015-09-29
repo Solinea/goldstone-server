@@ -49126,7 +49126,7 @@ in order to offer easy upgrades -- jsgettext.berlios.de
     this.textdomain( this.options.domain );
 
     if ( options.domain && ! this.options.locale_data[ this.options.domain ] ) {
-      throw new Error('Text domain set to non-existent domain: `' + options.domain + '`');
+      throw new Error('Text domain set to non-existent domain: `' + options.domain + '`' + '\nMake sure you have an `English.po` (capitalized `E`) file');
     }
   };
 

@@ -18,7 +18,7 @@
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated on nodeReportPage similar to:
+instantiated on novaReportView similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
     urlPrefix: '/nova/hypervisor/spawns/'

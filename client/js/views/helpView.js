@@ -31,25 +31,15 @@ var HelpView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<h3>Help Topics</h3>' +
-        '<ul>' +
-        '<li><a href="#getting_help">Getting help</a></li>' +
-        '<li><a href="#license">License</a></li>' +
-        '</ul>' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
+        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
 
-        '<a name="getting_help"></a><h3>Getting Help</h3>' +
-        'If you would like to contact Solinea regarding issues, feature requests, ' +
-        'or other Goldstone related feedback, check out the ' +
-        '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
-        'goldstone-users forum</a>, or ' +
-        '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
-        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' +
-        'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
-
-        '<a name="license"></a><h3>License</h3>' +
-        'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
-        'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
-        'https://www.apache.org/licenses/LICENSE-2.0</a>.'
+        '<h3><%=goldstone.translate("License")%></h3>' +
+        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
+        '</div>' +
+        '</div>'
     )
 
 });

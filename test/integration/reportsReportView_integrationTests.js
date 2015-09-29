@@ -110,7 +110,7 @@ describe('reportsReportView.js spec', function() {
         it('appends report names to the dropdown appropriately', function() {
             this.populateReportsDropdownSpy = sinon.spy(this.testView, "populateReportsDropdown");
             expect(this.populateReportsDropdownSpy.callCount).to.equal(0);
-            expect($('.reports-available-dropdown-menu').text()).to.equal('Reports list loading or not available');
+            expect($('.reports-available-dropdown-menu').text()).to.equal('Reports list loading or not available.');
             // can sync with an emptied out collection
             this.testCollection.reset();
             this.testCollection.trigger('sync');
@@ -118,7 +118,7 @@ describe('reportsReportView.js spec', function() {
                 result: []
             });
             this.testCollection.trigger('sync');
-            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available');
+            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available.');
             expect(this.populateReportsDropdownSpy.callCount).to.equal(0);
             this.testCollection.reset();
             this.testCollection.add({
@@ -138,7 +138,7 @@ describe('reportsReportView.js spec', function() {
                 result: []
             });
             this.testCollection.trigger('sync');
-            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available');
+            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available.');
             expect(this.populateReportsDropdownSpy.callCount).to.equal(1);
             this.testCollection.reset();
             this.testCollection.add({
@@ -172,7 +172,7 @@ describe('reportsReportView.js spec', function() {
                 result: []
             });
             this.testCollection.trigger('sync');
-            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available');
+            expect($('.reports-available-dropdown-menu').text()).to.equal('No reports available.');
             expect(this.populateReportsDropdownSpy.callCount).to.equal(3);
             this.populateReportsDropdownSpy.restore();
         });

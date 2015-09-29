@@ -21,21 +21,22 @@ var EventsBrowserPageView = GoldstoneBasePageView2.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: 'Events vs Time',
+            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#events-histogram-visualization').width(),
-            yAxisLabel: 'Number of Events'
+            yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
         this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
 
         this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: 'Events Browser',
+            chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
+            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 

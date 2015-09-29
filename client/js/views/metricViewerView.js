@@ -50,7 +50,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         $.get("/nova/hosts/", function() {})
             .done(function(data) {
                 if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' No resources returned');
+                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
                     ns.resourceNames = data[0];
                     self.populateResources();
@@ -69,14 +69,14 @@ var MetricViewerView = GoldstoneBaseView.extend({
             .done(function(data) {
                 data = data.per_name;
                 if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' No metric reports available');
+                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
                     ns.metricNames = data;
                     self.populateMetrics();
                 }
             })
             .fail(function() {
-                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' Metric report list fetch failed');
+                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('Metric report list fetch failed', 'metricviewer'));
             })
             .always(function() {
                 self.attachModalTriggers();
@@ -104,9 +104,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
             self.setChartOptions('#gear-modal-content' + self.options.instance);
 
             // and append the metric name and resource to the chart header
-            $('span.metric-viewer-title' + self.options.instance).text('Metric: ' +
+            $('span.metric-viewer-title' + self.options.instance).text(goldstone.contextTranslate('Metric', 'metricviewer') + ': ' +
                 self.chartOptions.get('metric') +
-                '. Resource: ' +
+                '.' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
                 self.chartOptions.get('resource'));
         });
 
@@ -170,7 +170,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // append the options within the dropdown
         _.each(resourceNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option>' + item + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option value="' + item + '">' + item + "</option>");
         });
     },
 
@@ -241,11 +241,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<div id="gear-modal-content<%= this.options.instance %>">' +
 
         '<div class="modal-header">' +
-        '<h4 class="modal-title">Select chart parameters</h4>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Select chart parameters\', \'metricviewer\')%></h4>' +
         '</div>' + // end modal-header
 
         '<div class="modal-body">' +
-        '<h5>Metric</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Metric\', \'metricviewer\')%></h5>' +
         '<select class="metric-dropdown-options">' +
         // options will be populated by populateMetrics()
         '</select>' +
@@ -254,47 +254,47 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<span class="metric-dropdown-text"> Loading...</span>' +
 
         // loading text will be removed when options are populated
-        '<h5>Resource</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Resource\', \'metricviewer\')%></h5>' +
         '<select class="resource-dropdown-options">' +
         // options will be populated by populateMetrics()
         '</select>' +
         '<span class="resource-dropdown-text"> Loading...</span>' +
 
-        '<h5>Statistic</h5>' +
+        '<h5><%=goldstone.contextTranslate(\'Statistic\', \'metricviewer\')%></h5>' +
         '<select class="statistic-dropdown-options">' +
-        '<option value="band" selected>band</option>' +
-        '<option value="min">min</option>' +
-        '<option value="max">max</option>' +
-        '<option value="avg">avg</option>' +
+        '<option value="band" selected><%=goldstone.contextTranslate(\'band\', \'metricviewer\')%></option>' +
+        '<option value="min"><%=goldstone.contextTranslate(\'min\', \'metricviewer\')%></option>' +
+        '<option value="max"><%=goldstone.contextTranslate(\'max\', \'metricviewer\')%></option>' +
+        '<option value="avg"><%=goldstone.contextTranslate(\'avg\', \'metricviewer\')%></option>' +
         '</select>' +
 
-        '<h5>Standard Deviation Bands? <input class="standard-dev" type="checkbox"></h5>' +
+        '<h5><%=goldstone.translate(\'Standard Deviation Bands\')%> <input class="standard-dev" type="checkbox"></h5>' +
 
         // ES can handle s/m/h/d in the "interval" param
-        '<h5>Lookback</h5>' +
-        '<input class="modal-lookback-value" placeholder="default=1" required="required">' + ' ' +
+        '<h5><%=goldstone.contextTranslate(\'Lookback\', \'metricviewer\')%></h5>' +
+        '<input class="modal-lookback-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="1">seconds</option>' +
-        '<option value="60">minutes</option>' +
-        '<option value="3600" selected>hours</option>' +
-        '<option value="86400">days</option>' +
+        '<option value="1"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
+        '<option value="60"><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
+        '<option value="3600" selected><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
+        '<option value="86400"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
-        '<h5>Charting Interval</h5>' +
-        '<input class="modal-interval-value" placeholder="default=1" required="required">' + ' ' +
+        '<h5><%=goldstone.contextTranslate(\'Charting Interval\', \'metricviewer\')%></h5>' +
+        '<input class="modal-interval-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="s">seconds</option>' +
-        '<option value="m" selected>minutes</option>' +
-        '<option value="h">hours</option>' +
-        '<option value="d">days</option>' +
+        '<option value="s"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
+        '<option value="m" selected><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
+        '<option value="h"><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
+        '<option value="d"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
         '</select>' +
 
         '</div>' + // end modal-body
 
         '<div class="modal-footer">' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit">Submit</button> ' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel">Cancel</button>' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit"><%=goldstone.contextTranslate(\'Submit\', \'metricviewer\')%></button> ' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel"><%=goldstone.contextTranslate(\'Cancel\', \'metricviewer\')%></button>' +
         '</div>' + // end modal-footer
 
         '</div>' + // end gear-modal-content
@@ -313,7 +313,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<div id="api-perf-panel-header" class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>">Click gear for config</span>' +
+        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>"><%=goldstone.contextTranslate(\'Click gear for config\', \'metricviewer\')%></span>' +
         '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
         '</h3></div>' +
 
