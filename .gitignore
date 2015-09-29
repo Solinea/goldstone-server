@@ -156,3 +156,4 @@ docker/Dockerfiles/goldstone-web/static/
 .bashrc
 .bash_history
 .exrc
+.pylint.d/
