@@ -68,7 +68,8 @@ SCRIPT_START = \
     '<!-- append addon script tags via "fab install_addon" command here ' \
     '-->\n' \
     '<!-- example script tag: -->\n' \
-    '<!-- <script src="{% static \'addons/yourapp/main.js\' %}"></script> ' \
+    '<!-- <script src="{% static \'addons/yourapp/client-js/main.js\' %}">' \
+    '</script> ' \
     '-->\n'
 
 # An add-on's LINK tag is inserted into base.html, after these lines.
@@ -76,8 +77,10 @@ LINK_START = \
     '<!-- Append add-on link tags via "fab install_addon" command here -->'
 
 # The add-on's script and link tag templates.
-SCRIPT_TAG = '<script src="{%% static \'addons/%s/main.js\' %%}"></script>\n'
-LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s/main.css"' \
+SCRIPT_TAG = '<script src="{%% static \'addons/%s/client-js/main.js\' %%}">' \
+             '</script>\n'
+LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s' \
+           '/client-css/main.css"' \
            ' rel="stylesheet" media="screen">\n'
 
 # Used for searching and inserting into CELERYBEAT_SCHEDULE. Don't terminate
