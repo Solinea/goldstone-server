@@ -262,6 +262,8 @@ To uninstall the plugin:
 
 Here are some useful commands that you can help with managing the development process, data, and containers.  
 
+### Removing a Single Container
+
 Removing a container will force it to be recreated next time you start the dev environment.  As an example, to remove the app server container:
 
     $ cd ~/devel/goldstone-server
@@ -271,17 +273,30 @@ Removing a container will force it to be recreated next time you start the dev e
     $ docker rm goldstoneserver_gsappdev_1
     $ ./bin/start_dev_env.sh
 
+### Removing All Containers and Images
+
 Removing all containers and images will result in pulling the base images from upstream, and recreating all of the containers:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/wipe_docker.sh 
     $ ./bin/start_dev_env.sh
 
+### Executing Commands in a Container
+
 Executing commands in a container can be done via docker exec.  There are some oddities when running python commands that require some special parameters.  The `gsexec` command has been provided to simplify interaction.  By default it is configured to connect to the application server, but you could also use the `--app-container` flag to target a different container.  Here are examples of running some simple python and non-python commands inside the application container:
 
-    $ $ cd ~/devel/goldstone-server
+    $ cd ~/devel/goldstone-server
     $ ./bin/gsexec ls   # list files in app user's home directory
     $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0  # create a VM (--shell solves the interaction problem)
+
+### Installing Packages in Dev Containers
+
+Using emacs as an example, here is a procedure for installing additional Debian packages in a container:
+
+    $ eval $(docker-machine env default)
+    $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get update
+    $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get install emacs
+    $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
 
 ## Coding Guidelines
 
