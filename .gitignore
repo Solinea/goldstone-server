@@ -144,9 +144,10 @@ TAGS
 # mkdocs site
 docs/site/
 
-# OpenTrail
-client/js/addons/opentrail/
-test/openTrail/
+# addon modules
+client/js/addons/
+test/addons/
+goldstone/static/addons/
 
 # docker static data
 docker/Dockerfiles/goldstone-nginx/goldstone-server
