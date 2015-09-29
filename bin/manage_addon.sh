@@ -16,7 +16,7 @@
 export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 DOCKER_VM="default"
 APP_CONTAINER=goldstoneserver_gsappdev_1
-VERBOSE=False
+VERBOSE=false
 ADDON_NAME=""
 ADDON_FILE=""
 MODULE_NAME=""
@@ -39,7 +39,7 @@ for arg in "$@" ; do
             OPERATION=uninstall
         ;;
         --verbose)
-            VERBOSE=True
+            VERBOSE=true
         ;;
         --docker-vm=*)
             DOCKER_VM="${arg#*=}"
