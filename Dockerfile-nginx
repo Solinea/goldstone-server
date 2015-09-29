@@ -1,3 +1,0 @@
-FROM nginx
-COPY ./goldstone/static /usr/share/nginx/html/static
-COPY ./external/nginx/default.conf /etc/nginx/conf.d/default.conf

@@ -121,7 +121,7 @@ def _django_manage(command,
     daemon_opt = "&" if daemon else ''
 
     with lcd(install_dir):
-        local("./manage.py %s %s %s %s" %
+        local("python ./manage.py %s %s %s %s" %
               (command, target, settings_opt, daemon_opt))
 
 
@@ -545,28 +545,6 @@ def tenant_init(gs_tenant='default',
 
 
 @task
-def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Initialize the system's Elasticsearch templates.
-
-    This is the last installation step before executing a runserver command.
-
-    :keyword proj_settings: The path of the Django settings file to
-                            use.
-    :type proj_settings: str
-    :keyword install_dir: Thie path to the Goldstone installation directory.
-    :type install_dir: str
-
-    """
-
-    print(green("\nInitializing Goldstone's Elasticsearch templates."))
-
-    with _django_env(proj_settings, install_dir):
-        from goldstone.initial_load import initialize_elasticsearch
-
-        initialize_elasticsearch()
-
-
-@task
 def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
                    gs_tenant_owner='None',
                    gs_tenant_admin='gsadmin',
@@ -622,7 +600,6 @@ def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
 
     _collect_static(settings, install_dir)
     _configure_services()
-    load_es_templates(proj_settings=settings)
 
     _final_report()
 
@@ -749,7 +726,6 @@ def partial_install(django_admin_password,
 
         _collect_static(PROD_SETTINGS, INSTALL_DIR)
         _configure_services()
-        load_es_templates()
 
         _final_report()
 
@@ -993,7 +969,10 @@ def _configure_service(service_name, backup_postfix, single_value_edits,
                 file_name, backup_postfix, backed_up_files)
 
             # set StrOpt values
-            _set_single_value_configs(file_name, entry[1])
+            try:
+                _set_single_value_configs(file_name, entry[1])
+            except IOError:
+                pass
 
         # process config changes for multi value entries
         for entry in multi_value_edits.items():
@@ -1002,7 +981,10 @@ def _configure_service(service_name, backup_postfix, single_value_edits,
                 file_name, backup_postfix, backed_up_files)
 
         # set MultiStrOpt values
-            _set_multi_value_configs(file_name, entry[1])
+            try:
+                _set_multi_value_configs(file_name, entry[1])
+            except IOError:
+                pass
 
         # upload template files
         for entry in template_files:
@@ -1587,15 +1569,15 @@ def configure_stack(goldstone_addr=None, restart_services=None, accept=False):
             backup_timestamp,
             restart=restart_services)
 
+        _configure_neutron(
+            backup_timestamp,
+            restart=restart_services)
+
         _configure_cinder(
             backup_timestamp,
             restart=restart_services)
 
         _configure_glance(
-            backup_timestamp,
-            restart=restart_services)
-
-        _configure_neutron(
             backup_timestamp,
             restart=restart_services)
 

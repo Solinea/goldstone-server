@@ -13,32 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# 
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned 
-# the goldstone-docker and goldstone-server Github repos into the 
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
-
-export DJANGO_SETTINGS_MODULE=goldstone.settings.local_docker
+export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
+
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
+DIST_DIR=${TOP_DIR}/dist
+
+GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
+
+declare -a need_source=( $GS_APP_DIR )
 
 # trap ctrl-c and call ctrl_c()
 trap stop_dev_env INT
 
 function stop_dev_env() {
+    #
+    # clean up the containers that need access to source
+    #
+    for folder in "${need_source[@]}" ; do
+        echo "Removing source from $folder..."
+        cd $folder || exit 1
+        rm -rf goldstone-server/*
+    done
+
     echo "Shutting down Goldstone dev env"
-    $PROJECT_HOME/goldstone-server/bin/stop_dev_env.sh
+    ${TOP_DIR}/bin/stop_dev_env.sh
     exit 0
 }
 
@@ -65,6 +65,14 @@ for arg in "$@" ; do
     esac
 done
 
+echo ""
+echo "The first time this is run (or after removing docker images), it will"
+echo "take several minutes to build the containers.  Subsequent runs should"
+echo "be faster."
+echo ""
+
+cd $TOP_DIR || exit 1
+
 VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
@@ -73,18 +81,41 @@ else
     echo "${STACK_VM} is already running"
 fi
 
-docker-machine start ${DOCKER_VM}
+VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
+if [[ $RC != 0 ]] ; then
+    # No matches, start the VM
+    docker-machine start ${DOCKER_VM}
+else
+    echo "${STACK_VM} is already running"
+fi
+
 eval "$(docker-machine env ${DOCKER_VM})"
 
-echo "starting celery"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery worker --app=goldstone --loglevel=info --queues=default \
-               --beat --without-heartbeat > \
-               /tmp/goldstone-server-celery.log 2>&1 &)
+if [[ -d $DIST_DIR ]] ; then
+    rm -rf ${DIST_DIR}/*
+fi
 
-echo "starting flower on port 5555"
-(cd $PROJECT_HOME/goldstone-server ; \
- celery flower -A goldstone --address=127.0.0.1 --port=5555 > \
-                            /tmp/goldstone-server-flower.log 2>&1 &)
+#
+# create source distribution and get the filename.
+#
+python setup.py sdist || exit 1
+DIST_FILE=$(ls -1rt $DIST_DIR | head -1)
 
-(cd $PROJECT_HOME/goldstone-server/docker;docker-compose up)
+#
+# set up the containers that need access to source
+# this is necessary to build the containers successfully.
+# changes to top level files like requirements.txt, installer_fabfiles.py,
+# etc. will require new container builds.
+#
+for folder in "${need_source[@]}" ; do
+    echo "Copying source to $folder..."
+    cd $folder || exit 1
+    rm -rf goldstone-server 2> /dev/null || /bin/true
+    tar xf ${DIST_DIR}/${DIST_FILE}
+    mv ${DIST_FILE%%.tar.gz} goldstone-server
+    cp -R ${TOP_DIR}/external goldstone-server
+done
+
+cd $TOP_DIR || exit 1
+docker-compose up
+

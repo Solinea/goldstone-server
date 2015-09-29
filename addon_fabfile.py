@@ -128,7 +128,7 @@ def _django_manage(command,
     daemon_opt = "&" if daemon else ''
 
     with lcd(install_dir):
-        local("./manage.py %s %s %s %s" %
+        local("python ./manage.py %s %s %s %s" %
               (command, target, settings_opt, daemon_opt))
 
 
@@ -520,9 +520,13 @@ def install_addon(name,
     :keyword install_dir: The path to the Goldstone installation directory.
     :type install_dir: str
     :keyword verbose: Display more informational messages?
-    :type verbose: bool
+    :type verbose: bool or str, depending on whether we are called directly or
+                   from manage_addon.sh
 
     """
+
+    # Normalize verbose to a boolean.
+    verbose = verbose in ["True", "true", True]
 
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):

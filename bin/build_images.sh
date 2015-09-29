@@ -13,28 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# This script starts the boot2docker and OpenStack VirtualBox VMs, then
-# brings up the docker containers that support Goldstone.  It is known
-# to work with VirtualBox 4.3.30 or greater, and boot2docker v1.6.2.
-#
-# It assumes that you are running in a virtualenv, and that you have cloned
-# the goldstone-docker and goldstone-server Github repos into the
-# PROJECT_HOME associated with the virtual environment.
-#
-# Caution should be taken to ensure that the OpenStack VM is not in the
-# process of shutting down when this script is executed, otherwise you
-# may end up with a successful run, but the VM will be down.  If you use
-# the sibling stop_dev_env.sh script to shut down, the condition will be
-# rare since the script waits until the VM is powered off before exiting.
-#
-
 # builds the software dist of the django project, and extracts it to the
 # goldstone-server docker container context for build. Once copied, it 
 # performs a build of the docker container, and pushes it to the repo.  
 
-TOP_DIR=${PROJECT_HOME}/goldstone-server
+DOCKER_VM=default
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
+GIT_BRANCH=$(git symbolic-ref --short HEAD)
+GIT_COMMIT=$(git rev-parse --short HEAD)
+TAGGED=false
+TAG=""
 
 GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
 GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
@@ -42,20 +31,48 @@ GS_SEARCH_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-search
 GS_LOG_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-log
 GS_DB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db
 GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
-# GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
-# GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
+GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
+GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
 
 REGISTRY_ORG=solinea
 
-# declare -a need_source=( $GS_APP_DIR )
-declare -a need_source=( )
+declare -a need_source=( $GS_APP_DIR $GS_TASK_DIR )
 
-# declare -a to_build=( $GS_APP_DIR $GS_WEB_DIR $GS_SEARCH_DIR \
-#              $GS_LOG_DIR $GS_DB_DIR $GS_DB_DVC_DIR )
 declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_DB_DVC_DIR )
+              $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR \
+              $GS_TASK_Q_DIR $GS_TASK_DIR )
 
 cd $TOP_DIR || exit 1 
+
+for arg in "$@" ; do
+    case $arg in
+        --docker-vm=*)
+            DOCKER_VM="${arg#*=}"
+            shift
+        ;;
+        --tagged)
+            TAGGED=true
+        ;;
+        --tag=*)
+            TAG="${arg#*=}"
+            shift
+        ;;
+        --help)
+            echo "Usage: $0"
+            exit 0
+        ;;
+        *)
+            # unknown option
+            echo "Usage: $0"
+            exit 1
+        ;;
+    esac
+done
+
+if [[ ${DOCKER_VM} != "false" ]] ; then
+    docker-machine start ${DOCKER_VM}
+    eval "$(docker-machine env ${DOCKER_VM})"
+fi
 
 if [[ -d $DIST_DIR ]] ; then
     rm -rf ${DIST_DIR}/*
@@ -77,6 +94,7 @@ for folder in "${need_source[@]}" ; do
     rm -rf goldstone-server 2> /dev/null || /bin/true
     tar xf ${DIST_DIR}/${DIST_FILE}
     mv ${DIST_FILE%%.tar.gz} goldstone-server
+    cp -R ${TOP_DIR}/external goldstone-server
 done
 echo "##########################################################"
 
@@ -91,14 +109,32 @@ echo "##########################################################"
 # 
 # build containers
 #
-for folder in "${to_build[@]}" ; do
-    cd $folder || exit 1
+
+if [[ $TAGGED == 'true' ]] ; then
     echo "##########################################################"
-    echo "Building ${REGISTRY_ORG}/${folder##*/}..."
+    echo "Building tagged containers"
     echo "##########################################################"
-    docker build -t ${REGISTRY_ORG}/${folder##*/} .
-    echo "Done building ${REGISTRY_ORG}/${folder##*/}."
-done
+    for folder in "${to_build[@]}" ; do
+        cd $folder || exit 1
+        echo "##########################################################"
+        echo "Building ${REGISTRY_ORG}/${folder##*/}..."
+        echo "##########################################################"
+        if [[ ${TAG} == "" ]] ; then
+            NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} $GIT_BRANCH --commit-id $GIT_COMMIT`
+        else
+            NEXT_TAG=${TAG}
+        fi
+        docker build -t ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG} .
+        echo "Done building ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG}."
+    done
+
+else
+    echo "##########################################################"
+    echo "Building development containers"
+    echo "##########################################################"
+    cd $TOP_DIR || exit 1
+    docker-compose build
+fi
 
 #
 # clean up the containers that need access to source
@@ -107,12 +143,12 @@ echo "##########################################################"
 for folder in "${need_source[@]}" ; do
     echo "Removing source from $folder..."
     cd $folder || exit 1
-    rm -rf goldstone-server
+    rm -rf goldstone-server/*
 done
 echo "##########################################################"
 
 echo "##########################################################"
 echo "Removing static files from $GS_WEB_DIR..."
 cd $GS_WEB_DIR
-rm -rf static
+rm -rf static/*
 echo "##########################################################"

@@ -1,52 +1,53 @@
 {
-    "aliases": {},
-    "order": 0,
-    "settings": {
-        "analysis": {
-            "analyzer": {
-                "custom_whitespace": {
-                    "filter": ["lowercase"],
-                    "tokenizer": "whitespace"
-                }
-            }
-        },
-        "index.analysis.analyzer.default.stopwords": "_none_",
-        "index.analysis.analyzer.default.type": "whitespace",
-        "index.refresh_interval": "5s"
-    },
-    "template": "goldstone-*",
-    "mappings": {
-        "_default_": {
-            "_all" : {"enabled" : true},
-            "dynamic_templates" : [ {
-                "string_fields" : {
-                    "match" : "*",
-                    "match_mapping_type" : "string",
-                    "mapping" : {
-                        "type" : "multi_field",
-                        "fields" : {
-                            "{name}" : {"type": "string", "index" : "analyzed", "analyzer": "custom_whitespace"},
-                            "{name}.raw" : {"type": "string", "index" : "not_analyzed", "ignore_above" : 256}
-                        }
+    "goldstone_template": {
+        "aliases": {},
+        "order": 0,
+        "settings": {
+            "analysis": {
+                "analyzer": {
+                    "custom_whitespace": {
+                        "filter": ["lowercase"],
+                        "tokenizer": "whitespace"
                     }
                 }
-            } ],
-            "_timestamp": {
-                "enabled": true,
-                "store": true,
-                "path": "@timestamp"
             },
-            "properties": {
-                "@version": {"type": "string", "index": "not_analyzed"},
-                "@timestamp": {
-                    "type": "date"
+            "index.analysis.analyzer.default.stopwords": "_none_",
+            "index.analysis.analyzer.default.type": "whitespace",
+            "index.refresh_interval": "5s"
+        },
+        "template": "goldstone-*",
+        "mappings": {
+            "_default_": {
+                "_all" : {"enabled" : true},
+                "dynamic_templates" : [ {
+                    "string_fields" : {
+                        "match" : "*",
+                        "match_mapping_type" : "string",
+                        "mapping" : {
+                            "type" : "multi_field",
+                            "fields" : {
+                                "{name}" : {"type": "string", "index" : "analyzed", "analyzer": "custom_whitespace"},
+                                "{name}.raw" : {"type": "string", "index" : "not_analyzed", "ignore_above" : 256}
+                            }
+                        }
+                    }
+                } ],
+                "_timestamp": {
+                    "enabled": true,
+                    "store": true,
+                    "path": "@timestamp"
                 },
-              "creation_time": {
-                    "type": "date"
-                }
+                "properties": {
+                    "@version": {"type": "string", "index": "not_analyzed"},
+                    "@timestamp": {
+                        "type": "date"
+                    },
+                  "creation_time": {
+                        "type": "date"
+                    }
 
+                }
             }
         }
     }
 }
-

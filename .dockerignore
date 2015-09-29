@@ -4,7 +4,9 @@
 .gitmodules
 .travis.yml
 .tox
+.eggs
 CLA
 api_docs
 design_docs
+dist
 docs

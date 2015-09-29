@@ -139,9 +139,9 @@ STATIC_URL = '/static/'
 
 MAILHOST = 'localhost'
 
-REDIS_HOST = 'localhost'
-REDIS_PORT = '6379'
-REDIS_DB = '0'
+REDIS_HOST = str(os.environ.get('GOLDSTONE_REDIS_HOST', 'localhost'))
+REDIS_PORT = str(os.environ.get('GOLDSTONE_REDIS_PORT', '6379'))
+REDIS_DB = str(os.environ.get('GOLDSTONE_REDIS_DB', '0'))
 REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
 # Goldstone's User model.

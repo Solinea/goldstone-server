@@ -1,115 +1,96 @@
 # Goldstone Installation
 
-Before installing Goldstone, your server must meet the following prerequisites:
+Before installing Goldstone, your environment must meet the following prerequisites:
+
+**Server requirements**
 
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 7.x
-* Python 2, >= 2.7.10
+* Docker >= 1.8.2 ([Install instructions](https://docs.docker.com/installation/centos/))
+* Docker running (`systemctl start docker`)
+* Docker configured to start at boot (`systemctl enable docker`)
 
-* The Goldstone installer installs, and modifies packages and libraries.  It is highly recommended that it only be installed on dedicated systems. *  A [CentOS 7.1 x86 cloud image](http://cloud.centos.org/centos/7/images/) is an ideal starting point for a virtual machine based Goldstone installation.
+**Cloud requirements**
 
-To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
+* RDO Kilo
+* OpenStack hosts must be permitted send data to Goldstone on ports:
+ * TCP/5514
+ * TCP/5515
+ * TCP/5516
+ * TCP/9200
+* Goldstone server must be permitted to access OpenStack API
 
-## Install RPMs (as root)
+**Browser requirements**
 
-Download the [latest release](https://github.com/Solinea/goldstone-server/releases) and execute these commands:
+The Goldstone web client is developed and tested with [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).  We do not currently have a definitive list of supported browser versions, but the [compatibility chart](http://caniuse.com/#feat=es5) reflects what we think should work.
 
-```bash
-root# yum update ; reboot
-root# yum localinstall -y goldstone-server-{version}.rpm
-```
+## Install (as root)
 
-IMPORTANT: Please confirm that the goldstone-server RPM was installed successfully. We are constantly improving the installation process, but currently there are situations such as external download failures that could result in the RPM installation completing without error, while the Goldstone installation is incomplete.  This is what a success looks like:
+This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
 
-```
-Successfully installed Django South arrow celery django-admin-bootstrapped django-extensions django-filter django-picklefield django-polymorphic django-rest-params django-rest-swagger djangorestframework djoser drf-extensions elasticsearch-curator elasticsearch-dsl elasticsearch fabric functools32 lockfile networkx pbr psycopg2 python-cinderclient python-glanceclient python-keystoneclient python-neutronclient python-novaclient urllib3 python-dateutil pytz billiard kombu redis six PyYAML click paramiko decorator argparse PrettyTable requests simplejson Babel pyOpenSSL warlock oslo.utils oslo.i18n iso8601 netaddr oslo.config oslo.serialization stevedore cliff anyjson amqp pycrypto ecdsa cryptography jsonschema jsonpatch netifaces msgpack-python cmd2 pyparsing idna pyasn1 enum34 ipaddress cffi jsonpointer pycparser
-Cleaning up...
-*****************************************************************************
-
-  To continue installation, do the following as root:
-
-      root# cd /opt/goldstone
-      root# . bin/activate
-      root# fab install
-
-  You will be prompted for:
-      - the Django admin (admin) password
-      - the Goldstone admin (gsadmin) password
-      - the OpenStack admin tenant (from your adminrc)
-      - the OpenStack admin user (from your adminrc)
-      - the OpenStack admin password (from your adminrc)
-      - the OpenStack auth URL (from your adminrc)
-
-*****************************************************************************
-  Verifying  : 1438284801:goldstone-server-0.7.1-0.7.1.el7.centos.x86_64                                                                     1/1
-
-Installed:
-  goldstone-server.x86_64 1438284801:0.7.1-0.7.1.el7.centos
-
-Complete!
-```
-
-## Install and configure Goldstone (as root)
-
-The installation script will check the Goldstone prerequisites. If all checks pass, it will then prompt you for additional configuration information. Execute these commands:
-
-```bash
-root# cd /opt/goldstone
-root# . bin/activate
-root# fab install
-```
-
-## Check your password-reset sequence
-
-Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
-
-## Review production.py
-
-If this is a first-time install of Goldstone, skip this section.
-
-If this is a re-install of Goldstone, a new `production.py` file from Solinea will be in
-`/opt/goldstone/goldstone/settings/production.py.rpmnew`.
-
-Compare `/opt/goldstone/goldstone/settings/production.py` to
-`/opt/goldstone/goldstone/settings/production.py.rpmnew`, and migrate any changes from the `.rpmnew` file into the `.py` file. If you did not previously edit `production.py`, you can simply do this:
-
-```bash
-root# mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
-```
-
-After you've migrated your custom edits into `production.py`, reboot the server or restart the services.
-
-```bash
-root# systemctl restart httpd
-root# systemctl restart celery
-root# systemctl restart celerybeat
-```
-
-## Test password reset
-
-Goldstone's login page includes a password-reset link. Please test it.
-
-If the links in the password-reset e-mail do not work, you'll need to adjust the settings in `/opt/goldstone/goldstone/settings/production.py`. Look for the `DJOSER` dictionary.
-
+* Download the [latest release](https://github.com/Solinea/goldstone-server/releases)
+* `yum localinstall -y goldstone-server-{version}.rpm`
+* Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
+* `systemctl enable goldstone-server`
+* `systemctl start goldstone-server`
 
 ## Direct Logs and Events to the Goldstone Server
 
-With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting IP addresses or hostnames for the openstack_host_addr value(s):
-
-    root# fab -H openstack_host_addr[, openstack_host_addr] configure_stack
+This procedure will modify the configuration of your OpenStack server(s).  All changed configuration files will be backed up with a file of the form name.{timestamp}. 
 
 
-## Finished!
-
-Now that everything has been configured, point your browser at the Goldstone server IP address or name and begin using Goldstone.
-
-## Uninstallation
-
-To uninstall Goldstone:
+With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting appropriate values for names and addresses:
+The final configuration 
 ```bash
-root# fab -f installer_fabfile.py uninstall
+root# docker exec -i -t docker_gsapp_1 bash
+app@2f31cd23f422:~$ . /venv/bin/activate  # inside the docker container
+(venv)app@2f31cd23f422:~$ fab -f installer_fabfile.py -H {OpenStack_controller_IP,OpenStack_compute_IP,...} configure_stack
+[{your ip address}] Executing task 'configure_stack'
+This utility will modify configuration files on the hosts
+supplied via the -H parameter, and optionally restart
+OpenStack and syslog services.
+
+Do you want to continue (yes/no)? [yes]
+Restart OpenStack and syslog services after configuration changes(yes/no)? [yes]
+Goldstone server's hostname or IP accessible to OpenStack hosts? {your goldstone ip}  # this is the IP address of your Goldstone server
 ```
 
-This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.  It also does not revert configuration changes made by the `fab configure_stack` command.
+**List of modified files**
+
+* /etc/rsyslog.conf
+* /etc/rsyslog.d/10-goldstone.conf
+* /etc/ceilometer/ceilometer.conf
+* /etc/ceilometer/pipeline.yaml
+* /etc/ceilometer/event_pipeline.yaml
+* /etc/ceilometer/event_definitions.yaml
+* /etc/ceilometer/api_paste.ini
+* /etc/nova/nova.conf
+* /etc/nova/api-paste.ini
+* /etc/nova/nova_api_audit_map.conf
+* /etc/cinder/cinder.conf
+* /etc/cinder/api-paste.ini
+* /etc/cinder/cinder_api_audit_map.conf
+* /etc/neutron/neutron.conf
+* /etc/neutron/api-paste.ini
+* /etc/neutron/neutron_api_audit_map.conf
+* /etc/keystone/cinder.conf
+* /etc/glance/glance-cache.conf
+* /etc/glance/glance-api.conf
+* /etc/glance/glance-registry.conf
+* /etc/glance/glance-scrubber.conf
+* /etc/glance/glance-api-paste.ini
+* /etc/glance/glance_api_audit_map.conf
+
+## Access the client
+
+Point your browser at the Goldstone server IP address or name and begin using Goldstone. You can log in as the `gsadmin` user with the password you configured in the `goldstone-prod.env` file.  It may take a few minutes for data to be populated in the client, but within 5 minutes, you should see charts and tables start to fill in.
+
+`http://{your ip address}:8888`
+
+## Uninstallation (as root)
+
+This process may take a long time while it removes the Goldstone containers and images. It does not revert configuration changes made to OpenStack via the configure_stack task.
+
+* `yum remove goldstone-server`

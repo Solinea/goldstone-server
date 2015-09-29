@@ -14,18 +14,17 @@
 # limitations under the License.
 
 #
-# Stops the OpenStack and boot2docker VirtualBox VMs.  It does an ACPI
-# shutdown for the OpenStack VM, and will poll to see that the shutdown
-# has completed.  If it never com
-# succeed to shut down safely after 300 seconds, it will forcefully power 
-# it off.  
+# Stops the OpenStack and Docker VirtualBox VMs.  It does an ACPI
+# shutdowns for the OpenStack VM, and will poll to see that the shutdown
+# has completed.  If it can't shut down safely after 300 seconds, it will
+# forcefully power it off.  
 #
-# It assumes that there are no other celery or flower processes running
-# on the system, and optimistically kills processes.
 
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 ACPI_SHUTDOWN_WAIT=300
+STOP_STACK=false
 
 for arg in "$@" ; do
     case $arg in
@@ -37,13 +36,16 @@ for arg in "$@" ; do
             STACK_VM="${arg#*=}"
             shift
         ;;
+        --stop-stack)
+            STOP_STACK=true
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
             exit 1
         ;;
     esac
@@ -70,20 +72,25 @@ wait_for_shutdown()
     printf "    \b\b\b\b"
 }
 
-# echo "shutting down celery"
-pkill -f celery
-pkill -f flower
+VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
+if [[ $RC != 0 ]] ; then
+    echo "${DOCKER_VM} is already stopped"
+else
+    echo "shutting down docker VM"
+    cd ${TOP_DIR}
+    eval $(docker-machine env ${DOCKER_VM})
+    docker-compose stop
+    docker-machine stop ${DOCKER_VM}
+fi
 
-echo "cleaning up celery log files"
-rm /tmp/goldstone-server-celery.log
-rm /tmp/goldstone-server-flower.log
-
-echo "shutting down docker VM"
-(cd $PROJECT_HOME/goldstone-server/docker;docker-compose stop)
-docker-machine stop ${DOCKER_VM}
-
-VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
-echo "Waiting for $STACK_VM to poweroff..."
-wait_for_shutdown
-
+VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
+if [[ $RC != 0 ]] ; then
+    echo "${STACK_VM} is already stopped"
+else
+    if [[ ${STOP_STACK} == "true" ]] ; then
+        VBoxManage controlvm $STACK_VM acpipowerbutton 2&> /dev/null
+        echo "Waiting for $STACK_VM to poweroff..."
+        wait_for_shutdown
+    fi
+fi
 
