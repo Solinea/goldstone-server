@@ -185,7 +185,7 @@ module.exports = function(grunt) {
             },
             opentrailTest: {
                 files: clientIncludeOrder.otTest,
-                tasks: ['lint', 'karma', 'clean:otTest', 'copy-otTest']
+                tasks: ['clean:otTest', 'copy-otTest', 'lint', 'karma']
             },
             opentrailCss: {
                 files: clientIncludeOrder.opentrailCss,
@@ -293,13 +293,13 @@ module.exports = function(grunt) {
         // clean out directories, usually used prior to a 'copy' task
         clean: {
             ot: {
-                src: [clientIncludeOrder.otCopy.concat('/*.js')],
+                src: [clientIncludeOrder.otCopy.concat('*.js')],
                 options: {
                     force: true
                 }
             },
             otTest: {
-                src: [clientIncludeOrder.otTestCopy.concat('/*.js')],
+                src: [clientIncludeOrder.otTestCopy.concat('*.js')],
                 options: {
                     force: true
                 }
