@@ -118,7 +118,7 @@ install -d -m 755 %{buildroot}/var/log/goldstone/
 touch %{buildroot}/var/log/goldstone/goldstone.log
 cp -R %{_sourcedir}/docker %{buildroot}/opt/goldstone
 
-install -m 644 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
+install -m 644 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
 install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
 install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
