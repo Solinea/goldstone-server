@@ -4,9 +4,9 @@ import multiprocessing
 # listen address
 bind = "0.0.0.0:8000"
 
-chdir = "/app"
+chdir = "/home/app"
 
-raw_env = "DJANGO_SETTINGS_MODULE=goldstone.settings.docker"
+# raw_env = "DJANGO_SETTINGS_MODULE=goldstone.settings.docker"
 
 # worker processes
 workers = multiprocessing.cpu_count() * 2 + 1

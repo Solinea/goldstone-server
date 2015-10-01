@@ -30,7 +30,7 @@ sys.path.append('')
 SETTINGS_DIR = "goldstone.settings"
 
 # The default settings are to run Elasticsearch and PostgreSQL locally.
-DEV_SETTINGS = SETTINGS_DIR + ".local_docker"
+DEV_SETTINGS = SETTINGS_DIR + ".local_dev"
 
 BREW_PGDATA = '/usr/local/var/postgres'
 CENTOS_PGDATA = '/var/lib/pgsql/data'
@@ -57,7 +57,7 @@ def _django_manage(command, target='', proj_settings=None, daemon=False):
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    local("./manage.py %s %s %s %s" %
+    local("python ./manage.py %s %s %s %s" %
           (command, target, settings_opt, daemon_opt))
 
 
@@ -202,15 +202,13 @@ def goldstone_init(django_admin_user='admin', django_admin_password=None,
 
     """
     from installer_fabfile import goldstone_init as installer_goldstone_init
-    from installer_fabfile import syncmigrate, django_admin_init,\
-        load_es_templates
+    from installer_fabfile import syncmigrate, django_admin_init
 
     # Get the desired settings from the user unless supplied as an argument.
     if settings is None:
         settings = _django_settings_module(verbose)
 
     # Do the initialization with the user's settings, on the current directory.
-    load_es_templates(proj_settings=settings, install_dir=install_dir)
     syncmigrate(settings=settings, install_dir=install_dir)
 
     django_admin_init(username=django_admin_user,

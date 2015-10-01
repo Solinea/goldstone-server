@@ -6,9 +6,11 @@
 # Packages
 *.egg
 *.egg-info
+.eggs
 dist
 build
 eggs
+
 parts
 var
 sdist
@@ -121,12 +123,6 @@ goldstone/.idea/
 celerybeat-schedule
 
 # local settings
-goldstone/settings/js-development.py
-goldstone/settings/local.py
-goldstone/settings/local_dev.py
-goldstone/settings/local_prod.py
-goldstone/settings/dev_*.py
-goldstone/settings/test_*.py
 goldstone/settings/.secret_key_store
 celerybeat-schedule.db
 dump.rdb
@@ -150,5 +146,15 @@ test/addons/
 goldstone/static/addons/
 
 # docker static data
-docker/Dockerfiles/goldstone-nginx/goldstone-server
-docker/Dockerfiles/goldstone-django/goldstone-server
+docker/Dockerfiles/goldstone-app/goldstone-server/
+docker/Dockerfiles/goldstone-task/goldstone-server/
+docker/Dockerfiles/goldstone-web/static/
+
+# docker dev environment data
+.cache/
+.cinderclient/
+.novaclient/
+.bashrc
+.bash_history
+.exrc
+.pylint.d/

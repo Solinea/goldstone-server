@@ -1,5 +1,5 @@
 {
-    "goldstone-metrics_template": {
+    "ceilo_events_template": {
         "aliases": {},
         "order": 0,
         "settings": {
@@ -11,10 +11,11 @@
                     }
                 }
             },
+            "index.analysis.analyzer.default.stopwords": "_none_",
             "index.analysis.analyzer.default.type": "whitespace",
             "index.refresh_interval": "5s"
         },
-        "template": "goldstone_metrics-*",
+        "template": "events_*",
         "mappings": {
             "_default_": {
                 "_all" : {"enabled" : true},
@@ -31,11 +32,14 @@
                         }
                     }
                 } ],
-                "properties" : {
-                    "@version": {"type": "string", "index": "not_analyzed"},
-                    "timestamp": {
+                "_timestamp": {
+                    "enabled": true
+                },
+                "properties": {
+                  "eventTime": {
                         "type": "date"
                     }
+
                 }
             }
         }

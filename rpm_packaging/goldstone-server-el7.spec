@@ -28,54 +28,66 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.8.0-openjdk, postgresql-server, postgresql-devel, git
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl, docker-selinux
+Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
+/usr/bin/getent group goldstone \
+    || /usr/sbin/groupadd -r goldstone
+/usr/bin/getent passwd goldstone \
+    || /usr/sbin/useradd -r -g goldstone -d %{prefix}/goldstone -s /sbin/nologin goldstone
 
 %post
-# $1 if present will be the target number of installs of this package
-# on this system. 
-#     1 --> first install
-#     0 --> removal of last installed version
-#    >1 --> upgrade
+
+# restart the syslog daemon
+systemctl restart rsyslog
 
 if [[ $# == 1 && $1 == 1 ]] ; then
-    virtualenv /opt/goldstone
+    echo "Installing docker-compose to %{prefix}/goldstone/bin"
+    echo ""
+    /usr/bin/curl -# -o %{prefix}/goldstone/bin/docker-compose --create-dirs -L \
+        https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` \
+        && chmod +x %{prefix}/goldstone/bin/docker-compose
+   
 fi
-. /opt/goldstone/bin/activate
-export DJANGO_SETTINGS_MODULE=goldstone.settings.production
-cd /opt/goldstone
-pip install --upgrade pip==1.7.1
-pip install -r requirements.txt
-
-# Get all the ownerships back in shape.  No guarantee that we can su to apache,
-# and running python during install may set some ownerships to root. This seems
-# like the best approach.
-chown -R apache:apache /opt/goldstone
+echo "Pulling goldstone containers"
+%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml pull
 
 echo "*****************************************************************************"
 echo ""
-echo "  To continue installation, do the following as root:"
+echo " Modify %{prefix}/goldstone/docker/config/goldstone-prod.env"
+echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
+echo " for details."
 echo ""
-echo "      root# cd /opt/goldstone"
-echo "      root# . bin/activate"
-echo "      root# fab install"
+echo " To enable and start goldstone-server, run:"
 echo ""
-echo "  You will be prompted for:"
-echo "      - the Django admin (admin) password"
-echo "      - the Goldstone admin (gsadmin) password"
-echo "      - the OpenStack admin tenant (from your adminrc)"
-echo "      - the OpenStack admin user (from your adminrc)"
-echo "      - the OpenStack admin password (from your adminrc)"
-echo "      - the OpenStack auth URL (from your adminrc)"
+echo "     systemctl enable goldstone-server"
+echo "     systemctl start goldstone-server"
 echo ""
 echo "*****************************************************************************"
 
 %preun
 
+# shut down service
+systemctl stop goldstone-server
+systemctl disable goldstone-server
+
+# remove stopped containers
+echo "Removing containers..."
+docker rm -f $(docker ps -a | grep goldstone | awk '{print $1}' | xargs) || /bin/true
+echo "Removing images..."
+docker rmi -f $(docker images | grep goldstone | awk '{print $3}' | xargs) || /bin/true
+
 %postun
-if [[ $# == 1 && $1 == 0 ]] ; then 
-    rm -rf /opt/goldstone
+
+# delete the goldstone user and group if this is the last instance
+if [[ $# == 1 && $1 == 0 ]] ; then
+    rm -rf /opt/goldstone/bin > /dev/null 2>&1 \
+        || /bin/true
+    /usr/sbin/userdel goldstone > /dev/null 2>&1 \
+        || /bin/true
+    /usr/sbin/groupdel goldstone > /dev/null 2>&1 \
+        || /bin/true
 fi
 
 %description
@@ -84,112 +96,47 @@ at https://github.com/solinea/goldstone-server.
 
 To stay informed about new releases and other user related topics,
 please register with the Solinea mailing list. It's a low volume
-mailing list. More information how to register can be found on the
+mailing list. More information on how to register can be found on the
 project's website.
-
 
 %prep
 # cleanup from previous builds
 rm -rf %{buildroot}/*
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
-find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
 
 %build
 
 %install
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
-install -d -m 750 %{buildroot}/opt/goldstone/external/
-install -d -m 750 %{buildroot}/etc/init.d/
-install -d -m 750 %{buildroot}/etc/sysconfig/
-install -d -m 750 %{buildroot}/usr/lib/systemd/system/
-install -d -m 750 %{buildroot}/etc/selinux/
-install -d -m 750 %{buildroot}/etc/httpd/conf.d/
-install -d -m 750 %{buildroot}/var/log/goldstone/
-install -d -m 750 %{buildroot}/var/www/goldstone/static/
-install -d -m 750 %{buildroot}/opt/logstash/patterns/
-install -d -m 750 %{buildroot}/etc/logstash/conf.d/
+install -d -m 755 %{buildroot}/usr/lib/systemd/system/
+install -d -m 755 %{buildroot}/etc/rsyslog.d/
+install -d -m 755 %{buildroot}/var/log/goldstone/
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
-cp -R %{_sourcedir}/goldstone %{buildroot}/opt/goldstone
-cp -R %{_sourcedir}/external/rsyslog %{buildroot}/opt/goldstone/external
-cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
+cp -R %{_sourcedir}/docker %{buildroot}/opt/goldstone
 
-# fix up the settings folder contents
-rm -rf %{buildroot}/opt/goldstone/goldstone/settings
-install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
-install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
-install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
-install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
-
-# handle the rest
-install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt
-install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
-install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
-install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
-install -m 640 %{_sourcedir}/addon_fabfile.py %{buildroot}/opt/goldstone/addon_fabfile.py
-install -m 640 %{_sourcedir}/installer_fabfile.py %{buildroot}/opt/goldstone/fabfile.py
-install -m 640 %{_sourcedir}/docs/README.md %{buildroot}/opt/goldstone/README.md
-install -m 640 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
-install -m 640 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
-install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
-install -m 640 %{_sourcedir}/external/httpd/zgoldstone-el7.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
-install -m 640 %{_sourcedir}/external/selinux/config %{buildroot}/etc/selinux/config
-install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
-install -m 640 %{_sourcedir}/external/sysconfig/celery-el7 %{buildroot}/etc/sysconfig/celery
-install -m 640 %{_sourcedir}/external/systemd/system/celery-el7.service %{buildroot}/usr/lib/systemd/system/celery.service
-install -m 640 %{_sourcedir}/external/systemd/system/celerybeat-el7.service %{buildroot}/usr/lib/systemd/system/celerybeat.service
-
-find %{buildroot}/opt/goldstone -type f -name '*.py[oc]' -exec rm -f {} \;
+install -m 644 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
+install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
+install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
+install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
+install -m 644 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
+install -m 644 %{_sourcedir}/external/rsyslog/goldstone.conf %{buildroot}/etc/rsyslog.d/goldstone.conf
 
 %clean
-find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
 rm -rf %{buildroot}
  
-# disable the default behavior of compiling python bits
-%global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
-
 %files
-%defattr(-, apache, apache)
-/opt/goldstone/requirements.txt
-/opt/goldstone/setup.cfg
-/opt/goldstone/setup.py
-/opt/goldstone/manage.py
-/opt/goldstone/addon_fabfile.py
-/opt/goldstone/fabfile.py
+%defattr(-, goldstone, goldstone)
 /opt/goldstone/README.md
 /opt/goldstone/INSTALL.md
 /opt/goldstone/CHANGELOG.md
 /opt/goldstone/LICENSE
-/opt/goldstone/goldstone/
-%config /opt/goldstone/goldstone/settings/base.py
-%config(noreplace) /opt/goldstone/goldstone/settings/production.py
-/opt/goldstone/external/
+/opt/goldstone/docker/
 /var/log/goldstone/
-/var/www/goldstone/static/
-%attr(-, apache, logstash) /etc/logstash/conf.d/02-input-tcp5514
-%attr(-, apache, logstash) /etc/logstash/conf.d/03-input-resubs
-%attr(-, apache, logstash) /etc/logstash/conf.d/16-metrics-and-reports
-%attr(-, apache, logstash) /etc/logstash/conf.d/17-filter-nova-api-stats
-%attr(-, apache, logstash) /etc/logstash/conf.d/18-filter-nova-spawns
-%attr(-, apache, logstash) /etc/logstash/conf.d/19-filter-nova-claims
-%attr(-, apache, logstash) /etc/logstash/conf.d/20-basic-syslog
-%attr(-, apache, logstash) /etc/logstash/conf.d/34-filter-opestack-syslog
-%attr(-, apache, logstash) /etc/logstash/conf.d/38-filter-goldstone-nodeinfo
-%attr(-, apache, logstash) /etc/logstash/conf.d/66-output-es-goldstone-metrics
-%attr(-, apache, logstash) /etc/logstash/conf.d/67-output-es-goldstone-reports
-%attr(-, apache, logstash) /etc/logstash/conf.d/68-output-es-logstash
-%attr(-, apache, logstash) /etc/logstash/conf.d/69-output-es-goldstone
-%attr(-, apache, logstash) /etc/logstash/conf.d/70-output-resubs
-%attr(-, apache, logstash) /etc/logstash/conf.d/99-filter-last-stop
-%attr(-, apache, logstash) /opt/logstash/patterns/goldstone
-%config /etc/httpd/conf.d/zgoldstone.conf
-%attr(-, root, root) %config /etc/selinux/config
-%config /etc/sysconfig/celery
-%config /usr/lib/systemd/system/celery.service
-%config /usr/lib/systemd/system/celerybeat.service
-
+%config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
+%config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
 
 %changelog

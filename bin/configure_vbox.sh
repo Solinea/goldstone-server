@@ -26,7 +26,6 @@
 
 STACK=true
 DOCKER=true
-DEVELOPER=true
 DOCKER_VM="default"
 OPENSTACK_VM="RDO-kilo"
 
@@ -37,9 +36,6 @@ for arg in "$@" ; do
         ;;
         --no-docker)
             DOCKER=false
-        ;;
-        --prod)
-            DEVELOPER=false
         ;;
         --docker-vm=*)
             DOCKER_VM="${arg#*=}"
@@ -72,10 +68,8 @@ COMMON_RULE_LIST='es_9200_local,tcp,,9200,,9200
                   logstash_syslog_local,tcp,,5514,,5514 
                   logstash_metrics_local,udp,,5516,,5516 
                   postgres_local,tcp,,5432,,5432 
-                  redis_local,tcp,,6379,,6379' 
-
-PROD_RULE_LIST='gs_8000_local,tcp,,8000,,8000 
-                nginx_8888_local,tcp,,8888,,80'
+                  redis_local,tcp,,6379,,6379
+                  gs_8000_local,tcp,,8000,,8000' 
 
 # create vboxnet
 if [[ $STACK == "true" ]] ; then
@@ -141,25 +135,19 @@ fi
 
 
 if [[ $DOCKER == "true" ]] ; then
+    # Ensure the docker image is stopped
+    docker-machine stop ${DOCKER_VM}
     # Restore the original ssh NAT rule if it has been deleted.  Ignore errors.
-    VBoxManage modifyvm "boot2docker-vm" --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
+    VBoxManage modifyvm ${DOCKER_VM} --natpf1 "ssh,tcp,,2022,,22" 2> /dev/null
 
     # Track errors with Docker image NAT settings
     err_count="0"
     for rule in $COMMON_RULE_LIST ; do
         echo "processing rule: $rule"
-        VBoxManage modifyvm $DOCKER_VM --natpf1 "$rule" || \
+        VBoxManage modifyvm ${DOCKER_VM} --natpf1 "$rule" || \
             err_count=$[$err_count+$?]
     done
 
-    if [[ $DEVELOPER == "false" ]] ; then
-        for rule in $PROD_RULE_LIST ; do
-            echo "processing rule: $rule"
-            VBoxManage modifyvm $DOCKER_VM --natpf1 "$rule" || \
-                err_count=$[$err_count+$?]
-        done
-    fi
-    
     if [ $err_count -gt 0 ] ; then
         echo "Encountered errors setting up NAT rules for $DOCKER_VM"
         exit 1
@@ -167,5 +155,5 @@ if [[ $DOCKER == "true" ]] ; then
         echo "Finished configuring VM network interfaces"
     fi
 else
-    echo "Skipping Boot2Docker network configuration"
+    echo "Skipping docker VM network configuration"
 fi

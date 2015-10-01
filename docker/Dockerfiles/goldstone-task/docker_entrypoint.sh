@@ -15,8 +15,6 @@
 
 . ${ENVDIR}/bin/activate 
 
-echo ". ${ENVDIR}/bin/activate" > .bashrc
-
 #test if postgres service is up
 PORT=5432
 HOST=gsdb
@@ -36,21 +34,5 @@ if [[ $status == "DOWN" ]] ; then
     exit 1
 fi
 
-python manage.py syncdb --noinput --migrate  # Apply database migrations
-
-#
-# this won't do anything if the django admin, goldstone tenant and cloud already
-# exist.  otherwise it will use the env vars to create missing entities.
-#
-fab -f installer_fabfile.py docker_install
-
-echo Starting Celery.
-exec celery worker --app goldstone --queues default --beat --purge \
-    --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \
-    --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
-
-echo Starting Gunicorn.
-exec gunicorn ${GUNICORN_RELOAD} \
-    --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \
-    --config=${APPDIR}/config/gunicorn-settings.py goldstone.wsgi "$@"
+exec celery worker --app goldstone --queues default --beat --purge --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
 
