@@ -94,3 +94,64 @@ Point your browser at the Goldstone server IP address or name and begin using Go
 This process may take a long time while it removes the Goldstone containers and images. It does not revert configuration changes made to OpenStack via the configure_stack task.
 
 * `yum remove goldstone-server`
+
+## Appendix A - OpenStack Configuration Changes
+
+This appendix documents the various configuration changes required to fully integrate Goldstone and your OpenStack cloud.  
+
+
+### RDO Kilo
+
+#### /etc/rsyslog.conf
+
+In the MODULES section of the file, the following directives are added:
+
+    # Increase max message size to 64k
+    $MaxMessageSize 64k
+
+    # Preserve full domain names
+    $PreserveFQDN on
+
+    # Use high resolution timestamp for forwarded
+    $ActionForwardDefaultTemplate RSYSLOG_ForwardFormat
+
+#### /etc/rsyslog.d/10-goldstone.conf
+
+This is a new file that is added to the host.  This file configures log queuing and forwarding to the Goldstone server.
+
+#### /etc/ceilometer/ceilometer.conf
+
+
+#### /etc/ceilometer/pipeline.yaml
+#### /etc/ceilometer/event_pipeline.yaml
+#### /etc/ceilometer/event_definitions.yaml
+#### /etc/ceilometer/api_paste.ini
+#### /etc/nova/nova.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+* syslog_log_facility = LOG_LOCAL0
+* use_syslog = True
+* verbose = True
+* instance_usage_audit = True
+* instance_usage_audit_period = hour
+                "section": "DEFAULT",
+                "parameter": "notify_on_state_change",
+                "value": "vm_and_task_state"
+            },
+
+#### /etc/nova/api-paste.ini
+#### /etc/nova/nova_api_audit_map.conf
+#### /etc/cinder/cinder.conf
+#### /etc/cinder/api-paste.ini
+#### /etc/cinder/cinder_api_audit_map.conf
+#### /etc/neutron/neutron.conf
+#### /etc/neutron/api-paste.ini
+#### /etc/neutron/neutron_api_audit_map.conf
+#### /etc/keystone/cinder.conf
+#### /etc/glance/glance-cache.conf
+#### /etc/glance/glance-api.conf
+#### /etc/glance/glance-registry.conf
+#### /etc/glance/glance-scrubber.conf
+#### /etc/glance/glance-api-paste.ini
+#### /etc/glance/glance_api_audit_map.conf
