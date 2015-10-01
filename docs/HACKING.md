@@ -5,9 +5,9 @@ This explains how to install and run Goldstone Server locally, so you can do cod
 
 ## Prerequisites
 
-Install [Docker Toolbox](https://github.com/docker/toolbox/releases). 
+Install [Docker Toolbox](https://github.com/docker/toolbox/releases).
 
-**_Note: there is an issue with release 1.8.2a of Docker Toolbox, but earlier versions work_**
+**_Note: there is an issue with release 1.8.2a of Docker Toolbox, but earlier and later versions work_**
 
 Using brew, install various prerequisite packages:
 
@@ -90,14 +90,14 @@ To start the development environment, execute:
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
 
-The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated in 10 minutes.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
+The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated shortly after running the `configure_stack.sh` command documented below.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
-All output (database, search, task, app server, etc.) will be logged to the terminal window that you called start_dev_env.sh.  If you would like to send the output to a file, you could either:
+All output (database, search, task, app server, etc.) will be logged to the terminal window that you called `start_dev_env.sh`.  If you would like to send the output to a file, you could either:
 
     $ ./bin/start_dev_env.sh | tee /tmp/goldstone.log  # sends output to console and file
 
 or:
-   
+
     $ ./bin/start_dev_env.sh > /tmp/goldstone.log 2>&1  # sends output only to file
 
 
@@ -106,8 +106,8 @@ or:
 To stop the development environment, either:
 
 * `<Ctrl-C>` from the window running `start_dev_env.sh`; or
-* run `stop_dev_env.sh` from another window. 
- 
+* run `stop_dev_env.sh` from another window.
+
 This will stop both the docker VM and the OpenStack VM.
 
 
@@ -152,76 +152,31 @@ Goldstone uses standard Django testing tools:
 * [Tox](http://tox.readthedocs.org/en/latest/) for test automation. Goldstone's tox setup tests against Python 2.7, PEP8, and pylint by default.  There is also an additional `coverage` target available to evaluate code coverage.
 * [Django TestCase](https://docs.djangoproject.com/en/1.8/topics/testing/tools/#testcase) for unit testing.
 
-With the development environment started, execute the following commands in another window:
+Testing can be performed from within the container via the `tox` command.  First, you will need to install `tox` in the app container:
 
-    $ workon goldstone-server
     $ cd ~/devel/goldstone-server
-    $ tox
-    <-- snip -->
-    -------------------------------------
-    Ran 215 tests in 42.295s
-    OK (skipped=11)
-    Destroying test database for alias 'default'...
-    _____________ summary _______________
-    py27: commands succeeded
-    congratulations :)
+    $ ./bin/start_dev_env.sh
+    $ ./bin/gsexec --shell pip install tox
+    
+With `tox` installed, you can call various test targets by using one of the following commands:
 
-To generate a coverage report:
-
-    $ tox -e cover
-    GLOB sdist-make: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/setup.py
-    cover inst-nodeps: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/.tox/dist/goldstone-ui-2014.1.dev56.g0558e73.zip
-    cover runtests: commands[0] | coverage run --source=./goldstone manage.py test goldstone --settings=goldstone.settings.local_test
-    Creating test database for alias 'default'...
-    .........
-    ----------------------------------------------------------------------
-    Ran 9 tests in 0.074s
-
-
-    OK
-    Destroying test database for alias 'default'...
-    cover runtests: commands[1] | coverage xml
-    cover runtests: commands[2] | coverage report
-    Name                                           Stmts   Miss  Cover
-    ------------------------------------------------------------------
-    goldstone/__init__                                 0      0   100%
-    goldstone/apps/__init__                            0      0   100%
-    goldstone/apps/lease/__init__                      0      0   100%
-    goldstone/apps/lease/admin                         1      0   100%
-    goldstone/apps/lease/celery                        3      3     0%
-    goldstone/apps/lease/migrations/0001_initial      18      3    83%
-    goldstone/apps/lease/migrations/__init__           0      0   100%
-    goldstone/apps/lease/models                       34      3    91%
-    goldstone/apps/lease/tasks                        21     21     0%
-    goldstone/apps/lease/tests                        77      0   100%
-    goldstone/apps/lease/tests_celery                 10      0   100%
-    goldstone/apps/lease/views                         7      4    43%
-    goldstone/libs/__init__                            0      0   100%
-    goldstone/settings                                 0      0   100%
-    goldstone/settings/__init__                        0      0   100%
-    goldstone/settings/base                           24      3    88%
-    goldstone/settings/development                     7      7     0%
-    goldstone/settings/production                      1      1     0%
-    goldstone/settings/stage                           1      1     0%
-    goldstone/settings/test                            2      0   100%
-    goldstone/urls                                     4      0   100%
-    goldstone/wsgi                                     4      4     0%
-    ------------------------------------------------------------------
-    TOTAL                                            214     50    77%
-    _______________________________________ summary ___________________
-    cover: commands succeeded
-    congratulations :)
-
+    $ ./bin/gsexec --shell tox -e py27  # executes the tests suite for Python 2.7
+    $ ./bin/gsexec --shell tox -e py27 goldstone.nova  # only execute nova tests
+    $ ./bin/gsexec --shell tox -e cover  # execute a coverage report
+    $ ./bin/gsexec --shell tox -e pep8  # check coding standards
+    
+Check `tox.ini` for other possible targets.
 
 ### Front-end testing
 
 This information assumes you already have node/npm installed.  With the development environment started in another window, execute:
 
+    $ cd ~/devel/goldstone-server
     $ npm install -g grunt-cli
     $ npm install
     $ grunt
 
-**_Note: The end to end testing requires an auth token, and currently assumes that you have a a `gsadmin` user with the password `goldstone`._**
+**_Note: The end to end testing assumes that you have a a `gsadmin` user with the password `goldstone` configured._**
 
 The Gruntfile.js is configured with the following combo tasks:
 
@@ -260,7 +215,7 @@ To uninstall the plugin:
 
 ## Troubleshooting, Rebuilding, and Interacting with Containers
 
-Here are some useful commands that you can help with managing the development process, data, and containers.  
+Here are some useful commands that you can help with managing the development process, data, and containers.
 
 ### Removing a Single Container
 
@@ -278,7 +233,7 @@ Removing a container will force it to be recreated next time you start the dev e
 Removing all containers and images will result in pulling the base images from upstream, and recreating all of the containers:
 
     $ cd ~/devel/goldstone-server
-    $ ./bin/wipe_docker.sh 
+    $ ./bin/wipe_docker.sh
     $ ./bin/start_dev_env.sh
 
 ### Executing Commands in a Container
@@ -297,12 +252,20 @@ Using emacs as an example, here is a procedure for installing additional Debian 
     $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get update
     $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get install emacs
     $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
+    
+### Updating pip Requirements in the App Container
+
+If you amend the `requirements.txt` file, and want to test out the impact without recreating the application container, you can execute the following commands:
+
+    $ cd ~/devel/goldstone-server
+    $ ./bin/gsexec --shell pip install -r requirements.txt 
+    $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
 
 ## Coding Guidelines
 
 ### Python code
 
-We rely on pep8 and pylint to help ensure the consistency and integrity of the codebase.
+We rely on `pep8` and `pylint` to help ensure the consistency and integrity of the codebase.
 
 Please follow the generally accepted practices, based on these style guidelines:
 
@@ -312,8 +275,9 @@ Please follow the generally accepted practices, based on these style guidelines:
 
 To test that your code conforms to this project's standards:
 
-    $ tox -e checkin
-    $ fab test
+    $ cd ~/devel/goldstone-server
+    $ ./bin/gsexec --shell tox -e checkin
+    $ ./bin/gsexec --shell tox -e py27
 
 ## Configuring Postfix
 
@@ -347,7 +311,7 @@ Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in y
 and password:
 
     [smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
-    
+
 
 (For example, your line might read, `[smtp.gmail.com]:587
 dirk_diggler@mycompany.com:12344321`.
