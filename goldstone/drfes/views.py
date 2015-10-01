@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import ast
 from rest_framework.exceptions import ValidationError
 
 from rest_framework.generics import ListAPIView
@@ -144,7 +145,6 @@ class DateHistogramAggView(ElasticListAPIView):
             bounds_max=bounds_max)
 
     def _validate_params(self, request):
-        import ast
 
         self.interval = request.query_params.get('interval')
 
@@ -167,7 +167,6 @@ class DateHistogramAggView(ElasticListAPIView):
 
     def _extract_time_range(self, range_spec):
         """Return the time range from the query parameter."""
-        import ast
 
         try:
             range_spec = ast.literal_eval(range_spec)
