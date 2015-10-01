@@ -20,6 +20,7 @@ from .models import PolyResource
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=W0223
 
 class MetricDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
