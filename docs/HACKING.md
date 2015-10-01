@@ -255,7 +255,7 @@ Using emacs as an example, here is a procedure for installing additional Debian 
     
 ### Updating pip Requirements in the App Container
 
-If you amend the `requirements.txt` file, and want to test out the impace without recreating the application container, you can execute the following commands:
+If you amend the `requirements.txt` file, and want to test out the impact without recreating the application container, you can execute the following commands:
 
     $ cd ~/devel/goldstone-server
     $ ./bin/gsexec --shell pip install -r requirements.txt 
