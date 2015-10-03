@@ -57,7 +57,9 @@ Restart OpenStack and syslog services after configuration changes(yes/no)? [yes]
 Goldstone server's hostname or IP accessible to OpenStack hosts? {your goldstone ip}  # this is the IP address of your Goldstone server
 ```
 
-**List of modified files**
+### List of modified files
+
+The following files are modified by the `configure_stack` task.  For the complete list of modifications performed, refer to Appendix A.
 
 * /etc/rsyslog.conf
 * /etc/rsyslog.d/10-goldstone.conf
@@ -75,7 +77,7 @@ Goldstone server's hostname or IP accessible to OpenStack hosts? {your goldstone
 * /etc/neutron/neutron.conf
 * /etc/neutron/api-paste.ini
 * /etc/neutron/neutron_api_audit_map.conf
-* /etc/keystone/cinder.conf
+* /etc/keystone/keystone.conf
 * /etc/glance/glance-cache.conf
 * /etc/glance/glance-api.conf
 * /etc/glance/glance-registry.conf
@@ -117,41 +119,184 @@ In the MODULES section of the file, the following directives are added:
 
 #### /etc/rsyslog.d/10-goldstone.conf
 
-This is a new file that is added to the host.  This file configures log queuing and forwarding to the Goldstone server.
+This file is installed from a template.  The template is located within the installation directory at `external/rsyslog/10-goldstone.conf.template`.  Substitute the IP address of your Goldstone Server host for the string **`%(goldstone_addr)s`** within the template.
+
 
 #### /etc/ceilometer/ceilometer.conf
 
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL3
+    use_syslog = True
+    verbose = True
+
+Within the `[event]` section, the following values are changed or added:
+
+    definitions_cfg_file = event_definitions.yaml
+    drop_unmatched_notifications = False
+
+Within the `[notification]` section, the following values are changed or added:
+
+    store_events = True
+    disable_non_metric_meters = True
+
+Within the `[database]` section, the following values are changed or added  (substitute the IP address of your Goldstone Server host for the **`goldstone_addr`**):
+
+    event_connection = es://**goldstone_addr**:9200
 
 #### /etc/ceilometer/pipeline.yaml
+
+This file is installed from a template.  The template is located within the installation directory at `external/ceilometer/pipeline.yaml.template`.  Substitute the IP address of your Goldstone Server host for the string **`%(goldstone_addr)s`** within the template.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/ceilometer/event_pipeline.yaml
+
+This file is installed from a template.  The template is located within the installation directory at `external/ceilometer/event_pipeline.yaml.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/ceilometer/event_definitions.yaml
+
+This file is installed from a template.  The template is located within the installation directory at `external/ceilometer/event_definitions.yaml.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/ceilometer/api_paste.ini
+
+This file is installed from a template.  The template is located within the installation directory at `external/ceilometer/api-paste.ini.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/nova/nova.conf
 
 Within the `[DEFAULT]` section, the following values are changed or added:
 
-* syslog_log_facility = LOG_LOCAL0
-* use_syslog = True
-* verbose = True
-* instance_usage_audit = True
-* instance_usage_audit_period = hour
-                "section": "DEFAULT",
-                "parameter": "notify_on_state_change",
-                "value": "vm_and_task_state"
-            },
+    syslog_log_facility = LOG_LOCAL0
+    use_syslog = True
+    verbose = True
+    instance_usage_audit = True
+    instance_usage_audit_period = hour
+    notify_on_state_change = vm_and_task_state
+
+The `notification_driver` parameter in the `[DEFAULT]` section accepts multiple values.  To specify an additional value, you can add the following line after all other entries:
+
+    notification_driver = messagingv2
+
 
 #### /etc/nova/api-paste.ini
+
+This file is installed from a template.  The template is located within the installation directory at `external/nova/api-paste.ini.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/nova/nova_api_audit_map.conf
+
+This file is installed from a template.  The template is located within the installation directory at `external/nova/nova_api_audit_map.conf.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/cinder/cinder.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL5
+    use_syslog = True
+    verbose = True
+    control_exchange = cinder
+
+The `notification_driver` parameter in the `[DEFAULT]` section accepts multiple values.  To specify an additional value, you can add the following line after all other entries:
+
+    notification_driver = messagingv2
+
+
 #### /etc/cinder/api-paste.ini
+
+This file is installed from a template.  The template is located within the installation directory at `external/cinder/api-paste.ini.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/cinder/cinder_api_audit_map.conf
+
+This file is installed from a template.  The template is located within the installation directory at `external/cinder/cinder_api_audit_map.conf.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/neutron/neutron.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL2
+    use_syslog = True
+    verbose = True
+
+
 #### /etc/neutron/api-paste.ini
+
+This file is installed from a template.  The template is located within the installation directory at `external/neutron/api-paste.ini.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/neutron/neutron_api_audit_map.conf
-#### /etc/keystone/cinder.conf
+
+This file is installed from a template.  The template is located within the installation directory at `external/neutron/neutron_api_audit_map.conf.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
+#### /etc/keystone/keystone.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL2
+    use_syslog = True
+    verbose = True
+    notification_format = cadf
+
+The `notification_driver` parameter in the `[DEFAULT]` section accepts multiple values.  To specify an additional value, you can add the following line after all other entries:
+
+    notification_driver = messaging
+
+
 #### /etc/glance/glance-cache.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL1
+    use_syslog = True
+    verbose = True
+
+
 #### /etc/glance/glance-api.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL1
+    use_syslog = True
+    verbose = True
+
+The `notification_driver` parameter in the `[DEFAULT]` section accepts multiple values.  To specify an additional value, you can add the following line after all other entries:
+
+    notification_driver = messagingv2
+
+
 #### /etc/glance/glance-registry.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL1
+    use_syslog = True
+    verbose = True
+
+The `notification_driver` parameter in the `[DEFAULT]` section accepts multiple values.  To specify an additional value, you can add the following line after all other entries:
+
+    notification_driver = messagingv2
+
+
 #### /etc/glance/glance-scrubber.conf
+
+Within the `[DEFAULT]` section, the following values are changed or added:
+
+    syslog_log_facility = LOG_LOCAL1
+    use_syslog = True
+    verbose = True
+
+
 #### /etc/glance/glance-api-paste.ini
+
+This file is installed from a template.  The template is located within the installation directory at `external/glance/glance-api-paste.ini.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
+
 #### /etc/glance/glance_api_audit_map.conf
+
+This file is installed from a template.  The template is located within the installation directory at `external/glance/glance_api_audit_map.conf.template`.  If you have customized your file, the Goldstone team will be happy to assess how best to merge the customizations.  Please contact us.
+
