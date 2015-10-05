@@ -64,29 +64,14 @@ module.exports = function(grunt) {
                     message: "SASS/CSS compile complete"
                 }
             },
-            concat_message_openTrail: {
-                options: {
-                    message: "OpenTrail concat is finished"
-                }
-            },
-            copy_message_openTrail: {
-                options: {
-                    message: "OpenTrail files copied to external repo"
-                }
-            },
-            copy_message_openTrailTest: {
-                options: {
-                    message: "OpenTrail tests copied to external repo"
-                }
-            },
-            copy_message_openTrailCss: {
-                options: {
-                    message: "OpenTrail css copied to external repo"
-                }
-            },
             pojson: {
                 options: {
                     message: ".po > json conversion complete"
+                }
+            },
+            openTrail: {
+                options: {
+                    message: "OpenTrail tasks complete"
                 }
             }
         },
@@ -97,7 +82,7 @@ module.exports = function(grunt) {
             karmaConfig: 'karma.conf.js',
             client: clientIncludeOrder.clientWildcards,
             test: [clientIncludeOrder.test, clientIncludeOrder.e2e],
-            openTrail: clientIncludeOrder.opentrailWildcards,
+            addons: clientIncludeOrder.jshintAddons,
             options: {
                 globals: {
                     eqeqeq: true
@@ -179,21 +164,13 @@ module.exports = function(grunt) {
                 files: clientIncludeOrder.scssWatch,
                 tasks: ['scss']
             },
-            opentrail: {
-                files: clientIncludeOrder.opentrailWildcards,
-                tasks: ['clean:ot', 'concat-ot', 'concat:ot_goldstone', 'lint', 'copy-ot']
-            },
-            opentrailTest: {
-                files: clientIncludeOrder.otTest,
-                tasks: ['clean:otTest', 'copy-otTest', 'lint', 'karma']
-            },
-            opentrailCss: {
-                files: clientIncludeOrder.opentrailCss,
-                tasks: ['copy-otCss']
-            },
             po2json: {
                 files: clientIncludeOrder.poSourceFiles,
                 tasks: ['pojson']
+            },
+            opentrail: {
+                files: clientIncludeOrder.otWatch,
+                tasks: ['concat:ot', 'clean:ot', 'copy:ot', 'lint', ]
             }
         },
 
@@ -229,15 +206,7 @@ module.exports = function(grunt) {
                     separator: '\n'
                 },
                 src: clientIncludeOrder.opentrailWildcards,
-                dest: clientIncludeOrder.otBundle
-            },
-            ot_goldstone: {
-                nonull: true,
-                options: {
-                    separator: '\n'
-                },
-                src: clientIncludeOrder.opentrailWildcards,
-                dest: clientIncludeOrder.otBundleGoldstone
+                dest: clientIncludeOrder.otConcatBundle
             }
         },
 
@@ -245,45 +214,10 @@ module.exports = function(grunt) {
         copy: {
             ot: {
                 files: [{
-                    src: [clientIncludeOrder.opentrailWildcards],
+                    cwd: clientIncludeOrder.otFolder,
+                    src: ['**'],
                     dest: clientIncludeOrder.otCopy,
-                    flatten: true,
-                    expand: true,
-                    nonull: true
-                }]
-            },
-            otTest: {
-                files: [{
-                    src: [clientIncludeOrder.otTest],
-                    dest: clientIncludeOrder.otTestCopy,
-                    flatten: true,
-                    expand: true,
-                    nonull: true
-                }]
-            },
-            otCss: {
-                files: [{
-                    src: [clientIncludeOrder.opentrailCss],
-                    dest: clientIncludeOrder.otCssCopy,
-                    flatten: true,
-                    expand: true,
-                    nonull: true
-                }]
-            },
-            otCssGoldstone: {
-                files: [{
-                    src: [clientIncludeOrder.opentrailCss],
-                    dest: clientIncludeOrder.otCssCopyGoldstone,
-                    flatten: true,
-                    expand: true,
-                    nonull: true
-                }]
-            },
-            otCssGit: {
-                files: [{
-                    src: [clientIncludeOrder.opentrailCss],
-                    dest: clientIncludeOrder.otCssCopyGit,
-                    flatten: true,
+                    flatten: false,
                     expand: true,
                     nonull: true
                 }]
@@ -293,13 +227,7 @@ module.exports = function(grunt) {
         // clean out directories, usually used prior to a 'copy' task
         clean: {
             ot: {
-                src: [clientIncludeOrder.otCopy.concat('*.js')],
-                options: {
-                    force: true
-                }
-            },
-            otTest: {
-                src: [clientIncludeOrder.otTestCopy.concat('*.js')],
+                src: [clientIncludeOrder.otCopy],
                 options: {
                     force: true
                 }
@@ -326,10 +254,6 @@ module.exports = function(grunt) {
     grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
     grunt.registerTask('casper', ['casperjs:e2e']);
     grunt.registerTask('clib', ['concat:lib', 'notify:concat_message_lib']);
-    grunt.registerTask('concat-ot', ['concat:ot', 'notify:concat_message_openTrail']);
-    grunt.registerTask('copy-ot', ['copy:ot', 'notify:copy_message_openTrail']);
-    grunt.registerTask('copy-otTest', ['copy:otTest', 'notify:copy_message_openTrailTest']);
-    grunt.registerTask('copy-otCss', ['copy:otCssGoldstone', 'copy:otCssGit', 'copy:otCss', 'notify:copy_message_openTrailCss']);
     grunt.registerTask('e', ['casperjs:e2e']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);

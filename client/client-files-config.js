@@ -44,6 +44,7 @@ module.exports = {
     // discrete order of 3rd party lib files to be concatenated into
     // goldstone/static/bundle/libs.js .
     // see siteLibLoadOrder require statement at top of file
+    // edit order at: /client/js/site-lib/siteLibLoadOrder.js
     lib: siteLibLoadOrder,
 
     // location of test files for grunt watch tasks
@@ -54,10 +55,11 @@ module.exports = {
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
+    jshintAddons: 'goldstone/static/addons/**/*.js',
     testAddons: 'goldstone/static/addons/**/client-test/*.js',
     /*  testAddonsJavaScript only works
         if addons have js contained in main.js */
-    testAddonsJavaScript: 'goldstone/static/addons/**/main.js',
+    testAddonsJavaScript: 'goldstone/static/addons/**/client-js/main.js',
     e2e: ['test/e2e/*.js'],
 
     // output locations of concatenated files
@@ -65,16 +67,18 @@ module.exports = {
     libBundle: 'goldstone/static/bundle/libs.js',
 
     // location of source and destination of opentrail files
+    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
     opentrailWildcards: [
-        'client/js/addons/opentrail/head/header.js',
-        'client/js/addons/opentrail/*.js',
-        'client/js/addons/opentrail/tail/routes.js',
+        'goldstone/static/addons/opentrail/client-dev/head/*.js',
+        'goldstone/static/addons/opentrail/client-dev/middle/*.js',
+        'goldstone/static/addons/opentrail/client-dev/tail/*.js',
     ],
-    otBundle: '../django-opentrail/opentrail/static/client-js/main.js',
+    otFolder: 'goldstone/static/addons/opentrail/',
+    otWatch: 'goldstone/static/addons/opentrail/**/*',
+    otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
     otBundleGoldstone: 'goldstone/static/addons/opentrail/client-js/main.js',
-    otTest: 'test/addons/openTrail/*.js',
-    otCopy: '../django-opentrail/client-dev/',
-    otTestCopy: '../django-opentrail/opentrail/static/client-test/',
+    otTest: 'goldstone/static/addons/openTrail/client-test/*.js',
+    otCopy: '../django-opentrail/opentrail/static/',
     otCssCopyGit: '../django-opentrail/client-css/',
     otCssCopyGoldstone: 'goldstone/static/addons/opentrail/client-css/',
     otCssCopy: '../django-opentrail/opentrail/static/client-css/',

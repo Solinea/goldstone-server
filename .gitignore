@@ -141,8 +141,6 @@ TAGS
 docs/site/
 
 # addon modules
-client/js/addons/
-test/addons/
 goldstone/static/addons/
 
 # docker static data
