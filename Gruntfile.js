@@ -205,7 +205,7 @@ module.exports = function(grunt) {
                 options: {
                     separator: '\n'
                 },
-                src: clientIncludeOrder.opentrailWildcards,
+                src: clientIncludeOrder.opentrailConcatWildcards,
                 dest: clientIncludeOrder.otConcatBundle
             }
         },
@@ -214,9 +214,9 @@ module.exports = function(grunt) {
         copy: {
             ot: {
                 files: [{
-                    cwd: clientIncludeOrder.otFolder,
+                    cwd: clientIncludeOrder.otCopyFolder,
                     src: ['**'],
-                    dest: clientIncludeOrder.otCopy,
+                    dest: clientIncludeOrder.otRepoCopy,
                     flatten: false,
                     expand: true,
                     nonull: true
@@ -227,7 +227,7 @@ module.exports = function(grunt) {
         // clean out directories, usually used prior to a 'copy' task
         clean: {
             ot: {
-                src: [clientIncludeOrder.otCopy],
+                src: [clientIncludeOrder.otRepoCopy],
                 options: {
                     force: true
                 }

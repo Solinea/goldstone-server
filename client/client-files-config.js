@@ -66,24 +66,6 @@ module.exports = {
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
 
-    // location of source and destination of opentrail files
-    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
-    opentrailWildcards: [
-        'goldstone/static/addons/opentrail/client-dev/head/*.js',
-        'goldstone/static/addons/opentrail/client-dev/middle/*.js',
-        'goldstone/static/addons/opentrail/client-dev/tail/*.js',
-    ],
-    otFolder: 'goldstone/static/addons/opentrail/',
-    otWatch: 'goldstone/static/addons/opentrail/**/*',
-    otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
-    otBundleGoldstone: 'goldstone/static/addons/opentrail/client-js/main.js',
-    otTest: 'goldstone/static/addons/openTrail/client-test/*.js',
-    otCopy: '../django-opentrail/opentrail/static/',
-    otCssCopyGit: '../django-opentrail/client-css/',
-    otCssCopyGoldstone: 'goldstone/static/addons/opentrail/client-css/',
-    otCssCopy: '../django-opentrail/opentrail/static/client-css/',
-    opentrailCss: 'client/js/addons/opentrail/*.css',
-
     // istanbul coversage report file settings
     coverageReportTargets: {
         'client/js/preload/*.js': ['coverage'],
@@ -103,5 +85,18 @@ module.exports = {
 
     // location of .po files and resulting json blobs
     poSourceFiles: 'goldstone/static/i18n/po_files/*.po',
-    poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json'
+    poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json',
+
+    // location of source and destination of opentrail files
+    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
+    opentrailConcatWildcards: [
+        'goldstone/static/addons/opentrail/client-dev/head/*.js',
+        'goldstone/static/addons/opentrail/client-dev/middle/*.js',
+        'goldstone/static/addons/opentrail/client-dev/tail/*.js',
+    ],
+    otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
+    otCopyFolder: 'goldstone/static/addons/opentrail/',
+    otWatch: 'goldstone/static/addons/opentrail/**/*',
+    otRepoCopy: '../django-opentrail/opentrail/static/'
+
 };
