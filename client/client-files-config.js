@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-// Defines files that will be scanned with jshint is run.
-// The order of these files is significant if 'grunt concat' is set up.
+/*
+This config file defines list of files, and file-matching patterns that will
+be applied during various Grunt.js tasks.
+*/
+
+// when adding or removing a client lib file, add it to this list:
+var siteLibLoadOrder = require('./js/site-lib/siteLibLoadOrder.js');
 
 module.exports = {
 
-    // all files/folders to watch for triggering client grunt tasks
     clientWildcards: [
         'client/js/preload/base.js',
         'client/js/preload/goldstoneBaseModel.js',
@@ -37,19 +41,11 @@ module.exports = {
         'client/js/views/*.js'
     ],
 
-    // all files/folders to watch for triggering opentrail grunt tasks
-    opentrailWildcards: [
-        'client/js/addons/opentrail/head/header.js',
-        'client/js/addons/opentrail/*.js',
-        'client/js/addons/opentrail/tail/routes.js',
-    ],
-
-    opentrailCss: 'client/js/addons/opentrail/*.css',
-
     // discrete order of 3rd party lib files to be concatenated into
-    // goldstone/static/bundle/libs.js
-
-    lib: ['client/js/site-lib/jquery.js', 'client/js/site-lib/bootstrap.js', 'client/js/site-lib/jquery.dataTables.js', 'client/js/site-lib/dataTables.bootstrap.js', 'client/js/site-lib/colorbrewer.js', 'client/js/site-lib/d3.js', 'client/js/site-lib/d3-tip.js', 'client/js/site-lib/d3-legend.js', 'client/js/site-lib/underscore.js', 'client/js/site-lib/backbone.js', 'client/js/site-lib/moment-with-locales.js', 'client/js/site-lib/moment-timezone-with-data-2010-2020.js', 'client/js/site-lib/jed.js'],
+    // goldstone/static/bundle/libs.js .
+    // see siteLibLoadOrder require statement at top of file
+    // edit order at: /client/js/site-lib/siteLibLoadOrder.js
+    lib: siteLibLoadOrder,
 
     // location of test files for grunt watch tasks
     testMocks: ['test/mocks/test_mocks.js'],
@@ -59,23 +55,16 @@ module.exports = {
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
-    testOpenTrail: 'test/openTrail/*.js',
+    jshintAddons: 'goldstone/static/addons/**/*.js',
+    testAddons: 'goldstone/static/addons/**/client-test/*.js',
+    /*  testAddonsJavaScript only works
+        if addons have js contained in main.js */
+    testAddonsJavaScript: 'goldstone/static/addons/**/client-js/main.js',
     e2e: ['test/e2e/*.js'],
 
     // output locations of concatenated files
     clientBundle: 'goldstone/static/bundle/bundle.js',
     libBundle: 'goldstone/static/bundle/libs.js',
-    otBundle: '../django-opentrail/opentrail/static/main.js',
-    otBundleGoldstone: 'goldstone/static/addons/opentrail/main.js',
-
-    // location of source and destination of opentrail files
-    otTest: 'test/openTrail/*.js',
-    otCopy: '../django-opentrail/client-dev/',
-    otTestCopy: '../django-opentrail/client-test/',
-    otTestCopyTests: '../django-opentrail/client-test/*.js',
-    otCssCopyGit: '../django-opentrail/client-css/',
-    otCssCopyGoldstone: 'goldstone/static/addons/opentrail/',
-    otCssCopy: '../django-opentrail/opentrail/static/',
 
     // istanbul coversage report file settings
     coverageReportTargets: {
@@ -83,7 +72,7 @@ module.exports = {
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage'],
-        'client/js/addons/**/*.js': ['coverage']
+        'goldstone/static/addons/**/client-js/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
 
@@ -96,5 +85,18 @@ module.exports = {
 
     // location of .po files and resulting json blobs
     poSourceFiles: 'goldstone/static/i18n/po_files/*.po',
-    poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json'
+    poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json',
+
+    // location of source and destination of opentrail files
+    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
+    opentrailConcatWildcards: [
+        'goldstone/static/addons/opentrail/client-dev/head/*.js',
+        'goldstone/static/addons/opentrail/client-dev/middle/*.js',
+        'goldstone/static/addons/opentrail/client-dev/tail/*.js',
+    ],
+    otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
+    otCopyFolder: 'goldstone/static/addons/opentrail/',
+    otWatch: 'goldstone/static/addons/opentrail/**/*',
+    otRepoCopy: '../django-opentrail/opentrail/static/'
+
 };

@@ -173,8 +173,8 @@ describe('AddonMenuView.js spec', function() {
             expect($('.dropdown-submenu').length).to.equal(0);
             localStorage.setItem('addons', JSON.stringify([{
                 "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-                "url_root": "yourapp",
-                "name": "yourapp",
+                "url_root": "testApp",
+                "name": "testApp",
                 "notes": "Release notes, configuration tips, or other miscellany.",
                 "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
                 "version": "0.0",
@@ -193,8 +193,8 @@ describe('AddonMenuView.js spec', function() {
             expect($('.dropdown-submenu').length).to.equal(0);
             localStorage.setItem('addons', JSON.stringify([{
                 "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-                "url_root": "yourapp",
-                "name": "yourapp",
+                "url_root": "testApp",
+                "name": "testApp",
                 "notes": "Release notes, configuration tips, or other miscellany.",
                 "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
                 "version": "0.0",
@@ -222,8 +222,8 @@ describe('AddonMenuView.js spec', function() {
             expect($('.dropdown-submenu').length).to.equal(0);
             localStorage.setItem('addons', JSON.stringify([{
                 "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-                "url_root": "yourapp",
-                "name": "yourapp",
+                "url_root": "testApp",
+                "name": "testApp",
                 "notes": "Release notes, configuration tips, or other miscellany.",
                 "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
                 "version": "0.0",
@@ -257,8 +257,8 @@ describe('AddonMenuView.js spec', function() {
             localStorage.removeItem('addons');
             localStorage.setItem('addons', JSON.stringify([{
                 "updated_date": "\"2015-07-15T17:15:19.181668+00:00\"",
-                "url_root": "yourapp",
-                "name": "yourapp",
+                "url_root": "testApp",
+                "name": "testApp",
                 "notes": "Release notes, configuration tips, or other miscellany.",
                 "installed_date": "\"2015-07-15T17:15:19.181118+00:00\"",
                 "version": "0.0",
@@ -269,11 +269,11 @@ describe('AddonMenuView.js spec', function() {
             expect($('.addon-additional-menu-hook').length).to.equal(1);
             expect($('.dropdown-submenu').length).to.equal(0);
 
-            goldstone.yourapp = {};
-            goldstone.yourapp.routes = goldstone.yourapp.routes = [
-                ['yourapp/route1', 'route 1', goldstone.yourapp.route1],
-                ['yourapp/route2', 'route 2', goldstone.yourapp.route2],
-                ['yourapp/route3', 'route 3', goldstone.yourapp.route3]
+            goldstone.testApp = {};
+            goldstone.testApp.routes = goldstone.testApp.routes = [
+                ['testApp/route1', 'route 1', goldstone.testApp.route1],
+                ['testApp/route2', 'route 2', goldstone.testApp.route2],
+                ['testApp/route3', 'route 3', goldstone.testApp.route3]
             ];
             this.testView.instanceSpecificInit();
 
@@ -282,10 +282,10 @@ describe('AddonMenuView.js spec', function() {
             expect($('.dropdown-submenu').children().find('li').length).to.equal(3);
 
             var routes = Backbone.history;
-            expect(routes.handlers[0].route.toString()).to.include('yourapp');
-            expect(routes.handlers[1].route.toString()).to.include('yourapp');
-            expect(routes.handlers[2].route.toString()).to.include('yourapp');
-            expect(routes.handlers[3].route.toString()).to.not.include('yourapp');
+            expect(routes.handlers[0].route.toString()).to.include('testApp');
+            expect(routes.handlers[1].route.toString()).to.include('testApp');
+            expect(routes.handlers[2].route.toString()).to.include('testApp');
+            expect(routes.handlers[3].route.toString()).to.not.include('testApp');
 
             goldstone.gsRouter.navigate('route1');
 
