@@ -170,7 +170,7 @@ module.exports = function(grunt) {
             },
             opentrail: {
                 files: clientIncludeOrder.otWatch,
-                tasks: ['concat:ot', 'clean:ot', 'copy:ot', 'lint', ]
+                tasks: ['concat:ot', 'clean:ot', 'copy:ot', 'lint', 'notify:openTrail' ]
             }
         },
 
