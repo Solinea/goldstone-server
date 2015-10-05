@@ -190,7 +190,7 @@ As the JavaScript files are concatenated and read from a common file `bundle.js`
 
 #### Testing Addons
 
-The `grunt lintAndTest` command will search for tests in addon modules as well. The requirement is that the addon tests are in `goldstone/static/addons/**/client-test/*.js` . And the JavaScript under test must be in `goldstone/static/addons/**/client-test/main.js` .
+The `grunt lintAndTest` command will search for tests in addon modules as well. The requirement is that the addon tests are in `goldstone/static/addons/**/client-test/*.js` . And the JavaScript under test must be in `goldstone/static/addons/**/client-js/main.js` .
 
 ## Managing Goldstone Server Addons
 
