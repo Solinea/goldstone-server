@@ -127,7 +127,7 @@ class MetricDataListView(ElasticListAPIView):
         model = MetricData
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class MetricNamesAggView(SimpleAggView):
     """Return report name aggregations.
 
@@ -159,7 +159,7 @@ class MetricNamesAggView(SimpleAggView):
         model = MetricData
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class MetricAggView(DateHistogramAggView):
     """Return metric aggregations.
 
@@ -167,22 +167,29 @@ class MetricAggView(DateHistogramAggView):
 
     GET:
         parameters:
+           - name: name
+             description: The name of the metric you want returned
+             paramType: query
+             required: true
+           - name: interval
+             description: The desired time interval, as n(s|m|h|w). E.g., 1d
+                          or 3m
+             required: true
+             paramType: query
            - name: "@timestamp__range"
              description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
                           or lt.  Nnn is an epoch number.  E.g.,
                           {'gte':1430164651890}. You can also use AND, e.g.,
                           {'gte':1430164651890, 'lt':1455160000000}
              paramType: query
-           - name: host
-             description: A host.
+           - name: node
+             description: If supplied, return the metrics for a single node.
+                          Otherwise, return an aggregation
              paramType: query
 
     """
 
     serializer_class = MetricAggSerializer
-
-    # Do not add these query parameters to the Elasticsearch query.
-    reserved_params = ['interval']
 
     STATS_AGG_NAME = 'stats'
     UNIT_AGG_NAME = 'units'
@@ -193,15 +200,20 @@ class MetricAggView(DateHistogramAggView):
 
     def get(self, request):
         """Handle get request. Override default to add nested aggregations."""
+
         search = self._get_search(request)
+
         search.aggs.bucket(self.UNIT_AGG_NAME, self.Meta.model.units_agg())
-        search.aggs[self.AGG_NAME]. \
-            bucket(self.STATS_AGG_NAME, self.Meta.model.stats_agg())
+
+        search.aggs[self.AGG_NAME].bucket(self.STATS_AGG_NAME,
+                                          self.Meta.model.stats_agg())
+
         serializer = self.serializer_class(search.execute().aggregations)
+
         return Response(serializer.data)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class NavTreeView(RetrieveAPIView, TopologyMixin):
     """Return data for the old-style discovery tree rendering.\n\n
 
@@ -342,7 +354,7 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             return {"rsrcType": "error", "label": "No data found"}
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ResourceTypeList(ListAPIView):
     """Return the Resource Type graph, as a collection of nodes and directed
     edges.
@@ -384,7 +396,7 @@ class ResourceTypeList(ListAPIView):
         return Response({"nodes": nodes, "edges": edges})
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ResourceTypeRetrieve(RetrieveAPIView):
     """Return the resource graph instances of a specific resource type.
 
@@ -443,7 +455,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
                         status=HTTP_200_OK if result else HTTP_404_NOT_FOUND)
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ResourcesList(ListAPIView):
     """Return the Resource graph, as a collection of nodes and directed
     edges.
@@ -547,7 +559,7 @@ class ResourcesList(ListAPIView):
         return Response({"nodes": nodes, "edges": edges})
 
 
-# Our API documentation extracts this docstring, hence the use of markup.
+# Our API documentation extracts this docstring.
 class ResourcesRetrieve(RetrieveAPIView):
     """Return a specific resource graph node's detail.
 
