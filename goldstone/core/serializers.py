@@ -43,8 +43,8 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
     def to_representation(self, instance):
         """Create serialized representation of a single top-level aggregation.
 
-        :param instance: the result from the Model.simple_agg call
-        :return:
+        :param instance: The result from the Model.simple_agg call
+
         """
 
         datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
@@ -60,11 +60,12 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
         )
 
         unit_data = [bucket.key for bucket in unit_agg_base.buckets]
-        # let's clean up the inner buckets
-        datehist_data = [{bucket.key: {
-            'count': bucket.doc_count,
-            self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
-            for bucket in datehist_agg_base.buckets]
+
+        # Let's clean up the inner buckets.
+        datehist_data = [{bucket.key:
+                          {'count': bucket.doc_count,
+                           self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
+                         for bucket in datehist_agg_base.buckets]
 
         return {self.UNIT_AGG_NAME: unit_data,
                 self.DATEHIST_AGG_NAME: datehist_data}
