@@ -157,14 +157,14 @@ Testing can be performed from within the container via the `tox` command.  First
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
     $ ./bin/gsexec --shell pip install tox
-    
+
 With `tox` installed, you can call various test targets by using one of the following commands:
 
     $ ./bin/gsexec --shell tox -e py27  # executes the tests suite for Python 2.7
     $ ./bin/gsexec --shell tox -e py27 goldstone.nova  # only execute nova tests
     $ ./bin/gsexec --shell tox -e cover  # execute a coverage report
     $ ./bin/gsexec --shell tox -e pep8  # check coding standards
-    
+
 Check `tox.ini` for other possible targets.
 
 ### Front-end testing
@@ -188,6 +188,9 @@ The Gruntfile.js is configured with the following combo tasks:
 
 As the JavaScript files are concatenated and read from a common file `bundle.js`, you will need to make sure the `grunt watch` task is live and running in order to see changes to JavaScript files reflected in the client.
 
+#### Testing Addons
+
+The `grunt lintAndTest` command will search for tests in addon modules as well. The requirement is that the addon tests are in `goldstone/static/addons/**/client-test/*.js` . And the JavaScript under test must be in `goldstone/static/addons/**/client-js/main.js` .
 
 ## Managing Goldstone Server Addons
 
@@ -252,13 +255,13 @@ Using emacs as an example, here is a procedure for installing additional Debian 
     $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get update
     $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get install emacs
     $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
-    
+
 ### Updating pip Requirements in the App Container
 
 If you amend the `requirements.txt` file, and want to test out the impact without recreating the application container, you can execute the following commands:
 
     $ cd ~/devel/goldstone-server
-    $ ./bin/gsexec --shell pip install -r requirements.txt 
+    $ ./bin/gsexec --shell pip install -r requirements.txt
     $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
 
 ## Coding Guidelines
