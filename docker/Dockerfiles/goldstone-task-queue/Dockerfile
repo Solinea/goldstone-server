@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM redis
+FROM solinea/redis:v1-d829cd0-release
 
 MAINTAINER Luke Heidecke <luke@solinea.com>

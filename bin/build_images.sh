@@ -137,7 +137,7 @@ else
     echo "Building development containers"
     echo "##########################################################"
     cd $TOP_DIR || exit 1
-    docker-compose build
+    docker-compose -f docker-compose-dev.yml build
 fi
 
 #

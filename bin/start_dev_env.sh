@@ -117,5 +117,5 @@ for folder in "${need_source[@]}" ; do
 done
 
 cd $TOP_DIR || exit 1
-docker-compose up
+docker-compose -f docker-compose-dev.yml up
 

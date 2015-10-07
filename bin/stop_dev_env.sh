@@ -79,7 +79,7 @@ else
     echo "shutting down docker VM"
     cd ${TOP_DIR}
     eval $(docker-machine env ${DOCKER_VM})
-    docker-compose stop
+    docker-compose -f docker-compose-dev.yml stop
     docker-machine stop ${DOCKER_VM}
 fi
 
