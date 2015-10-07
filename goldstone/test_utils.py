@@ -46,7 +46,7 @@ BAD_UUID = '4' * 32
 
 
 class Setup(SimpleTestCase):
-    """A base class to do necessary housekeeping before each test."""
+    """A base class to do housekeeping before each test."""
 
     def setUp(self):
         """Do explicit database reseting.

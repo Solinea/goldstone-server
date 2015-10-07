@@ -367,7 +367,7 @@ class Addon(PolyResource):
 ###################################################################
 
 # TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Group, Token,
-# Credential, Role, Region, Endpoint, Service.
+# Credential, Role, Endpoint, Service.
 
 class User(PolyResource):
     """An OpenStack user."""
@@ -587,12 +587,34 @@ class Region(PolyResource):
     """An OpenStack region."""
 
     @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.regions.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
+
+    @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: AvailabilityZone,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
                 {TO: Endpoint,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["region_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
                 ]
 

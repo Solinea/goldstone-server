@@ -355,6 +355,22 @@ class ConstantDict(object):
         return cls.__values
 
 
+class IntegrationNames(ConstantDict):
+    """The names of OpenStack integrations."""
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+
+    # The attributes to attache (that are attached) to an edge.
+    KEYSTONE = "Keystone"
+    NOVA = "Nova"
+    CINDER = "Cinder"
+    GLANCE = "Glance"
+
+# We need this because classes aren't imported via "from django.conf import
+# settings."
+INTEGRATION_NAMES = IntegrationNames()
+
+
 class ResourceEdge(ConstantDict):
     """The types of edges in the Resource Type and Resource graphs."""
 
@@ -374,6 +390,9 @@ class ResourceEdge(ConstantDict):
     SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
     USES = "uses"                     # A <<uses>> edge
 
+
+# We need this because classes aren't imported via "from django.conf import
+# settings."
 R_EDGE = ResourceEdge()
 
 
@@ -398,4 +417,6 @@ class ResourceAttribute(ConstantDict):
     # node, This is called with the from_attr_dict and to_attr_dict.
     MATCHING_FN = "matchingattributes"
 
+# We need this because classes aren't imported via "from django.conf import
+# settings."
 R_ATTRIBUTE = ResourceAttribute()

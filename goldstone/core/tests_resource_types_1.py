@@ -19,7 +19,7 @@ from functools import partial
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, Interface, Keypair, User, Credential, Group
+    Flavor, Interface, Keypair, User, Credential, Group, Region, Endpoint
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -835,3 +835,73 @@ class ResourceTypesTests(SimpleTestCase):
                 Image,
                 IMAGE,
                 partial(dictassign, IMAGE, "id"))
+
+    @staticmethod
+    def test_region_availability_zone():
+        """Test the Region - AvailabilityZone entry."""
+
+        # Test data.
+        REGION = {u'description': u'',
+                  u'id': u'RegionOne',
+                  u'links':
+                  {u'self': u'http://172.24.4.100:35357/v3/regions/RegionOne'},
+                  u'parent_region_id': None}
+
+        AVAILABILITYZONE = {
+            u'hosts':
+            {u'ctrl-john.solinea.com':
+             {u'nova-cert': {u'active': True,
+                             u'available': True,
+                             u'updated_at':
+                             u'2015-04-02T18:46:27.000000'},
+              u'nova-conductor': {u'active': True,
+                                  u'available': True,
+                                  u'updated_at':
+                                  u'2015-04-02T18:46:20.000000'},
+              u'nova-consoleauth': {u'active': True,
+                                    u'available': True,
+                                    u'updated_at':
+                                    u'2015-04-02T18:46:27.000000'},
+              u'nova-scheduler': {u'active': True,
+                                  u'available': True,
+                                  u'updated_at':
+                                  u'2015-04-02T18:46:27.000000'}}},
+            u'zoneName': u'internal',
+            u'zoneState': {u'available': True}
+            }
+
+        do_test(Region,
+                REGION,
+                partial(dictassign, REGION, "id"),
+                AvailabilityZone,
+                AVAILABILITYZONE,
+                partial(dictassign, AVAILABILITYZONE, "zoneName"))
+
+    @staticmethod
+    def test_region_endpoint():
+        """Test the Region - Endpoint entry."""
+
+        # Test data.
+        REGION = {u'description': u'',
+                  u'id': u'RegionOne',
+                  u'links':
+                  {u'self': u'http://172.24.4.100:35357/v3/regions/RegionOne'},
+                  u'parent_region_id': None}
+
+        ENDPOINT = {u'enabled': True,
+                    u'id': u'0dd743f720bf459d84053da2fe39da42',
+                    u'interface': u'admin',
+                    u'links':
+                    {u'self':
+                     u'http://172.24.4.100:35357/v3/endpoints/0ddda42'},
+                    u'region': u'RegionOne',
+                    u'region_id': u'RegionOne',
+                    u'service_id': u'2e2bfe12b5de415ca805b098eb19b8fc',
+                    u'url': u'http://172.24.4.100:8774/v3'}
+
+        do_test(Region,
+                REGION,
+                partial(dictassign, REGION, "id"),
+                Endpoint,
+                ENDPOINT,
+                partial(dictassign, ENDPOINT, "region_id"))

@@ -214,6 +214,96 @@ class MetricAggView(DateHistogramAggView):
 
 
 # Our API documentation extracts this docstring.
+class TopologyView(RetrieveAPIView):
+    """Return the cloud's topology.
+
+    In the present codebase, there is only one OpenStack cloud.
+
+    """
+
+    serializer_class = PassthruSerializer
+
+    def _regions(self):
+        """Return the names of the OpenStack cloud's regions.
+
+        There are no duplicates in the returned value.
+
+        :rtype: list of str
+
+        """
+        from .models import Region
+
+        return set([x["id"] for x in Region.clouddata()])
+
+    def _region_children(self, regionid):
+        """Return a region's topology.
+
+        :param regionid: A region's id
+        :type regionid: str
+        :return: The integrations and nodes within the region
+        :rtype: list of dict
+
+        """
+
+        # Get this region's resource graph node. There can be only one.
+        node = [x for x in resource.instances.nodes_of_type(Region)
+                if x.attributes.get("id") == regionid]
+
+        if not node:
+            raise ValueError("No region named %s found", regionid)
+        elif len(node) > 1:
+            raise ValueError("Multiple regions named %s found", regionid)
+            
+        node = node[0]
+
+        CONTINUE HERE
+        
+        # # Invert the Resource Graph into an integration:nodes mapping, and
+        # # delete integrations without any nodes.
+        # integrations = \
+        #     {x:
+        #      [r for r in PolyResource.objects.all()
+        #       if r.display_attributes.get("integration_name") == x]
+        #      for x in IntegrationNames.values()}
+
+        # for x in IntegrationNames.values():
+        #     if not integrations[x]:
+        #         del integrations[x]
+
+        # result = []
+
+        # # For every OpenStack integration with at least one node...
+        # for integration in integrations:
+
+        return result
+
+    def get_object(self):
+        """Return the cloud's toplogy.
+
+        :rtype: dict
+
+        """
+
+        # If we don't have any cloud integrations yet, return a "no data"
+        # response.
+        if not PolyResource.objects.all().exists():
+            return {"rsrcType": "error", "label": "No data found"}
+
+        # Set up to return a "cloud" response.
+        result = {"rsrcType": "cloud", "label": "Cloud"}
+
+        # Get all the regions from the cloud, and populate their entries in the
+        # cloud's children list.
+        result["children"] = [{"rsrcType": "region",
+                               "label": entry,
+                               "children": self._region_children(entry)}
+                              for entry in self._regions()]
+
+        return result
+
+
+# TODO: deprecated.  delete when?
+# Our API documentation extracts this docstring.
 class NavTreeView(RetrieveAPIView, TopologyMixin):
     """Return data for the old-style discovery tree rendering.\n\n
 
@@ -231,7 +321,7 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
      "children": [rsrcType] (optional)
     }
 
-     """
+    """
 
     serializer_class = PassthruSerializer
 
