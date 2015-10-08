@@ -149,6 +149,21 @@ After the containers have started and OpenStack has been configured to interact 
 * Goldstone admin password: **goldstone**
 
 
+## Kibana Configuration
+
+In the development environment, a Kibana container will be started.
+
+url: **http://`docker-machine ip default`:5601/**
+
+Upon first connection to the service, Kibana will prompt you to "Configure an index pattern."
+
+- Keep *Index contains time-based events* checked.
+- The *Index name or pattern* should be set to `logstash-*`.
+- Select `@timestamp` from the *Time-field name* dropdown menu.
+- Click **Create** to save the configuration.
+
+[Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
+
 ## Testing
 
 ### Backend Testing
@@ -269,6 +284,10 @@ If you amend the `requirements.txt` file, and want to test out the impact withou
     $ cd ~/devel/goldstone-server
     $ ./bin/gsexec --shell pip install -r requirements.txt
     $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
+
+## Using Kibana in Development
+
+
 
 ## Coding Guidelines
 
