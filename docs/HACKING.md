@@ -16,9 +16,12 @@ Using brew, install various prerequisite packages:
     $ brew install python # (python 2.7.9 is the version used in the app container)
     $ brew install git
     $ brew install pyenv-virtualenvwrapper
+    $ brew install postgres
 
 
 **_Note: if you have manually installed Docker Machine and Docker Compose, make sure your Docker Machine VM name is 'default' in order to be compatible with the supporting scripts._**
+
+**_Note: the postgres server does not need to be started.  It is installed in order to support some of the Goldstone dependencies._**
 
 
 ## Fork and Clone Goldstone Repo
@@ -32,6 +35,9 @@ The commands given below are for use by core contributors. If you are a communit
     $ git clone git@github.com:Solinea/goldstone-server.git
 
 If you install in a location other than `~/devel/goldstone-server`, you will need to set the `GS_PROJ_TOP_DIR` environment variable to the directory containing the source.
+
+**_Note: if you have customized your default umask, you may experience problems building images and mounting volumes in containers._**
+
 
 ## Configure a Goldstone virtualenv
 
