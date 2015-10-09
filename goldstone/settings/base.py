@@ -81,7 +81,6 @@ INSTALLED_APPS = (
     'goldstone.nova',
     'goldstone.tenants',
     'goldstone.user',
-    'opentrail',     # Don't edit this line!
 )
 
 MIDDLEWARE_CLASSES = (
@@ -228,9 +227,6 @@ CELERYBEAT_SCHEDULE = {
 }
 
 # User-installed add-on tasks are inserted after this line.
-# Tasks for opentrail.
-from opentrail.settings import CELERYBEAT_SCHEDULE as opentrail_celerybeat
-CELERYBEAT_SCHEDULE.update(opentrail_celerybeat)
 
 
 # Database row settings.
