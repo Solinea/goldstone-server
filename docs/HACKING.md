@@ -177,8 +177,6 @@ Testing can be performed from within the container via the `tox` command.  First
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
-    $ touch addon_requirements.txt  # first time only
-    $ ./bin/gsexec --shell pip install tox  # first time only
 
 With `tox` installed, you can call various test targets by using one of the following commands:
 
@@ -189,7 +187,6 @@ With `tox` installed, you can call various test targets by using one of the foll
 
 Check `tox.ini` for other possible targets.
 
-_** Note: if you have addons installed in your environment, you will need to add the location of their sdist file to the `addon_requirements.txt` file. **_
 
 ### Front-end testing
 
@@ -227,7 +224,7 @@ In another window:
 
     $ cd ~/devel/django-opentrail
     $ python ./manage.py sdist
-    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server
+    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server/addons
     $ cd ~/devel/goldstone-server
     $ eval $(docker-machine env default)
     $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
