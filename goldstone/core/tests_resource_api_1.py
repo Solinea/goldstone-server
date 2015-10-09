@@ -357,7 +357,9 @@ class CoreResourceTypes(Setup):
         EXPECTED.sort()
         content = json.loads(response.content)["nodes"]
         content.sort()
-        self.assertEqual(content, EXPECTED)
+
+        for item in EXPECTED:
+            self.assertTrue(item in content)
 
 
 class CoreResourceTypesDetail(Setup):

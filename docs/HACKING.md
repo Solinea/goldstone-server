@@ -177,7 +177,8 @@ Testing can be performed from within the container via the `tox` command.  First
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
-    $ ./bin/gsexec --shell pip install tox
+    $ touch addon_requirements.txt  # first time only
+    $ ./bin/gsexec --shell pip install tox  # first time only
 
 With `tox` installed, you can call various test targets by using one of the following commands:
 
@@ -187,6 +188,8 @@ With `tox` installed, you can call various test targets by using one of the foll
     $ ./bin/gsexec --shell tox -e pep8  # check coding standards
 
 Check `tox.ini` for other possible targets.
+
+_** Note: if you have addons installed in your environment, you will need to add the location of their sdist file to the `addon_requirements.txt` file. **_
 
 ### Front-end testing
 

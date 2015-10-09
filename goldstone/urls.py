@@ -50,3 +50,7 @@ urlpatterns += patterns(
 urlpatterns += tenants_urlpatterns
 
 urlpatterns += staticfiles_urlpatterns()
+
+# Include the opentrail add-on.  Don't edit this entry!
+import opentrail
+urlpatterns += patterns('', url(r'^opentrail/', include('opentrail.urls')))

@@ -14,8 +14,9 @@
 # limitations under the License.
 
 . ${ENVDIR}/bin/activate 
-
 echo ". ${ENVDIR}/bin/activate" > .bashrc
+
+GS_DEV_ENV=${GS_DEV_ENV:-false}
 
 #test if postgres service is up
 PORT=5432
@@ -37,6 +38,11 @@ if [[ $status == "DOWN" ]] ; then
 fi
 
 python manage.py syncdb --noinput --migrate  # Apply database migrations
+
+# gather up the static files at container start if this is a dev environment
+if [[ $GS_DEV_ENV == "true" ]] ; then
+    python manage.py collectstatic  --noinput
+fi
 
 #
 # this won't do anything if the django admin, goldstone tenant and cloud already
