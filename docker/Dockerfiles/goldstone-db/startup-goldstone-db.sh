@@ -1,4 +1,4 @@
-# vim:set ft=dockerfile:
+#!/bin/bash -x
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/postgres:v1-709cdb3-release
+pg_pass="'$POSTGRES_PASSWORD'"
+gs_pass="'$GOLDSTONE_PASSWORD'"
 
-MAINTAINER Luke Heidecke <luke@solinea.com>
+# potentially update database user passwords
 
-ADD init-goldstone-db.sh /docker-entrypoint-initdb.d/
+gosu postgres psql <<- EOF
+    ALTER USER postgres PASSWORD $pg_pass;
+    ALTER USER goldstone PASSWORD $gs_pass;
+EOF
 
-ADD startup-goldstone-db.sh /docker-entrypoint-always.d/

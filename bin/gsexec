@@ -33,7 +33,7 @@ for arg in "$@" ; do
             shift
         ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name] command"
+            echo "Usage: $0 [--docker-vm=name] [--container=name] [--shell] command"
             exit 0
         ;;
         *)
