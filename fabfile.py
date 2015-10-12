@@ -18,7 +18,7 @@ import os
 import os.path
 import sys
 
-from fabric.api import task, local, warn
+from fabric.api import task
 
 # Add the current directory to the module search path.
 sys.path.append('')

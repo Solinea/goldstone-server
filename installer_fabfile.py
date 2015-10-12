@@ -20,7 +20,7 @@ import platform
 
 from django.core.exceptions import ObjectDoesNotExist
 from fabric.api import task, local, run, settings as fab_settings
-from fabric.colors import green, cyan, red
+from fabric.colors import green, cyan
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
 from fabric.context_managers import lcd
