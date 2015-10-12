@@ -98,7 +98,7 @@ if [[ ${OPERATION} == "install" ]] ; then
     FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
     docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip module"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
-    grep ${ADDON_FILE} addon-requirements.txt || echo "${ADDON_FILE}  # addon=${ADDON_NAME}" >> addon-requirements.txt
+    grep ${ADDON_FILE} addon-requirements.txt || echo "addons/${ADDON_FILE}  # addon=${ADDON_NAME}" >> addon-requirements.txt
 else
     if [[ ${MODULE_NAME} == "" ]] ; then
         usage
