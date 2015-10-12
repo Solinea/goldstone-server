@@ -164,6 +164,29 @@ Upon first connection to the service, Kibana will prompt you to "Configure an in
 
 [Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
 
+
+## Debugging
+
+### Python/Django
+Currently, the preferred way to debug the running application is to use the `--service-ports` option to `docker-compose run` combined with breakpoints in the application code.  The first step is to insert a breakpoint where you want to use the interactive debugger.  You can use a line similar to this:
+
+    import pdb; pdb.set_trace()
+
+Once you have a breakpoint set, you can use the following commands to get access to the `pdb` shell:
+
+    cd ~/devel/goldstone-server
+    bin/stop_dev_env.sh
+    docker-machine start default
+    eval $(docker-machine env default)
+    docker-compose -f docker-compose-dev.yml run --service-ports gsappdev
+
+This will only start linked containers, so you may not see all containers running.  You may also want to stop celery from executing scheduled tasks in order to have less output to sift through.  You can kill the celery processes by executing:
+
+    bin/gsexec pkill celery
+
+When you have completed the debugging session, we recommend that you go back to using `start_dev_env.sh` so all containers are running.   
+    
+
 ## Testing
 
 ### Backend Testing
