@@ -25,6 +25,7 @@ STACK_VM="RDO-kilo"
 DOCKER_VM="default"
 ACPI_SHUTDOWN_WAIT=300
 STOP_STACK=false
+STOP_DOCKER=false
 
 for arg in "$@" ; do
     case $arg in
@@ -39,13 +40,16 @@ for arg in "$@" ; do
         --stop-stack)
             STOP_STACK=true
         ;;
+        --stop-docker)
+            STOP_DOCKER=true
+        ;;
         --help)
-            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--stop-docker] [--docker-vm=name] [--stack-vm=name]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--stop-stack] [--docker-vm=name] [--stack-vm=name]"
+            echo "Usage: $0 [--stop-stack] [--stop-docker] [--docker-vm=name] [--stack-vm=name]"
             exit 1
         ;;
     esac
@@ -76,11 +80,13 @@ VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     echo "${DOCKER_VM} is already stopped"
 else
-    echo "shutting down docker VM"
     cd ${TOP_DIR}
     eval $(docker-machine env ${DOCKER_VM})
     docker-compose -f docker-compose-dev.yml stop
-    docker-machine stop ${DOCKER_VM}
+    if [[ $STOP_DOCKER == "true" ]] ; then
+        echo "shutting down docker VM"
+        docker-machine stop ${DOCKER_VM}
+    fi
 fi
 
 VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?

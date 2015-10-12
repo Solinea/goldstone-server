@@ -114,6 +114,6 @@ fi
 docker commit ${APP_CONTAINER}
 
 echo ""
-echo "Restart the dev environment to complete the addon installation process."
+echo "Restart the dev environment to complete the addon change process."
 echo ""
 
