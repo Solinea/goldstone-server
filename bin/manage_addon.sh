@@ -90,16 +90,15 @@ if [[ $(docker ps -f name=goldstoneserver_gsappdev_1 --format "{{.ID}}" | sed -n
 fi
 
 if [[ ${OPERATION} == "install" ]] ; then
-    if [[ ${ADDON_FILE} == "" || ! -f "addons/${ADDON_FILE} ]] ; then
+    if [ ! -f "addons/${ADDON_FILE}" ] ; then
         echo "Addon file not found.  It must be in ${TOP_DIR}/addons during installation, but can be removed afterwards."
         exit 1
     fi
-    PIP_CMD="pip install --upgrade ${ADDON_FILE}"
+    PIP_CMD="pip install --upgrade addons/${ADDON_FILE}"
     FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
     docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip module"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
     grep ${ADDON_FILE} addon-requirements.txt || echo "${ADDON_FILE}  # addon=${ADDON_NAME}" >> addon-requirements.txt
-        
 else
     if [[ ${MODULE_NAME} == "" ]] ; then
         usage
