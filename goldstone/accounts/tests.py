@@ -520,7 +520,7 @@ class PasswordReset(Setup):
                          "webmaster@localhost")  # from
         self.assertEqual(send_email.call_args[0][2]["site_name"],
                          settings.DJOSER["SITE_NAME"])  # The site name
-        self.assertIn('accounts/password/reset/enter/',
+        self.assertIn('accounts/password/reset/confirm/',
                       send_email.call_args[0][2]["url"])  # The confirm url
 
         # A simple check that the confirmation URL is about the right length.
