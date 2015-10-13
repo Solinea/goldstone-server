@@ -1,4 +1,4 @@
-# vim:set ft=dockerfile:
+#!/bin/bash -x
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/redis:v1-d829cd0-release
+pg_pass="'$POSTGRES_PASSWORD'"
+gs_pass="'$GOLDSTONE_PASSWORD'"
 
-MAINTAINER Luke Heidecke <luke@solinea.com>
+# potentially update database user passwords
+
+gosu postgres psql <<- EOF
+    ALTER USER postgres PASSWORD $pg_pass;
+    ALTER USER goldstone PASSWORD $gs_pass;
+EOF
+

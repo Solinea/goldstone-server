@@ -120,6 +120,36 @@ def get_cloud():
     return Cloud.objects.all()[0]
 
 
+def _v3_auth_url(auth_url):
+    """Some services require a /v3 auth URL, so let's make one"""
+
+    if auth_url.endswith('/v3/'):
+        return auth_url
+    elif auth_url.endswith('/v3'):
+        return auth_url + "/"
+    elif auth_url.endswith('/v2.0'):
+        return auth_url.replace('/v2.0', '/v3/')
+    elif auth_url.endswith('/v2.0/'):
+        return auth_url.replace('/v2.0/', '/v3/')
+    else:
+        raise GoldstoneAuthError("Unknown os_auth_url version")
+
+
+def _v2_auth_url(auth_url):
+    """Some services require a /v2.0 auth URL, so let's make one"""
+
+    if auth_url.endswith('/v2.0/'):
+        return auth_url
+    elif auth_url.endswith('/v2.0'):
+        return auth_url + "/"
+    elif auth_url.endswith('/v3'):
+        return auth_url.replace('/v3', '/v2.0/')
+    elif auth_url.endswith('/v3/'):
+        return auth_url.replace('/v3/', '/v2.0/')
+    else:
+        raise GoldstoneAuthError("Unknown os_auth_url version")
+
+
 def get_client(service):
     """Return a client object and authorization token.
 
@@ -144,7 +174,7 @@ def get_client(service):
                 username=os_username,
                 password=os_password,
                 tenant_name=os_tenant_name,
-                auth_url=os_auth_url.replace('/v2.0/', '/v3/'))
+                auth_url=_v3_auth_url(os_auth_url))
 
             if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
@@ -158,7 +188,7 @@ def get_client(service):
                 os_username,
                 os_password,
                 os_tenant_name,
-                os_auth_url.replace('/v3/', '/v2.0/'))
+                _v2_auth_url(os_auth_url))
 
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
@@ -169,7 +199,7 @@ def get_client(service):
             client = ciclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
-                                     os_auth_url.replace('/v3/', '/v2.0/'))
+                                     _v2_auth_url(os_auth_url))
             region = _get_region_for_cinder_client(client)
             return {'client': client, 'region': region}
 
@@ -177,7 +207,7 @@ def get_client(service):
             client = get_neutron_client(os_username,
                                         os_password,
                                         os_tenant_name,
-                                        os_auth_url.replace('/v2.0/', '/v3/'))
+                                        _v3_auth_url(os_auth_url))
             return {'client': client}
 
         elif service == 'glance':

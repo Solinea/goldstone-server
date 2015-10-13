@@ -90,14 +90,15 @@ if [[ $(docker ps -f name=goldstoneserver_gsappdev_1 --format "{{.ID}}" | sed -n
 fi
 
 if [[ ${OPERATION} == "install" ]] ; then
-    if [[ ${ADDON_FILE} == "" || ! -f ${ADDON_FILE} ]] ; then
-        echo "Addon file not found.  It must be in ${TOP_DIR} during installation, but can be removed afterwards."
+    if [ ! -f "addons/${ADDON_FILE}" ] ; then
+        echo "Addon file not found.  It must be in ${TOP_DIR}/addons during installation, but can be removed afterwards."
         exit 1
     fi
-    PIP_CMD="pip install --upgrade ${ADDON_FILE}"
+    PIP_CMD="pip install --upgrade addons/${ADDON_FILE}"
     FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
     docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip module"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
+    grep ${ADDON_FILE} addon-requirements.txt || echo "addons/${ADDON_FILE}  # addon=${ADDON_NAME}" >> addon-requirements.txt
 else
     if [[ ${MODULE_NAME} == "" ]] ; then
         usage
@@ -106,12 +107,13 @@ else
     FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
     PIP_CMD="pip uninstall ${MODULE_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
-    docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module"; exit 1; }
+    docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module. Continuing."; }
+    sed -i '' "/addon=${ADDON_NAME}/d" addon-requirements.txt
 fi
 
 docker commit ${APP_CONTAINER}
 
 echo ""
-echo "Restart the dev environment to complete the addon installation process."
+echo "Restart the dev environment to complete the addon change process."
 echo ""
 

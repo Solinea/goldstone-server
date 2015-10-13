@@ -170,9 +170,11 @@ class FilterTests(APITestCase):
         result = \
             elasticfilter.filter_queryset(request, Search(), view).to_dict()
 
-        self.assertEqual([{'terms': {u'name': ['value1', 'value2']}},
-                          {'match': {u'name': 'value'}}],
-                         result['query']['bool']['must'])
+        EXPECTED = [{'terms': {u'name': ['value1', 'value2']}},
+                    {'match': {u'name': 'value'}}]
+
+        for item in EXPECTED:
+            self.assertTrue(item in result['query']['bool']['must'])
 
     def test_filter_terms_regexp(self):
         """Test search object filtering using terms and regexp.
@@ -205,14 +207,14 @@ class FilterTests(APITestCase):
         result = \
             elasticfilter.filter_queryset(request, Search(), view).to_dict()
 
-        self.assertEqual([{'regexp':
-                           {'this.is.a.nested.field': '.+12345666666666'}},
-                          {'terms':
-                           {'_type':
-                            ["audit.http.request",
-                             "audit.http.response",
-                             "identity.*"]}}],
-                         result['query']['bool']['must'])
+        EXPECTED = [
+            {'regexp': {'this.is.a.nested.field': '.+12345666666666'}},
+            {'terms': {'_type': ["audit.http.request",
+                                 "audit.http.response",
+                                 "identity.*"]}}]
+
+        for item in EXPECTED:
+            self.assertTrue(item in result['query']['bool']['must'])
 
 
 class ViewTests(APITestCase):
