@@ -108,7 +108,7 @@ else
     PIP_CMD="pip uninstall ${MODULE_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module"; exit 1; }
-    sed -i '' "/addon=${ADDON_name}/d" addon-requirements.txt
+    sed -i '' "/addon=${ADDON_NAME}/d" addon-requirements.txt
 fi
 
 docker commit ${APP_CONTAINER}
