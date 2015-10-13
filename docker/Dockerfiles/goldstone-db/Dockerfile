@@ -13,13 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#TODO(heidecke): Base on the new solinea/postgres image
-
-FROM postgres:9.4
+FROM solinea/postgres:v1-709cdb3-release
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-# ENV POSTGRES_PASSWORD goldstone
-# ENV GOLDSTONE_PASSWORD goldstone
-
 ADD init-goldstone-db.sh /docker-entrypoint-initdb.d/
+
+ADD startup-goldstone-db.sh /docker-entrypoint-always.d/
