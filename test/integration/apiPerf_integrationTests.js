@@ -191,7 +191,9 @@ describe('apiPerfView.js spec', function() {
             });
             this.testView.update();
             expect($('svg').length).to.equal(1);
-            expect($('g.legend-items').find('text').text()).to.equal('MinMaxAvg');
+            expect($('g.legend-items').find('text').text()).to.include('Min');
+            expect($('g.legend-items').find('text').text()).to.include('Max');
+            expect($('g.legend-items').find('text').text()).to.include('Avg');
             expect($('.panel-title').text().trim()).to.equal('Tester API Performance');
             expect($('svg').text()).to.not.include('Response was empty');
         });
