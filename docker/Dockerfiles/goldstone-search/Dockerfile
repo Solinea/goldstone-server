@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/elasticsearch
+FROM solinea/elasticsearch:v2-1056aaa-release
+
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
 # Install admin plugins

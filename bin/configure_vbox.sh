@@ -69,6 +69,7 @@ COMMON_RULE_LIST='es_9200_local,tcp,,9200,,9200
                   logstash_metrics_local,udp,,5516,,5516 
                   postgres_local,tcp,,5432,,5432 
                   redis_local,tcp,,6379,,6379
+                  kibana_local,tcp,,5601,,5601
                   gs_8000_local,tcp,,8000,,8000' 
 
 # create vboxnet

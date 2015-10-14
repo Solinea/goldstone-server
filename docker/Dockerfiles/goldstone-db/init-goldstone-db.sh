@@ -14,16 +14,27 @@
 # limitations under the License.
 
 
-pg_pass="'$POSTGRES_PASSWORD'"
-gs_pass="'$GOLDSTONE_PASSWORD'"
+if [ ${HASHED_POSTGRES_PASSWORD} ] ; then
+    pg_pass="'$HASHED_POSTGRES_PASSWORD'"
+else
+   pg_pass="'$POSTGRES_PASSWORD'"
+fi
+
+if [ ${HASHED_GOLDSTONE_PASSWORD} ] ; then
+    gs_pass="'$HASHED_GOLDSTONE_PASSWORD'"
+    enc='ENCRYPTED'
+else
+    gs_pass="'$GOLDSTONE_PASSWORD'"
+    enc='UNENCRYPTED'
+fi
 
 gosu postgres psql <<- EOF
     CREATE USER goldstone PASSWORD $gs_pass;
     CREATE DATABASE goldstone;
     GRANT ALL PRIVILEGES ON DATABASE goldstone TO goldstone;
     ALTER USER goldstone CREATEDB;
-    ALTER USER postgres PASSWORD $pg_pass;
-    ALTER USER goldstone PASSWORD $gs_pass;
+    ALTER USER postgres $enc PASSWORD $pg_pass;
+    ALTER USER goldstone $enc PASSWORD $gs_pass;
 EOF
 
 # Adjust PostgreSQL configuration so that remote connections to the
@@ -32,19 +43,9 @@ EOF
 PG_HBA='/var/lib/postgresql/data/pg_hba.conf'
 PG_CONFIG='/var/lib/postgresql/data/postgresql.conf'
 
-if [[ -f $PG_HBA ]] ; then
-    echo "updating pg_hba.conf" 
-    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf 
-else
-    echo "no pg_hba.conf found!"
-fi
-
-if [[ -f $PG_CONFIG ]] ; then
-    echo "updating postgresql.conf"
-    echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf
-else
-    echo "no postgresql.conf found!"
-fi
+echo "updating pg_hba.conf" 
+echo "local all all     trust" > /var/lib/postgresql/data/pg_hba.conf 
+echo "host  all all 0.0.0.0/0   md5" >> /var/lib/postgresql/data/pg_hba.conf 
 
 su - postgres -c 'export PGDATA=/var/lib/postgresql/data;/usr/lib/postgresql/9.4/bin/pg_ctl reload'
 

@@ -26,6 +26,14 @@ msgid "Add-ons"
 msgstr ""
 
 #: addonMenuView.js
+msgid "leases"
+msgstr ""
+
+#: addonMenuView.js
+msgid "opentrail"
+msgstr ""
+
+#: addonMenuView.js
 msgid "Refresh browser and/or log in to complete addon installation process."
 msgstr ""
 
@@ -430,6 +438,246 @@ msgstr ""
 #: infoButtonText.js
 msgid "Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages."
 msgstr ""
+
+#: leaseDataTableView.js
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Creation of %s successful"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Failure to create %s"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Update of %s successful"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Failure to update %s"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Deletion of %s complete"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Failure to delete %s"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "%s will be permanently deleted. Are you sure?"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Name"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Expiration"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Status"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Controls"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "View Lease Details"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Name"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Scope"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Resource Type"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Leasee Id"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Start"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Expiration"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Notes"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Project ID"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Resource ID"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Target ID"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease UUID"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Close"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Create New Lease"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Name"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Name (required)"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Scope"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Resource"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Project"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Resource Type"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Compute Instance"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Block Storage Volume"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Target ID"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Target ID (required)"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Lease Expiration Date/Time"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Create Lease"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Close"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Delete Lease Confirmation"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Confirm"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Cancel"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Submit Changes"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid "Update Lease Details"
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid ""
+msgstr ""
+
+#: leaseDataTableView.js
+msgctxt "lease"
+msgid ""
+msgstr ""
+
+#: leasesManagerPageView.js
+
+#: leasesManagerPageView.js
+msgid "Leases Manager"
+msgstr ""
+
+#: leasesManagerPageView.js
+msgid "List of Leases"
+msgstr ""
+
+
+
 
 #: logAnalysisView.js
 

@@ -16,9 +16,12 @@ Using brew, install various prerequisite packages:
     $ brew install python # (python 2.7.9 is the version used in the app container)
     $ brew install git
     $ brew install pyenv-virtualenvwrapper
+    $ brew install postgres
 
 
 **_Note: if you have manually installed Docker Machine and Docker Compose, make sure your Docker Machine VM name is 'default' in order to be compatible with the supporting scripts._**
+
+**_Note: the postgres server does not need to be started.  It is installed in order to support some of the Goldstone dependencies._**
 
 
 ## Fork and Clone Goldstone Repo
@@ -32,6 +35,9 @@ The commands given below are for use by core contributors. If you are a communit
     $ git clone git@github.com:Solinea/goldstone-server.git
 
 If you install in a location other than `~/devel/goldstone-server`, you will need to set the `GS_PROJ_TOP_DIR` environment variable to the directory containing the source.
+
+**_Note: if you have customized your default umask, you may experience problems building images and mounting volumes in containers._**
+
 
 ## Configure a Goldstone virtualenv
 
@@ -143,6 +149,44 @@ After the containers have started and OpenStack has been configured to interact 
 * Goldstone admin password: **goldstone**
 
 
+## Kibana Configuration
+
+In the development environment, a Kibana container will be started.
+
+url: **http://`docker-machine ip default`:5601/**
+
+Upon first connection to the service, Kibana will prompt you to "Configure an index pattern."
+
+- Keep *Index contains time-based events* checked.
+- The *Index name or pattern* should be set to `logstash-*`.
+- Select `@timestamp` from the *Time-field name* dropdown menu.
+- Click **Create** to save the configuration.
+
+[Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
+
+
+## Debugging
+
+### Python/Django
+Currently, the preferred way to debug the running application is to use the `--service-ports` option to `docker-compose run` combined with breakpoints in the application code.  The first step is to insert a breakpoint where you want to use the interactive debugger.  You can use a line similar to this:
+
+    import pdb; pdb.set_trace()
+
+Once you have a breakpoint set, you can use the following commands to get access to the `pdb` shell:
+
+    cd ~/devel/goldstone-server
+    bin/stop_dev_env.sh
+    docker-machine start default
+    eval $(docker-machine env default)
+    docker-compose -f docker-compose-dev.yml run --service-ports gsappdev
+
+This will only start linked containers, so you may not see all containers running.  You may also want to stop celery from executing scheduled tasks in order to have less output to sift through.  You can kill the celery processes by executing:
+
+    bin/gsexec pkill celery
+
+When you have completed the debugging session, we recommend that you go back to using `start_dev_env.sh` so all containers are running.   
+    
+
 ## Testing
 
 ### Backend Testing
@@ -156,7 +200,6 @@ Testing can be performed from within the container via the `tox` command.  First
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
-    $ ./bin/gsexec --shell pip install tox
 
 With `tox` installed, you can call various test targets by using one of the following commands:
 
@@ -166,6 +209,7 @@ With `tox` installed, you can call various test targets by using one of the foll
     $ ./bin/gsexec --shell tox -e pep8  # check coding standards
 
 Check `tox.ini` for other possible targets.
+
 
 ### Front-end testing
 
@@ -203,7 +247,7 @@ In another window:
 
     $ cd ~/devel/django-opentrail
     $ python ./manage.py sdist
-    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server
+    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server/addons
     $ cd ~/devel/goldstone-server
     $ eval $(docker-machine env default)
     $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
@@ -263,6 +307,10 @@ If you amend the `requirements.txt` file, and want to test out the impact withou
     $ cd ~/devel/goldstone-server
     $ ./bin/gsexec --shell pip install -r requirements.txt
     $ docker commit goldstoneserver_gsappdev_1  # persist your changes to the container
+
+## Using Kibana in Development
+
+
 
 ## Coding Guidelines
 
