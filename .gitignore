@@ -147,8 +147,10 @@ addons/
 
 # docker static data
 docker/Dockerfiles/goldstone-app/goldstone-server/
+docker/Dockerfiles/goldstone-app-e/goldstone-server/
 docker/Dockerfiles/goldstone-task/goldstone-server/
 docker/Dockerfiles/goldstone-web/static/
+docker/Dockerfiles/goldstone-web-e/static/
 
 # docker dev environment data
 .cache/
@@ -158,3 +160,5 @@ docker/Dockerfiles/goldstone-web/static/
 .bash_history
 .exrc
 .pylint.d/
+.leases-installed
+.opentrail-installed

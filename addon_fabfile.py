@@ -25,6 +25,7 @@ from fabric.utils import abort, fastprint
 from fabric.operations import prompt
 import os
 import sys
+import ast
 
 from goldstone.core.utils import resource_types
 
@@ -510,7 +511,8 @@ def _add_root_node(name):
 def install_addon(name,
                   settings=PROD_SETTINGS,
                   install_dir=INSTALL_DIR,
-                  verbose=False):
+                  verbose=False,
+                  interactive=True):
     """Install a user add-on.
 
     The name is supplied on the command line. The version, manufacturer,
@@ -528,6 +530,8 @@ def install_addon(name,
 
     """
 
+    interactive = ast.literal_eval(interactive)
+
     # Normalize verbose to a boolean.
     verbose = verbose in ["True", "true", True]
 
@@ -543,7 +547,8 @@ def install_addon(name,
             _install_addon_info(name, install_dir, verbose)
 
         # Get permission to proceed.
-        if confirm(cyan('Proceed?'), default=False):
+        if not interactive or \
+                confirm(cyan('Proceed?'), default=False):
             if addon_install["replacement"]:
                 # Replacing an existing add-on.
                 row = Addon.objects.get(name=name)
@@ -655,7 +660,8 @@ def install_addon(name,
 @task
 def remove_addon(name,                       # pylint: disable=R0914,R0915
                  settings=PROD_SETTINGS,
-                 install_dir=INSTALL_DIR):
+                 install_dir=INSTALL_DIR,
+                 interactive=True):
     """Remove a user add-on.
 
     :param name: The add-on's installation name
@@ -681,7 +687,8 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
             fastprint(red("The add-on \"%s\" isn't in the table.\n" % name))
             sys.exit()
 
-        if confirm(cyan('We will remove the %s add-on. Proceed?' % name),
+        if not interactive or \
+                confirm(cyan('We will remove the %s add-on. Proceed?' % name),
                    default=False):
             try:
                 # First, delete the row.

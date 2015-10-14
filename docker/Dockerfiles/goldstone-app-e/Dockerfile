@@ -13,48 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:v1-b2912cf-release
+FROM solinea/goldstone-app:v1-3acac74-develop
 
-MAINTAINER Luke Heidecke <luke@solinea.com>
+MAINTAINER John Stanford <john@solinea.com>
 
-USER root
+ENV GS_PROJ_TOP_DIR ${APPDIR}
 
-ADD goldstone-server ${APPDIR}
-
-RUN buildReqs=' \
-    python2.7-dev \
-    gcc \
-    g++ \
-  ' \
-  && preReqs=' \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
-    git \
-  ' \
-  && apt-get update -y -q -q \
-  && apt-get install -y -q $buildReqs \
-  && apt-get install -y -q $preReqs \
-  && chown -R ${APPUSER}:staff ${APPDIR}
-
-WORKDIR ${APPDIR}
+ADD addons /tmp/addons
 
 USER ${APPUSER}
 
 RUN . ${ENVDIR}/bin/activate \
-  && pip install -r requirements.txt
+  && pip install -r requirements.txt \
+  && pip install /tmp/addons/django-opentrail-0.0.tar.gz \
+  && pip install /tmp/addons/django-leases-0.0.tar.gz
 
 USER root
 
-RUN apt-get remove -y $buildReqs \
-  && apt-get autoremove -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
-
-EXPOSE 8000
+RUN rm -rf /tmp/addons
 
 USER ${APPUSER}
 
 COPY ./docker_entrypoint.sh /
-
-ENTRYPOINT ["/docker_entrypoint.sh"]
