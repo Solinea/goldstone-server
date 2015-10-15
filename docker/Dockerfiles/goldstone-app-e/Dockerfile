@@ -13,13 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-app:v1-3acac74-develop
+FROM solinea/gunicorn:v1-b2912cf-release
 
 MAINTAINER John Stanford <john@solinea.com>
 
 ENV GS_PROJ_TOP_DIR ${APPDIR}
 
+ADD goldstone-server ${APPDIR}
 ADD addons /tmp/addons
+
+USER root
+
+RUN buildReqs=' \
+    python2.7-dev \
+    gcc \
+    g++ \
+  ' \
+  && preReqs=' \
+    libffi-dev \
+    libssl-dev \
+    libpq-dev \
+    git \
+  ' \
+  && apt-get update -y -q -q \
+  && apt-get install -y -q $buildReqs \
+  && apt-get install -y -q $preReqs \
+  && chown -R ${APPUSER}:staff ${APPDIR}
+
+WORKDIR ${APPDIR}
 
 USER ${APPUSER}
 
@@ -30,8 +51,17 @@ RUN . ${ENVDIR}/bin/activate \
 
 USER root
 
-RUN rm -rf /tmp/addons
+RUN apt-get remove -y $buildReqs \
+  && apt-get autoremove -y \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && rm -rf /tmp/addons
+
+EXPOSE 8000
 
 USER ${APPUSER}
 
 COPY ./docker_entrypoint.sh /
+
+ENTRYPOINT ["/docker_entrypoint.sh"]
+

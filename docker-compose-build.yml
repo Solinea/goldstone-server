@@ -13,69 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+gswebentdvc:
+  image: solinea/goldstone-web-e-dvc:latest
+  entrypoint: ["/bin/true"]
+
+# gswebdvc:
+#   image: solinea/goldstone-web-dvc:latest
+#   entrypoint: ["/bin/true"]
+
 # Goldstone Server Container
-gsappdev:
-#  build: ./docker/Dockerfiles/goldstone-app
+# gsapp:
+#   image: solinea/goldstone-app:latest
+#   env_file: ./docker/config/goldstone-build.env
+#   volumes:
+#     - ./docker/config/goldstone-app:/home/app/config
+#     - ./docker/build-support:/tmp/build-support
+#   volumes_from:
+#     - gswebdvc
+#   entrypoint: ["/bin/bash"]
+#   command: ["/tmp/build-support/collect-static.sh"]
+
+# Goldstone Enterprise Server Container
+gsappent:
   image: solinea/goldstone-app-e:latest
-  env_file: ./docker/config/goldstone-dev.env
+  env_file: ./docker/config/goldstone-build.env
   volumes:
-    - .:/home/app
     - ./docker/config/goldstone-app:/home/app/config
-  ports:
-    - "8000:8000"
-  links:
-    - gsdb
-    - gssearch
-    - gstaskq
-
-# Database Container
-gsdb:
-  build: ./docker/Dockerfiles/goldstone-db
-  env_file: ./docker/config/goldstone-dev.env
+    - ./docker/build-support:/tmp/build-support
   volumes_from:
-    - gsdbdvc
-  ports:
-    - "5432:5432"
-
-# Database Data Volume Container
-gsdbdvc:
-  build: ./docker/Dockerfiles/goldstone-db-dvc
-  volumes:
-    - /var/lib/postgresql/data
-
-# Logstash Container
-gslog:
-  build: ./docker/Dockerfiles/goldstone-log
-  command: logstash -f /logstash/conf.d -w 1
-  volumes:
-    - ./docker/config/goldstone-log/conf.d:/logstash/conf.d
-    - ./docker/config/goldstone-log/patterns:/opt/logstash/patterns
-  ports:
-    - "5514:5514"
-    - "5515:5515"
-    - "5516:5516"
-  links:
-    - gssearch
-
-# Elasticsearch Container
-gssearch:
-  build: ./docker/Dockerfiles/goldstone-search
-  volumes:
-    - ./docker/config/goldstone-search:/usr/share/elasticsearch/config
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-
-# Celery Task Queue Container
-gstaskq:
- build: ./docker/Dockerfiles/goldstone-task-queue
- ports:
-    - "6379:6379"
-
-# Kibana
-gskibana:
-  image: kibana:4
-  ports:
-    - "5601:5601"
-  links:
-    - "gssearch:elasticsearch"
+    - gswebentdvc
+  entrypoint: ["/bin/bash"]
+  command: ["/tmp/build-support/app-e-entrypoint.sh"]

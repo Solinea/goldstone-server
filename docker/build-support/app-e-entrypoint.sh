@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nginx
-RUN apt-get update && apt-get install -y -q curl
+. ${ENVDIR}/bin/activate 
 
-# forward request and error logs to docker log collector
-RUN ln -sf /dev/stdout /var/log/nginx/access.log
-RUN ln -sf /dev/stderr /var/log/nginx/error.log
+python manage.py runserver &
+
+sleep 5
+
+python manage.py syncdb --noinput --migrate  # Apply database migrations
+
+declare -a addons=( opentrail leases )
+
+for addon in "${addons[@]}" ; do
+    fab -f addon_fabfile.py \
+         install_addon:name=${addon},install_dir=${APPDIR},settings=${DJANGO_SETTINGS_MODULE},interactive=False 
+done
+
+python manage.py collectstatic --no-input
