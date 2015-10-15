@@ -36,7 +36,7 @@ gswebentdvc:
 # Goldstone Enterprise Server Container
 gsappent:
   image: solinea/goldstone-app-e:latest
-  env_file: ./docker/config/goldstone-prod.env
+  env_file: ./docker/config/goldstone-build.env
   volumes:
     - ./docker/config/goldstone-app:/home/app/config
     - ./docker/build-support:/tmp/build-support
@@ -45,10 +45,11 @@ gsappent:
   volumes_from:
     - gswebentdvc
   entrypoint: ["/bin/bash"]
+  user: root
   command: ["/tmp/build-support/app-e-entrypoint.sh"]
 
 gsdb:
   image: solinea/goldstone-db:latest
-  env_file: ./docker/config/goldstone-prod.env
+  env_file: ./docker/config/goldstone-build.env
   ports:
     - "5432:5432"
