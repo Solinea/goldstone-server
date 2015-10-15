@@ -13,46 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gswebentdvc:
-  image: solinea/goldstone-web-e-dvc:latest
+# Goldstone Proxy & Static
+gsweb:
+  image: solinea/goldstone-web
   volumes:
-    - /usr/share/nginx/html/static
-
-# gswebdvc:
-#   image: solinea/goldstone-web-dvc:latest
-#   volumes:
-#     - /usr/share/nginx/html/static
-#   entrypoint: ["/bin/true"]
+    - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
+    - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
+  volumes-from:
+    - gsappent
+  ports:
+    - "8888:8888"
+  links:
+    - gsappent:gsappent
 
 # Goldstone Server Container
-# gsapp:
-#   image: solinea/goldstone-app:latest
-#   env_file: ./docker/config/goldstone-build.env
-#   volumes:
-#     - ./docker/config/goldstone-app:/home/app/config
-#     - ./docker/build-support:/tmp/build-support
-#   volumes_from:
-#     - gswebdvc
-#   entrypoint: ["/bin/bash"]
-#   command: ["/tmp/build-support/collect-static.sh"]
-
-# Goldstone Enterprise Server Container
 gsappent:
-  image: solinea/goldstone-app-e:latest
-  env_file: ./docker/config/goldstone-build.env
+  image: solinea/goldstone-app-e
+  env_file: ./config/goldstone-build.env
   volumes:
-    - ./docker/config/goldstone-app:/home/app/config
-    - ./docker/build-support:/tmp/build-support
+    - /usr/share/nginx/html/static
+  ports:
+    - "8000:8000"
   links:
     - gsdb
-  volumes_from:
-    - gswebentdvc
-  entrypoint: ["/bin/bash"]
-  user: root
-  command: ["/tmp/build-support/app-e-entrypoint.sh"]
 
+# Database Container
 gsdb:
-  image: solinea/goldstone-db:latest
-  env_file: ./docker/config/goldstone-build.env
+  image: solinea/goldstone-db
+  env_file: ./config/goldstone-build.env
   ports:
     - "5432:5432"
