@@ -15,6 +15,14 @@
 
 . ${ENVDIR}/bin/activate 
 
+echo 
+echo "state of web data volume..."
+ls -la /usr/share/nginx/html
+
+echo "mounts:"
+df -k
+
+
 #test if postgres service is up
 PORT=5432
 HOST=gsdb
@@ -47,4 +55,4 @@ python manage.py collectstatic --noinput
 
 echo 
 echo "contents of /usr/share/nginx/html/static:"
-ls -lr /usr/share/nginx/html/static
+ls -la /usr/share/nginx/html/static

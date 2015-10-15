@@ -15,10 +15,13 @@
 
 gswebentdvc:
   image: solinea/goldstone-web-e-dvc:latest
-  entrypoint: ["/bin/true"]
+  volumes:
+    - /usr/share/nginx/html/static
 
 # gswebdvc:
 #   image: solinea/goldstone-web-dvc:latest
+#   volumes:
+#     - /usr/share/nginx/html/static
 #   entrypoint: ["/bin/true"]
 
 # Goldstone Server Container
