@@ -223,84 +223,45 @@ class TopologyView(RetrieveAPIView):
 
     serializer_class = PassthruSerializer
 
-    def _regions(self):
-        """Return the names of the OpenStack cloud's regions.
+    def _tree(self, node):
+        """Return the topology of the cloud starting at a node.
 
-        There are no duplicates in the returned value.
-
-        :rtype: list of str
-
-        """
-        from .models import Region
-
-        return set([x["id"] for x in Region.clouddata()])
-
-    def _region_children(self, regionid):
-        """Return a region's topology.
-
-        :param regionid: A region's id
-        :type regionid: str
-        :return: The integrations and nodes within the region
-        :rtype: list of dict
+        :param node: A node
+        :type node: A PolyResource subclass
+        :return: The topology of this down "downward," including all of its
+                 children
+        :rtype: dict
 
         """
 
-        # Get this region's resource graph node. There can be only one.
-        node = [x for x in resource.instances.nodes_of_type(Region)
-                if x.attributes.get("id") == regionid]
-
-        if not node:
-            raise ValueError("No region named %s found", regionid)
-        elif len(node) > 1:
-            raise ValueError("Multiple regions named %s found", regionid)
+        rsrctype == node.resourcetype.display_attributes()["name"]
+        label = node.type.labelforapicall
             
-        node = node[0]
+        # Get all the children. If there are none, return None instead of an
+        # empty list.
+        children = [self._tree(x) for x in node.children.list()]
+        if not children:
+            children = None
 
-        CONTINUE HERE
+        return {"rsrcType": rsrctype, "label": label, "children": children}
         
-        # # Invert the Resource Graph into an integration:nodes mapping, and
-        # # delete integrations without any nodes.
-        # integrations = \
-        #     {x:
-        #      [r for r in PolyResource.objects.all()
-        #       if r.display_attributes.get("integration_name") == x]
-        #      for x in IntegrationNames.values()}
-
-        # for x in IntegrationNames.values():
-        #     if not integrations[x]:
-        #         del integrations[x]
-
-        # result = []
-
-        # # For every OpenStack integration with at least one node...
-        # for integration in integrations:
-
-        return result
-
     def get_object(self):
         """Return the cloud's toplogy.
 
         :rtype: dict
 
         """
+        from .models import Region
 
-        # If we don't have any cloud integrations yet, return a "no data"
+        # If we don't yet have any cloud integrations, return a "no data"
         # response.
-        if not PolyResource.objects.all().exists():
+        children = [self._tree(x) for x in Region.objects.all()]
+        if not children:
             return {"rsrcType": "error", "label": "No data found"}
 
-        # Set up to return a "cloud" response.
-        result = {"rsrcType": "cloud", "label": "Cloud"}
-
-        # Get all the regions from the cloud, and populate their entries in the
-        # cloud's children list.
-        result["children"] = [{"rsrcType": "region",
-                               "label": entry,
-                               "children": self._region_children(entry)}
-                              for entry in self._regions()]
-
-        return result
-
+        # Return a "cloud" response. The children are the regions cloud's
+        # regions.
+        return {"rsrcType": "cloud", "label": "Cloud", "children": children}
 
 # TODO: deprecated.  delete when?
 # Our API documentation extracts this docstring.

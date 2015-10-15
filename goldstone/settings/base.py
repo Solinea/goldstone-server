@@ -371,31 +371,6 @@ class IntegrationNames(ConstantDict):
 INTEGRATION_NAMES = IntegrationNames()
 
 
-class ResourceEdge(ConstantDict):
-    """The types of edges in the Resource Type and Resource graphs."""
-
-    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
-    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
-    APPLIES_TO = "appliesto"          # An <<applies to>> edge
-    ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
-    ATTACHED_TO = "attachedto"        # An <<attached to>> edge
-    CONSUMES = "consumes"             # A <<consumes>> edge
-    CONTAINS = "contains"             # A <<contains>> edge
-    DEFINES = "defines"               # A <<defines>> edge
-    INSTANCE_OF = "instanceof"        # An <<instance of>> edge
-    MANAGES = "manages"               # A <<manages>> edge
-    MEMBER_OF = "memberof"            # A <<member of>> edge
-    OWNS = "owns"                     # An <<owns>> edge
-    ROUTES_TO = "routesto"            # A <<routes to>> edge
-    SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
-    USES = "uses"                     # A <<uses>> edge
-
-
-# We need this because classes aren't imported via "from django.conf import
-# settings."
-R_EDGE = ResourceEdge()
-
-
 class ResourceAttribute(ConstantDict):
     """The names of attributes on Resource Type or Resource, nodes or edges.
 
@@ -420,3 +395,28 @@ class ResourceAttribute(ConstantDict):
 # We need this because classes aren't imported via "from django.conf import
 # settings."
 R_ATTRIBUTE = ResourceAttribute()
+
+
+class ResourceEdge(ConstantDict):
+    """The types of edges in the Resource Type and Resource graphs."""
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
+    APPLIES_TO = "appliesto"          # An <<applies to>> edge
+    ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
+    ATTACHED_TO = "attachedto"        # An <<attached to>> edge
+    CONSUMES = "consumes"             # A <<consumes>> edge
+    CONTAINS = "contains"             # A <<contains>> edge
+    DEFINES = "defines"               # A <<defines>> edge
+    INSTANCE_OF = "instanceof"        # An <<instance of>> edge
+    MANAGES = "manages"               # A <<manages>> edge
+    MEMBER_OF = "memberof"            # A <<member of>> edge
+    OWNS = "owns"                     # An <<owns>> edge
+    ROUTES_TO = "routesto"            # A <<routes to>> edge
+    SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
+    USES = "uses"                     # A <<uses>> edge
+
+
+# We need this because classes aren't imported via "from django.conf import
+# settings."
+R_EDGE = ResourceEdge()
