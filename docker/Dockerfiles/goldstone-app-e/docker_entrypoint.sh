@@ -62,6 +62,8 @@ done
 # exist.  otherwise it will use the env vars to create missing entities.
 fab -f installer_fabfile.py docker_install
 
+python manage.py collectstatic  --noinput
+
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \
     --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \

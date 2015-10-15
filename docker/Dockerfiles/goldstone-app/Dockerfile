@@ -35,6 +35,8 @@ RUN buildReqs=' \
   && apt-get update -y -q -q \
   && apt-get install -y -q $buildReqs \
   && apt-get install -y -q $preReqs \
+  && mkdir -p /usr/share/nginx/html/static \
+  && chown ${APPUSER}:staff /usr/share/nginx/html/static \
   && chown -R ${APPUSER}:staff ${APPDIR}
 
 WORKDIR ${APPDIR}

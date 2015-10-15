@@ -13,49 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:v1-b2912cf-release
+FROM solinea/goldstone-app
 
 MAINTAINER John Stanford <john@solinea.com>
 
 ENV GS_PROJ_TOP_DIR ${APPDIR}
 
-ADD goldstone-server ${APPDIR}
 ADD addons /tmp/addons
-
-USER root
-
-RUN buildReqs=' \
-    python2.7-dev \
-    gcc \
-    g++ \
-  ' \
-  && preReqs=' \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
-    git \
-  ' \
-  && apt-get update -y -q -q \
-  && apt-get install -y -q $buildReqs \
-  && apt-get install -y -q $preReqs \
-  && chown -R ${APPUSER}:staff ${APPDIR}
 
 WORKDIR ${APPDIR}
 
 USER ${APPUSER}
 
 RUN . ${ENVDIR}/bin/activate \
-  && pip install -r requirements.txt \
   && pip install /tmp/addons/django-opentrail-0.0.tar.gz \
   && pip install /tmp/addons/django-leases-0.0.tar.gz
 
 USER root
 
-RUN apt-get remove -y $buildReqs \
-  && apt-get autoremove -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-  && rm -rf /tmp/addons
+RUN rm -rf /tmp/addons
 
 EXPOSE 8000
 

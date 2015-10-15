@@ -41,10 +41,7 @@ GS_LOG_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-log
 GS_DB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db
 GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
 GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
-GS_WEB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web-dvc
 GS_APP_E_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app-e
-GS_WEB_E_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web-e
-GS_WEB_E_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web-e-dvc
 
 REGISTRY_ORG=solinea
 
