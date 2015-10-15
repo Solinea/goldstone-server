@@ -15,9 +15,24 @@
 
 . ${ENVDIR}/bin/activate 
 
-python manage.py runserver &
+#test if postgres service is up
+PORT=5432
+HOST=gsdb
 
-sleep 5
+status="DOWN"
+i="0"
+
+while [ "$status" == "DOWN" -a $i -lt 20 ] ; do
+     status=`(echo > /dev/tcp/$HOST/$PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
+     echo -e "Database connection status: $status"
+     sleep 5
+     let i++
+done
+
+if [[ $status == "DOWN" ]] ; then
+    echo "PostgreSQL not available.  Exiting."
+    exit 1
+fi
 
 python manage.py syncdb --noinput --migrate  # Apply database migrations
 
@@ -28,4 +43,8 @@ for addon in "${addons[@]}" ; do
          install_addon:name=${addon},install_dir=${APPDIR},settings=${DJANGO_SETTINGS_MODULE},interactive=False 
 done
 
-python manage.py collectstatic --no-input
+python manage.py collectstatic --noinput
+
+echo 
+echo "contents of /usr/share/nginx/html/static:"
+ls -lr /usr/share/nginx/html/static
