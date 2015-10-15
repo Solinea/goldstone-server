@@ -13,6 +13,14 @@
 # limitations under the License.
 
 FROM nginx
+
+ENV APPDIR /home/app
+ENV APPUSER app
+
+RUN useradd -d ${APPDIR} ${APPUSER} \
+  && mkdir ${APPDIR} \
+  && chown -R ${APPUSER}:${APPUSER} ${APPDIR} 
+
 RUN apt-get update && apt-get install -y -q curl
 
 # forward request and error logs to docker log collector

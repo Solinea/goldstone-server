@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nginx
+FROM solinea/goldstone-web-e
 
 MAINTAINER John Stanford <john@solinea.com>
 
