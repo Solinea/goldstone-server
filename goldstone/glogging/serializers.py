@@ -15,7 +15,7 @@
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 
-class LogDataSerializer(ReadOnlyElasticSerializer):
+class LogDataSerializer(ReadOnlyElasticSerializer):  # pylint: disable=W0223
     """Serializer for ES log data. Excludes several uninteresting fields."""
 
     class Meta:        # pylint: disable=C1001,W0232
@@ -25,9 +25,9 @@ class LogDataSerializer(ReadOnlyElasticSerializer):
                    'syslog_pri', 'syslog5424_pri', 'syslog5424_host', 'type')
 
 
-class LogAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+class LogAggSerializer(ReadOnlyElasticSerializer):  # pylint: disable=W0223
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     def to_representation(self, instance):
         """Create serialized representation of aggregate log data.
@@ -36,6 +36,7 @@ class LogAggSerializer(ReadOnlyElasticSerializer):
         etc., then the detailed aggregation data which will be a nested
         structure.  The number of layers will depend on whether the host
         aggregation was done.
+
         """
 
         timestamps = [i['key'] for i in instance.per_interval['buckets']]
