@@ -160,5 +160,4 @@ docker/Dockerfiles/goldstone-web-e/static/
 .bash_history
 .exrc
 .pylint.d/
-.leases-installed
-.opentrail-installed
+static/
