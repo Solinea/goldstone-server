@@ -34,6 +34,21 @@ msgid "opentrail"
 msgstr ""
 
 #: addonMenuView.js
+#. do not translate
+msgid "yourapp"
+msgstr ""
+
+#: addonMenuView.js
+#. do not translate
+msgid "myroute 1"
+msgstr ""
+
+#: addonMenuView.js
+#. do not translate
+msgid "myroute 2"
+msgstr ""
+
+#: addonMenuView.js
 msgid "Refresh browser and/or log in to complete addon installation process."
 msgstr ""
 

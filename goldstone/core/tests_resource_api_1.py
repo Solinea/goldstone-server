@@ -67,7 +67,7 @@ class CoreResourceTypes(Setup):
         mock_rt_graph = Types()
         mock_rt_graph.graph.clear()
 
-        with patch("goldstone.core.views.types", mock_rt_graph):
+        with patch("goldstone.core.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -329,6 +329,25 @@ class CoreResourceTypes(Setup):
                      u"<class 'goldstone.core.models.Addon'>"},
                     ]
 
+        # This code is for ticket #105611698. Coming into this test, the
+        # resource types graph should be in a known state, having been
+        # initialized by goldstone.test_utils.Setup.setUp(). But sometimes it
+        # isn't. This code block checks for a known initial state and asserts a
+        # test failure if it's not there.
+        bad = False
+
+        for entry in resource.types.graph.nodes():
+            try:
+                entry.display_attributes()
+            except Exception as exc:        # pylint: disable=W0703
+                print "? %s doesn't have display_attributes, exception: %s" % \
+                    (entry, exc.message)
+                bad = True
+
+        self.assertFalse(bad, msg="initial test condition is bad")
+
+        # End of ticket #105611698 code.
+
         # Create the nodes for the test.
         for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
@@ -376,7 +395,7 @@ class CoreResourceTypesDetail(Setup):
         mock_rt_graph.graph.clear()
 
         # Note, we ask for a resource type that normally exists.
-        with patch("goldstone.core.views.types", mock_rt_graph):
+        with patch("goldstone.core.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_DETAIL_URL % "<class 'goldstone.core.models.QOSSpec'>",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -524,7 +543,7 @@ class AuthToken(Setup):
         mock_rt_graph = Types()
         mock_rt_graph.graph.clear()
 
-        with patch("goldstone.core.views.types", mock_rt_graph):
+        with patch("goldstone.core.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -536,7 +555,7 @@ class AuthToken(Setup):
         # should fail because of the tokens' expiration.
         expire_auth_tokens()
 
-        with patch("goldstone.core.views.types", mock_rt_graph):
+        with patch("goldstone.core.resource.types", mock_rt_graph):
             response = self.client.get(
                 RESTYPE_URL,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
