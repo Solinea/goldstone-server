@@ -171,6 +171,9 @@ var GoldstoneBaseView2 = Backbone.View.extend({
                 if (errorMessage.responseJSON.detail) {
                     message += errorMessage.responseJSON.detail;
                 }
+                if (errorMessage.responseJSON.non_field_errors) {
+                    message += errorMessage.responseJSON.non_field_errors;
+                }
 
             } else {
                 message = '';

@@ -73,6 +73,11 @@ module.exports = function(grunt) {
                 options: {
                     message: "OpenTrail tasks complete"
                 }
+            },
+            leases: {
+                options: {
+                    message: "Leases tasks complete"
+                }
             }
         },
 
@@ -171,6 +176,10 @@ module.exports = function(grunt) {
             opentrail: {
                 files: clientIncludeOrder.otWatch,
                 tasks: ['concat:ot', 'clean:ot', 'copy:ot', 'lint', 'notify:openTrail' ]
+            },
+            leases: {
+                files: clientIncludeOrder.leasesWatch,
+                tasks: ['concat:leases', 'clean:leases', 'copy:leases', 'lint', 'notify:leases' ]
             }
         },
 
@@ -207,6 +216,14 @@ module.exports = function(grunt) {
                 },
                 src: clientIncludeOrder.opentrailConcatWildcards,
                 dest: clientIncludeOrder.otConcatBundle
+            },
+            leases: {
+                nonull: true,
+                options: {
+                    separator: '\n'
+                },
+                src: clientIncludeOrder.leasesConcatWildcards,
+                dest: clientIncludeOrder.leasesConcatBundle
             }
         },
 
@@ -221,6 +238,16 @@ module.exports = function(grunt) {
                     expand: true,
                     nonull: true
                 }]
+            },
+            leases: {
+                files: [{
+                    cwd: clientIncludeOrder.leasesCopyFolder,
+                    src: ['**'],
+                    dest: clientIncludeOrder.leasesRepoCopy,
+                    flatten: false,
+                    expand: true,
+                    nonull: true
+                }]
             }
         },
 
@@ -228,6 +255,12 @@ module.exports = function(grunt) {
         clean: {
             ot: {
                 src: [clientIncludeOrder.otRepoCopy],
+                options: {
+                    force: true
+                }
+            },
+            leases: {
+                src: [clientIncludeOrder.leasesRepoCopy],
                 options: {
                     force: true
                 }

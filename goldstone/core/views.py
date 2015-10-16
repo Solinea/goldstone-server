@@ -26,9 +26,9 @@ from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData, \
     ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
-    MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventSerializer, ApiPerfSerializer, \
-    EventSummarizeSerializer, ApiPerfSummarizeSerializer
+    NamesAggSerializer, PassthruSerializer, MetricAggSerializer, \
+    EventSerializer, ApiPerfSerializer, EventSummarizeSerializer, \
+    ApiPerfSummarizeSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -86,7 +86,7 @@ class ReportNamesAggView(SimpleAggView):
 
     """
 
-    serializer_class = ReportNamesAggSerializer
+    serializer_class = NamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
@@ -151,7 +151,7 @@ class MetricNamesAggView(SimpleAggView):
 
     """
 
-    serializer_class = MetricNamesAggSerializer
+    serializer_class = NamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 

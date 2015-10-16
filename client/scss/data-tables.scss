@@ -11,14 +11,6 @@ $paused_grey: rgba(220, 220, 220, 0.5);
     }
   }
 
-  .fa-trash-o, .fa-asterisk {
-    color: $red;
-  }
-
-  .fa-play, .fa-check {
-    color: $green;
-  }
-
   tr:hover td {
     background-color: if($theme==dark, $dark_background, #fff);
   }

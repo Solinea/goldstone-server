@@ -686,6 +686,9 @@ var GoldstoneBaseView2 = Backbone.View.extend({
                 if (errorMessage.responseJSON.detail) {
                     message += errorMessage.responseJSON.detail;
                 }
+                if (errorMessage.responseJSON.non_field_errors) {
+                    message += errorMessage.responseJSON.non_field_errors;
+                }
 
             } else {
                 message = '';
@@ -2837,6 +2840,9 @@ var I18nModel = Backbone.Model.extend({
 
         // lookup for entered string and domain set to current language
         goldstone.translate = function(string) {
+            if (string === '') {
+                return '';
+            }
             var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dgettext(domain, string);
         };
@@ -2844,6 +2850,9 @@ var I18nModel = Backbone.Model.extend({
         // lookup with context applied, for simple words that may have
         // different translations in varying contexts
         goldstone.contextTranslate = function(string, context) {
+            if (string === '') {
+                return '';
+            }
             var domain = goldstone.translationObject.domain;
             return goldstone.translationObject.dpgettext(domain, context, string);
         };
@@ -3052,7 +3061,12 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             openTrailLogHistory: function() {
                 return goldstone.translate('');
 
-            }
+            },
+
+            leasesManager: function() {
+                return goldstone.translate('');
+            },
+
         }
     }
 });

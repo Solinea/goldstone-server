@@ -105,7 +105,7 @@ else
         exit 1
     fi
     FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
-    PIP_CMD="pip uninstall ${MODULE_NAME}"
+    PIP_CMD="yes | pip uninstall ${MODULE_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module. Continuing."; }
     sed -i '' "/addon=${ADDON_NAME}/d" addon-requirements.txt
