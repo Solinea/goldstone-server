@@ -69,7 +69,10 @@ class Setup(SimpleTestCase):
         resource.types = resource.Types()
 
         PolyResource.objects.non_polymorphic().all().delete()
-        resource.instances.graph.clear()
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None        # pylint: disable=W0212
 
 
 def login(username, password):

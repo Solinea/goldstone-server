@@ -372,13 +372,8 @@ class CoreResourceTypes(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
-        # Python 2.6 doesn't have assertListEqual(), so do this the hard way.
-        EXPECTED.sort()
         content = json.loads(response.content)["nodes"]
-        content.sort()
-
-        for item in EXPECTED:
-            self.assertTrue(item in content)
+        self.assertItemsEqual(content, EXPECTED)
 
 
 class CoreResourceTypesDetail(Setup):
@@ -517,15 +512,10 @@ class CoreResourceTypesDetail(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
-        # Python 2.6 doesn't have assertListEqual(), so do this the hard way.
-        EXPECTED.sort()
-
         content = json.loads(response.content)["nodes"]
         for entry in content:
             del entry["uuid"]
-        content.sort()
-
-        self.assertEqual(content, EXPECTED)
+        self.assertItemsEqual(content, EXPECTED)
 
 
 class AuthToken(Setup):

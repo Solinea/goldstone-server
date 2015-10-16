@@ -315,6 +315,9 @@ class CoreResources(Setup):
                                                         resourcetype=nodetype,
                                                         attributes=attributes))
 
+        # Force the instance graph to be re-evaluated now.
+        resource.instances._graph = None
+
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
             # Locate the source and destination nodes in the resource graph.
@@ -355,8 +358,4 @@ class CoreResources(Setup):
             for entry in content["nodes"]:
                 del entry["uuid"]
 
-            # Python 2.6 doesn't have assertListEqual(), so do this the hard
-            # way.
-            expected_nodes.sort()
-            content["nodes"].sort()
-            self.assertEqual(content["nodes"], expected_nodes)
+            self.assertItemsEqual(content["nodes"], expected_nodes)

@@ -59,6 +59,9 @@ class GraphNode(object):
     # This node's Resource Type.
     resourcetype = None
 
+    # The drilldown label for this node's type
+    label = None
+
     # This node's attributes. E.g., from get_xxxxx_client().
     attributes = {}
 
@@ -67,6 +70,7 @@ class GraphNode(object):
 
         self.uuid = kwargs.get("uuid")
         self.resourcetype = kwargs.get("resourcetype")
+        self.label = kwargs.get("label")
         self.attributes = kwargs.get("attributes", {})
 
 
@@ -268,6 +272,7 @@ class Instances(Graph):
         for node in nodes:
             graph.add_node(GraphNode(uuid=node.uuid,
                                      resourcetype=type(node),
+                                     label=type(node).drilldown_label(),
                                      attributes=node.cloud_attributes))
 
         # Create all the edges.

@@ -56,16 +56,6 @@ RES_DETAIL_URL = RES_URL + "%s/"
 class CoreResourcesUnpacking(Setup):
     """The unpacking of persistent data into the in-memory graph."""
 
-    def setUp(self):
-        """Run before every test."""
-
-        super(CoreResourcesUnpacking, self).setUp()
-
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        # pylint: disable=W0212
-        resource.instances._graph = None
-
     def test_unpacking_none(self):
         """Test unpacking when the in-memory graph is empty."""
 
@@ -439,6 +429,10 @@ class CoreResources(Setup):
                                                         resourcetype=nodetype,
                                                         attributes=attributes))
 
+
+        # Force the instance graph to be re-evaluated now.
+        resource.instances._graph = None
+
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
             # Locate the source and destination nodes in the resource graph.
@@ -484,10 +478,7 @@ class CoreResources(Setup):
         for entry in content["nodes"]:
             del entry["uuid"]
 
-        # Python 2.6 doesn't have assertListEqual(), so do this the hard way.
-        EXPECTED_NODES.sort()
-        content["nodes"].sort()
-        self.assertEqual(content["nodes"], EXPECTED_NODES)
+        self.assertItemsEqual(content["nodes"], EXPECTED_NODES)
 
 
 class CoreResourcesDetail(Setup):

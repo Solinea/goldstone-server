@@ -28,7 +28,6 @@ from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
 
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
-from .views import TopologyView
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -821,12 +820,3 @@ class ParseTests(SimpleTestCase):
 
         for test, expected in TESTS:
             self.assertEqual(parse(test), expected)
-
-
-class TopologyViewTests(SimpleTestCase):
-    """Test TopologyView class."""
-
-    def test_region_children(self):
-        """The _region_children() method."""
-
-        pass

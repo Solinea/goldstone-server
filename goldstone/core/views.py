@@ -226,24 +226,25 @@ class TopologyView(RetrieveAPIView):
         """Return the topology of the cloud starting at a node.
 
         :param node: A node
-        :type node: A PolyResource subclass
+        :type node: GraphNode
         :return: The topology of this down "downward," including all of its
                  children
         :rtype: dict
 
         """
 
-        rsrctype == node.resourcetype.display_attributes()["name"]
-        label = node.type.labelforapicall
-            
         # Get all the children. If there are none, return None instead of an
         # empty list.
-        children = [self._tree(x) for x in node.children.list()]
+        children = [self._tree(x)
+                    for x in resource.instances.graph.successors(node)]
         if not children:
             children = None
 
-        return {"rsrcType": rsrctype, "label": label, "children": children}
-        
+        return {"rsrcType": node.resourcetype.display_attributes()["name"],
+                "label": node.label,
+                "uuid": node.uuid,
+                "children": children}
+
     def get_object(self):
         """Return the cloud's toplogy.
 
@@ -260,7 +261,11 @@ class TopologyView(RetrieveAPIView):
 
         # Return a "cloud" response. The children are the regions cloud's
         # regions.
-        return {"rsrcType": "cloud", "label": "Cloud", "children": children}
+        return {"rsrcType": "cloud",
+                "label": "Cloud",
+                "uuid": None,
+                "children": children}
+
 
 # TODO: deprecated.  delete when?
 # Our API documentation extracts this docstring.
