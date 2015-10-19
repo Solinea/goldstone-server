@@ -161,6 +161,9 @@ class TopologyViewTests(Setup):
         result = TopologyView()._tree(node)
 
         self.check_and_delete_uuid(result)
+        self.assertItemsEqual(result["children"], EXPECTED["children"])
+        del result["children"]
+        del EXPECTED["children"]
         self.assertEqual(result, EXPECTED)
 
     def test_tree_1grandchild(self):
@@ -237,11 +240,29 @@ class TopologyViewTests(Setup):
         result = TopologyView()._tree(node)
 
         self.check_and_delete_uuid(result)
-        import pdb; pdb.set_trace()
-        # BUG - CONTINUE HERE
 
-        # Python uses assertlistequal for nested structures. Hence, the
-        # children lists may spurious compare unqeual if they're in different
-        # orders. Every test here needs to sort the children value, then
-        # compare. Yeesh.
+        # This is messy. Python uses AssertListEqual for nested structures.
+        # Hence, the "children" lists may spuriously compare unqeual.
+        e_image_node = [x for x in EXPECTED["children"]
+                        if x["label"] == Image.drilldown_label()][0]
+        e_server_node = [x for x in e_image_node["children"]
+                         if x["children"]][0]
+
+        r_image_node = [x for x in result["children"]
+                        if x["label"] == Image.drilldown_label()][0]
+        r_server_node = [x for x in r_image_node["children"]
+                         if x["children"]][0]
+
+        self.assertItemsEqual(e_server_node["children"],
+                              r_server_node["children"])
+
+        del e_server_node["children"]
+        del r_server_node["children"]
+
+        self.assertItemsEqual(e_image_node["children"],
+                              r_image_node["children"])
+
+        del e_image_node["children"]
+        del r_image_node["children"]
+
         self.assertEqual(result, EXPECTED)
