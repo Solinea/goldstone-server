@@ -242,7 +242,10 @@ class TopologyViewTests(Setup):
         self.check_and_delete_uuid(result)
 
         # This is messy. Python uses AssertListEqual for nested structures.
-        # Hence, the "children" lists may spuriously compare unqeual.
+        # Hence, the "children" lists may spuriously compare unqeual. I
+        # couldn't get addTypeEqualityFunc() to work, and gave up since this is
+        # a unit test. But the following doesn't feel Pythonic at all.
+
         e_image_node = [x for x in EXPECTED["children"]
                         if x["label"] == Image.drilldown_label()][0]
         e_server_node = [x for x in e_image_node["children"]
@@ -264,5 +267,10 @@ class TopologyViewTests(Setup):
 
         del e_image_node["children"]
         del r_image_node["children"]
+
+        self.assertItemsEqual(EXPECTED["children"], result["children"])
+
+        del EXPECTED["children"]
+        del result["children"]
 
         self.assertEqual(result, EXPECTED)
