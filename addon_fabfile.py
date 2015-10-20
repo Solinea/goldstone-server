@@ -689,7 +689,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
 
         if not interactive or \
                 confirm(cyan('We will remove the %s add-on. Proceed?' % name),
-                   default=False):
+                        default=False):
             try:
                 # First, delete the row.
                 error = "updating the Addon table. Check it."
