@@ -21,14 +21,13 @@ from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
 from goldstone.utils import TopologyMixin
 
-from goldstone.core.resource import types
 from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData, \
     ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
-    MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
-    MetricAggSerializer, EventSerializer, ApiPerfSerializer, \
-    EventSummarizeSerializer, ApiPerfSummarizeSerializer
+    NamesAggSerializer, PassthruSerializer, MetricAggSerializer, \
+    EventSerializer, ApiPerfSerializer, EventSummarizeSerializer, \
+    ApiPerfSummarizeSerializer
 from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
@@ -86,7 +85,7 @@ class ReportNamesAggView(SimpleAggView):
 
     """
 
-    serializer_class = ReportNamesAggSerializer
+    serializer_class = NamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
@@ -151,7 +150,7 @@ class MetricNamesAggView(SimpleAggView):
 
     """
 
-    serializer_class = MetricNamesAggSerializer
+    serializer_class = NamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
@@ -385,13 +384,13 @@ class ResourceTypeList(ListAPIView):
         nodes = [{"display_attributes": entry.display_attributes(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
-                 for entry in types.graph]
+                 for entry in resource.types.graph.nodes()]
 
         # Gather the edges.
         edges = [{"from": str(entry[0]),
                   "to": str(entry[1]),
                   "type": entry[2][TYPE]}
-                 for entry in types.graph.edges_iter(data=True)]
+                 for entry in resource.types.graph.edges_iter(data=True)]
 
         return Response({"nodes": nodes, "edges": edges})
 
@@ -435,7 +434,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
         """
 
         # Get the type that matches the supplied id.
-        target_type = types.get_type(unique_id)
+        target_type = resource.types.get_type(unique_id)
 
         result = []
 

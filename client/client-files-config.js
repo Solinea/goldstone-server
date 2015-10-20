@@ -97,6 +97,18 @@ module.exports = {
     otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
     otCopyFolder: 'goldstone/static/addons/opentrail/',
     otWatch: 'goldstone/static/addons/opentrail/**/*',
-    otRepoCopy: '../django-opentrail/opentrail/static/'
+    otRepoCopy: '../django-opentrail/opentrail/static/',
+
+    // location of source and destination of leases files
+    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
+    leasesConcatWildcards: [
+        'goldstone/static/addons/leases/client-dev/head/*.js',
+        'goldstone/static/addons/leases/client-dev/middle/*.js',
+        'goldstone/static/addons/leases/client-dev/tail/*.js',
+    ],
+    leasesConcatBundle: 'goldstone/static/addons/leases/client-js/main.js',
+    leasesCopyFolder: 'goldstone/static/addons/leases/',
+    leasesWatch: 'goldstone/static/addons/leases/**/*',
+    leasesRepoCopy: '../django-leases/leases/static/'
 
 };

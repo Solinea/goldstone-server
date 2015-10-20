@@ -127,7 +127,12 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             openTrailLogHistory: function() {
                 return goldstone.translate('');
 
-            }
+            },
+
+            leasesManager: function() {
+                return goldstone.translate('');
+            },
+
         }
     }
 });

@@ -20,6 +20,8 @@ from .models import PolyResource
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=W0223
+
 
 class MetricDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
@@ -76,12 +78,8 @@ class ReportDataSerializer(ReadOnlyElasticSerializer):
         exclude = ('@version', 'sort', 'tags', 'type')
 
 
-class MetricNamesAggSerializer(SimpleAggSerializer):
-
-    AGG_NAME = 'per_name'
-
-
-class ReportNamesAggSerializer(SimpleAggSerializer):
+class NamesAggSerializer(SimpleAggSerializer):
+    """Serializer for reporting name aggregations."""
 
     AGG_NAME = 'per_name'
 
