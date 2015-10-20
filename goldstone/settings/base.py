@@ -415,7 +415,8 @@ class ResourceEdge(ConstantDict):
     ROUTES_TO = "routesto"            # A <<routes to>> edge
     SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
     USES = "uses"                     # A <<uses>> edge
-
+    # A <<topologically owns>> edge. This is used by TopologyView.
+    TOPOLOGICALLY_OWNS = "topo"
 
 # We need this because classes aren't imported via "from django.conf import
 # settings."

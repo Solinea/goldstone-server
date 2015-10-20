@@ -1747,7 +1747,7 @@ class Volume(PolyResource):
             result.append(this_entry)
 
         return result
- 
+
     @classmethod
     def drilldown_label(cls):
         """See the parent class' method's docstring."""

@@ -31,6 +31,12 @@ from .tests import load_persistent_rg
 from .utils import custom_exception_handler, process_resource_type, parse
 from .views import TopologyView
 
+# Aliases to make the code less verbose
+MAX = settings.R_ATTRIBUTE.MAX
+MIN = settings.R_ATTRIBUTE.MIN
+TYPE = settings.R_ATTRIBUTE.TYPE
+TOPOLOGICALLY_OWNS = settings.R_EDGE.TOPOLOGICALLY_OWNS
+
 # The initial resource graph nodes, as (Type, native_id) tuples. The
 # native_id's must be unique within a node type.
 NODES = [(Image, "a"),
@@ -54,20 +60,47 @@ NODES = [(Image, "a"),
          ]
 
 # The initial resource graph edges. Each entry is ((from_type, native_id),
-# (to_type, native_id)). The native_id's must be unique within a node type.
-EDGES = [((Image, "a"), (Server, "0")),
-         ((Image, "abc"), (Server, "1")),
-         ((Image, "abc"), (Server, "2")),
-         ((Image, "0001"), (Server, "ab")),
-         ((Server, "ab"), (Interface, "0")),
-         ((Project, "p0"), (Network, "n0")),
-         ((Project, "p0"), (Image, "0003")),
-         ((Project, "p0"), (Server, "abc")),
-         ((Image, "0003"), (Server, "abc")),
-         ((Image, "0003"), (Server, "abcd")),
-         ((Server, "abcd"), (Volume, "v0")),
-         ((Server, "abcd"), (Volume, "v1")),
-         ((Server, "abcd"), (Volume, "v2")),
+# (to_type, native_id), {edge_data}). The native_id's must be unique within a
+# node type.
+EDGES = [((Image, "a"),
+          (Server, "0"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Image, "abc"),
+          (Server, "1"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Image, "abc"),
+          (Server, "2"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Image, "0001"),
+          (Server, "ab"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Server, "ab"),
+          (Interface, "0"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Project, "p0"),
+          (Network, "n0"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Project, "p0"),
+          (Image, "0003"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Project, "p0"),
+          (Server, "abc"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Image, "0003"),
+          (Server, "abc"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Image, "0003"),
+          (Server, "abcd"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Server, "abcd"),
+          (Volume, "v0"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Server, "abcd"),
+          (Volume, "v1"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
+         ((Server, "abcd"),
+          (Volume, "v2"),
+          {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
          ]
 
 
@@ -94,7 +127,7 @@ class TopologyViewTests(Setup):
                 self.check_and_delete_uuid(child)
 
         return node
-    
+
     def test_tree_solo(self):
 
         """Call _tree() on a solo node."""
@@ -111,7 +144,7 @@ class TopologyViewTests(Setup):
         node = Image.objects.get(native_id="ab")
         node = resource.instances.get_uuid(node.uuid)
 
-        result = TopologyView()._tree(node)
+        result = TopologyView()._tree(node)   # pylint: disable=W0212
 
         self.check_and_delete_uuid(result)
         self.assertEqual(result, EXPECTED)
@@ -133,7 +166,7 @@ class TopologyViewTests(Setup):
         node = Image.objects.get(native_id="a")
         node = resource.instances.get_uuid(node.uuid)
 
-        result = TopologyView()._tree(node)
+        result = TopologyView()._tree(node)   # pylint: disable=W0212
 
         self.check_and_delete_uuid(result)
         self.assertEqual(result, EXPECTED)
@@ -158,7 +191,7 @@ class TopologyViewTests(Setup):
         node = Image.objects.get(native_id="abc")
         node = resource.instances.get_uuid(node.uuid)
 
-        result = TopologyView()._tree(node)
+        result = TopologyView()._tree(node)   # pylint: disable=W0212
 
         self.check_and_delete_uuid(result)
         self.assertItemsEqual(result["children"], EXPECTED["children"])
@@ -187,7 +220,7 @@ class TopologyViewTests(Setup):
         node = Image.objects.get(native_id="0001")
         node = resource.instances.get_uuid(node.uuid)
 
-        result = TopologyView()._tree(node)
+        result = TopologyView()._tree(node)   # pylint: disable=W0212
 
         self.check_and_delete_uuid(result)
         self.assertEqual(result, EXPECTED)
@@ -237,7 +270,7 @@ class TopologyViewTests(Setup):
         node = Project.objects.get(native_id="p0")
         node = resource.instances.get_uuid(node.uuid)
 
-        result = TopologyView()._tree(node)
+        result = TopologyView()._tree(node)   # pylint: disable=W0212
 
         self.check_and_delete_uuid(result)
 

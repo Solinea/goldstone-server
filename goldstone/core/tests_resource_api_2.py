@@ -429,7 +429,6 @@ class CoreResources(Setup):
                                                         resourcetype=nodetype,
                                                         attributes=attributes))
 
-
         # Force the instance graph to be re-evaluated now.
         resource.instances._graph = None
 

@@ -60,16 +60,21 @@ def load_persistent_rg(startnodes, startedges):
         nameindex += 1
 
     # Create the resource graph edges. We don't use the update_edges() method,
-    # because some of these tests test it. Each row's edge information is
-    # currently empty.
-    for source, dest in startedges:
+    # because some of these tests test it. Each startedges entry may have two
+    # or three values. Each row's edge information is currently empty.
+    for entry in startedges:
+        # Unpack the entry.
+        source = entry[0]
+        dest = entry[1]
+        attributes = entry[2] if len(entry) == 3 else {}
+
         # Get the from and to nodes.
         fromnode = source[0].objects.get(native_id=source[1])
         tonode = dest[0].objects.get(native_id=dest[1])
 
         # Add the edge
         edges = fromnode.edges
-        edges.append((tonode.uuid, {}))
+        edges.append((tonode.uuid, attributes))
 
         # Save it in the row.
         fromnode.edges = edges

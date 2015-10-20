@@ -316,7 +316,7 @@ class CoreResources(Setup):
                                                         attributes=attributes))
 
         # Force the instance graph to be re-evaluated now.
-        resource.instances._graph = None
+        resource.instances._graph = None       # pylint: disable=W0212
 
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:

@@ -32,6 +32,7 @@ from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
+TOPOLOGICALLY_OWNS = settings.R_EDGE.TOPOLOGICALLY_OWNS
 
 
 # Our API documentation extracts this docstring.
@@ -233,10 +234,17 @@ class TopologyView(RetrieveAPIView):
 
         """
 
-        # Get all the children. If there are none, return None instead of an
-        # empty list.
-        children = [self._tree(x)
-                    for x in resource.instances.graph.successors(node)]
+        # Get all the topological children by looking for a TOPOLOGICALLY_OWNS
+        # edge between this node and its children.
+        children = \
+            [self._tree(x)
+                    for x in resource.instances.graph.successors(node)
+                    if any(y[TYPE] == TOPOLOGICALLY_OWNS
+                           for y in
+                           resource.instances.graph.get_edge_data(node, x)
+                           .values())]
+
+        # If no children, return None instead of an empty list.
         if not children:
             children = None
 
