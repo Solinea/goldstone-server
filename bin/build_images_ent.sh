@@ -17,15 +17,6 @@
 # goldstone-server docker container context for build. Once copied, it 
 # performs a build of the docker container, and pushes it to the repo.  
 
-# high level process:
-#    - pull latest addon sdists from Jenkins
-#    - determine version tag for this build
-#    - build images that don't depend on source
-#    - build an app-server container with the open source goldstone code
-#    - collect the static files for the open source static files into a data only container
-#    - build an app-server container with addons
-#    - collect the static files for the enterprise static files into a data only container
-
 DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
@@ -45,7 +36,7 @@ GS_APP_E_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app-e
 
 REGISTRY_ORG=solinea
 
-declare -a need_source=( $GS_APP_DIR $GS_APP_E_DIR )
+declare -a need_source=( $GS_APP_DIR )
 
 declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
               $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR $GS_WEB_DVC_DIR \
