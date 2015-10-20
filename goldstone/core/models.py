@@ -425,6 +425,11 @@ class User(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["user_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Credential,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["user_id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Domain,
                  MATCHING_FN:
                  lambda f, t:
@@ -494,10 +499,20 @@ class Domain(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["domain_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Group,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["domain_id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Project,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["domain_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Project,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["domain_id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -675,10 +690,20 @@ class Region(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["zoneName"],
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
+                {TO: AvailabilityZone,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: sys.maxint}},
                 {TO: Endpoint,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["region_id"],
                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Endpoint,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["region_id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -762,6 +787,11 @@ class Project(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Keypair,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: NovaLimits,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
@@ -827,6 +857,11 @@ class Project(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+                {TO: Volume,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: Limits,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
@@ -894,11 +929,24 @@ class AvailabilityZone(PolyResource):
              f.get("zoneName") and
              f.get("zoneName") == t.get("availability_zone"),
              EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+            {TO: Aggregate,
+             MATCHING_FN:
+             lambda f, t:
+             f.get("zoneName") and
+             f.get("zoneName") == t.get("availability_zone"),
+             EDGE_ATTRIBUTES:
+             {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
             {TO: Host,
              MATCHING_FN:
              lambda f, t:
              f.get("zoneName") and f.get("zoneName") == t.get("zone"),
              EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+            {TO: Host,
+             MATCHING_FN:
+             lambda f, t:
+             f.get("zoneName") and f.get("zoneName") == t.get("zone"),
+             EDGE_ATTRIBUTES:
+             {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
             ]
 
     @classmethod
@@ -1008,6 +1056,12 @@ class Flavor(PolyResource):
              lambda f, t:
              f.get("id") and f.get("id") == t.get("flavor", {}).get("id"),
              EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}},
+            {TO: Server,
+             MATCHING_FN:
+             lambda f, t:
+             f.get("id") and f.get("id") == t.get("flavor", {}).get("id"),
+             EDGE_ATTRIBUTES:
+             {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
             ]
 
     @classmethod
@@ -1174,6 +1228,13 @@ class Host(PolyResource):
              f.get("host_name") and
              f.get("host_name") == t.get("hypervisor_hostname"),
              EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}},
+            {TO: Hypervisor,
+             MATCHING_FN:
+             lambda f, t:
+             f.get("host_name") and
+             f.get("host_name") == t.get("hypervisor_hostname"),
+             EDGE_ATTRIBUTES:
+             {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: 1}},
             ]
 
     @classmethod
@@ -1243,6 +1304,13 @@ class Hypervisor(PolyResource):
                  f.get("id") and
                  f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Server,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("id") and
+                 f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname"),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1379,6 +1447,15 @@ class Server(PolyResource):
                  [y["OS-EXT-IPS-MAC:mac_addr"]
                   for x in f.get("addresses").values() for y in x],
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Interface,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("addresses") and t.get("mac_addr") and
+                 t.get("mac_addr") in
+                 [y["OS-EXT-IPS-MAC:mac_addr"]
+                  for x in f.get("addresses").values() for y in x],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: ServerGroup,
                  MATCHING_FN:
                  lambda f, t:
@@ -1718,6 +1795,11 @@ class VolumeType(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t.get("volume_type"),
                  EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
+                {TO: Volume,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t.get("volume_type"),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -2041,8 +2123,14 @@ class FloatingIPPool(PolyResource):
 
         return [{TO: FixedIP,
                  EDGE_ATTRIBUTES: {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}},
+                {TO: FixedIP,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: FloatingIP,
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: FloatingIP,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
