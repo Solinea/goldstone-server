@@ -102,19 +102,25 @@ var ApiBrowserView = ChartSet.extend({
     //     this.hideSpinner();
     // },
 
-    // initializePopovers: function() {
-    //     var self = this;
-    //     this.tip = d3.tip()
-    //         .attr('class', 'd3-tip')
-    //         .offset([-10, 0])
-    //         .html(function(d) {
-    //             return self.popoverTimeLabel + ": " + moment(+d.time).format() +
-    //                 "<br>" +
-    //                 self.popoverUnitLabel + ": " + d.count;
-    //         });
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset(function(){
+                return [10, 0];
+            })
+            .html(function(d) {
+                return self.popoverTimeLabel + ": " + moment(+d.time).format() +
+                    "<br>" +
+                    self.popoverUnitLabel + ": " + d.count +
+                    "<br>500: " + d.stati5432[0] +
+                    ", 400: " + d.stati5432[1] +
+                    ", 300: " + d.stati5432[2] +
+                    ", 200: " +d.stati5432[3];
+            });
 
-    //     this.svg.call(this.tip);
-    // },
+        this.svg.call(this.tip);
+    },
 
     // setData: function(newData) {
     //     this.data = newData;

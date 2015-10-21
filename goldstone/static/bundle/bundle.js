@@ -3183,12 +3183,27 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
 
         // for each array index in the 'data' key
         _.each(data.per_interval, function(item) {
+
+            // get timestamp
+            var key = _.keys(item)[0];
             var tempObj = {};
 
             // adds the 'time' param based on the object keyed by timestamp
             // and the 200-500 statuses
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-            tempObj.count = item[tempObj.time].count;
+            tempObj.time = parseInt(key, 10);
+            // tempObj.count = item[tempObj.time].count;
+
+            tempObj.responses = [];
+
+            // console.log(item[tempObj.time].response_status);
+            // [500, 400, 300, 200]
+            tempObj.stati5432 = _.map(item[tempObj.time].response_status, function(item) {
+                return _.values(item)[0];
+            });
+
+            tempObj.count = _.reduce(tempObj.stati5432, function(prev, next) {
+                return prev + next;
+            }, 0);
 
             // add the tempObj to the final results array
             finalResult.push(tempObj);
@@ -3196,6 +3211,7 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
 
         // returning inside the 'parse' function adds to collection
         // and triggers 'sync'
+        // console.log(finalResult);
         return finalResult;
     }
 });
@@ -4927,19 +4943,25 @@ var ApiBrowserView = ChartSet.extend({
     //     this.hideSpinner();
     // },
 
-    // initializePopovers: function() {
-    //     var self = this;
-    //     this.tip = d3.tip()
-    //         .attr('class', 'd3-tip')
-    //         .offset([-10, 0])
-    //         .html(function(d) {
-    //             return self.popoverTimeLabel + ": " + moment(+d.time).format() +
-    //                 "<br>" +
-    //                 self.popoverUnitLabel + ": " + d.count;
-    //         });
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset(function(){
+                return [10, 0];
+            })
+            .html(function(d) {
+                return self.popoverTimeLabel + ": " + moment(+d.time).format() +
+                    "<br>" +
+                    self.popoverUnitLabel + ": " + d.count +
+                    "<br>500: " + d.stati5432[0] +
+                    ", 400: " + d.stati5432[1] +
+                    ", 300: " + d.stati5432[2] +
+                    ", 200: " +d.stati5432[3];
+            });
 
-    //     this.svg.call(this.tip);
-    // },
+        this.svg.call(this.tip);
+    },
 
     // setData: function(newData) {
     //     this.data = newData;
