@@ -200,6 +200,7 @@ Testing can be performed from within the container via the `tox` command.  First
 
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
+    $ ./bin/gsexec --shell pip install tox
 
 With `tox` installed, you can call various test targets by using one of the following commands:
 
