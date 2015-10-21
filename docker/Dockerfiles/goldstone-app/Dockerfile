@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:v1-b2912cf-release
+FROM solinea/gunicorn:19.3.0
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
