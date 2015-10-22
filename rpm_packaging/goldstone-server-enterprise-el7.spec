@@ -149,6 +149,7 @@ rm -rf %{buildroot}
 /opt/goldstone/INSTALL.md
 /opt/goldstone/CHANGELOG.md
 /opt/goldstone/LICENSE
+/opt/goldstone/docker-compose.yml
 /opt/goldstone/config/
 /opt/goldstone/data/
 /var/log/goldstone/
