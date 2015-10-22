@@ -58,7 +58,7 @@ if [[ $# == 1 && $1 == 1 ]] ; then
 fi
 
 echo "Pulling goldstone containers"
-%{prefix}/goldstone/bin/docker-compose pull
+%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker-compose.yml pull
 
 echo "*****************************************************************************"
 echo ""
