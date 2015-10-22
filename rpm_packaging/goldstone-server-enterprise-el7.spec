@@ -15,6 +15,9 @@
 %define version %{getenv:GOLDSTONE_RPM_VERSION}
 %define release %{getenv:GOLDSTONE_RPM_RELEASE}
 %define epoch   %{getenv:GOLDSTONE_RPM_EPOCH}
+%define docker_user   %{getenv:GOLDSTONE_REPO_USER}
+%define docker_pass   %{getenv:GOLDSTONE_REPO_PASS}
+%define docker_email   %{getenv:GOLDSTONE_REPO_EMAIL}
 
 Summary:        Solinea Goldstone Server Enterprise
 Name:           goldstone-server-enterprise
@@ -22,7 +25,7 @@ Version:        %{version}
 Release:        %{release}%{?dist}
 Epoch:          %{epoch}
 Group:          Applications/System
-License:        Solinea1.0
+License:        Core Server: Apache 2.0, Addons: Solinea 1.0
 URL:            https://solinea.com/goldstone
 ExclusiveArch:  x86_64
 ExclusiveOS:    linux
@@ -32,6 +35,13 @@ Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl, docker-selinux
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
+[ -z "%docker_user" ] || { echo "GOLDSTONE_REPO_USER environment var must be set" && exit 1 ; }
+[ -z "%docker_pass" ] || { echo "GOLDSTONE_REPO_PASS environment var must be set" && exit 1 ; }
+[ -z "%docker_email" ] || { echo "GOLDSTONE_REPO_EMAIL environment var must be set" && exit 1 ; }
+
+echo "Logging in to Goldstone enterprise docker repo"
+docker login -u "%docker_user" -p "%docker_pass" -e "%docker_email" gs-docker-ent.bintray.io
+
 /usr/bin/getent group goldstone \
     || /usr/sbin/groupadd -r goldstone
 /usr/bin/getent passwd goldstone \
@@ -50,6 +60,7 @@ if [[ $# == 1 && $1 == 1 ]] ; then
         && chmod +x %{prefix}/goldstone/bin/docker-compose
    
 fi
+
 echo "Pulling goldstone containers"
 %{prefix}/goldstone/bin/docker-compose pull
 
@@ -113,6 +124,8 @@ install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 755 %{buildroot}/usr/lib/systemd/system/
 install -d -m 755 %{buildroot}/etc/rsyslog.d/
 install -d -m 755 %{buildroot}/var/log/goldstone/
+install -d -m 750 %{buildroot}/opt/goldstone/config
+install -d -m 750 %{buildroot}/opt/goldstone/data
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
@@ -136,7 +149,8 @@ rm -rf %{buildroot}
 /opt/goldstone/INSTALL.md
 /opt/goldstone/CHANGELOG.md
 /opt/goldstone/LICENSE
-/opt/goldstone/docker/
+/opt/goldstone/config/
+/opt/goldstone/data/
 /var/log/goldstone/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
