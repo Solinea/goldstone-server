@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-%define version %{getenv:GOLDSTONE_RPM_VERSION}
-%define release %{getenv:GOLDSTONE_RPM_RELEASE}
-%define epoch   %{getenv:GOLDSTONE_RPM_EPOCH}
+%define version       %{getenv:GOLDSTONE_RPM_VERSION}
+%define release       %{getenv:GOLDSTONE_RPM_RELEASE}
+%define epoch         %{getenv:GOLDSTONE_RPM_EPOCH}
 %define docker_user   %{getenv:GOLDSTONE_REPO_USER}
 %define docker_pass   %{getenv:GOLDSTONE_REPO_PASS}
-%define docker_email   %{getenv:GOLDSTONE_REPO_EMAIL}
+%define docker_email  %{getenv:GOLDSTONE_REPO_EMAIL}
 
 Summary:        Solinea Goldstone Server Enterprise
 Name:           goldstone-server-enterprise
@@ -35,12 +35,12 @@ Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl, docker-selinux
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
-[ -z "%docker_user" ] || { echo "GOLDSTONE_REPO_USER environment var must be set" && exit 1 ; }
-[ -z "%docker_pass" ] || { echo "GOLDSTONE_REPO_PASS environment var must be set" && exit 1 ; }
-[ -z "%docker_email" ] || { echo "GOLDSTONE_REPO_EMAIL environment var must be set" && exit 1 ; }
+[ -z "%{docker_user}" ] || { echo "GOLDSTONE_REPO_USER environment var must be set" && exit 1 ; }
+[ -z "%{docker_pass}" ] || { echo "GOLDSTONE_REPO_PASS environment var must be set" && exit 1 ; }
+[ -z "%{docker_email}" ] || { echo "GOLDSTONE_REPO_EMAIL environment var must be set" && exit 1 ; }
 
 echo "Logging in to Goldstone enterprise docker repo"
-docker login -u "%docker_user" -p "%docker_pass" -e "%docker_email" gs-docker-ent.bintray.io
+docker login -u "%{docker_user}" -p "%{docker_pass}" -e "%{docker_email}" gs-docker-ent.bintray.io
 
 /usr/bin/getent group goldstone \
     || /usr/sbin/groupadd -r goldstone
