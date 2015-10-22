@@ -530,10 +530,9 @@ def install_addon(name,
 
     """
 
-    interactive = ast.literal_eval(interactive)
-
-    # Normalize verbose to a boolean.
+    # Normalize verbose and interactive to booleans.
     verbose = verbose in ["True", "true", True]
+    interactive = interactive in ["True", "true", True]
 
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
