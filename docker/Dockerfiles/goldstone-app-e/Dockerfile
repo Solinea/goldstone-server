@@ -19,25 +19,22 @@ MAINTAINER John Stanford <john@solinea.com>
 
 ENV GS_PROJ_TOP_DIR ${APPDIR}
 
-ADD addons /tmp/addons
+ADD ./addons /tmp/addons
+ADD ./docker_entrypoint.sh /
 
 WORKDIR ${APPDIR}
 
 USER ${APPUSER}
 
+# really need a better way to loop through addons and install them
 RUN . ${ENVDIR}/bin/activate \
-  && pip install /tmp/addons/django-opentrail-0.0.tar.gz \
-  && pip install /tmp/addons/django-leases-0.0.tar.gz
+  && pip install /tmp/addons/django-opentrail-0.1.0.tar.gz
 
 USER root
-
-RUN rm -rf /tmp/addons
+RUN  rm -rf /tmp/addons
 
 EXPOSE 8000
 
 USER ${APPUSER}
 
-COPY ./docker_entrypoint.sh /
-
 ENTRYPOINT ["/docker_entrypoint.sh"]
-

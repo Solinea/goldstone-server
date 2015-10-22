@@ -28,7 +28,7 @@ gsweb:
 
 # Goldstone Server Container
 gsapp:
-  image: solinea/goldstone-app-e
+  image: gs-docker-ent.bintray.io/solinea/goldstone-app-e
   env_file: ./config/goldstone-test.env
   volumes:
     - ./config/goldstone-app:/home/app/config
