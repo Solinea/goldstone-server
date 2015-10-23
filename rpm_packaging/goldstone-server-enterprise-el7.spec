@@ -63,7 +63,7 @@ echo "Pulling goldstone containers"
 echo "*****************************************************************************"
 echo ""
 echo " Modify %{prefix}/goldstone/config/goldstone-prod.env"
-echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
+echo " before starting goldstone-server-enterprise. See %{prefix}/goldstone/INSTALL.md"
 echo " for details."
 echo ""
 echo " To enable and start goldstone-server, run:"
@@ -110,7 +110,7 @@ project's website.
 # cleanup from previous builds
 rm -rf %{buildroot}/*
 rm -rf %{_rpmdir}/*
-rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
+rm -f %{_sourcedir}/goldstone-server-enterprise-[0-9]*.rpm
 
 %build
 

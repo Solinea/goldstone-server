@@ -22,7 +22,7 @@ Version:        %{version}
 Release:        %{release}%{?dist}
 Epoch:          %{epoch}
 Group:          Applications/System
-License:        Apache2.0
+License:        Apache 2.0
 URL:            https://github.com/solinea/goldstone-server
 ExclusiveArch:  x86_64
 ExclusiveOS:    linux
@@ -51,11 +51,11 @@ if [[ $# == 1 && $1 == 1 ]] ; then
    
 fi
 echo "Pulling goldstone containers"
-%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker/docker-compose.yml pull
+%{prefix}/goldstone/bin/docker-compose -f %{prefix}/goldstone/docker-compose.yml pull
 
 echo "*****************************************************************************"
 echo ""
-echo " Modify %{prefix}/goldstone/docker/config/goldstone-prod.env"
+echo " Modify %{prefix}/goldstone/config/goldstone-prod.env"
 echo " before starting goldstone-server. See %{prefix}/goldstone/INSTALL.md"
 echo " for details."
 echo ""
@@ -113,15 +113,19 @@ install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 755 %{buildroot}/usr/lib/systemd/system/
 install -d -m 755 %{buildroot}/etc/rsyslog.d/
 install -d -m 755 %{buildroot}/var/log/goldstone/
+install -d -m 750 %{buildroot}/opt/goldstone/config/
+install -d -m 750 %{buildroot}/opt/goldstone/data/
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
-cp -R %{_sourcedir}/docker %{buildroot}/opt/goldstone
+cp -R %{_sourcedir}/docker/config %{buildroot}/opt/goldstone
+cp -R %{_sourcedir}/docker/data %{buildroot}/opt/goldstone
 
 install -m 644 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
 install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
 install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
+install -m 644 %{_sourcedir}/docker/docker-compose.yml %{buildroot}/opt/goldstone/docker-compose.yml
 install -m 644 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
 install -m 644 %{_sourcedir}/external/rsyslog/goldstone.conf %{buildroot}/etc/rsyslog.d/goldstone.conf
 
@@ -134,7 +138,9 @@ rm -rf %{buildroot}
 /opt/goldstone/INSTALL.md
 /opt/goldstone/CHANGELOG.md
 /opt/goldstone/LICENSE
-/opt/goldstone/docker/
+/opt/goldstone/docker-compose.yml
+/opt/goldstone/config/
+/opt/goldstone/data/
 /var/log/goldstone/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf

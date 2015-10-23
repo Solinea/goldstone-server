@@ -15,7 +15,7 @@
 
 # Goldstone Proxy & Static
 gsweb:
-  image: solinea/goldstone-web:v1-3bd1d52-release
+  image: solinea/goldstone-web:latest
   volumes:
     - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
     - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
@@ -30,7 +30,7 @@ gsweb:
 
 # Goldstone Server Container
 gsapp:
-  image: solinea/goldstone-app:v1-3bd1d52-release
+  image: solinea/goldstone-app:latest
   env_file: ./config/goldstone-prod.env
   volumes:
     - ./config/goldstone-app:/home/app/config
@@ -47,7 +47,7 @@ gsapp:
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db:v1-3bd1d52-release
+  image: solinea/goldstone-db:latest
   env_file: ./config/goldstone-prod.env
   volumes_from:
     - gsdbdvc
@@ -60,7 +60,7 @@ gsdb:
 
 # Database Data Volume Container
 gsdbdvc:
-  image: solinea/goldstone-db-dvc:v1-3bd1d52-release
+  image: solinea/goldstone-db-dvc:latest
   volumes:
     - /var/lib/postgresql/data
   log_driver: "syslog"
@@ -70,7 +70,7 @@ gsdbdvc:
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log:v1-3bd1d52-release
+  image: solinea/goldstone-log:latest
   command: logstash -f /logstash/conf.d -w 1
   volumes:
     - ./config/goldstone-log/conf.d:/logstash/conf.d
@@ -88,7 +88,7 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search:v1-3bd1d52-release
+  image: solinea/goldstone-search:latest
   volumes:
     - ./config/goldstone-search:/usr/share/elasticsearch/config
   ports:
@@ -101,7 +101,7 @@ gssearch:
 
 # Celery Task Queue Container
 gstaskq:
-  image: solinea/goldstone-task-queue:v1-3bd1d52-release
+  image: solinea/goldstone-task-queue:latest
   ports:
     - "6379:6379"
   log_driver: "syslog"
