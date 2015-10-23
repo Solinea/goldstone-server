@@ -64,9 +64,6 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
             tempObj.time = parseInt(key, 10);
             // tempObj.count = item[tempObj.time].count;
 
-            tempObj.responses = [];
-
-            // console.log(item[tempObj.time].response_status);
             // [500, 400, 300, 200]
             tempObj.stati5432 = _.map(item[tempObj.time].response_status, function(item) {
                 return _.values(item)[0];
@@ -80,9 +77,57 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
             finalResult.push(tempObj);
         });
 
+
+        /*
+        compute a nested array matrix of form:
+
+        [
+            [time, 500s, 400s, 300s, 200s],
+            [time, 500s, 400s, 300s, 200s],
+            [time, 500s, 400s, 300s, 200s] ...
+        ]
+
+        */
+
+        var matrix = _.map(data.per_interval, function(num) {
+
+            var time = +(_.keys(num)[0]);
+            var result = [];
+            result.push(time);
+
+            _.each(_.map(_.values(num)[0].response_status, function(item) {
+                return _.values(item)[0];
+            }), function(item) {
+                result.push(item);
+            });
+
+            return result;
+        });
+
+        /*
+        remap to form:
+
+        [
+            [{x:time, y:0},{x:time, y:0},{x:time, y:0},{x:time, y:0},],
+            [{x:time, y:0},{x:time, y:0},{x:time, y:0},{x:time, y:0},],
+            [{x:time, y:0},{x:time, y:0},{x:time, y:0},{x:time, y:0},],
+            [{x:time, y:0},{x:time, y:0},{x:time, y:0},{x:time, y:0},]
+        ]
+        */
+
+        var remapped = ["500", "400", "300", "200"].map(function(dat, i) {
+            return matrix.map(function(d, ii) {
+                return {x: d[0], y: d[i+1]};
+            });
+        });
+
+        var stacked = d3.layout.stack()(remapped);
+
         // returning inside the 'parse' function adds to collection
         // and triggers 'sync'
-        // console.log(finalResult);
-        return finalResult;
+        return {
+            finalResult: finalResult,
+            stacked: stacked
+        };
     }
 });
