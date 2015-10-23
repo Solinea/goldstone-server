@@ -4984,9 +4984,11 @@ var ApiBrowserView = ChartSet.extend({
         this.y.domain(self.data.length ? [0, d3.max(self.data[self.data.length - 1], function(d) {
             return d.y0 + d.y;
         })] : [0, 0])
-            .range([(self.height - self.marginTop - self.marginBottom), 0]);
+            .range([0, (self.height - self.marginTop - self.marginBottom)]);
 
-        this.z = d3.scale.ordinal().range(["red", "green", "blue", "yellow", "orange"]);
+        var stackedColors = ['#EB6F26', '#1560B7', '#5C4591', '#6BA757'];
+
+        this.z = d3.scale.ordinal().range(stackedColors);
 
     },
 
@@ -5030,24 +5032,22 @@ var ApiBrowserView = ChartSet.extend({
         // Add a rect for each date.
         var rect = valgroup.selectAll("rect")
             .data(function(d) {
-                console.log('data being added ', d);
                 return d;
             })
             .enter().append("rect")
             .attr("x", function(d) {
-                console.log('x is: ', self.x(d.x));
                 return self.x(d.x);
             })
-            .attr("y", function(d) {
-                console.log('y is: ', -self.y(d.y) - self.y(d.y0));
-                return - self.y(d.y) + self.y(d.y0);
+            .attr("y", function(d, i) {
+                console.log('y is: ', self.y.range()[1] - self.y(d.y0));
+                return self.y.range()[1] - self.y(d.y0) - self.y(d.y);
+                // return self.y.domain()[1] - self.y(d.y) + self.y(d.y0);
             })
-            .attr("height", function(d) {
-                console.log('height is ', self.y(d.y));
+            .attr("height", function(d, i) {
+                console.log('height is: ', self.y(d.y));
                 return self.y(d.y);
             })
             .attr("width", function(d) {
-                console.log('width is: ', self.width / self.data[0].length);
                 return (self.width - self.marginLeft - self.marginRight) / self.data[0].length;
             });
 
@@ -5098,7 +5098,6 @@ var ApiBrowserView = ChartSet.extend({
     },
 
     setData: function(newData) {
-        console.log('data being added ', newData);
         this.data = newData;
     },
 
