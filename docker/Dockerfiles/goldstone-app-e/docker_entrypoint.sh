@@ -48,8 +48,7 @@ if [[ $GS_DEV_ENV == "true" ]] ; then
 fi
 
 
-# declare -a addons=( opentrail leases )
-declare -a addons=( opentrail )
+declare -a addons=( opentrail leases )
 
 for addon in "${addons[@]}" ; do
     if [ ! -f ${APPDIR}/.${addon}-installed ] ; then

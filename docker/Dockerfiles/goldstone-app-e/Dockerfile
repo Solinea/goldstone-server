@@ -28,7 +28,8 @@ USER ${APPUSER}
 
 # really need a better way to loop through addons and install them
 RUN . ${ENVDIR}/bin/activate \
-  && pip install /tmp/addons/django-opentrail-0.1.0.tar.gz
+  && pip install /tmp/addons/django-opentrail-0.1.0.tar.gz \
+  && pip install /tmp/addons/django-leases-0.1.0.tar.gz 
 
 USER root
 RUN  rm -rf /tmp/addons
