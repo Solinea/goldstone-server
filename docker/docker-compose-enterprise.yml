@@ -25,6 +25,10 @@ gsweb:
     - "8888:8888"
   links:
     - gsapp:gsapp
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsweb"
 
 # Goldstone Server Container
 gsapp:
@@ -39,6 +43,10 @@ gsapp:
     - gsdb
     - gssearch
     - gstaskq
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsapp"
 
 # Database Container
 gsdb:
@@ -48,12 +56,20 @@ gsdb:
     - "5432:5432"
   volumes_from:
     - gsdbdvc
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsdb"
 
 # Database Data Volume Container
 gsdbdvc:
   image: solinea/goldstone-db-dvc:latest
   volumes:
     - /var/lib/postgresql/data
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gsdbdvc"
 
 # Logstash Container
 gslog:
@@ -68,6 +84,10 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gslog"
 
 # Elasticsearch Container
 gssearch:
@@ -77,9 +97,17 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gssearch"
 
 # Celery Task Queue Container
 gstaskq:
   image: solinea/goldstone-task-queue:latest
   ports:
     - "6379:6379"
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gstaskq"

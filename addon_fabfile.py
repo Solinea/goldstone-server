@@ -25,7 +25,6 @@ from fabric.utils import abort, fastprint
 from fabric.operations import prompt
 import os
 import sys
-import ast
 
 from goldstone.core.utils import resource_types
 
