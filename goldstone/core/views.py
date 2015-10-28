@@ -238,20 +238,28 @@ class TopologyView(RetrieveAPIView):
         # edge between this node and its children.
         children = \
             [self._tree(x)
-                    for x in resource.instances.graph.successors(node)
-                    if any(y[TYPE] == TOPOLOGICALLY_OWNS
-                           for y in
-                           resource.instances.graph.get_edge_data(node, x)
-                           .values())]
+             for x in resource.instances.graph.successors(node)
+             if any(y[TYPE] == TOPOLOGICALLY_OWNS
+                    for y in
+                    resource.instances.graph.get_edge_data(node, x)
+                    .values())]
 
-        # If no children, return None instead of an empty list.
+        # Now we concoct the return value. If no children, return None instead
+        # of an empty list.
         if not children:
             children = None
 
-        return {"rsrcType": node.resourcetype.display_attributes()["name"],
-                "label": node.label,
-                "uuid": node.uuid,
-                "children": children}
+        result = {"rsrcType": node.resourcetype.name(),
+                  "label": node.label,
+                  "uuid": node.uuid,
+                  "children": children}
+
+        # The interface value will be "private", "public", or "admin", if it
+        # exists.
+        if "interface" in node.attributes:
+            result["interface"] = node.attributes["interface"]
+
+        return result
 
     def get_object(self):
         """Return the cloud's toplogy.
@@ -261,9 +269,17 @@ class TopologyView(RetrieveAPIView):
         """
         from .models import Region
 
+        # We do this in multiple steps in order to be more robust in the face
+        # of bad cloud data.
+        regionnodes = set([resource.instances.get_uuid(x.uuid)
+                           for x in Region.objects.all()])
+        if not regionnodes:
+            return {"rsrcType": "error", "label": "No data found"}
+
+        children = [self._tree(x) for x in regionnodes if x]
+
         # If we don't yet have any cloud integrations, return a "no data"
         # response.
-        children = [self._tree(x) for x in Region.objects.all()]
         if not children:
             return {"rsrcType": "error", "label": "No data found"}
 
@@ -434,8 +450,8 @@ class ResourceTypeList(ListAPIView):
         {"nodes": [<b>node</b>, <b>node</b>, ...],
          "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
 
-        <b>node</b> is {"display_attributes": {"integration_name": str,
-                                               "name": str},
+        <b>node</b> is {"integration": str,
+                        "name": str,
                         "unique_id": str,
                         "present": bool (True if >= 1 instance exists)
                         }\n\n
@@ -445,7 +461,8 @@ class ResourceTypeList(ListAPIView):
         """
 
         # Gather the nodes.
-        nodes = [{"display_attributes": entry.display_attributes(),
+        nodes = [{"integration": entry.integration(),
+                  "name": entry.name(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
                  for entry in resource.types.graph.nodes()]
@@ -603,8 +620,7 @@ class ResourcesList(ListAPIView):
                 nodes.append({"resourcetype":
                               {"unique_id":
                                node.resourcetype.unique_class_id(),
-                               "name":
-                               node.resourcetype.display_attributes()["name"]},
+                               "name": node.resourcetype.name()},
                               "uuid": node.uuid,
                               "native_id": row.native_id,
                               "native_name": row.native_name

@@ -282,19 +282,8 @@ class PolyResource(PolymorphicModel):
         return attributes[cls.native_id_key()]
 
     @classmethod
-    def drilldown_label(cls):
-        """Return an URL segment that the client uses to concoct an API URL,
-        which will return detailed node information.
-
-        :rtype: str
-
-        """
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type (not instance!).
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type.
 
         :return: Entries in the form of:
                  TO: The destination type
@@ -315,6 +304,17 @@ class PolyResource(PolymorphicModel):
 
         return []
 
+    @classmethod
+    def drilldown_label(cls):
+        """Return an URL segment that the client uses to concoct an API URL,
+        which will return detailed node information.
+
+        :rtype: str
+
+        """
+
+        return ''
+
     def update_edges(self):
         """Update this persistent instance's edges with what's in the
         persistent resource graph."""
@@ -322,7 +322,7 @@ class PolyResource(PolymorphicModel):
         outgoing = []
 
         # For every possible edge from this node's type...
-        for edge in self.outgoing_edges():
+        for edge in self.type_outgoing_edges():
             # Get the target neighbor's type and matching function.
             neighbor_type = edge[TO]
             match_fn = edge[MATCHING_FN]
@@ -336,6 +336,18 @@ class PolyResource(PolymorphicModel):
         # Save the edges.
         self.edges = outgoing
         self.save()
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return ''
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return ''
 
     def logs(self):
         """Return a search object for logs related to this resource.
@@ -377,19 +389,24 @@ class Addon(PolyResource):
         return [x.cloud_attributes for x in Addon.objects.all()]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Add-on", "name": "Add-on"}
+        return "Add-on"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Add-on"
 
 
 ###################################################################
 # These classes represent entities within a Keystone integration. #
 ###################################################################
 
-# TODO: Fill in User.outgoing_edges.QuotaSet.MATCHING_FN, Group, Token,
-# Credential, Role, Endpoint, Service.
+# TODO: Fill in User.type_outgoing_edges.QuotaSet.MATCHING_FN, Group, Token,
+# Credential, Role.
 
 class User(PolyResource):
     """An OpenStack user."""
@@ -413,13 +430,7 @@ class User(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Credential,
@@ -458,11 +469,16 @@ class User(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "User"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "User"
 
 
 class Domain(PolyResource):
@@ -487,13 +503,7 @@ class Domain(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Group,
@@ -517,11 +527,16 @@ class Domain(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Domain"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Domain"
 
 
 class Group(PolyResource):
@@ -546,13 +561,7 @@ class Group(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Domain,
@@ -562,24 +571,23 @@ class Group(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Group"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Group"
 
 
 class Token(PolyResource):
     """An OpenStack token."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: User,
@@ -589,24 +597,23 @@ class Token(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Token"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Token"
 
 
 class Credential(PolyResource):
     """An OpenStack credential."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Project,
@@ -614,24 +621,23 @@ class Credential(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Credential"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Credential"
 
 
 class Role(PolyResource):
     """An OpenStack role."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Domain,
@@ -649,11 +655,16 @@ class Role(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Role"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Role"
 
 
 class Region(PolyResource):
@@ -678,13 +689,7 @@ class Region(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: AvailabilityZone,
@@ -708,47 +713,109 @@ class Region(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Region"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Region"
 
 
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
 
     @classmethod
-    def drilldown_label(cls):
+    def clouddata(cls):
         """See the parent class' method's docstring."""
 
-        return ''
+        keystone_client = get_keystone_client()['client']
+
+        # Note: Endpoints may have identical service_ids for the public,
+        # private, and admin interfaces. The endpoint's dict will contain an
+        # "interface" key.
+        result = []
+
+        for entry in keystone_client.endpoints.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
 
     @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Service,
+                 MATCHING_FN:
+                 lambda f, t: f.get("service_id") and
+                 f.get("service_id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}},
+                {TO: Service,
+                 MATCHING_FN:
+                 lambda f, t: f.get("service_id") and
+                 f.get("service_id") == t.get("id"),
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Endpoint"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Endpoint"
+
+    @classmethod
+    def drilldown_label(cls):
+        """See the parent class' method's docstring."""
+
+        return 'endpoints'
 
 
 class Service(PolyResource):
     """An OpenStack service."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Service"}
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.services.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Service"
 
 
 class Project(PolyResource):
@@ -777,7 +844,7 @@ class Project(PolyResource):
         return result
 
     @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Image,
@@ -870,11 +937,16 @@ class Project(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Keystone", "name": "Project"}
+        return "Keystone"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Project"
 
 
 ###############################################################
@@ -914,13 +986,7 @@ class AvailabilityZone(PolyResource):
         return "zoneName"
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [
@@ -951,10 +1017,16 @@ class AvailabilityZone(PolyResource):
             ]
 
     @classmethod
-    def display_attributes(cls):
+    def integration(cls):
         """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Availability Zone"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Availability Zone"
 
 
 class Aggregate(PolyResource):
@@ -996,11 +1068,16 @@ class Aggregate(PolyResource):
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Aggregate"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Aggregate"
 
 
 class Flavor(PolyResource):
@@ -1042,13 +1119,7 @@ class Flavor(PolyResource):
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [
@@ -1066,11 +1137,16 @@ class Flavor(PolyResource):
             ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Flavor"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Flavor"
 
 
 class Keypair(PolyResource):
@@ -1102,13 +1178,7 @@ class Keypair(PolyResource):
         return "fingerprint"
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Server,
@@ -1121,11 +1191,16 @@ class Keypair(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Keypair"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Keypair"
 
 
 class Host(PolyResource):
@@ -1208,13 +1283,7 @@ class Host(PolyResource):
         return _hash(cls.unique_class_id(), attributes.get("host_name", ''))
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [
@@ -1239,11 +1308,16 @@ class Host(PolyResource):
             ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Host"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Host"
 
 
 class Hypervisor(PolyResource):
@@ -1290,13 +1364,7 @@ class Hypervisor(PolyResource):
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Server,
@@ -1315,11 +1383,16 @@ class Hypervisor(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Hypervisor"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Hypervisor"
 
 
 class Cloudpipe(PolyResource):
@@ -1353,13 +1426,7 @@ class Cloudpipe(PolyResource):
         return "project_id"
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [
@@ -1370,11 +1437,16 @@ class Cloudpipe(PolyResource):
             ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Cloudpipe"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Cloudpipe"
 
 
 class ServerGroup(PolyResource):
@@ -1401,11 +1473,16 @@ class ServerGroup(PolyResource):
         return result
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Server Group"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Server Group"
 
 
 class Server(PolyResource):
@@ -1431,13 +1508,7 @@ class Server(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return "servers"
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Interface,
@@ -1474,11 +1545,22 @@ class Server(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Server"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Server"
+
+    @classmethod
+    def drilldown_label(cls):
+        """See the parent class' method's docstring."""
+
+        return "servers"
 
 
 class Interface(PolyResource):
@@ -1526,7 +1608,7 @@ class Interface(PolyResource):
         return "mac_addr"
 
     @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Port,
@@ -1537,11 +1619,16 @@ class Interface(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Interface"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Interface"
 
 
 class NovaLimits(PolyResource):
@@ -1570,11 +1657,16 @@ class NovaLimits(PolyResource):
         return result
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Nova", "name": "Limits"}
+        return "Nova"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Limits"
 
 
 #################################################################
@@ -1601,13 +1693,7 @@ class Image(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return "images"
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Server,
@@ -1617,11 +1703,22 @@ class Image(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Glance", "name": "Image"}
+        return "Glance"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Image"
+
+    @classmethod
+    def drilldown_label(cls):
+        """See the parent class' method's docstring."""
+
+        return "images"
 
 
 #################################################################
@@ -1664,11 +1761,16 @@ class QuotaSet(PolyResource):
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Cinder", "name": "Quota Set"}
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Quota Set"
 
 
 class QOSSpec(PolyResource):
@@ -1692,13 +1794,7 @@ class QOSSpec(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: VolumeType,
@@ -1710,11 +1806,16 @@ class QOSSpec(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Cinder", "name": "QoS Spec"}
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "QoS Spec"
 
 
 class Snapshot(PolyResource):
@@ -1738,13 +1839,7 @@ class Snapshot(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Volume,
@@ -1755,11 +1850,16 @@ class Snapshot(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Cinder", "name": "Snapshot"}
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Snapshot"
 
 
 class VolumeType(PolyResource):
@@ -1783,13 +1883,7 @@ class VolumeType(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Volume,
@@ -1804,11 +1898,16 @@ class VolumeType(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Cinder", "name": "Volume Type"}
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Volume Type"
 
 
 class Volume(PolyResource):
@@ -1832,17 +1931,22 @@ class Volume(PolyResource):
         return result
 
     @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Volume"
+
+    @classmethod
     def drilldown_label(cls):
         """See the parent class' method's docstring."""
 
         return "volumes"
-
-    @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
-
-        return {"integration_name": "Cinder", "name": "Volume"}
 
 
 class Limits(PolyResource):
@@ -1867,11 +1971,16 @@ class Limits(PolyResource):
         return result
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Cinder", "name": "Limits"}
+        return "Cinder"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Limits"
 
 
 ##################################################################
@@ -1886,24 +1995,23 @@ class MeteringLabelRule(PolyResource):
     """An OpenStack Metering Label Rule."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Metering Label Rule"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Metering Label Rule"
 
 
 class MeteringLabel(PolyResource):
     """An OpenStack Metering Label."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: MeteringLabel,
@@ -1911,46 +2019,55 @@ class MeteringLabel(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Metering Label"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Metering Label"
 
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Quota"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Quota"
 
 
 class RemoteGroup(PolyResource):
     """An OpenStack Remote Group."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Remote Group"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Remote Group"
 
 
 class SecurityRules(PolyResource):
     """An OpenStack Security Rules."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: RemoteGroup,
@@ -1960,22 +2077,32 @@ class SecurityRules(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Security Rules"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Security Rules"
 
 
 class SecurityGroup(PolyResource):
     """An OpenStack Security Group."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Security Group"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Security Group"
 
 
 class Port(PolyResource):
@@ -2008,13 +2135,7 @@ class Port(PolyResource):
         return result
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: FixedIP,
@@ -2026,24 +2147,23 @@ class Port(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Port"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Port"
 
 
 class LBVIP(PolyResource):
     """An OpenStack load balancer VIP address."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: LBPool,
@@ -2055,35 +2175,39 @@ class LBVIP(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "LB Virtual IP"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "LB Virtual IP"
 
 
 class LBPool(PolyResource):
     """An OpenStack load balancer pool."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "LB Pool"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "LB Pool"
 
 
 class HealthMonitor(PolyResource):
     """An OpenStack Health Monitor."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: LBPool,
@@ -2091,35 +2215,39 @@ class HealthMonitor(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Health Monitor"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Health Monitor"
 
 
 class FloatingIP(PolyResource):
     """An OpenStack Floating IP address."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Floating IP address"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Floating IP address"
 
 
 class FloatingIPPool(PolyResource):
     """An OpenStack Floating IP address pool."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: FixedIP,
@@ -2135,35 +2263,39 @@ class FloatingIPPool(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Floating IP Pool"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Floating IP Pool"
 
 
 class FixedIP(PolyResource):
     """An OpenStack Fixed IP address."""
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Fixed IP address"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Fixed IP address"
 
 
 class LBMember(PolyResource):
     """An OpenStack load balancer member."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: LBPool,
@@ -2173,24 +2305,23 @@ class LBMember(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "LB Member"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "LB Member"
 
 
 class Subnet(PolyResource):
     """An OpenStack subnet."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: FixedIP,
@@ -2200,15 +2331,32 @@ class Subnet(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Subnet"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Subnet"
 
 
 class Network(PolyResource):
     """An OpenStack network."""
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Network"
 
     @classmethod
     def drilldown_label(cls):
@@ -2216,25 +2364,12 @@ class Network(PolyResource):
 
         return "networks"
 
-    @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
-
-        return {"integration_name": "Neutron", "name": "Network"}
-
 
 class Router(PolyResource):
     """An OpenStack router."""
 
     @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return ''
-
-    @classmethod
-    def outgoing_edges(cls):      # pylint: disable=R0201
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
         return [{TO: Network,
@@ -2245,8 +2380,13 @@ class Router(PolyResource):
                 ]
 
     @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
+    def integration(cls):
+        """See the parent class' method's docstring."""
 
-        return {"integration_name": "Neutron", "name": "Router"}
+        return "Neutron"
+
+    @classmethod
+    def name(cls):
+        """See the parent class' method's docstring."""
+
+        return "Router"

@@ -133,7 +133,7 @@ class TopologyViewTests(Setup):
         """Call _tree() on a solo node."""
 
         # The expected results, sans UUID.
-        EXPECTED = {"rsrcType": Image.display_attributes()["name"],
+        EXPECTED = {"rsrcType": Image.name(),
                     "label": Image.drilldown_label(),
                     "children": None}
 
@@ -152,11 +152,11 @@ class TopologyViewTests(Setup):
     def test_tree_1child(self):
         """Call _tree() on a node with one solo child."""
 
-        EXPECTED = {"rsrcType": Image.display_attributes()["name"],
+        EXPECTED = {"rsrcType": Image.name(),
                     "label": Image.drilldown_label(),
                     "children":
                     [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.display_attributes()["name"],
+                      'rsrcType': Server.name(),
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -174,14 +174,14 @@ class TopologyViewTests(Setup):
     def test_tree_2child(self):
         """Call _tree() on a node with two solo children."""
 
-        EXPECTED = {"rsrcType": Image.display_attributes()["name"],
+        EXPECTED = {"rsrcType": Image.name(),
                     "label": Image.drilldown_label(),
                     "children":
                     [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.display_attributes()["name"],
+                      'rsrcType': Server.name(),
                       'children': None},
                      {'label': Server.drilldown_label(),
-                      'rsrcType': Server.display_attributes()["name"],
+                      'rsrcType': Server.name(),
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -202,14 +202,14 @@ class TopologyViewTests(Setup):
     def test_tree_1grandchild(self):
         """Call _tree() on a node with one child with one child."""
 
-        EXPECTED = {"rsrcType": Image.display_attributes()["name"],
+        EXPECTED = {"rsrcType": Image.name(),
                     "label": Image.drilldown_label(),
                     "children":
                     [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.display_attributes()["name"],
+                      'rsrcType': Server.name(),
                       'children':
                       [{'label': Interface.drilldown_label(),
-                        'rsrcType': Interface.display_attributes()["name"],
+                        'rsrcType': Interface.name(),
                         'children': None}],
                       }]}
 
@@ -232,33 +232,33 @@ class TopologyViewTests(Setup):
 
         """
 
-        EXPECTED = {"rsrcType": Project.display_attributes()["name"],
+        EXPECTED = {"rsrcType": Project.name(),
                     "label": Project.drilldown_label(),
                     "children":
                     [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.display_attributes()["name"],
+                      'rsrcType': Server.name(),
                       'children': None},
                      {'label': Network.drilldown_label(),
-                      'rsrcType': Network.display_attributes()["name"],
+                      'rsrcType': Network.name(),
                       'children': None},
                      {'label': Image.drilldown_label(),
-                      'rsrcType': Image.display_attributes()["name"],
+                      'rsrcType': Image.name(),
                       'children':
                       [{'label': Server.drilldown_label(),
-                        'rsrcType': Server.display_attributes()["name"],
+                        'rsrcType': Server.name(),
                         'children': None},
                        {'label': Server.drilldown_label(),
-                        'rsrcType': Server.display_attributes()["name"],
+                        'rsrcType': Server.name(),
                         'children':
                         [{'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.display_attributes()["name"],
+                          'rsrcType': Volume.name(),
                           'children': None},
                          {'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.display_attributes()["name"],
+                          'rsrcType': Volume.name(),
                           'children': None},
                          {'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.display_attributes()["name"],
-                          'children':None}],
+                          'rsrcType': Volume.name(),
+                          'children': None}],
                         }],
                       }],
                     }

@@ -310,14 +310,12 @@ def query_filter_map(key):
     import re
 
     # Each entry defines a function return value.
-    MAPPING = {"native_name": (lambda n, f: bool(re.search(f, n.native_name)),
-                               "db"),
-               "native_id": (lambda n, f: bool(re.search(f, n.native_id)),
-                             "db"),
+    MAPPING = {"native_name":
+               (lambda n, f: bool(re.search(f, n.native_name)), "db"),
+               "native_id":
+               (lambda n, f: bool(re.search(f, n.native_id)), "db"),
                "integration_name":
-               (lambda n, f:
-                bool(re.search(f, n.display_attributes()["integration_name"])),
-                "db"),
+               (lambda n, f: bool(re.search(f, n.integration())), "db"),
                }
 
     return MAPPING.get(key)

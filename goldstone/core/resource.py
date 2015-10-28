@@ -83,11 +83,7 @@ class Graph(object):
     """
 
     def __init__(self):
-        """Initialize the object.
-
-        A child class must call this before its initialization.
-
-        """
+        """Initialize the object."""
 
         self.graph = networkx.MultiDiGraph()
 
@@ -133,11 +129,11 @@ class Types(Graph):
         super(Types, self).__init__()
 
         # Add the built-in Goldstone resource types. For every control_dict in
-        # every outgoing_edges() list of every resource type...
+        # every type_outgoing_edges() list of every resource type...
         for source_type in RESOURCE_TYPES:
             self.graph.add_node(source_type)
 
-            for control_dict in source_type.outgoing_edges():
+            for control_dict in source_type.type_outgoing_edges():
                 # (If an edge connects nodes not yet in the graph, the
                 # nodes are automatically added.)
                 self.graph.add_edge(source_type,
@@ -160,7 +156,7 @@ class Types(Graph):
                                                        MAX: sys.maxint})
 
                     # Add edges from this node to others.
-                    for control_dict in source_type.outgoing_edges():
+                    for control_dict in source_type.type_outgoing_edges():
                         self.graph.add_edge(
                             source_type,
                             control_dict[TO],
@@ -272,7 +268,7 @@ class Instances(Graph):
         for node in nodes:
             graph.add_node(GraphNode(uuid=node.uuid,
                                      resourcetype=type(node),
-                                     label=type(node).drilldown_label(),
+                                     label=node.drilldown_label(),
                                      attributes=node.cloud_attributes))
 
         # Create all the edges.

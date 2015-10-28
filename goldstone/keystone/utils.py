@@ -118,8 +118,9 @@ def update_keystone_nodes():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.core.models import User, Project, Group, Domain
+    from goldstone.core.models import User, Project, Group, Domain, Region, \
+        Endpoint, Service
     from goldstone.core.utils import process_resource_type
 
-    for entry in [Domain, Project, Group, User]:
+    for entry in [Domain, Project, Group, User, Region, Endpoint, Service]:
         process_resource_type(entry)

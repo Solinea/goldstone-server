@@ -82,7 +82,7 @@ def _get_region_for_cinder_client(client):
     return _get_region_for_client(catalog, 'volumev2')
 
 
-def _get_region_for_glance_client(client):
+def get_region_for_glance_client(client):
     """Return the region for a glance client."""
     catalog = client.service_catalog.catalog['catalog']
     return _get_region_for_client(catalog, 'image')
@@ -222,7 +222,7 @@ def get_client(service):
                 keystoneclient.endpoints.find(service_id=service_id,
                                               interface="admin").url
 
-            region = _get_region_for_glance_client(keystoneclient)
+            region = get_region_for_glance_client(keystoneclient)
             client = glclient.Client(endpoint=mgmt_url,
                                      token=keystoneclient.auth_token)
             return {'client': client, 'region': region}

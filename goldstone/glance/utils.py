@@ -26,12 +26,12 @@ class DiscoverTree(TopologyMixin):
         return set([s['region'] for s in self.images])
 
     def get_regions(self):
-        from goldstone.utils import _get_region_for_glance_client, get_client
+        from goldstone.utils import get_region_for_glance_client, get_client
 
         keystone = get_client('keystone')['client']
 
         return [{"rsrcType": "region",
-                 "label": _get_region_for_glance_client(keystone)}]
+                 "label": get_region_for_glance_client(keystone)}]
 
     def _populate_regions(self):
 
