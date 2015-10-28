@@ -14,9 +14,7 @@
 # limitations under the License.
 from .docker import *            # pylint: disable=W0614,W0401
 
-# SECURITY WARNING: don't run with debug turned on in production!
-
-DEBUG = bool(os.environ.get('GS_DEBUG', True))
-TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
-
-STATIC_ROOT = os.path.join(os.getcwd(), 'static')
+DEBUG = False
+TEMPLATE_DEBUG = False
+STATIC_ROOT = '/usr/share/nginx/html/static'
+STATIC_URL = '/static/'

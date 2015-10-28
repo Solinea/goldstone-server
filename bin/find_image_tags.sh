@@ -1,4 +1,4 @@
-"""Settings for accessing a distributed docker instance."""
+#!/bin/bash
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .docker import *            # pylint: disable=W0614,W0401
 
-# SECURITY WARNING: don't run with debug turned on in production!
+REPO='https://registry.hub.docker.com/v2/repositories'
+IMG=$1
+curl -s -S "${REPO}/${IMG}/tags/" | python -c "
+import json,sys
+obj=json.load(sys.stdin)
+print '\n'.join([r['name'] for r in obj['results']])"
 
-DEBUG = bool(os.environ.get('GS_DEBUG', True))
-TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
-
-STATIC_ROOT = os.path.join(os.getcwd(), 'static')

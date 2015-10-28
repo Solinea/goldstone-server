@@ -26,7 +26,7 @@ Before installing Goldstone, your environment must meet the following prerequisi
 
 The Goldstone web client is developed and tested with [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).  We do not currently have a definitive list of supported browser versions, but the [compatibility chart](http://caniuse.com/#feat=es5) reflects what we think should work.
 
-## Install (as root)
+## Open Source Version Installation (as root)
 
 This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
 
@@ -35,6 +35,23 @@ This process downloads assets from the internet, and can take quite a while.  Du
 * Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
 * `systemctl enable goldstone-server`
 * `systemctl start goldstone-server`
+
+
+## Enterprise Version Installation (as root)
+
+This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
+
+The enterprise version of Goldstone Server requires a username and password associated with an email address.  Prior to installing the software, you will need to set some environment variables to the values provided by Solinea.  
+
+* Obtain license credentials from Solinea
+* `export GOLDSTONE_REPO_EMAIL=your_email    # provided to Solinea`
+* `export GOLDSTONE_REPO_USER=your_username  # provided by Solinea`
+* `export GOLDSTONE_REPO_PASS=your_password  # provided by Solinea`
+* `yum localinstall -y link_provided_by_solinea`
+* Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
+* `systemctl enable goldstone-server`
+* `systemctl start goldstone-server`
+
 
 ## Direct Logs and Events to the Goldstone Server
 

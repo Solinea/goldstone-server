@@ -510,7 +510,8 @@ def _add_root_node(name):
 def install_addon(name,
                   settings=PROD_SETTINGS,
                   install_dir=INSTALL_DIR,
-                  verbose=False):
+                  verbose=False,
+                  interactive=True):
     """Install a user add-on.
 
     The name is supplied on the command line. The version, manufacturer,
@@ -528,8 +529,9 @@ def install_addon(name,
 
     """
 
-    # Normalize verbose to a boolean.
+    # Normalize verbose and interactive to booleans.
     verbose = verbose in ["True", "true", True]
+    interactive = interactive in ["True", "true", True]
 
     # Switch to the right environment, because we'll access the database.
     with _django_env(settings, install_dir):
@@ -543,7 +545,8 @@ def install_addon(name,
             _install_addon_info(name, install_dir, verbose)
 
         # Get permission to proceed.
-        if confirm(cyan('Proceed?'), default=False):
+        if not interactive or \
+                confirm(cyan('Proceed?'), default=False):
             if addon_install["replacement"]:
                 # Replacing an existing add-on.
                 row = Addon.objects.get(name=name)
@@ -655,7 +658,8 @@ def install_addon(name,
 @task
 def remove_addon(name,                       # pylint: disable=R0914,R0915
                  settings=PROD_SETTINGS,
-                 install_dir=INSTALL_DIR):
+                 install_dir=INSTALL_DIR,
+                 interactive=True):
     """Remove a user add-on.
 
     :param name: The add-on's installation name
@@ -681,8 +685,9 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
             fastprint(red("The add-on \"%s\" isn't in the table.\n" % name))
             sys.exit()
 
-        if confirm(cyan('We will remove the %s add-on. Proceed?' % name),
-                   default=False):
+        if not interactive or \
+                confirm(cyan('We will remove the %s add-on. Proceed?' % name),
+                        default=False):
             try:
                 # First, delete the row.
                 error = "updating the Addon table. Check it."
