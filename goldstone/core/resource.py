@@ -118,12 +118,7 @@ class Types(Graph):
     """
 
     def __init__(self):
-        """Initialize the object.
-
-        :return: self.graph: A graph of the resource types within an OpenStack
-                 cloud.
-
-        """
+        """Initialize the object."""
         from .utils import resource_types
 
         super(Types, self).__init__()

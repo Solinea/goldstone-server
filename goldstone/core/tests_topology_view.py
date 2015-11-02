@@ -13,22 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
-from django.test import SimpleTestCase
-import elasticsearch
-import mock
-from mock import patch, MagicMock
-from rest_framework.test import APISimpleTestCase
 
 from goldstone.core import resource
 from goldstone.test_utils import Setup
 
-from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
-    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon, \
-    Interface, Volume
-
-from . import tasks
+from .models import Image, Network, Project, Server, Interface, Volume
 from .tests import load_persistent_rg
-from .utils import custom_exception_handler, process_resource_type, parse
 from .views import TopologyView
 
 # Aliases to make the code less verbose

@@ -1045,7 +1045,7 @@ class Aggregate(PolyResource):
         for entry in nova_client.aggregates.list():
             # Make a dict for this entry, and concoct a unique id for it.
             this_entry = entry.to_dict()
-            this_entry[cls.native_id_key] = \
+            this_entry[cls.native_id_key()] = \
                 cls.native_id_from_attributes(this_entry)
 
             # Add the name of the resource type.
@@ -1096,7 +1096,7 @@ class Flavor(PolyResource):
         for entry in nova_client.flavors.list():
             # Make a dict for this entry, and concoct a unique id for it.
             this_entry = entry.to_dict()
-            this_entry[cls.native_id_key] = \
+            this_entry[cls.native_id_key()] = \
                 cls.native_id_from_attributes(this_entry)
 
             # Add the name of the resource type.
@@ -1255,7 +1255,7 @@ class Host(PolyResource):
                 # This is a new entry for the result set. Set the host_name
                 # value, and concoct a unique id for it.
                 host["host_name"] = parsed_name
-                host[cls.native_id_key] = cls.native_id_from_attributes(host)
+                host[cls.native_id_key()] = cls.native_id_from_attributes(host)
 
                 # The resource's name is at key "host_name", so we have to copy
                 # it to where the client expects it. And add the name of the
@@ -1339,7 +1339,7 @@ class Hypervisor(PolyResource):
         for entry in nova_client.hypervisors.list():
             # Make a dict for this entry, and concoct a unique id for it.
             this_entry = entry.to_dict()
-            this_entry[cls.native_id_key] = \
+            this_entry[cls.native_id_key()] = \
                 cls.native_id_from_attributes(this_entry)
 
             # Indicate that the hypervisor has no name, and add the name of the
@@ -1737,7 +1737,7 @@ class QuotaSet(PolyResource):
         for entry in get_glance_client()["client"].images.list():
             # Make a dict for this entry, and concoct a unique id for it.
             this_entry = entry.to_dict()
-            this_entry[cls.native_id_key] = \
+            this_entry[cls.native_id_key()] = \
                 cls.native_id_from_attributes(this_entry)
 
             # Add this resource's name, and the name of the resource type.

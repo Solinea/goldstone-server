@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 from django.conf import settings
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
@@ -33,6 +35,8 @@ from .utils import parse, query_filter_map
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
 TOPOLOGICALLY_OWNS = settings.R_EDGE.TOPOLOGICALLY_OWNS
+
+logger = logging.getLogger(__name__)
 
 
 # Our API documentation extracts this docstring.
@@ -252,12 +256,17 @@ class TopologyView(RetrieveAPIView):
         result = {"rsrcType": node.resourcetype.name(),
                   "label": node.label,
                   "uuid": node.uuid,
+                  "integration": node.resourcetype.integration(),
                   "children": children}
 
         # The interface value will be "private", "public", or "admin", if it
         # exists.
         if "interface" in node.attributes:
             result["interface"] = node.attributes["interface"]
+
+        # The URL will help further identify this node, if it exists.
+        if "url" in node.attributes:
+            result["url"] = node.attributes["url"]
 
         return result
 
@@ -267,7 +276,15 @@ class TopologyView(RetrieveAPIView):
         :rtype: dict
 
         """
-        from .models import Region
+        from .models import Region, VolumeType, Snapshot, Flavor, Addon, \
+            User, AvailabilityZone, Cloudpipe, Role
+
+        # Regions aren't included in most of the OpenStack API returns. So, we
+        # have to implicitly related nodes to regions here. For now, everything
+        # is a child of the (assumed to be only one) region that was found.
+        # These are each integration's first-generation children.
+        IMPLICIT_CHILDREN = [VolumeType, Snapshot, Flavor, Addon, User,
+                             AvailabilityZone, Cloudpipe, Role]
 
         # We do this in multiple steps in order to be more robust in the face
         # of bad cloud data.
@@ -275,13 +292,19 @@ class TopologyView(RetrieveAPIView):
                            for x in Region.objects.all()])
         if not regionnodes:
             return {"rsrcType": "error", "label": "No data found"}
+        elif len(regionnodes) > 1:
+            # We don't handle multiple regions correctly yet, so log this and
+            # trim the list.
+            logger.error("More than one region found: %s", regionnodes)
+            regionnodes = list(regionnodes)[:1]
 
         children = [self._tree(x) for x in regionnodes if x]
 
-        # If we don't yet have any cloud integrations, return a "no data"
-        # response.
-        if not children:
-            return {"rsrcType": "error", "label": "No data found"}
+        # Add the implicit children of the sole region.
+        children[0]["children"].extend(
+            [self._tree(x)
+             for x in resource.instances.graph.nodes()
+             if x.resourcetype in IMPLICIT_CHILDREN])
 
         # Return a "cloud" response. The children are the regions cloud's
         # regions.
