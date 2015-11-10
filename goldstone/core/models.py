@@ -682,10 +682,6 @@ class Region(PolyResource):
         for entry in keystone_client.regions.list():
             this_entry = entry.to_dict()
 
-            # The topology returned by core.views.TopologyView() expects a
-            # "label" key.
-            this_entry["label"] = this_entry["id"]
-
             # Add the name of the resource type.
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
 

@@ -301,6 +301,10 @@ class TopologyView(RetrieveAPIView):
 
         children = [self._tree(x) for x in regionnodes if x]
 
+        # This is a hack. The "label" key is unique per class, except for a
+        # Region node, where it's unique per region.
+        children[0]["label"] = list(regionnodes)[0].attributes["id"]
+
         # Add the implicit children of the sole region.
         children[0]["children"].extend(
             [self._tree(x)
