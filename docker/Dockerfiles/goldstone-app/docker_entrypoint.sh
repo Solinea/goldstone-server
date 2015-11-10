@@ -58,8 +58,12 @@ exec celery worker --app goldstone --queues default --beat --purge \
     --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \
     --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
 
-echo Starting Gunicorn.
-exec gunicorn ${GUNICORN_RELOAD} \
-    --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \
-    --config=${APPDIR}/config/gunicorn-settings.py goldstone.wsgi "$@"
-
+if [[ $GS_DEV_ENV == "true" ]] ; then
+    echo "Starting Django server"
+    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} "$@"
+else
+    echo Starting Gunicorn.
+    exec gunicorn ${GUNICORN_RELOAD} \
+        --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \
+        --config=${APPDIR}/config/gunicorn-settings.py goldstone.wsgi "$@"
+fi
