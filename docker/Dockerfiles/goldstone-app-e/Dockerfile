@@ -1,4 +1,4 @@
-"""Settings for accessing a distributed docker instance."""
+# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +12,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .docker import *            # pylint: disable=W0614,W0401
 
-# SECURITY WARNING: don't run with debug turned on in production!
+FROM solinea/goldstone-app
 
-DEBUG = bool(os.environ.get('GS_DEBUG', True))
-TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
+MAINTAINER John Stanford <john@solinea.com>
 
-STATIC_ROOT = os.path.join(os.getcwd(), 'static')
+ENV GS_PROJ_TOP_DIR ${APPDIR}
+
+ADD ./addons /tmp/addons
+ADD ./docker_entrypoint.sh /
+
+WORKDIR ${APPDIR}
+
+USER ${APPUSER}
+
+# really need a better way to loop through addons and install them
+RUN . ${ENVDIR}/bin/activate \
+  && pip install /tmp/addons/django-opentrail-0.1.0.tar.gz \
+  && pip install /tmp/addons/django-leases-0.1.0.tar.gz 
+
+USER root
+RUN  rm -rf /tmp/addons
+
+EXPOSE 8000
+
+USER ${APPUSER}
+
+ENTRYPOINT ["/docker_entrypoint.sh"]

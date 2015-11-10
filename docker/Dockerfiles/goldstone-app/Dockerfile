@@ -13,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:v1-b2912cf-release
+FROM solinea/gunicorn:19.3.0
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-ADD goldstone-server ${APPDIR}
-
-WORKDIR ${APPDIR}
-
 USER root
 
+ADD goldstone-server ${APPDIR}
 
 RUN buildReqs=' \
     python2.7-dev \
@@ -37,7 +34,12 @@ RUN buildReqs=' \
   ' \
   && apt-get update -y -q -q \
   && apt-get install -y -q $buildReqs \
-  && apt-get install -y -q $preReqs 
+  && apt-get install -y -q $preReqs \
+  && mkdir -p /usr/share/nginx/html/static \
+  && chown ${APPUSER}:staff /usr/share/nginx/html/static \
+  && chown -R ${APPUSER}:staff ${APPDIR}
+
+WORKDIR ${APPDIR}
 
 USER ${APPUSER}
 
@@ -48,15 +50,13 @@ USER root
 
 RUN apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
-## Have to re-install due to python2.7-dev uninstalling libqp-dev
-##   && apt-get install libpq-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
+EXPOSE 8000
 
 USER ${APPUSER}
 
-EXPOSE 8000
-
 COPY ./docker_entrypoint.sh /
+
 ENTRYPOINT ["/docker_entrypoint.sh"]

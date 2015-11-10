@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/elasticsearch:v2-1056aaa-release
+FROM solinea/elasticsearch:latest
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 

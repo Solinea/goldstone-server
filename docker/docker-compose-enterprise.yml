@@ -19,6 +19,8 @@ gsweb:
   volumes:
     - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
     - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
+  volumes_from:
+    - gsapp
   ports:
     - "8888:8888"
   links:
@@ -30,10 +32,11 @@ gsweb:
 
 # Goldstone Server Container
 gsapp:
-  image: solinea/goldstone-app:latest
-  env_file: ./config/goldstone-prod.env
+  image: gs-docker-ent.bintray.io/app:latest
+  env_file: ./config/goldstone-test.env
   volumes:
     - ./config/goldstone-app:/home/app/config
+    - /usr/share/nginx/html/static
   ports:
     - "8000:8000"
   links:
@@ -48,11 +51,11 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db:latest
-  env_file: ./config/goldstone-prod.env
-  volumes_from:
-    - gsdbdvc
+  env_file: ./config/goldstone-test.env
   ports:
     - "5432:5432"
+  volumes_from:
+    - gsdbdvc
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"

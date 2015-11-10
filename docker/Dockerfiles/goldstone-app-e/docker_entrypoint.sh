@@ -47,23 +47,30 @@ if [[ $GS_DEV_ENV == "true" ]] ; then
     python manage.py collectstatic  --noinput
 fi
 
-#
+
+declare -a addons=( opentrail leases )
+
+for addon in "${addons[@]}" ; do
+    if [ ! -f ${APPDIR}/.${addon}-installed ] ; then
+        fab -f addon_fabfile.py \
+             install_addon:name=${addon},install_dir=${APPDIR},settings=${DJANGO_SETTINGS_MODULE},interactive=False \
+          && touch ${APPDIR}/.${addon}-installed
+    fi
+done
+
 # this won't do anything if the django admin, goldstone tenant and cloud already
 # exist.  otherwise it will use the env vars to create missing entities.
-#
 fab -f installer_fabfile.py docker_install
+
+python manage.py collectstatic  --noinput
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \
     --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \
     --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
 
-if [[ $GS_DEV_ENV == "true" ]] ; then
-    echo "Starting Django server"
-    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} "$@"
-else
-    echo Starting Gunicorn.
-    exec gunicorn ${GUNICORN_RELOAD} \
-        --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \
-        --config=${APPDIR}/config/gunicorn-settings.py goldstone.wsgi "$@"
-fi
+echo Starting Gunicorn.
+exec gunicorn ${GUNICORN_RELOAD} \
+    --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \
+    --config=${APPDIR}/config/gunicorn-settings.py goldstone.wsgi "$@"
+
