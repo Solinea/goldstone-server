@@ -280,9 +280,10 @@ class TopologyView(RetrieveAPIView):
             User, AvailabilityZone, Cloudpipe, Role
 
         # Regions aren't included in most of the OpenStack API returns. So, we
-        # have to implicitly related nodes to regions here. For now, everything
-        # is a child of the (assumed to be only one) region that was found.
-        # These are each integration's first-generation children.
+        # have to implicitly relate nodes to regions. For now, everything is a
+        # child of the (assumed to be only one) region that was found. These
+        # are each integration's first-generation nodes; any of them may have
+        # children.
         IMPLICIT_CHILDREN = [VolumeType, Snapshot, Flavor, Addon, User,
                              AvailabilityZone, Cloudpipe, Role]
 
