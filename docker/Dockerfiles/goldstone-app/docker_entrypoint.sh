@@ -60,7 +60,7 @@ exec celery worker --app goldstone --queues default --beat --purge \
 
 if [[ $GS_DEV_ENV == "true" ]] ; then
     echo "Starting Django server"
-    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} "$@"
+    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} 0.0.0.0:8000 "$@"
 else
     echo Starting Gunicorn.
     exec gunicorn ${GUNICORN_RELOAD} \
