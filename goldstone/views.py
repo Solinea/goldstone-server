@@ -144,3 +144,9 @@ class RouterView(TemplateView):
             context[I18N_VARIABLE] = "file not found"
 
         return context
+
+
+class LoginView(TemplateView):
+    """Return the Goldstone Login page."""
+
+    template_name = 'login.html'
