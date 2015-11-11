@@ -160,4 +160,4 @@ docker/Dockerfiles/goldstone-web-e/static/
 .bash_history
 .exrc
 .pylint.d/
-static/
+/static
