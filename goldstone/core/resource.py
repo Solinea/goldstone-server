@@ -59,9 +59,6 @@ class GraphNode(object):
     # This node's Resource Type.
     resourcetype = None
 
-    # The drilldown label for this node's type
-    label = None
-
     # This node's attributes. E.g., from get_xxxxx_client().
     attributes = {}
 
@@ -70,8 +67,12 @@ class GraphNode(object):
 
         self.uuid = kwargs.get("uuid")
         self.resourcetype = kwargs.get("resourcetype")
-        self.label = kwargs.get("label")
         self.attributes = kwargs.get("attributes", {})
+
+    def __repr__(self):
+        """Return a useful string."""
+
+        return "<%s, %s>" % (self.uuid, self.resourcetype.label())
 
 
 class Graph(object):
@@ -263,7 +264,6 @@ class Instances(Graph):
         for node in nodes:
             graph.add_node(GraphNode(uuid=node.uuid,
                                      resourcetype=type(node),
-                                     label=node.drilldown_label(),
                                      attributes=node.cloud_attributes))
 
         # Create all the edges.
@@ -303,7 +303,6 @@ class Instances(Graph):
 
         if self._graph is None or \
            self._timestamp + self.PERIOD < datetime.now():
-            # Unpack the graph from the database, and reset the timestamp.
             self._graph = self.unpack()
             self._timestamp = datetime.now()
 

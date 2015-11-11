@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
@@ -305,11 +306,31 @@ class PolyResource(PolymorphicModel):
         return []
 
     @classmethod
-    def drilldown_label(cls):
-        """Return an URL segment that the client uses to concoct an API URL,
-        which will return detailed node information.
+    def resource_list_url(cls):
+        """Return an URL that will return information for the client's
+        "resource list" display.
+
+        This is currently defined only for leaf nodes. There's no reason why it
+        couldn't include non-leaf nodes in the future.
 
         :rtype: str
+
+        """
+
+        return ''
+
+    @classmethod
+    def integration(cls):
+        """Return the name of this node's integration. (Nova, Keystone,
+        etc.)"""
+
+        return ''
+
+    @classmethod
+    def label(cls):
+        """Return the name of this node's resource type.
+
+        This should be lowercase plural.
 
         """
 
@@ -336,19 +357,6 @@ class PolyResource(PolymorphicModel):
         # Save the edges.
         self.edges = outgoing
         self.save()
-
-    @classmethod
-    def integration(cls):
-        """Return the name of this node's integration. (Nova, Keystone,
-        etc.)"""
-
-        return ''
-
-    @classmethod
-    def name(cls):
-        """Return the name of this node's resource type."""
-
-        return ''
 
     def logs(self):
         """Return a search object for logs related to this resource.
@@ -396,10 +404,10 @@ class Addon(PolyResource):
         return "Add-on"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Add-on"
+        return "add-ons"
 
 
 ###################################################################
@@ -476,10 +484,10 @@ class User(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "User"
+        return "users"
 
 
 class Domain(PolyResource):
@@ -534,10 +542,10 @@ class Domain(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Domain"
+        return "domains"
 
 
 class Group(PolyResource):
@@ -578,10 +586,10 @@ class Group(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Group"
+        return "groups"
 
 
 class Token(PolyResource):
@@ -604,10 +612,10 @@ class Token(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Token"
+        return "tokens"
 
 
 class Credential(PolyResource):
@@ -628,10 +636,10 @@ class Credential(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Credential"
+        return "credentials"
 
 
 class Role(PolyResource):
@@ -662,10 +670,10 @@ class Role(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Role"
+        return "roles"
 
 
 class Region(PolyResource):
@@ -720,10 +728,10 @@ class Region(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Region"
+        return "regions"
 
 
 class Endpoint(PolyResource):
@@ -773,16 +781,10 @@ class Endpoint(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Endpoint"
-
-    @classmethod
-    def drilldown_label(cls):
-        """See the parent class' method's docstring."""
-
-        return 'endpoints'
+        return "endpoints"
 
 
 class Service(PolyResource):
@@ -807,16 +809,22 @@ class Service(PolyResource):
         return result
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return "/{parent_integration}/" + cls.label() + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Service"
+        return "services"
 
 
 class Project(PolyResource):
@@ -944,10 +952,10 @@ class Project(PolyResource):
         return "Keystone"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Project"
+        return "projects"
 
 
 ###############################################################
@@ -1024,10 +1032,10 @@ class AvailabilityZone(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Availability Zone"
+        return "availability zones"
 
 
 class Aggregate(PolyResource):
@@ -1075,10 +1083,10 @@ class Aggregate(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Aggregate"
+        return "aggregates"
 
 
 class Flavor(PolyResource):
@@ -1138,16 +1146,22 @@ class Flavor(PolyResource):
             ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("nova-flavors") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Flavor"
+        return "flavors"
 
 
 class Keypair(PolyResource):
@@ -1198,10 +1212,10 @@ class Keypair(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Keypair"
+        return "keypairs"
 
 
 class Host(PolyResource):
@@ -1309,16 +1323,22 @@ class Host(PolyResource):
             ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("nova-hosts") + "/?region={region}&zone={zone}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Host"
+        return "hosts"
 
 
 class Hypervisor(PolyResource):
@@ -1384,16 +1404,22 @@ class Hypervisor(PolyResource):
                 ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("nova-hypervisors") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Hypervisor"
+        return "hypervisors"
 
 
 class Cloudpipe(PolyResource):
@@ -1444,10 +1470,10 @@ class Cloudpipe(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Cloudpipe"
+        return "cloudpipes"
 
 
 class ServerGroup(PolyResource):
@@ -1480,10 +1506,10 @@ class ServerGroup(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Server Group"
+        return "server groups"
 
 
 class Server(PolyResource):
@@ -1552,13 +1578,7 @@ class Server(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
-        """See the parent class' method's docstring."""
-
-        return "Server"
-
-    @classmethod
-    def drilldown_label(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
         return "servers"
@@ -1620,16 +1640,22 @@ class Interface(PolyResource):
                 ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("nova-servers") + "/?region={region}&zone={zone}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Interface"
+        return "interfaces"
 
 
 class NovaLimits(PolyResource):
@@ -1664,10 +1690,10 @@ class NovaLimits(PolyResource):
         return "Nova"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Limits"
+        return "limits"
 
 
 #################################################################
@@ -1710,13 +1736,7 @@ class Image(PolyResource):
         return "Glance"
 
     @classmethod
-    def name(cls):
-        """See the parent class' method's docstring."""
-
-        return "Image"
-
-    @classmethod
-    def drilldown_label(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
         return "images"
@@ -1768,10 +1788,10 @@ class QuotaSet(PolyResource):
         return "Cinder"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Quota Set"
+        return "quota sets"
 
 
 class QOSSpec(PolyResource):
@@ -1813,10 +1833,10 @@ class QOSSpec(PolyResource):
         return "Cinder"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "QoS Spec"
+        return "qos specs"
 
 
 class Snapshot(PolyResource):
@@ -1851,16 +1871,22 @@ class Snapshot(PolyResource):
                 ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("cinder-snapshots") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Cinder"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Snapshot"
+        return "snapshots"
 
 
 class VolumeType(PolyResource):
@@ -1899,16 +1925,22 @@ class VolumeType(PolyResource):
                 ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("cinder-volume-types") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Cinder"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Volume Type"
+        return "volume types"
 
 
 class Volume(PolyResource):
@@ -1932,19 +1964,19 @@ class Volume(PolyResource):
         return result
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("cinder-volumes") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
         return "Cinder"
 
     @classmethod
-    def name(cls):
-        """See the parent class' method's docstring."""
-
-        return "Volume"
-
-    @classmethod
-    def drilldown_label(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
         return "volumes"
@@ -1978,10 +2010,10 @@ class Limits(PolyResource):
         return "Cinder"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Limits"
+        return "limits"
 
 
 ##################################################################
@@ -2002,10 +2034,10 @@ class MeteringLabelRule(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Metering Label Rule"
+        return "metering label rules"
 
 
 class MeteringLabel(PolyResource):
@@ -2026,10 +2058,10 @@ class MeteringLabel(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Metering Label"
+        return "metering labels"
 
 
 class NeutronQuota(PolyResource):
@@ -2042,10 +2074,10 @@ class NeutronQuota(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Quota"
+        return "quotas"
 
 
 class RemoteGroup(PolyResource):
@@ -2058,10 +2090,10 @@ class RemoteGroup(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Remote Group"
+        return "remote groups"
 
 
 class SecurityRules(PolyResource):
@@ -2084,10 +2116,10 @@ class SecurityRules(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Security Rules"
+        return "security rules"
 
 
 class SecurityGroup(PolyResource):
@@ -2100,10 +2132,10 @@ class SecurityGroup(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Security Group"
+        return "security groups"
 
 
 class Port(PolyResource):
@@ -2154,10 +2186,10 @@ class Port(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Port"
+        return "ports"
 
 
 class LBVIP(PolyResource):
@@ -2182,10 +2214,10 @@ class LBVIP(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "LB Virtual IP"
+        return "lb virtual ips"
 
 
 class LBPool(PolyResource):
@@ -2198,10 +2230,10 @@ class LBPool(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "LB Pool"
+        return "lb pools"
 
 
 class HealthMonitor(PolyResource):
@@ -2222,10 +2254,10 @@ class HealthMonitor(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Health Monitor"
+        return "health monitors"
 
 
 class FloatingIP(PolyResource):
@@ -2238,10 +2270,10 @@ class FloatingIP(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Floating IP address"
+        return "floating ip addresses"
 
 
 class FloatingIPPool(PolyResource):
@@ -2270,10 +2302,10 @@ class FloatingIPPool(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Floating IP Pool"
+        return "floating ip pools"
 
 
 class FixedIP(PolyResource):
@@ -2286,10 +2318,10 @@ class FixedIP(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Fixed IP address"
+        return "fixed ip addresses"
 
 
 class LBMember(PolyResource):
@@ -2312,10 +2344,10 @@ class LBMember(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "LB Member"
+        return "lb members"
 
 
 class Subnet(PolyResource):
@@ -2338,10 +2370,10 @@ class Subnet(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Subnet"
+        return "subnets"
 
 
 class Network(PolyResource):
@@ -2354,13 +2386,7 @@ class Network(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
-        """See the parent class' method's docstring."""
-
-        return "Network"
-
-    @classmethod
-    def drilldown_label(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
         return "networks"
@@ -2387,7 +2413,7 @@ class Router(PolyResource):
         return "Neutron"
 
     @classmethod
-    def name(cls):
+    def label(cls):
         """See the parent class' method's docstring."""
 
-        return "Router"
+        return "routers"

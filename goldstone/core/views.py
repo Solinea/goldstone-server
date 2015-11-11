@@ -230,13 +230,15 @@ class TopologyView(RetrieveAPIView):
     def _tree(self, node):
         """Return the topology of the cloud starting at a node.
 
-        :param node: A node
+        :param node: A resource graph node
         :type node: GraphNode
         :return: The topology of this down "downward," including all of its
                  children
         :rtype: dict
 
         """
+        from networkx import has_path
+        from goldstone.core.models import Region
 
         # Get all the topological children by looking for a TOPOLOGICALLY_OWNS
         # edge between this node and its children.
@@ -248,15 +250,42 @@ class TopologyView(RetrieveAPIView):
                     resource.instances.graph.get_edge_data(node, x)
                     .values())]
 
-        # Now we concoct the return value. If no children, return None instead
-        # of an empty list.
+        # Now we concoct the return value. If no children, return None rather
+        # than an empty list.
         if not children:
             children = None
 
-        result = {"rsrcType": node.resourcetype.name(),
-                  "label": node.label,
-                  "uuid": node.uuid,
+        # Create the resource list URL formatting dictionary.
+        #
+        # Find this node's region, and its predecessor's Integration name.
+        regionnodes = resource.instances.nodes_of_type(Region)
+        for region in regionnodes:
+            if has_path(resource.instances.graph, region, node):
+                region = region.attributes["id"]
+                break
+        else:
+            region = None
+
+        # Find a predecessor's Integration name. Any one will do.
+        predecessor_nodes = resource.instances.graph.predecessors(node)
+        parent_integration = \
+            predecessor_nodes[0].resourcetype.integration().lower() \
+            if predecessor_nodes else None
+
+        # Find this node's zone.
+        # TODO: How to define this?
+        zone = "None"
+
+        url_values = {"region": region,
+                      "parent_integration": parent_integration,
+                      "zone": zone,
+                      }
+
+        result = {"uuid": node.uuid,
                   "integration": node.resourcetype.integration(),
+                  "label": node.resourcetype.label(),
+                  "resource_list_url":
+                  node.resourcetype.resource_list_url().format(**url_values),
                   "children": children}
 
         # The interface value will be "private", "public", or "admin", if it
@@ -292,7 +321,7 @@ class TopologyView(RetrieveAPIView):
         regionnodes = set([resource.instances.get_uuid(x.uuid)
                            for x in Region.objects.all()])
         if not regionnodes:
-            return {"rsrcType": "error", "label": "No data found"}
+            return {"label": "No data found"}
         elif len(regionnodes) > 1:
             # We don't handle multiple regions correctly yet, so log this and
             # trim the list.
@@ -313,10 +342,7 @@ class TopologyView(RetrieveAPIView):
 
         # Return a "cloud" response. The children are the regions cloud's
         # regions.
-        return {"rsrcType": "cloud",
-                "label": "Cloud",
-                "uuid": None,
-                "children": children}
+        return {"label": "cloud", "uuid": None, "children": children}
 
 
 # TODO: deprecated.  delete when?
@@ -490,7 +516,7 @@ class ResourceTypeList(ListAPIView):
 
         # Gather the nodes.
         nodes = [{"integration": entry.integration(),
-                  "name": entry.name(),
+                  "label": entry.label(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
                  for entry in resource.types.graph.nodes()]
@@ -648,7 +674,7 @@ class ResourcesList(ListAPIView):
                 nodes.append({"resourcetype":
                               {"unique_id":
                                node.resourcetype.unique_class_id(),
-                               "name": node.resourcetype.name()},
+                               "label": node.resourcetype.label()},
                               "uuid": node.uuid,
                               "native_id": row.native_id,
                               "native_name": row.native_name

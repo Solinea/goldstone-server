@@ -123,8 +123,9 @@ class TopologyViewTests(Setup):
         """Call _tree() on a solo node."""
 
         # The expected results, sans UUID.
-        EXPECTED = {"rsrcType": Image.name(),
-                    "label": Image.drilldown_label(),
+        EXPECTED = {"label": Image.label(),
+                    "integration": Image.integration(),
+                    "resource_list_url": Image.resource_list_url(),
                     "children": None}
 
         # Create the PolyResource database rows.
@@ -142,11 +143,13 @@ class TopologyViewTests(Setup):
     def test_tree_1child(self):
         """Call _tree() on a node with one solo child."""
 
-        EXPECTED = {"rsrcType": Image.name(),
-                    "label": Image.drilldown_label(),
+        EXPECTED = {"label": Image.label(),
+                    "integration": Image.integration(),
+                    "resource_list_url": Image.resource_list_url(),
                     "children":
-                    [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.name(),
+                    [{'label': Server.label(),
+                      "integration": Server.integration(),
+                      "resource_list_url": Server.resource_list_url(),
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -164,14 +167,17 @@ class TopologyViewTests(Setup):
     def test_tree_2child(self):
         """Call _tree() on a node with two solo children."""
 
-        EXPECTED = {"rsrcType": Image.name(),
-                    "label": Image.drilldown_label(),
+        EXPECTED = {"label": Image.label(),
+                    "integration": Image.integration(),
+                    "resource_list_url": Image.resource_list_url(),
                     "children":
-                    [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.name(),
+                    [{'label': Server.label(),
+                      "integration": Server.integration(),
+                      "resource_list_url": Server.resource_list_url(),
                       'children': None},
-                     {'label': Server.drilldown_label(),
-                      'rsrcType': Server.name(),
+                     {'label': Server.label(),
+                      "integration": Server.integration(),
+                      "resource_list_url": Server.resource_list_url(),
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -192,14 +198,18 @@ class TopologyViewTests(Setup):
     def test_tree_1grandchild(self):
         """Call _tree() on a node with one child with one child."""
 
-        EXPECTED = {"rsrcType": Image.name(),
-                    "label": Image.drilldown_label(),
+        EXPECTED = {"label": Image.label(),
+                    "integration": Image.integration(),
+                    "resource_list_url": Image.resource_list_url(),
                     "children":
-                    [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.name(),
+                    [{'label': Server.label(),
+                      "integration": Server.integration(),
+                      "resource_list_url": Server.resource_list_url(),
                       'children':
-                      [{'label': Interface.drilldown_label(),
-                        'rsrcType': Interface.name(),
+                      [{'label': Interface.label(),
+                        "integration": Interface.integration(),
+                        "resource_list_url":
+                        "/nova/servers/?region=None&zone=None",
                         'children': None}],
                       }]}
 
@@ -222,32 +232,41 @@ class TopologyViewTests(Setup):
 
         """
 
-        EXPECTED = {"rsrcType": Project.name(),
-                    "label": Project.drilldown_label(),
+        EXPECTED = {"label": Project.label(),
+                    "integration": Project.integration(),
+                    "resource_list_url": Project.resource_list_url(),
                     "children":
-                    [{'label': Server.drilldown_label(),
-                      'rsrcType': Server.name(),
+                    [{'label': Server.label(),
+                      "integration": Server.integration(),
+                      "resource_list_url": Server.resource_list_url(),
                       'children': None},
-                     {'label': Network.drilldown_label(),
-                      'rsrcType': Network.name(),
+                     {'label': Network.label(),
+                      "integration": Network.integration(),
+                      "resource_list_url": Network.resource_list_url(),
                       'children': None},
-                     {'label': Image.drilldown_label(),
-                      'rsrcType': Image.name(),
+                     {'label': Image.label(),
+                      "integration": Image.integration(),
+                      "resource_list_url": Image.resource_list_url(),
                       'children':
-                      [{'label': Server.drilldown_label(),
-                        'rsrcType': Server.name(),
+                      [{'label': Server.label(),
+                        "integration": Server.integration(),
+                        "resource_list_url": Server.resource_list_url(),
                         'children': None},
-                       {'label': Server.drilldown_label(),
-                        'rsrcType': Server.name(),
+                       {'label': Server.label(),
+                        "integration": Server.integration(),
+                        "resource_list_url": Server.resource_list_url(),
                         'children':
-                        [{'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.name(),
+                        [{'label': Volume.label(),
+                          "integration": Volume.integration(),
+                          "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None},
-                         {'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.name(),
+                         {'label': Volume.label(),
+                          "integration": Volume.integration(),
+                          "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None},
-                         {'label': Volume.drilldown_label(),
-                          'rsrcType': Volume.name(),
+                         {'label': Volume.label(),
+                          "integration": Volume.integration(),
+                          "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None}],
                         }],
                       }],
@@ -270,12 +289,12 @@ class TopologyViewTests(Setup):
         # a unit test. But the following doesn't feel Pythonic at all.
 
         e_image_node = [x for x in EXPECTED["children"]
-                        if x["label"] == Image.drilldown_label()][0]
+                        if x["label"] == Image.label()][0]
         e_server_node = [x for x in e_image_node["children"]
                          if x["children"]][0]
 
         r_image_node = [x for x in result["children"]
-                        if x["label"] == Image.drilldown_label()][0]
+                        if x["label"] == Image.label()][0]
         r_server_node = [x for x in r_image_node["children"]
                          if x["children"]][0]
 
