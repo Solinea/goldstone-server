@@ -307,8 +307,7 @@ class PolyResource(PolymorphicModel):
 
     @classmethod
     def resource_list_url(cls):
-        """Return an URL that will return information for the client's
-        "resource list" display.
+        """Return a relative URL for the the client's "resource list" display.
 
         This is currently defined only for leaf nodes. There's no reason why it
         couldn't include non-leaf nodes in the future.
@@ -476,6 +475,12 @@ class User(PolyResource):
                                    MIN: 0,
                                    MAX: sys.maxint}},
                 ]
+
+    @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("keystone-users") + "/?region={region}"
 
     @classmethod
     def integration(cls):
@@ -662,6 +667,12 @@ class Role(PolyResource):
                                    MIN: 0,
                                    MAX: sys.maxint}},
                 ]
+
+    @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("keystone-roles") + "/?region={region}"
 
     @classmethod
     def integration(cls):
@@ -1326,7 +1337,10 @@ class Host(PolyResource):
     def resource_list_url(cls):
         """See the parent class' method's docstring."""
 
-        return reverse("nova-hosts") + "/?region={region}&zone={zone}"
+        # Unclear what the zone argument should be. Until this is resolved,
+        # don't use it.
+        # return reverse("nova-hosts") + "/?region={region}&zone={zone}"
+        return reverse("nova-hosts") + "/?region={region}"
 
     @classmethod
     def integration(cls):
@@ -1572,6 +1586,15 @@ class Server(PolyResource):
                 ]
 
     @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        # Unclear what the zone argument should be. Until this is resolved,
+        # don't use it.
+        # return reverse("nova-servers") + "/?region={region}&zone={zone}"
+        return reverse("nova-servers") + "/?region={region}"
+
+    @classmethod
     def integration(cls):
         """See the parent class' method's docstring."""
 
@@ -1638,12 +1661,6 @@ class Interface(PolyResource):
                  f.get("mac_addr") == t["mac_address"],
                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
                 ]
-
-    @classmethod
-    def resource_list_url(cls):
-        """See the parent class' method's docstring."""
-
-        return reverse("nova-servers") + "/?region={region}&zone={zone}"
 
     @classmethod
     def integration(cls):
@@ -1728,6 +1745,12 @@ class Image(PolyResource):
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}},
                 ]
+
+    @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("glance-images") + "/?region={region}"
 
     @classmethod
     def integration(cls):

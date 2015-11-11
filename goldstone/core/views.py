@@ -272,13 +272,8 @@ class TopologyView(RetrieveAPIView):
             predecessor_nodes[0].resourcetype.integration().lower() \
             if predecessor_nodes else None
 
-        # Find this node's zone.
-        # TODO: How to define this?
-        zone = "None"
-
         url_values = {"region": region,
                       "parent_integration": parent_integration,
-                      "zone": zone,
                       }
 
         result = {"uuid": node.uuid,

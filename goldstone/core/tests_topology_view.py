@@ -125,7 +125,7 @@ class TopologyViewTests(Setup):
         # The expected results, sans UUID.
         EXPECTED = {"label": Image.label(),
                     "integration": Image.integration(),
-                    "resource_list_url": Image.resource_list_url(),
+                    "resource_list_url": "/glance/images/?region=None",
                     "children": None}
 
         # Create the PolyResource database rows.
@@ -145,11 +145,11 @@ class TopologyViewTests(Setup):
 
         EXPECTED = {"label": Image.label(),
                     "integration": Image.integration(),
-                    "resource_list_url": Image.resource_list_url(),
+                    "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server.label(),
                       "integration": Server.integration(),
-                      "resource_list_url": Server.resource_list_url(),
+                      "resource_list_url": "/nova/servers/?region=None",
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -169,15 +169,15 @@ class TopologyViewTests(Setup):
 
         EXPECTED = {"label": Image.label(),
                     "integration": Image.integration(),
-                    "resource_list_url": Image.resource_list_url(),
+                    "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server.label(),
                       "integration": Server.integration(),
-                      "resource_list_url": Server.resource_list_url(),
+                      "resource_list_url": "/nova/servers/?region=None",
                       'children': None},
                      {'label': Server.label(),
                       "integration": Server.integration(),
-                      "resource_list_url": Server.resource_list_url(),
+                      "resource_list_url": "/nova/servers/?region=None",
                       'children': None}]}
 
         # Create the PolyResource database rows.
@@ -200,16 +200,15 @@ class TopologyViewTests(Setup):
 
         EXPECTED = {"label": Image.label(),
                     "integration": Image.integration(),
-                    "resource_list_url": Image.resource_list_url(),
+                    "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server.label(),
                       "integration": Server.integration(),
-                      "resource_list_url": Server.resource_list_url(),
+                      "resource_list_url": "/nova/servers/?region=None",
                       'children':
                       [{'label': Interface.label(),
                         "integration": Interface.integration(),
-                        "resource_list_url":
-                        "/nova/servers/?region=None&zone=None",
+                        "resource_list_url": '',
                         'children': None}],
                       }]}
 
@@ -238,7 +237,7 @@ class TopologyViewTests(Setup):
                     "children":
                     [{'label': Server.label(),
                       "integration": Server.integration(),
-                      "resource_list_url": Server.resource_list_url(),
+                      "resource_list_url": "/nova/servers/?region=None",
                       'children': None},
                      {'label': Network.label(),
                       "integration": Network.integration(),
@@ -246,15 +245,15 @@ class TopologyViewTests(Setup):
                       'children': None},
                      {'label': Image.label(),
                       "integration": Image.integration(),
-                      "resource_list_url": Image.resource_list_url(),
+                      "resource_list_url": "/glance/images/?region=None",
                       'children':
                       [{'label': Server.label(),
                         "integration": Server.integration(),
-                        "resource_list_url": Server.resource_list_url(),
+                        "resource_list_url": "/nova/servers/?region=None",
                         'children': None},
                        {'label': Server.label(),
                         "integration": Server.integration(),
-                        "resource_list_url": Server.resource_list_url(),
+                        "resource_list_url": "/nova/servers/?region=None",
                         'children':
                         [{'label': Volume.label(),
                           "integration": Volume.integration(),
