@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM postgres:9.4
+FROM solinea/postgres:v1-709cdb3-release
+
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
 VOLUME /var/lib/postgresql/data
