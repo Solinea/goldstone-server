@@ -759,6 +759,26 @@ class Region(PolyResource):
                  lambda f, t: f.get("id") and f["id"] == t["id"],
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: Cinder,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: Nova,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: Neutron,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: Glance,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 {TO: AvailabilityZone,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["zoneName"],

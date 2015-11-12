@@ -119,8 +119,9 @@ def update_keystone_nodes():
 
     """
     from goldstone.core.models import User, Project, Group, Domain, Region, \
-        Endpoint, Service
+        Endpoint, Service, Role
     from goldstone.core.utils import process_resource_type
 
-    for entry in [Domain, Project, Group, User, Region, Endpoint, Service]:
+    for entry in [Domain, Project, Group, User, Region, Endpoint, Service,
+                  Role]:
         process_resource_type(entry)
