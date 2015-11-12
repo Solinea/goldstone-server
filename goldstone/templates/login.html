@@ -101,11 +101,11 @@ limitations under the License.
                     .done(function(success) {
 
                         // store the auth token
-                        self.storeAuthToken(success.auth_token);
+                        storeAuthToken(success.auth_token);
 
                         // must follow storing token otherwise call will fail with 401
-                        self.checkForInstalledApps();
-                        self.redirectPostSuccessfulAuth();
+                        checkForInstalledApps();
+                        redirectPostSuccessfulAuth();
                     })
                     .fail(function(fail) {
                         // and add a message to the top of the screen that logs what
@@ -121,12 +121,29 @@ limitations under the License.
                     });
             };
 
+            var checkForInstalledApps = function() {
+                $.ajax({
+                    type: 'get',
+                    url: '/addons/'
+                }).done(function(success) {
+                    localStorage.setItem('addons', JSON.stringify(success));
+
+                    // triggers view in addonMenuView.js
+                    goldstone.addonMenuView.trigger('installedAppsUpdated');
+                }).fail(function(fail) {
+                    console.log(goldstone.translate("Failed to initialize installed addons"));
+
+                    // triggers view in addonMenuView.js
+                    goldstone.addonMenuView.trigger('installedAppsUpdated');
+                });
+            };
+
             var storeAuthToken = function(token) {
                 localStorage.setItem('userToken', token);
             };
 
             var redirectPostSuccessfulAuth = function() {
-                location.href = '#';
+                location.href = '/#';
             };
 
 
