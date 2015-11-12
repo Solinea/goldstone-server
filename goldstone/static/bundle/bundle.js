@@ -15418,7 +15418,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
             .attr("class", function(d) {
-                if (d.children === null) {
+                if (d.children === null && d._children === undefined) {
                     return "data-leaf node";
                 } else {
                     return "node";
@@ -15435,7 +15435,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                 // for appending to resource chart header
                 var origClickedLabel = d.label;
 
-                if (d.children === undefined && d.resource_list_url !== undefined) {
+                if (d.children === undefined && d._children === undefined && d.resource_list_url !== undefined) {
                     var url = d.resource_list_url;
                     if (url !== undefined) {
                         // var hasParam = false;
@@ -15468,7 +15468,6 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                         // url = "/" + parentModule + url;
 
                         // loadLeafData on TopologyTreeView
-                        console.log('url? ', url);
                         self.loadLeafData(url);
 
                         // appendLeafNameToResourceHeader on TopologyTreeView
@@ -15512,7 +15511,6 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
         nodeEnter
             .append("g")
             .attr("class", function(d) {
-                console.log(d.label + '-icon');
                 return "icon main " + (d.label || "cloud") + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
