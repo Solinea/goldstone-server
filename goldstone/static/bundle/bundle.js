@@ -6184,7 +6184,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r3-c1',
-                h: 600,
+                h: 1600,
                 leafDataUrls: this.leafDataUrls,
                 multiRsrcViewEl: '#goldstone-discover-r3-c2',
                 width: $('#goldstone-discover-r3-c2').width(),
@@ -6229,12 +6229,17 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
         '</div>' +
 
+        '<div class="row"></div>' +
+        '<div class="row"></div>' +
+        '<div class="row"></div>' +
+
         '<div id="goldstone-discover-r3" class="row">' +
         '<div id="goldstone-discover-r3-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div id="goldstone-discover-r4" class="row"><br><br></div>'
+        '<div class="row"><br><br></div>' +
+        '<div class="row"><br><br></div>'
 
     )
 
@@ -15385,7 +15390,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
 
         // appends the name of the resource list currently being displayed
         location = location || '.panel-header-resource-title';
-        $(ns.multiRsrcViewEl).find(location).text(': ' + text);
+        $(location).text(': ' + text);
     },
 
     processTree: function(json) {
