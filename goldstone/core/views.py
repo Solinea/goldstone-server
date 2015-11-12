@@ -300,16 +300,16 @@ class TopologyView(RetrieveAPIView):
         :rtype: dict
 
         """
-        from .models import Region, VolumeType, Snapshot, Flavor, Addon, \
-            User, AvailabilityZone, Cloudpipe, Role
+        from .models import Region, Flavor, Addon, \
+            User, AvailabilityZone, Cloudpipe
 
         # Regions aren't included in most of the OpenStack API returns. So, we
         # have to implicitly relate nodes to regions. For now, everything is a
         # child of the (assumed to be only one) region that was found. These
         # are each integration's first-generation nodes; any of them may have
         # children.
-        IMPLICIT_CHILDREN = [VolumeType, Snapshot, Flavor, Addon, User,
-                             AvailabilityZone, Cloudpipe, Role]
+        IMPLICIT_CHILDREN = [Flavor, Addon, User,
+                             AvailabilityZone, Cloudpipe]
 
         # We do this in multiple steps in order to be more robust in the face
         # of bad cloud data.
@@ -323,6 +323,7 @@ class TopologyView(RetrieveAPIView):
             logger.error("More than one region found: %s", regionnodes)
             regionnodes = list(regionnodes)[:1]
 
+        # Find the children of each region.
         children = [self._tree(x) for x in regionnodes if x]
 
         # This is a hack. The "label" key is unique per class, except for a

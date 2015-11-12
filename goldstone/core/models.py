@@ -409,12 +409,55 @@ class Addon(PolyResource):
         return "add-ons"
 
 
-###################################################################
-# These classes represent entities within a Keystone integration. #
-###################################################################
+###################################################
+# These classes represent a Keystone integration. #
+###################################################
 
-# TODO: Fill in User.type_outgoing_edges.QuotaSet.MATCHING_FN, Group, Token,
-# Credential, Role.
+class Keystone(PolyResource):
+    """An OpenStack integration.
+
+    This is a "virtual node". It exists to enhance the readability of the
+    topology graph in the Goldstone client.
+
+    """
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring.
+
+        Since this is a virtual node, the persistent resource graph objects are
+        the, "nodes in the cloud."
+
+        """
+
+        return [x.cloud_attributes for x in Keystone.objects.all()]
+
+    @classmethod
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Endpoint,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Role,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                ]
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Keystone"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "keystone"
+
 
 class User(PolyResource):
     """An OpenStack user."""
@@ -469,7 +512,6 @@ class User(PolyResource):
                  f["default_project_id"] == t["id"],
                  EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
                 {TO: QuotaSet,
-                 # TODO: Fill in MATCHING_FN.
                  MATCHING_FN: lambda f, t: False,
                  EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                    MIN: 0,
@@ -651,22 +693,22 @@ class Role(PolyResource):
     """An OpenStack role."""
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
 
-        return [{TO: Domain,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
-                {TO: Group,
-                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
-                {TO: Project,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
-                {TO: User,
-                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}},
-                ]
+        keystone_client = get_keystone_client()['client']
+
+        result = []
+
+        for entry in keystone_client.roles.list():
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
 
     @classmethod
     def resource_list_url(cls):
@@ -712,7 +754,12 @@ class Region(PolyResource):
     def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
-        return [{TO: AvailabilityZone,
+        return [{TO: Keystone,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["id"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: AvailabilityZone,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["zoneName"],
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
@@ -721,15 +768,6 @@ class Region(PolyResource):
                  lambda f, t: f.get("id") and f["id"] == t["zoneName"],
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: sys.maxint}},
-                {TO: Endpoint,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f["id"] == t["region_id"],
-                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                {TO: Endpoint,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f["id"] == t["region_id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -969,9 +1007,55 @@ class Project(PolyResource):
         return "projects"
 
 
-###############################################################
-# These classes represent entities within a Nova integration. #
-###############################################################
+###############################################
+# These classes represent a Nova integration. #
+###############################################
+
+class Nova(PolyResource):
+    """An OpenStack integration.
+
+    This is a "virtual node". It exists to enhance the readability of the
+    topology graph in the Goldstone client.
+
+    """
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring.
+
+        Since this is a virtual node, the persistent resource graph objects are
+        the, "nodes in the cloud."
+
+        """
+
+        return [x.cloud_attributes for x in Nova.objects.all()]
+
+   # @classmethod
+   #  def type_outgoing_edges(cls):      # pylint: disable=R0201
+   #      """Return the edges leaving this type."""
+
+   #      return [{TO: Endpoint,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              {TO: Role,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              ]
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Nova"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "nova"
+
 
 class AvailabilityZone(PolyResource):
     """An OpenStack Availability Zone."""
@@ -1678,8 +1762,6 @@ class Interface(PolyResource):
 class NovaLimits(PolyResource):
     """An OpenStack Limits within a Nova integration."""
 
-    # TODO: This needs to be rewritten.
-
     @classmethod
     def clouddata(cls):
         """See the parent class' method's docstring."""
@@ -1713,9 +1795,55 @@ class NovaLimits(PolyResource):
         return "limits"
 
 
-#################################################################
-# These classes represent entities within a Glance integration. #
-#################################################################
+#################################################
+# These classes represent a Glance integration. #
+#################################################
+
+class Glance(PolyResource):
+    """An OpenStack integration.
+
+    This is a "virtual node". It exists to enhance the readability of the
+    topology graph in the Goldstone client.
+
+    """
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring.
+
+        Since this is a virtual node, the persistent resource graph objects are
+        the, "nodes in the cloud."
+
+        """
+
+        return [x.cloud_attributes for x in Glance.objects.all()]
+
+   # @classmethod
+   #  def type_outgoing_edges(cls):      # pylint: disable=R0201
+   #      """Return the edges leaving this type."""
+
+   #      return [{TO: Endpoint,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              {TO: Role,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              ]
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Glance"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "glance"
+
 
 class Image(PolyResource):
     """An OpenStack Image."""
@@ -1765,9 +1893,55 @@ class Image(PolyResource):
         return "images"
 
 
-#################################################################
-# These classes represent entities within a Cinder integration. #
-#################################################################
+#################################################
+# These classes represent a Cinder integration. #
+#################################################
+
+class Cinder(PolyResource):
+    """An OpenStack integration.
+
+    This is a "virtual node". It exists to enhance the readability of the
+    topology graph in the Goldstone client.
+
+    """
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring.
+
+        Since this is a virtual node, the persistent resource graph objects are
+        the, "nodes in the cloud."
+
+        """
+
+        return [x.cloud_attributes for x in Cinder.objects.all()]
+
+    @classmethod
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: VolumeType,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Snapshot,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                ]
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Cinder"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "cinder"
+
 
 class QuotaSet(PolyResource):
     """An OpenStack Quota Set."""
@@ -2039,13 +2213,55 @@ class Limits(PolyResource):
         return "limits"
 
 
-##################################################################
-# These classes represent entities within a Neutron integration. #
-##################################################################
+##################################################
+# These classes represent a Neutron integration. #
+##################################################
 
-# TODO: Fill in MeteringLabelRule, MeteringLabel, NeutronQuota, RemoteGroup,
-# SecurityRules, SecurityGroup., LBVIP, LBPool, HealthMonitor, FloatingIP,
-# FloatingIPPool, FixedIP, LBMember, Subnet, Network, Router.
+class Neutron(PolyResource):
+    """An OpenStack integration.
+
+    This is a "virtual node". It exists to enhance the readability of the
+    topology graph in the Goldstone client.
+
+    """
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring.
+
+        Since this is a virtual node, the persistent resource graph objects are
+        the, "nodes in the cloud."
+
+        """
+
+        return [x.cloud_attributes for x in Neutron.objects.all()]
+
+   # @classmethod
+   #  def type_outgoing_edges(cls):      # pylint: disable=R0201
+   #      """Return the edges leaving this type."""
+
+   #      return [{TO: Endpoint,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              {TO: Role,
+   #               MATCHING_FN: lambda f, t: True,
+   #               EDGE_ATTRIBUTES:
+   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+   #              ]
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Neutron"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "neutron"
+
 
 class MeteringLabelRule(PolyResource):
     """An OpenStack Metering Label Rule."""
