@@ -15521,10 +15521,10 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             icon_cloud: ['cloud', 'region'],
             icon_endpoint: ['endpoints'],
             icon_host: ['host', 'hosts', 'hypervisors',
-                'servers'
+                'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder'
             ],
             icon_image: ['images'],
-            icon_module: ['module', 'secgroups'],
+            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons'],
             icon_role: ['roles'],
             icon_service: ['service', 'services'],
             icon_tenant: ['tenants'],
@@ -15533,8 +15533,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             icon_volume: ['volume', 'volumes'],
             icon_vol_transfer: ['agents', 'transfers'],
             icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks'
-            ]
+                'flavors', 'floating-ip-pools', 'networks']
 
         }).forEach(function(icon, classes) {
             // Acutally attach the icons to the classes
