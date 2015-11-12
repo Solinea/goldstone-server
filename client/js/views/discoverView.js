@@ -108,7 +108,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         this.discoverTreeNew = new ZoomablePartitionCollectionNew({});
 
-        this.topologyTreeViewNew = new TopologyTreeView({
+        this.topologyTreeViewNew = new TopologyTreeViewNew({
                 blueSpinnerGif: blueSpinnerGif,
                 collection: this.discoverTreeNew,
                 chartHeader: ['#goldstone-discover-r3-c1', goldstone.translate('Cloud Topology New'),
@@ -118,7 +118,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
                 h: 600,
                 leafDataUrls: this.leafDataUrls,
                 multiRsrcViewEl: '#goldstone-discover-r3-c2',
-                width: $('#goldstone-discover-r3-c1').width(),
+                width: $('#goldstone-discover-r3-c2').width(),
             });
 
     },

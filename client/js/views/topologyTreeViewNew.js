@@ -56,7 +56,7 @@ var topologyTreeView = new TopologyTreeView({
 */
 
 
-var TopologyTreeView = GoldstoneBaseView.extend({
+var TopologyTreeViewNew = GoldstoneBaseView.extend({
 
     defaults: {},
 
@@ -401,7 +401,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
             .attr("class", function(d) {
-                if (d.rsrcType.match(/-leaf$/)) {
+                if (d.children === null) {
                     return "data-leaf node";
                 } else {
                     return "node";
@@ -418,39 +418,40 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 // for appending to resource chart header
                 var origClickedLabel = d.label;
 
-                if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType] + '/';
+                if (d.children === undefined && d.resource_list_url !== undefined) {
+                    var url = d.resource_list_url;
                     if (url !== undefined) {
-                        var hasParam = false;
-                        if (d.hasOwnProperty('region')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "region=" + d.region;
-                        }
-                        if (d.hasOwnProperty('zone')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "zone=" + d.zone;
-                        }
+                        // var hasParam = false;
+                        // if (d.hasOwnProperty('region')) {
+                        //     url = hasParam ? url + "&" : url + "?";
+                        //     hasParam = true;
+                        //     url = url + "region=" + d.region;
+                        // }
+                        // if (d.hasOwnProperty('zone')) {
+                        //     url = hasParam ? url + "&" : url + "?";
+                        //     hasParam = true;
+                        //     url = url + "zone=" + d.zone;
+                        // }
 
                         // prepend zone to url:
-                        var parentModule;
+                        // var parentModule;
                         // traverse up the tree until the
                         // parent module is reached
-                        while (d.rsrcType !== 'module') {
-                            d = d.parent;
-                        }
-                        parentModule = d.label;
+                        // while (d.rsrcType !== 'module') {
+                        //     d = d.parent;
+                        // }
+                        // parentModule = d.label;
 
-                        if (self.overrideSets[d.label]) {
-                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
-                        } else {
-                            ns.filterMultiRsrcDataOverride = null;
-                        }
+                        // if (self.overrideSets[d.label]) {
+                        //     ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        // } else {
+                        //     ns.filterMultiRsrcDataOverride = null;
+                        // }
 
-                        url = "/" + parentModule + url;
+                        // url = "/" + parentModule + url;
 
                         // loadLeafData on TopologyTreeView
+                        console.log('url? ', url);
                         self.loadLeafData(url);
 
                         // appendLeafNameToResourceHeader on TopologyTreeView
@@ -494,29 +495,30 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         nodeEnter
             .append("g")
             .attr("class", function(d) {
-                return "icon main " + (d.rsrcType || "cloud") + "-icon";
+                console.log(d.label + '-icon');
+                return "icon main " + (d.label || "cloud") + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
 
         // Map of icons to the classes in which they'll be used
         d3.map({
-            icon_backup: ['backups-leaf', 'snapshots-leaf'],
+            icon_backup: ['backups', 'snapshots'],
             icon_cloud: ['cloud', 'region'],
-            icon_endpoint: ['endpoints-leaf'],
-            icon_host: ['host', 'hosts-leaf', 'hypervisors-leaf',
-                'servers-leaf'
+            icon_endpoint: ['endpoints'],
+            icon_host: ['host', 'hosts', 'hypervisors',
+                'servers'
             ],
-            icon_image: ['images-leaf'],
-            icon_module: ['module', 'secgroups-leaf'],
-            icon_role: ['roles-leaf'],
-            icon_service: ['service', 'services-leaf'],
-            icon_tenant: ['tenants-leaf'],
-            icon_types: ['volume-types-leaf'],
-            icon_user: ['users-leaf'],
-            icon_volume: ['volume', 'volumes-leaf'],
-            icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
-            icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-                'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
+            icon_image: ['images'],
+            icon_module: ['module', 'secgroups'],
+            icon_role: ['roles'],
+            icon_service: ['service', 'services'],
+            icon_tenant: ['tenants'],
+            icon_types: ['volume types'],
+            icon_user: ['users'],
+            icon_volume: ['volume', 'volumes'],
+            icon_vol_transfer: ['agents', 'transfers'],
+            icon_zone: ['zone', 'aggregates', 'cloudpipes',
+                'flavors', 'floating-ip-pools', 'networks'
             ]
 
         }).forEach(function(icon, classes) {
