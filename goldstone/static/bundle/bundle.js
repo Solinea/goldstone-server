@@ -15533,7 +15533,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             icon_volume: ['volume', 'volumes'],
             icon_vol_transfer: ['agents', 'transfers'],
             icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks']
+                'flavors', 'floating-ip-pools', 'networks', 'zones']
 
         }).forEach(function(icon, classes) {
             // Acutally attach the icons to the classes
