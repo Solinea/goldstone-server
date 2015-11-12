@@ -26,18 +26,20 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
     RemoteGroup, SecurityRules, SecurityGroup, Port, LBVIP, LBPool, \
     HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember, Subnet, \
-    Network, Router, Addon, PolyResource
+    Network, Router, Addon, PolyResource, Cinder, Glance, Nova, Neutron, \
+    Keystone
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
-                  Endpoint, Service, Project, AvailabilityZone,
-                  Aggregate, Flavor, Keypair, Host, Addon,
-                  Hypervisor, Cloudpipe, ServerGroup, Server, Interface,
-                  NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType,
-                  Volume, Limits, MeteringLabelRule, MeteringLabel,
-                  NeutronQuota, RemoteGroup, SecurityRules, SecurityGroup,
-                  Port, LBVIP, LBPool, HealthMonitor, FloatingIP,
-                  FloatingIPPool, FixedIP, LBMember, Subnet, Network, Router]
+                  Endpoint, Service, Project, AvailabilityZone, Aggregate,
+                  Flavor, Keypair, Host, Addon, Hypervisor, Cloudpipe,
+                  ServerGroup, Server, Interface, NovaLimits, Image, QuotaSet,
+                  QOSSpec, Snapshot, VolumeType, Volume, Limits,
+                  MeteringLabelRule, MeteringLabel, NeutronQuota, RemoteGroup,
+                  SecurityRules, SecurityGroup, Port, LBVIP, LBPool,
+                  HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember,
+                  Subnet, Network, Router, Cinder, Glance, Nova, Neutron,
+                  Keystone]
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO

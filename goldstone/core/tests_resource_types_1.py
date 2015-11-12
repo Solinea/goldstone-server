@@ -876,32 +876,3 @@ class ResourceTypesTests(SimpleTestCase):
                 AvailabilityZone,
                 AVAILABILITYZONE,
                 partial(dictassign, AVAILABILITYZONE, "zoneName"))
-
-    @staticmethod
-    def test_region_endpoint():
-        """Test the Region - Endpoint entry."""
-
-        # Test data.
-        REGION = {u'description': u'',
-                  u'id': u'RegionOne',
-                  u'links':
-                  {u'self': u'http://172.24.4.100:35357/v3/regions/RegionOne'},
-                  u'parent_region_id': None}
-
-        ENDPOINT = {u'enabled': True,
-                    u'id': u'0dd743f720bf459d84053da2fe39da42',
-                    u'interface': u'admin',
-                    u'links':
-                    {u'self':
-                     u'http://172.24.4.100:35357/v3/endpoints/0ddda42'},
-                    u'region': u'RegionOne',
-                    u'region_id': u'RegionOne',
-                    u'service_id': u'2e2bfe12b5de415ca805b098eb19b8fc',
-                    u'url': u'http://172.24.4.100:8774/v3'}
-
-        do_test(Region,
-                REGION,
-                partial(dictassign, REGION, "id"),
-                Endpoint,
-                ENDPOINT,
-                partial(dictassign, ENDPOINT, "region_id"))

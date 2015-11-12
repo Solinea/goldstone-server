@@ -444,6 +444,10 @@ class Keystone(PolyResource):
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: User,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1050,19 +1054,15 @@ class Nova(PolyResource):
 
         return [x.cloud_attributes for x in Nova.objects.all()]
 
-   # @classmethod
-   #  def type_outgoing_edges(cls):      # pylint: disable=R0201
-   #      """Return the edges leaving this type."""
+    @classmethod
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
 
-   #      return [{TO: Endpoint,
-   #               MATCHING_FN: lambda f, t: True,
-   #               EDGE_ATTRIBUTES:
-   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-   #              {TO: Role,
-   #               MATCHING_FN: lambda f, t: True,
-   #               EDGE_ATTRIBUTES:
-   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-   #              ]
+        return [{TO: Flavor,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                ]
 
     @classmethod
     def integration(cls):

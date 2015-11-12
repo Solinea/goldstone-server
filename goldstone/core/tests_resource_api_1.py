@@ -327,6 +327,31 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Addon'>"},
+                    {u'label': u'cinder',
+                     u'integration': u'Cinder',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Cinder'>"},
+                    {u'label': u'glance',
+                     u'integration': u'Glance',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Glance'>"},
+                    {u'label': u'keystone',
+                     u'integration': u'Keystone',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Keystone'>"},
+                    {u'label': u'nova',
+                     u'integration': u'Nova',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Nova'>"},
+                    {u'label': u'neutron',
+                     u'integration': u'Neutron',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Neutron'>"},
                     ]
 
         # This code is for ticket #105611698. Coming into this test, the

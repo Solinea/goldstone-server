@@ -300,16 +300,14 @@ class TopologyView(RetrieveAPIView):
         :rtype: dict
 
         """
-        from .models import Region, Flavor, Addon, \
-            User, AvailabilityZone, Cloudpipe
+        from .models import Region, Addon, AvailabilityZone, Cloudpipe
 
         # Regions aren't included in most of the OpenStack API returns. So, we
         # have to implicitly relate nodes to regions. For now, everything is a
         # child of the (assumed to be only one) region that was found. These
         # are each integration's first-generation nodes; any of them may have
         # children.
-        IMPLICIT_CHILDREN = [Flavor, Addon, User,
-                             AvailabilityZone, Cloudpipe]
+        IMPLICIT_CHILDREN = [Addon, AvailabilityZone, Cloudpipe]
 
         # We do this in multiple steps in order to be more robust in the face
         # of bad cloud data.
