@@ -8997,7 +8997,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 var LoginPageView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
-        this.render();
+        // this.render();
         this.addHandlers();
     },
 
@@ -9051,16 +9051,8 @@ var LoginPageView = GoldstoneBaseView2.extend({
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-
-                try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
-                } catch (e) {
-                    goldstone.raiseInfo(fail.responseText);
-                    console.log(e);
-                }
-
+                // and add a failure message to the top of the screen
+                goldstone.raiseInfo("Username / Password combo failed. Please try again");
             });
     },
 
@@ -9069,10 +9061,11 @@ var LoginPageView = GoldstoneBaseView2.extend({
     },
 
     redirectPostSuccessfulAuth: function() {
-        location.href = '/#';
+        location.href = '/';
     },
 
-    template: _.template('' +
+    template: _.template(''
+        /*+
         '<div class="container">' +
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
@@ -9087,7 +9080,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
         '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
         '</div>' +
         '</div>' +
-        '</div>'
+        '</div>'*/
     )
 
 });
