@@ -698,7 +698,12 @@ class Credential(PolyResource):
 
 
 class Role(PolyResource):
-    """An OpenStack role."""
+    """An OpenStack role.
+
+    Because this is a topological leaf node, the returned list contains one
+    entry.
+
+    """
 
     @classmethod
     def clouddata(cls):
@@ -706,17 +711,12 @@ class Role(PolyResource):
 
         keystone_client = get_keystone_client()['client']
 
-        result = []
-
-        for entry in keystone_client.roles.list():
-            this_entry = entry.to_dict()
-
-            # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-            result.append(this_entry)
-
-        return result
+        if keystone_client.users.list():
+            return [{"name": "roles",
+                     cls.native_id_key(): "roles",
+                     cls.resource_type_name_key(): cls.unique_class_id()}]
+        else:
+            return []
 
     @classmethod
     def resource_list_url(cls):
