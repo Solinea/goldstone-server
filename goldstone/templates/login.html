@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<!-- django will render base.html, and then render router.html into block content  -->
 {% load staticfiles %}
 <html>
     <head>
@@ -26,8 +25,6 @@ limitations under the License.
         <!--[if lt IE 9]>
         <script src="assets/js/html5shiv.min.js"></script>
         <![endif]-->
-        {% block localcss %}
-        {% endblock %}
     </head>
     <body class="login-page">
 
@@ -58,7 +55,7 @@ limitations under the License.
                                   <input type="checkbox" value="remember" id="chk1"> <span class="chk-lab"></span> Remember me
                                 </label>
                                 <button class="full-width-btn" type="submit">Sign In</button>
-                                <a class="reset-pw" href="#">reset password</a>
+                                <a class="reset-pw" href="/password/">reset password</a>
                             </form>
         {% endblock %}
 

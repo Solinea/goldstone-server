@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView.extend({
-
-    defaults: {},
+var PasswordResetView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
+        // this.render();
         this.addHandlers();
     },
 
