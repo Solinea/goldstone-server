@@ -192,7 +192,7 @@ class EventSerializer(ReadOnlyElasticSerializer):
                         if target_value in id_values:
                             # We found this instance! Plug in the resource type
                             # and name, and return.
-                            result[resource_type] = node.resourcetype.label()
+                            result[resource_type] = node.resourcetype().label()
                             result[resource_name] = \
                                 node.attributes.get("name", NOT_FOUND)
                             break

@@ -74,7 +74,7 @@ class GraphNode(object):
     def __repr__(self):
         """Return a useful string."""
 
-        return "<%s, %s>" % (self.uuid, self.resourcetype.label())
+        return "<%s, %s>" % (self.uuid, self.resourcetype().label())
 
 
 class Graph(object):

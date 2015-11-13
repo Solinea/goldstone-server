@@ -36,6 +36,7 @@ class EndpointsDataView(JsonReadOnlyView):
 
     model = EndpointsData
     key = 'endpoints'
+    zone_key = "interface"
 
 
 # Our API documentation extracts this docstring, hence the use of markup.

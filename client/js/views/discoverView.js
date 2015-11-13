@@ -115,7 +115,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r3-c1',
-                h: 800,
+                h: 600,
                 leafDataUrls: this.leafDataUrls,
                 multiRsrcViewEl: '#goldstone-discover-r3-c2',
                 width: $('#goldstone-discover-r3-c2').width(),
@@ -169,8 +169,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div class="row"><br><br></div>' +
-        '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>'

@@ -368,7 +368,7 @@ class CoreResourceTypes(Setup):
 
         for entry in resource.types.graph.nodes():
             try:
-                entry.label()
+                entry().label()
                 entry.integration()
             except Exception as exc:        # pylint: disable=W0703
                 print "? %s doesn't have label or integration, exception: %s" \

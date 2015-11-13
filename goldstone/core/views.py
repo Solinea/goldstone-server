@@ -274,11 +274,13 @@ class TopologyView(RetrieveAPIView):
 
         url_values = {"region": region,
                       "parent_integration": parent_integration,
+                      "zone": node.attributes.get("zone"),
                       }
 
         result = {"uuid": node.uuid,
                   "integration": node.resourcetype.integration(),
-                  "label": node.resourcetype.label(),
+                  "label":
+                  node.resourcetype.objects.get(uuid=node.uuid).label(),
                   "resource_list_url":
                   node.resourcetype.resource_list_url().format(**url_values),
                   "children": children}
@@ -497,7 +499,7 @@ class ResourceTypeList(ListAPIView):
 
         # Gather the nodes.
         nodes = [{"integration": entry.integration(),
-                  "label": entry.label(),
+                  "label": entry().label(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
                  for entry in resource.types.graph.nodes()]
@@ -655,7 +657,7 @@ class ResourcesList(ListAPIView):
                 nodes.append({"resourcetype":
                               {"unique_id":
                                node.resourcetype.unique_class_id(),
-                               "label": node.resourcetype.label()},
+                               "label": node.resourcetype().label()},
                               "uuid": node.uuid,
                               "native_id": row.native_id,
                               "native_name": row.native_name
