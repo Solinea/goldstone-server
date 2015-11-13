@@ -85,7 +85,9 @@ body{
 }
 .chkbox input[type="checkbox"]{
  position: absolute;
- display:none;
+ opacity: 0;
+ right: 120px;
+ /*display:none; changed to opacity to allow for tab focus*/
 }
 .chk-lab{
  height:18px;
@@ -101,6 +103,9 @@ body{
 .chkbox input[type="checkbox"]:checked + .chk-lab{
  background:#fff;
 }
+.chkbox input[type="checkbox"]:focus + .chk-lab{
+ border-color:blue;
+}
 .full-width-btn{
  font-size:14px;
  color:#2c80ab;
@@ -113,6 +118,11 @@ body{
  border-radius:2px;
  text-transform: uppercase;
 }
+
+.full-width-btn:focus{
+ background-color: rgba(255,255,255,0.54);
+}
+
 .login-form .full-width-btn{
  margin-bottom: 15px;
 }
@@ -162,7 +172,7 @@ body{
 .service-status-table li{
 	padding:13px 15px;
 	overflow: hidden;
-	
+
 	border-bottom:1px solid #f3f3f3;
 }
 .service-status-table li:last-child{
@@ -366,7 +376,7 @@ body{
 	border-color:#eeeeee;
 }
 .btn-grp li.active{
-	background:#4f376e; 
+	background:#4f376e;
 }
 .btn-grp li.active:hover{
 	border-left-color:#4f376e;
@@ -519,7 +529,7 @@ body{
 	color:rgba(255,255,255,0.5);
 	border-bottom:4px solid transparent;
 	cursor: pointer;
-	
+
 }
 .subtab .tab-links li.active{
 	border-color:#fff;
