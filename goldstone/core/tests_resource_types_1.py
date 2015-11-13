@@ -19,7 +19,7 @@ from functools import partial
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, Interface, Keypair, User, Credential, Group, Region, Endpoint
+    Flavor, Interface, Keypair, User, Credential, Group
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -835,44 +835,3 @@ class ResourceTypesTests(SimpleTestCase):
                 Image,
                 IMAGE,
                 partial(dictassign, IMAGE, "id"))
-
-    @staticmethod
-    def test_region_availability_zone():
-        """Test the Region - AvailabilityZone entry."""
-
-        # Test data.
-        REGION = {u'description': u'',
-                  u'id': u'RegionOne',
-                  u'links':
-                  {u'self': u'http://172.24.4.100:35357/v3/regions/RegionOne'},
-                  u'parent_region_id': None}
-
-        AVAILABILITYZONE = {
-            u'hosts':
-            {u'ctrl-john.solinea.com':
-             {u'nova-cert': {u'active': True,
-                             u'available': True,
-                             u'updated_at':
-                             u'2015-04-02T18:46:27.000000'},
-              u'nova-conductor': {u'active': True,
-                                  u'available': True,
-                                  u'updated_at':
-                                  u'2015-04-02T18:46:20.000000'},
-              u'nova-consoleauth': {u'active': True,
-                                    u'available': True,
-                                    u'updated_at':
-                                    u'2015-04-02T18:46:27.000000'},
-              u'nova-scheduler': {u'active': True,
-                                  u'available': True,
-                                  u'updated_at':
-                                  u'2015-04-02T18:46:27.000000'}}},
-            u'zoneName': u'internal',
-            u'zoneState': {u'available': True}
-            }
-
-        do_test(Region,
-                REGION,
-                partial(dictassign, REGION, "id"),
-                AvailabilityZone,
-                AVAILABILITYZONE,
-                partial(dictassign, AVAILABILITYZONE, "zoneName"))

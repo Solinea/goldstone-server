@@ -300,14 +300,7 @@ class TopologyView(RetrieveAPIView):
         :rtype: dict
 
         """
-        from .models import Region, Addon, AvailabilityZone, Cloudpipe
-
-        # Regions aren't included in most of the OpenStack API returns. So, we
-        # have to implicitly relate nodes to regions. For now, everything is a
-        # child of the (assumed to be only one) region that was found. These
-        # are each integration's first-generation nodes; any of them may have
-        # children.
-        IMPLICIT_CHILDREN = [Addon, AvailabilityZone, Cloudpipe]
+        from .models import Region
 
         # We do this in multiple steps in order to be more robust in the face
         # of bad cloud data.
@@ -327,12 +320,6 @@ class TopologyView(RetrieveAPIView):
         # This is a hack. The "label" key is unique per class, except for a
         # Region node, where it's unique per region.
         children[0]["label"] = list(regionnodes)[0].attributes["id"]
-
-        # Add the implicit children of the sole region.
-        children[0]["children"].extend(
-            [self._tree(x)
-             for x in resource.instances.graph.nodes()
-             if x.resourcetype in IMPLICIT_CHILDREN])
 
         # Return a "cloud" response. The children are the regions cloud's
         # regions.

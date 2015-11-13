@@ -27,7 +27,7 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     RemoteGroup, SecurityRules, SecurityGroup, Port, LBVIP, LBPool, \
     HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember, Subnet, \
     Network, Router, Addon, PolyResource, Cinder, Glance, Nova, Neutron, \
-    Keystone
+    Keystone, Transfer
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
@@ -39,7 +39,7 @@ RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   SecurityRules, SecurityGroup, Port, LBVIP, LBPool,
                   HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember,
                   Subnet, Network, Router, Cinder, Glance, Nova, Neutron,
-                  Keystone]
+                  Keystone, Transfer]
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO

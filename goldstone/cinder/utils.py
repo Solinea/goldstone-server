@@ -145,11 +145,11 @@ def update_cinder_nodes():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.core.models import QOSSpec, VolumeType, Snapshot
+    from goldstone.core.models import QOSSpec, VolumeType, Snapshot, Transfer
     from goldstone.core.utils import process_resource_type
 
     # The resource type "from" nodes.
-    FROM_TYPES = [QOSSpec, VolumeType, Snapshot]
+    FROM_TYPES = [QOSSpec, VolumeType, Snapshot, Transfer]
 
     for nodetype in FROM_TYPES:
         process_resource_type(nodetype)

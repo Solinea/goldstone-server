@@ -322,6 +322,11 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Interface'>"},
+                    {u'label': u'transfers',
+                     u'integration': u'Cinder',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Transfer'>"},
                     {u'label': u'add-ons',
                      u'integration': u'Add-on',
                      u'present': False,

@@ -448,6 +448,10 @@ class Keystone(PolyResource):
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Service,
+                 MATCHING_FN: lambda f, t: "keystone" in t.get("name", ''),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -468,21 +472,21 @@ class User(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
+        """See the parent class' method's docstring.
+
+        Because this is a topological leaf node, the returned list contains one
+        entry.
+
+        """
 
         keystone_client = get_keystone_client()['client']
 
-        result = []
-
-        for entry in keystone_client.users.list():
-            this_entry = entry.to_dict()
-
-            # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-            result.append(this_entry)
-
-        return result
+        if keystone_client.users.list():
+            return [{"name": "users",
+                     cls.native_id_key(): "users",
+                     cls.resource_type_name_key(): cls.unique_class_id()}]
+        else:
+            return []
 
     @classmethod
     def type_outgoing_edges(cls):      # pylint: disable=R0201
@@ -761,37 +765,27 @@ class Region(PolyResource):
         return [{TO: Keystone,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 {TO: Cinder,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 {TO: Nova,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 {TO: Neutron,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 {TO: Glance,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f["id"] == t["id"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
-                {TO: AvailabilityZone,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
-                {TO: AvailabilityZone,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: sys.maxint}},
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
+                {TO: Addon,
+                 # Any add-on can be used in any region...
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
                 ]
 
     @classmethod
@@ -812,40 +806,41 @@ class Endpoint(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
+        """See the parent class' method's docstring.
+
+        Because this is a topological leaf node, the returned list contains one
+        entry per interface.
+
+        """
 
         keystone_client = get_keystone_client()['client']
 
         # Note: Endpoints may have identical service_ids for the public,
         # private, and admin interfaces. The endpoint's dict will contain an
-        # "interface" key.
+        # "interface" key, and we look for it.
         result = []
+        seen_interfaces = set()
 
         for entry in keystone_client.endpoints.list():
             this_entry = entry.to_dict()
+            interface = this_entry["interface"]
 
-            # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+            if interface not in seen_interfaces:
+                # We haven't seen this interface before.  Add it.
+                seen_interfaces.add(interface)
 
-            result.append(this_entry)
+                result.append({"name": interface,
+                               cls.native_id_key(): interface,
+                               cls.resource_type_name_key():
+                               cls.unique_class_id()})
 
         return result
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
 
-        return [{TO: Service,
-                 MATCHING_FN:
-                 lambda f, t: f.get("service_id") and
-                 f.get("service_id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}},
-                {TO: Service,
-                 MATCHING_FN:
-                 lambda f, t: f.get("service_id") and
-                 f.get("service_id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}},
-                ]
+        return reverse("keystone-endpoints") + "/?region={region}"
 
     @classmethod
     def integration(cls):
@@ -861,23 +856,39 @@ class Endpoint(PolyResource):
 
 
 class Service(PolyResource):
-    """An OpenStack service."""
+    """An OpenStack service.
+
+    This type represents Keystone, Cinder, and Nova services.
+
+    """
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
+        """See the parent class' method's docstring.
 
+        Because this is a topological leaf node, the returned list contains one
+        entry per Keystone, Cinder, or Nova, if services exist for them.
+
+        """
+
+        # Set up to loop over the clients.
         keystone_client = get_keystone_client()['client']
+        cinder_client = get_cinder_client()['client']
+        nova_client = get_nova_client()['client']
+
+        clients = [[keystone_client, "keystone services"],
+                   [nova_client, "nova services"],
+                   [cinder_client, "cinder services"]]
 
         result = []
 
-        for entry in keystone_client.services.list():
-            this_entry = entry.to_dict()
-
-            # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-            result.append(this_entry)
+        for client, client_name in clients:
+            if client.services.list():
+                # Services exist for this client.  Make a leaf node.
+                result.append({"name": client_name,
+                               cls.native_id_key(): client_name,
+                               cls.resource_type_name_key():
+                               cls.unique_class_id()})
 
         return result
 
@@ -1062,6 +1073,24 @@ class Nova(PolyResource):
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Service,
+                 MATCHING_FN: lambda f, t: "nova" in t.get("name", ''),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Hypervisor,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: AvailabilityZone,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: sys.maxint}},
+                {TO: Cloudpipe,
+                 MATCHING_FN:
+                 lambda f, t: f.get("id") and f["id"] == t["zoneName"],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1948,6 +1977,14 @@ class Cinder(PolyResource):
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Transfer,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Service,
+                 MATCHING_FN: lambda f, t: "cinder" in t.get("name", ''),
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -1967,36 +2004,10 @@ class QuotaSet(PolyResource):
     """An OpenStack Quota Set."""
 
     @classmethod
-    def clouddata(cls):
-        """See the parent class' method's docstring."""
-
-        result = []
-
-        for entry in get_glance_client()["client"].images.list():
-            # Make a dict for this entry, and concoct a unique id for it.
-            this_entry = entry.to_dict()
-            this_entry[cls.native_id_key()] = \
-                cls.native_id_from_attributes(this_entry)
-
-            # Add this resource's name, and the name of the resource type.
-            this_entry[cls.resource_name_key()] = "None"
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-            result.append(this_entry)
-
-        return result
-
-    @classmethod
     def native_id_key(cls):
         """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
-
-    @classmethod
-    def native_id_from_attributes(cls, attributes):
-        """See the parent class' method's docstring."""
-
-        return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
     def integration(cls):
@@ -2104,6 +2115,45 @@ class Snapshot(PolyResource):
         """See the parent class' method's docstring."""
 
         return "snapshots"
+
+
+class Transfer(PolyResource):
+    """An OpenStack Transfer."""
+
+    @classmethod
+    def clouddata(cls):
+        """See the parent class' method's docstring."""
+
+        result = []
+
+        for entry in get_cinder_client()["client"].transfers.list():
+            # Make a dict for this entry.
+            this_entry = entry.to_dict()
+
+            # Add the name of the resource type.
+            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
+
+            result.append(this_entry)
+
+        return result
+
+    @classmethod
+    def resource_list_url(cls):
+        """See the parent class' method's docstring."""
+
+        return reverse("cinder-transfers") + "/?region={region}"
+
+    @classmethod
+    def integration(cls):
+        """See the parent class' method's docstring."""
+
+        return "Cinder"
+
+    @classmethod
+    def label(cls):
+        """See the parent class' method's docstring."""
+
+        return "transfers"
 
 
 class VolumeType(PolyResource):
