@@ -9069,7 +9069,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
     },
 
     redirectPostSuccessfulAuth: function() {
-        location.href = '#';
+        location.href = '/#';
     },
 
     template: _.template('' +

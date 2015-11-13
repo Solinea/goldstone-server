@@ -50,7 +50,7 @@ limitations under the License.
         <!-- subclass and replace for password reset/confirm pages -->
         {% block localhtml %}
                             <form class="login-form">
-                                <input type="text" name="username" placeholder="Username">
+                                <input type="text" name="username" placeholder="Username" autofocus>
                                 <input type="password" name="password" placeholder="Password">
                                 <label class="chkbox" for="chk1">
                                   <input type="checkbox" value="remember" id="chk1"> <span class="chk-lab"></span> Remember me
@@ -69,8 +69,10 @@ limitations under the License.
             <footer class="footer">
                 <div class="container">
                     <div class="row">
-                        <span class="copyright"><strong>Copyright 2014-2015</strong> Solinea, Inc.</span>
-                        <span class="license">License</span>
+                        <span class="copyright"><strong>Copyright 2014-2015</strong>
+                         <a style="color:#fff" href="http://www.solinea.com">Solinea, Inc.</a></span>
+                        <span class="license">
+                        <a style="color:#fff" href="https://www.apache.org/licenses/LICENSE-2.0">License</a></span>
                     </div>
                 </div>
             </footer>
@@ -143,7 +145,7 @@ limitations under the License.
             };
 
             var redirectPostSuccessfulAuth = function() {
-                location.href = '/#';
+                location.href = '/';
             };
 
 
