@@ -18,7 +18,26 @@ var LoginPageView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
         // this.render();
+        this.checkForRememberedUsername();
         this.addHandlers();
+    },
+
+    checkForRememberedUsername: function() {
+
+        // if user last logged in without box checked, this will be null
+        var rememberedUsername = localStorage.getItem('rem');
+
+        // if value exists
+        if (rememberedUsername !== null && rememberedUsername !== undefined) {
+
+            // pre-check remember me checkbox
+            document.getElementById('chk1').checked = true;
+
+            // and fill in decrypted username
+            var username = atob(rememberedUsername);
+            document.getElementsByName('username')[0].value = username;
+        }
+
     },
 
     checkForInstalledApps: function() {
@@ -64,6 +83,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
             .done(function(success) {
 
                 // store the auth token
+                self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
                 // must follow storing token otherwise call will fail with 401
@@ -74,6 +94,25 @@ var LoginPageView = GoldstoneBaseView2.extend({
                 // and add a failure message to the top of the screen
                 goldstone.raiseInfo("Username / Password combo failed. Please try again");
             });
+    },
+
+    storeUsernameIfChecked: function() {
+
+        // is the 'remember me' checkbox checked?
+        var rememberMeChecked = document.getElementById('chk1').checked;
+
+        if (rememberMeChecked) {
+
+            // grab and escape the username from the form
+            var username = _.escape(document.getElementsByName('username')[0].value);
+
+            // encrypt to base-64 (not secure, obsurred to casual glance)
+            var hashedUsername = btoa(username);
+            localStorage.setItem('rem', hashedUsername);
+        } else {
+            // otherwise remove the stored hash
+            localStorage.removeItem('rem');
+        }
     },
 
     storeAuthToken: function(token) {
