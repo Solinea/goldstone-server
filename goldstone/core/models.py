@@ -844,7 +844,7 @@ class Endpoint(PolyResource):
         """See the parent class' method's docstring."""
 
         zone = self.cloud_attributes.get("zone")    # pylint: disable=E1101
-        return "endpoints (%s)" % zone if zone else "endpoints"
+        return "%s endpoints" % zone if zone else "endpoints"
 
 
 class Service(PolyResource):
@@ -1730,7 +1730,7 @@ class Server(PolyResource):
         """See the parent class' method's docstring."""
 
         zone = self.cloud_attributes.get("zone")    # pylint: disable=E1101
-        return "servers (%s)" % zone if zone else "servers"
+        return "%s servers" % zone if zone else "servers"
 
 
 class Interface(PolyResource):
