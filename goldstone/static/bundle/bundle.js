@@ -6184,7 +6184,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
                     'discoverCloudTopology'
                 ],
                 el: '#goldstone-discover-r3-c1',
-                h: 800,
+                h: 600,
                 leafDataUrls: this.leafDataUrls,
                 multiRsrcViewEl: '#goldstone-discover-r3-c2',
                 width: $('#goldstone-discover-r3-c2').width(),
@@ -6238,8 +6238,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r3-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div class="row"><br><br></div>' +
-        '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>' +
         '<div class="row"><br><br></div>'
@@ -15522,7 +15520,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
         d3.map({
             icon_backup: ['backups', 'snapshots'],
             icon_cloud: ['cloud', 'region'],
-            icon_endpoint: ['endpoints'],
+            icon_endpoint: ['endpoints', 'internal', 'public', 'admin'],
             icon_host: ['host', 'hosts', 'hypervisors',
                 'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder'
             ],
@@ -15531,7 +15529,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             icon_role: ['roles'],
             icon_service: ['service', 'services'],
             icon_tenant: ['tenants'],
-            icon_types: ['volume types'],
+            icon_types: ['types'],
             icon_user: ['users'],
             icon_volume: ['volume', 'volumes'],
             icon_vol_transfer: ['agents', 'transfers'],
