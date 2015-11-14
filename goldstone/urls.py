@@ -18,7 +18,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # from django.views.generic import RedirectView
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
-from goldstone.views import RouterView, LoginView, PasswordResetView
+from goldstone.views import RouterView, LoginView, PasswordResetView, \
+  PasswordConfirmView
 
 admin.autodiscover()
 
@@ -43,6 +44,7 @@ urlpatterns += patterns(
     url(r'^nova/', include('goldstone.nova.urls')),
     url(r'^user/', include("goldstone.user.urls")),
     url(r'^login/', LoginView.as_view()),
+    url(r'^password/confirm/', PasswordConfirmView.as_view()),
     url(r'^password/', PasswordResetView.as_view()),
     url(r'^$', RouterView.as_view()),
 )

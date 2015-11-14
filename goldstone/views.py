@@ -156,3 +156,9 @@ class PasswordResetView(TemplateView):
     """Return the Goldstone Password Reset page."""
 
     template_name = 'password-reset.html'
+
+
+class PasswordConfirmView(TemplateView):
+    """Return the Goldstone Password Reset page."""
+
+    template_name = 'password-confirm.html'
