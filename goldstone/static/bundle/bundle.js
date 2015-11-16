@@ -14390,6 +14390,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     },
     drawSingleRsrcInfoTable: function(scrollYpx, json) {
         // make a dataTable
+        var ns = this.defaults;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -14503,7 +14504,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
 
                     $(ns.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
-                    oTable = $("#multi-rsrc-table").DataTable({
+                    oTable = $(ns.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
                         "data": filteredFirstTsData,
@@ -15186,6 +15187,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
     },
     drawSingleRsrcInfoTable: function(scrollYpx, json) {
         // make a dataTable
+        var ns = this.defaults;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -15299,7 +15301,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                     });
 
                     $(ns.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
-                    oTable = $("#multi-rsrc-table").DataTable({
+                    oTable = $(ns.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
                         "data": filteredFirstTsData,
@@ -15460,11 +15462,12 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                         // }
                         // parentModule = d.label;
 
-                        // if (self.overrideSets[d.label]) {
-                        //     ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
-                        // } else {
-                        //     ns.filterMultiRsrcDataOverride = null;
-                        // }
+                        if (self.overrideSets[d.label]) {
+                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        } else {
+                            ns.filterMultiRsrcDataOverride = null;
+                            console.log(ns.filterMultiRsrcDataOverride);
+                        }
 
                         // url = "/" + parentModule + url;
 
