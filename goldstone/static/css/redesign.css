@@ -100,12 +100,13 @@ body{
  border-radius:2px;
  cursor: pointer;
 }
-.chkbox input[type="checkbox"]:checked + .chk-lab{
- background:#fff;
+.chkbox input[type="checkbox"]:checked + .chk-lab:after{
+ content: '\2713';
+ position: absolute;
+ top: -20%;
+ left: 9%;
 }
-.chkbox input[type="checkbox"]:focus + .chk-lab{
- border-color:blue;
-}
+
 .full-width-btn{
  font-size:14px;
  color:#2c80ab;
