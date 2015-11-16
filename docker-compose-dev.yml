@@ -26,6 +26,10 @@ gsappdev:
     - gsdb
     - gssearch
     - gstaskq
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Database Container
 gsdb:
@@ -35,12 +39,20 @@ gsdb:
     - gsdbdvc
   ports:
     - "5432:5432"
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Database Data Volume Container
 gsdbdvc:
   build: ./docker/Dockerfiles/goldstone-db-dvc
   volumes:
     - /var/lib/postgresql/data
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Logstash Container
 gslog:
@@ -55,6 +67,10 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Elasticsearch Container
 gssearch:
@@ -64,12 +80,20 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Celery Task Queue Container
 gstaskq:
- build: ./docker/Dockerfiles/goldstone-task-queue
- ports:
+  build: ./docker/Dockerfiles/goldstone-task-queue
+  ports:
     - "6379:6379"
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Kibana
 gskibana:
@@ -78,3 +102,7 @@ gskibana:
     - "5601:5601"
   links:
     - "gssearch:elasticsearch"
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
