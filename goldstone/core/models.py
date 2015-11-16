@@ -327,7 +327,7 @@ class PolyResource(PolymorphicModel):
 
         return ''
 
-    def label(self):
+    def label(self):                   # pylint: disable=R0201
         """Return the name of this node's resource type.
 
         This should be lowercase plural.
@@ -2287,19 +2287,71 @@ class Neutron(PolyResource):
 
         return [x.cloud_attributes for x in Neutron.objects.all()]
 
-   # @classmethod
-   #  def type_outgoing_edges(cls):      # pylint: disable=R0201
-   #      """Return the edges leaving this type."""
+    @classmethod
+    def type_outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
 
-   #      return [{TO: Endpoint,
-   #               MATCHING_FN: lambda f, t: True,
-   #               EDGE_ATTRIBUTES:
-   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-   #              {TO: Role,
-   #               MATCHING_FN: lambda f, t: True,
-   #               EDGE_ATTRIBUTES:
-   #               {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-   #              ]
+        return [{TO: MeteringLabelRule,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: MeteringLabel,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronQuota,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: RemoteGroup,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: SecurityRules,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: SecurityGroup,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Port,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: LBVIP,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: HealthMonitor,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: FloatingIPPool,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: FixedIP,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: LBMember,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Subnet,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Network,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Router,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                ]
 
     @classmethod
     def integration(cls):
@@ -2487,6 +2539,10 @@ class LBVIP(PolyResource):
                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
                 {TO: Subnet,
                  EDGE_ATTRIBUTES: {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}},
+                {TO: LBPool,
+                 MATCHING_FN: lambda f, t: False,    # for now.
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -2571,7 +2627,11 @@ class FloatingIPPool(PolyResource):
                 {TO: FloatingIP,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                ]
+                {TO: FloatingIP,
+                 MATCHING_FN: lambda f, t: False,    # for now.
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+               ]
 
     @classmethod
     def integration(cls):
