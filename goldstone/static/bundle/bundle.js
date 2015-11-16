@@ -6092,7 +6092,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         this.discoverTreeNew = new ZoomablePartitionCollection({});
 
-        this.topologyTreeViewNew = new TopologyTreeViewNew({
+        this.topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
             collection: this.discoverTreeNew,
             chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
@@ -14072,7 +14072,7 @@ var topologyTreeView = new TopologyTreeView({
 */
 
 
-var TopologyTreeViewNew = GoldstoneBaseView.extend({
+var TopologyTreeView = GoldstoneBaseView.extend({
 
     defaults: {
         leafDataUrls: {

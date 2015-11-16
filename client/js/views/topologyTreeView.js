@@ -32,7 +32,7 @@ var topologyTreeView = new TopologyTreeView({
 */
 
 
-var TopologyTreeViewNew = GoldstoneBaseView.extend({
+var TopologyTreeView = GoldstoneBaseView.extend({
 
     defaults: {
         leafDataUrls: {
