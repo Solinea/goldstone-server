@@ -10914,35 +10914,35 @@ var NeutronReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView.extend({
-
-    defaults: {},
+var NewPasswordView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
+        // this.render();
+        this.getUidToken();
         this.addHandlers();
+    },
+
+    getUidToken: function() {
+        this.uidToken = window.location.search;
     },
 
     addHandlers: function() {
         var self = this;
 
-        $('.new-password-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
 
             var $password = $('#password');
             var $confirm_password = $('#confirm_password');
 
             if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning(goldstone.translate("Passwords don't match."));
+                goldstone.raiseWarning("Passwords don't match.");
             } else {
 
                 // options.uidToken is passed in when the view is
                 // instantiated via goldstoneRouter.js
 
-                self.submitRequest(self.options.uidToken + '&' + $(this).serialize());
+                self.submitRequest(self.uidToken + '&' + $(this).serialize());
             }
         });
     },
@@ -10967,9 +10967,13 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 self.clearFields();
 
                 // and add a success message to the top of the screen
-                goldstone.raiseInfo(goldstone.translate('You have successfully changed your password.'));
+                goldstone.raiseInfo('Password changed. Redirecting to login.');
 
-                Backbone.history.navigate('#login', true);
+
+                setTimeout(function() {
+                    location.href = '/login/';
+
+                }, 2000);
 
             })
             .fail(function(fail) {
@@ -10980,7 +10984,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 } else {
                     // clear input fields
                     self.clearFields();
-                    goldstone.raiseWarning(goldstone.translate('Password reset failed.'));
+                    goldstone.raiseWarning('Password reset failed.');
                 }
 
             });
@@ -12519,7 +12523,7 @@ var PasswordResetView = GoldstoneBaseView2.extend({
     addHandlers: function() {
         var self = this;
 
-        $('.password-reset-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
             self.submitRequest($(this).serialize());
         });

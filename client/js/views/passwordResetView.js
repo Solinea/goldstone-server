@@ -24,7 +24,7 @@ var PasswordResetView = GoldstoneBaseView2.extend({
     addHandlers: function() {
         var self = this;
 
-        $('.password-reset-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
             self.submitRequest($(this).serialize());
         });

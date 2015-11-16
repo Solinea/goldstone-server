@@ -53,7 +53,7 @@ body{
 .login-form{
  padding: 0 10.5%;
 }
-.login-form input[type='text'],.login-form input[type='password']{
+.login-form input{
  display: block;
  background:none;
  border:0;
