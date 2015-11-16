@@ -25,30 +25,6 @@ var topologyTreeView = new TopologyTreeView({
     chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
     el: '#goldstone-discover-r2-c1',
     h: 600,
-    leafDataUrls: {
-        "services-leaf": "/services",
-        "endpoints-leaf": "/endpoints",
-        "roles-leaf": "/roles",
-        "users-leaf": "/users",
-        "tenants-leaf": "/tenants",
-        "agents-leaf": "/agents",
-        "aggregates-leaf": "/aggregates",
-        "availability-zones-leaf": "/availability_zones",
-        "cloudpipes-leaf": "/cloudpipes",
-        "flavors-leaf": "/flavors",
-        "floating-ip-pools-leaf": "/floating_ip_pools",
-        "hosts-leaf": "/hosts",
-        "hypervisors-leaf": "/hypervisors",
-        "networks-leaf": "/networks",
-        "secgroups-leaf": "/security_groups",
-        "servers-leaf": "/servers",
-        "images-leaf": "/images",
-        "volumes-leaf": "/volumes",
-        "backups-leaf": "/backups",
-        "snapshots-leaf": "/snapshots",
-        "transfers-leaf": "/transfers",
-        "volume-types-leaf": "/volume_types"
-    },
     multiRsrcViewEl: '#goldstone-discover-r2-c2',
     width: $('#goldstone-discover-r2-c1').width(),
 });
@@ -58,7 +34,32 @@ var topologyTreeView = new TopologyTreeView({
 
 var TopologyTreeViewNew = GoldstoneBaseView.extend({
 
-    defaults: {},
+    defaults: {
+        leafDataUrls: {
+            "services-leaf": "/services",
+            "endpoints-leaf": "/endpoints",
+            "roles-leaf": "/roles",
+            "users-leaf": "/users",
+            "tenants-leaf": "/tenants",
+            "agents-leaf": "/agents",
+            "aggregates-leaf": "/aggregates",
+            "availability-zones-leaf": "/availability_zones",
+            "cloudpipes-leaf": "/cloudpipes",
+            "flavors-leaf": "/flavors",
+            "floating-ip-pools-leaf": "/floating_ip_pools",
+            "hosts-leaf": "/hosts",
+            "hypervisors-leaf": "/hypervisors",
+            "networks-leaf": "/networks",
+            "secgroups-leaf": "/security_groups",
+            "servers-leaf": "/servers",
+            "images-leaf": "/images",
+            "volumes-leaf": "/volumes",
+            "backups-leaf": "/backups",
+            "snapshots-leaf": "/snapshots",
+            "transfers-leaf": "/transfers",
+            "volume-types-leaf": "/volume_types"
+        }
+    },
 
     // this block is run upon instantiating the object
     initialize: function(options) {
@@ -74,7 +75,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
 
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
         this.defaults.w = options.width;
-        this.defaults.leafDataUrls = options.leafDataUrls;
+        this.defaults.leafDataUrls = this.defaults.leafDataUrls;
         this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
 
         var ns = this.defaults;
@@ -518,7 +519,8 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             icon_volume: ['volume', 'volumes'],
             icon_vol_transfer: ['agents', 'transfers'],
             icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks', 'zones']
+                'flavors', 'floating-ip-pools', 'networks', 'zones'
+            ]
 
         }).forEach(function(icon, classes) {
             // Acutally attach the icons to the classes
