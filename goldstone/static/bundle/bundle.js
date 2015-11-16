@@ -15791,7 +15791,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
             'snapshot_id',
             'source_volid'
         ],
-        keystone: ['@timestamp'],
+        keystone: ['@timestamp', 'links'],
         glance: ['@timestamp',
             'metadata',
             'region',
