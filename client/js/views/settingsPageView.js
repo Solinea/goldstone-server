@@ -116,12 +116,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             $('#theme-name').val(userTheme.theme);
         }
 
-        // set dropdown for topology tree style selection
-        // to current style preference
-        if (userTheme && userTheme.topoTreeStyle) {
-            $('#topo-tree-name').val(userTheme.topoTreeStyle);
-        }
-
         // set dropdown for language selection to
         // current language preference
         if (userTheme && userTheme.i18n) {
@@ -172,18 +166,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
-        // add listener to theme selection drop-down
-        // userPrefsView is instantiated in router.html
-        $('#topo-tree-name').on('change', function() {
-            var topoStyle = $('#topo-tree-name').val();
-            if (topoStyle === 'collapse') {
-                goldstone.userPrefsView.trigger('collapseTreeSelected');
-            }
-            if (topoStyle === 'zoom') {
-                goldstone.userPrefsView.trigger('zoomTreeSelected');
-            }
-        });
-
         // add listener to language selection drop-down
         // userPrefsView is instantiated in router.html
         $('#language-name').on('change', function() {
@@ -224,24 +206,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<select class="form-control" id="theme-name">' +
         '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
         '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
-
-
-        // topology tree style
-        '<div class="col-md-2">' +
-        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
-        '<form class="topo-tree-selector" role="form">' +
-        '<div class="form-group">' +
-        '<div class="col-xl-5">' +
-        '<div class="input-group">' +
-        '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
-        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +

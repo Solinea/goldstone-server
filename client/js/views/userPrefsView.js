@@ -50,20 +50,6 @@ var UserPrefsView = Backbone.View.extend({
         });
 
         // triggered on settingsPageView
-        this.listenTo(this, 'collapseTreeSelected', function() {
-            self.getUserPrefs();
-            self.defaults.userPrefs.topoTreeStyle = 'collapse';
-            self.setUserPrefs();
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'zoomTreeSelected', function() {
-            self.getUserPrefs();
-            self.defaults.userPrefs.topoTreeStyle = 'zoom';
-            self.setUserPrefs();
-        });
-
-        // triggered on settingsPageView
         this.listenTo(this, 'i18nLanguageSelected', function(selection) {
             self.getUserPrefs();
             self.defaults.userPrefs.i18n = selection;
