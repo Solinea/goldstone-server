@@ -15441,6 +15441,7 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                 if (d.children === undefined && d._children === undefined && d.resource_list_url !== undefined) {
                     var url = d.resource_list_url;
                     if (url !== undefined) {
+
                         // var hasParam = false;
                         // if (d.hasOwnProperty('region')) {
                         //     url = hasParam ? url + "&" : url + "?";
@@ -15462,11 +15463,10 @@ var TopologyTreeViewNew = GoldstoneBaseView.extend({
                         // }
                         // parentModule = d.label;
 
-                        if (self.overrideSets[d.label]) {
-                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        if (self.overrideSets[d.integration.toLowerCase()]) {
+                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
                         } else {
                             ns.filterMultiRsrcDataOverride = null;
-                            console.log(ns.filterMultiRsrcDataOverride);
                         }
 
                         // url = "/" + parentModule + url;
