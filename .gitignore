@@ -126,7 +126,6 @@ celerybeat-schedule
 goldstone/settings/.secret_key_store
 celerybeat-schedule.db
 dump.rdb
-bower_components/
 node_modules/
 
 # vagrant related
