@@ -55,10 +55,8 @@ describe('settingsPageView.js spec', function() {
         });
         it('reponds properly to triggers', function() {
             expect(this.getUserPrefsProto.callCount).to.equal(0);
-            this.testView.trigger('collapseTreeSelected');
-            this.testView.trigger('zoomTreeSelected');
             this.testView.trigger('i18nLanguageSelected');
-            expect(this.getUserPrefsProto.callCount).to.equal(3);
+            expect(this.getUserPrefsProto.callCount).to.equal(1);
         });
         it('triggers goldstone.i18n', function() {
             this.testView.trigger('i18nLanguageSelected');
