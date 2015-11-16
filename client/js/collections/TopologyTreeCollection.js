@@ -16,7 +16,7 @@
 
 // define collection and link to model
 
-var ZoomablePartitionCollection = Backbone.Collection.extend({
+var TopologyTreeCollection = Backbone.Collection.extend({
 
     defaults: {},
 

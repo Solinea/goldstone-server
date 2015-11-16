@@ -63,11 +63,11 @@ var DiscoverView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Cloud Topology chart
 
-        this.discoverTreeNew = new ZoomablePartitionCollection({});
+        this.discoverTreeCollection = new TopologyTreeCollection({});
 
         this.topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            collection: this.discoverTreeNew,
+            collection: this.discoverTreeCollection,
             chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
                 'discoverCloudTopology'
             ],
