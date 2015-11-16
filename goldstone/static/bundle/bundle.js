@@ -1602,10 +1602,8 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
-        "login": "login",
         "metrics/api_perf": "apiPerfReport",
         "metrics/cinder_report": "cinderReport",
         "metrics/glance_report": "glanceReport",
@@ -1615,7 +1613,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         "metrics/metric_report/:numCharts": "metricViewer",
         "metrics/neutron_report": "neutronReport",
         "metrics/nova_report": "novaReport",
-        "password": "password",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/eventbrowser": "eventsBrowser",
@@ -1728,9 +1725,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
     },
-    login: function() {
-        this.switchView(LoginPageView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
@@ -1749,11 +1743,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
-    newPasswordView: function(uidToken) {
-        this.switchView(NewPasswordView, {
-            uidToken: uidToken
-        });
-    },
     nodeReport: function(nodeId) {
         this.switchView(NodeReportView, {
             node_uuid: nodeId
@@ -1761,9 +1750,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     novaReport: function() {
         this.switchView(NovaReportView);
-    },
-    password: function() {
-        this.switchView(PasswordResetView);
     },
     redirect: function() {
         location.href = "#discover";
@@ -8997,7 +8983,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 var LoginPageView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
-        // this.render();
         this.checkForRememberedUsername();
         this.addHandlers();
     },
@@ -9101,26 +9086,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '/';
-    },
-
-    template: _.template(''
-        /*+
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="login-form">' +
-        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
-        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
-        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
-        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
-        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
-        '</form>' +
-        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'*/
-    )
+    }
 
 });
 ;
@@ -10917,7 +10883,6 @@ var NeutronReportView = GoldstoneBasePageView.extend({
 var NewPasswordView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        // this.render();
         this.getUidToken();
         this.addHandlers();
     },
@@ -10993,24 +10958,7 @@ var NewPasswordView = GoldstoneBaseView2.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="new-password-form">' +
-        '<h3><%=goldstone.translate(\'Enter new password\')%></h3>' +
-        '<label for="new_password"><%=goldstone.contextTranslate(\'New password\', \'newpassword\')%></label>' +
-        '<input name="new_password" type="password" class="form-control" id="password" placeholder="<%=goldstone.contextTranslate(\'Enter new password\', \'newpassword\')%>" required autofocus><br>' +
-        '<label><%=goldstone.translate(\'Password again for confirmation\')%></label>' +
-        '<input type="password" class="form-control" id="confirm_password" placeholder="<%=goldstone.contextTranslate(\'Confirm password\', \'newpassword\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Reset password\', \'newpassword\')%></button>' +
-        '</form>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
 ;
@@ -12516,7 +12464,6 @@ var NovaReportView = GoldstoneBasePageView.extend({
 var PasswordResetView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        // this.render();
         this.addHandlers();
     },
 
@@ -12556,23 +12503,7 @@ var PasswordResetView = GoldstoneBaseView2.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="password-reset-form">' +
-        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
-        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
-        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
-        '</form>' +
-        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
 ;

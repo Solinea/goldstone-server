@@ -17,7 +17,6 @@
 var LoginPageView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
-        // this.render();
         this.checkForRememberedUsername();
         this.addHandlers();
     },
@@ -121,25 +120,6 @@ var LoginPageView = GoldstoneBaseView2.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '/';
-    },
-
-    template: _.template(''
-        /*+
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="login-form">' +
-        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
-        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
-        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
-        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
-        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
-        '</form>' +
-        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'*/
-    )
+    }
 
 });

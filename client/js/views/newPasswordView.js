@@ -17,7 +17,6 @@
 var NewPasswordView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        // this.render();
         this.getUidToken();
         this.addHandlers();
     },
@@ -93,23 +92,6 @@ var NewPasswordView = GoldstoneBaseView2.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="new-password-form">' +
-        '<h3><%=goldstone.translate(\'Enter new password\')%></h3>' +
-        '<label for="new_password"><%=goldstone.contextTranslate(\'New password\', \'newpassword\')%></label>' +
-        '<input name="new_password" type="password" class="form-control" id="password" placeholder="<%=goldstone.contextTranslate(\'Enter new password\', \'newpassword\')%>" required autofocus><br>' +
-        '<label><%=goldstone.translate(\'Password again for confirmation\')%></label>' +
-        '<input type="password" class="form-control" id="confirm_password" placeholder="<%=goldstone.contextTranslate(\'Confirm password\', \'newpassword\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Reset password\', \'newpassword\')%></button>' +
-        '</form>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
