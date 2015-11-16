@@ -320,8 +320,10 @@ class PolyResource(PolymorphicModel):
 
     @classmethod
     def integration(cls):
-        """Return the name of this node's integration. (Nova, Keystone,
-        etc.)"""
+        """Return the lowercase name of this node's integration. (nova,
+        keystone, etc.)
+
+        """
 
         return ''
 
@@ -399,7 +401,7 @@ class Addon(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Add-on"
+        return "add-on"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -456,7 +458,7 @@ class Keystone(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -533,7 +535,7 @@ class User(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -590,7 +592,7 @@ class Domain(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -633,7 +635,7 @@ class Group(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -658,7 +660,7 @@ class Token(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -681,7 +683,7 @@ class Credential(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -720,7 +722,7 @@ class Role(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -783,7 +785,7 @@ class Region(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -838,7 +840,7 @@ class Endpoint(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -894,7 +896,7 @@ class Service(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1024,7 +1026,7 @@ class Project(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Keystone"
+        return "keystone"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1095,7 +1097,7 @@ class Nova(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1170,7 +1172,7 @@ class AvailabilityZone(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1220,7 +1222,7 @@ class Aggregate(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1290,7 +1292,7 @@ class Flavor(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1343,7 +1345,7 @@ class Keypair(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1468,7 +1470,7 @@ class Host(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1548,7 +1550,7 @@ class Hypervisor(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1601,7 +1603,7 @@ class Cloudpipe(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1636,7 +1638,7 @@ class ServerGroup(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1724,7 +1726,7 @@ class Server(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1792,7 +1794,7 @@ class Interface(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1827,7 +1829,7 @@ class NovaLimits(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Nova"
+        return "nova"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1872,7 +1874,7 @@ class Glance(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Glance"
+        return "glance"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1921,7 +1923,7 @@ class Image(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Glance"
+        return "glance"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1978,7 +1980,7 @@ class Cinder(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -1999,7 +2001,7 @@ class QuotaSet(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2043,7 +2045,7 @@ class QOSSpec(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2092,7 +2094,7 @@ class Snapshot(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2130,7 +2132,7 @@ class Transfer(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2183,7 +2185,7 @@ class VolumeType(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2221,7 +2223,7 @@ class Volume(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2254,7 +2256,7 @@ class Limits(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Cinder"
+        return "cinder"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2303,7 +2305,7 @@ class Neutron(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2318,7 +2320,7 @@ class MeteringLabelRule(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2341,7 +2343,7 @@ class MeteringLabel(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2356,7 +2358,7 @@ class NeutronQuota(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2371,7 +2373,7 @@ class RemoteGroup(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2396,7 +2398,7 @@ class SecurityRules(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2411,7 +2413,7 @@ class SecurityGroup(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2464,7 +2466,7 @@ class Port(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2491,7 +2493,7 @@ class LBVIP(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2506,7 +2508,7 @@ class LBPool(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2529,7 +2531,7 @@ class HealthMonitor(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2544,7 +2546,7 @@ class FloatingIP(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2575,7 +2577,7 @@ class FloatingIPPool(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2590,7 +2592,7 @@ class FixedIP(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2615,7 +2617,7 @@ class LBMember(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2640,7 +2642,7 @@ class Subnet(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2655,7 +2657,7 @@ class Network(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
@@ -2681,7 +2683,7 @@ class Router(PolyResource):
     def integration(cls):
         """See the parent class' method's docstring."""
 
-        return "Neutron"
+        return "neutron"
 
     def label(self):
         """See the parent class' method's docstring."""
