@@ -56,9 +56,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         })
             .fail(function(fail) {
                 try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
+                    self.dataErrorMessage(fail.responseJSON.non_field_errors[0]);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText + e);
+                    self.dataErrorMessage(fail.responseText + e);
                 }
             });
     },

@@ -36,10 +36,8 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
-        "login": "login",
         "metrics/api_perf": "apiPerfReport",
         "metrics/cinder_report": "cinderReport",
         "metrics/glance_report": "glanceReport",
@@ -49,7 +47,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         "metrics/metric_report/:numCharts": "metricViewer",
         "metrics/neutron_report": "neutronReport",
         "metrics/nova_report": "novaReport",
-        "password": "password",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/eventbrowser": "eventsBrowser",
@@ -162,9 +159,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
     },
-    login: function() {
-        this.switchView(LoginPageView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
@@ -183,11 +177,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
-    newPasswordView: function(uidToken) {
-        this.switchView(NewPasswordView, {
-            uidToken: uidToken
-        });
-    },
     nodeReport: function(nodeId) {
         this.switchView(NodeReportView, {
             node_uuid: nodeId
@@ -195,9 +184,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     novaReport: function() {
         this.switchView(NovaReportView);
-    },
-    password: function() {
-        this.switchView(PasswordResetView);
     },
     redirect: function() {
         location.href = "#discover";

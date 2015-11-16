@@ -62,9 +62,5 @@ describe('LogoutIcon.js spec', function() {
             localStorage.setItem('userToken', 'now1i2can3haz4tokens5');
             this.testView.setAJAXSendRequestHeaderParams();
         });
-        it('redirects to login', function() {
-            this.testView.redirectToLogin();
-        });
-
     });
 });

@@ -1,0 +1,97 @@
+<!--
+Copyright 2015 Solinea, Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+{% load staticfiles %}
+<html>
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Goldstone - Login</title>
+        <link rel="icon" href="/static/images/favicon.ico">
+        <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/static/css/global.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/static/css/redesign.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/static/css/responsive.css" media="screen">
+        <!--[if lt IE 9]>
+        <script src="assets/js/html5shiv.min.js"></script>
+        <![endif]-->
+    </head>
+    <body class="login-page">
+
+        <!-- for alert popups -->
+        <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
+        <div class="alert alert-warning alert-dismissable" hidden="true"></div>
+        <div class="alert alert-info alert-dismissable" hidden="true"></div>
+        <div class="alert alert-success alert-dismissable" hidden="true"></div>
+
+        <!--Page Wrapper Start-->
+        <div class="wrapper">
+
+            <!--Content Area Start-->
+            <div class="content">
+                <div class="container">
+                    <div class="row">
+                        <div class="login-area col-sm-6 col-md-4 center-block">
+                            <h1>
+                            <span class="logo-large">&nbsp;</span>
+                            </h1>
+
+        <!-- subclass and replace for password reset/confirm pages -->
+        {% block localhtml %}
+                            <form class="login-form">
+                                <input type="text" name="username" placeholder="Username" autofocus>
+                                <input type="password" name="password" placeholder="Password">
+                                <label class="chkbox" for="chk1">
+                                  <input type="checkbox" value="remember" id="chk1"> <span class="chk-lab"></span> Remember me
+                                </label>
+                                <button class="full-width-btn" type="submit">Sign In</button>
+                                <a class="reset-pw" href="/password/">reset password</a>
+                            </form>
+        {% endblock %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Content Area End-->
+            <!--Footer Start-->
+            <footer class="footer">
+                <div class="container">
+                    <div class="row">
+                        <span class="copyright"><strong>Copyright 2014-2015</strong>
+                         <a style="color:#fff" href="http://www.solinea.com">Solinea, Inc.</a></span>
+                        <span class="license">
+                        <a style="color:#fff" href="https://www.apache.org/licenses/LICENSE-2.0">License</a></span>
+                    </div>
+                </div>
+            </footer>
+            <!--Footer End-->
+        </div>
+        <!--Page Wrapper End-->
+        <script src="{% static 'bundle/libs.js' %}"></script>
+        <script src="{% static 'bundle/bundle.js' %}"></script>
+        {% block localjs %}
+
+        <script>
+
+        $(function() {
+            // submits form content, returns token if authentcation passes
+            // otherwise, appends failure notice at top of screen.
+            new LoginPageView();
+        });
+
+        </script>
+
+        {% endblock %}
+    </body>
+</html>

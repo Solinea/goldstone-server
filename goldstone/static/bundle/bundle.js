@@ -1602,10 +1602,8 @@ var LauncherView = Backbone.View.extend({
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
-        "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "help": "help",
-        "login": "login",
         "metrics/api_perf": "apiPerfReport",
         "metrics/cinder_report": "cinderReport",
         "metrics/glance_report": "glanceReport",
@@ -1615,7 +1613,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         "metrics/metric_report/:numCharts": "metricViewer",
         "metrics/neutron_report": "neutronReport",
         "metrics/nova_report": "novaReport",
-        "password": "password",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/eventbrowser": "eventsBrowser",
@@ -1728,9 +1725,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
     },
-    login: function() {
-        this.switchView(LoginPageView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
@@ -1749,11 +1743,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
-    newPasswordView: function(uidToken) {
-        this.switchView(NewPasswordView, {
-            uidToken: uidToken
-        });
-    },
     nodeReport: function(nodeId) {
         this.switchView(NodeReportView, {
             node_uuid: nodeId
@@ -1761,9 +1750,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     novaReport: function() {
         this.switchView(NovaReportView);
-    },
-    password: function() {
-        this.switchView(PasswordResetView);
     },
     redirect: function() {
         location.href = "#discover";
@@ -5800,7 +5786,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     },
 
     redirectToLogin: function() {
-        location.href = "#login";
+        location.href = "login/";
     },
 
     render: function() {
@@ -8997,8 +8983,26 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 var LoginPageView = GoldstoneBaseView2.extend({
 
     instanceSpecificInit: function() {
-        this.render();
+        this.checkForRememberedUsername();
         this.addHandlers();
+    },
+
+    checkForRememberedUsername: function() {
+
+        // if user last logged in without box checked, this will be null
+        var rememberedUsername = localStorage.getItem('rem');
+
+        // if value exists
+        if (rememberedUsername !== null && rememberedUsername !== undefined) {
+
+            // pre-check remember me checkbox
+            document.getElementById('chk1').checked = true;
+
+            // and fill in decrypted username
+            var username = atob(rememberedUsername);
+            document.getElementsByName('username')[0].value = username;
+        }
+
     },
 
     checkForInstalledApps: function() {
@@ -9044,6 +9048,7 @@ var LoginPageView = GoldstoneBaseView2.extend({
             .done(function(success) {
 
                 // store the auth token
+                self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
                 // must follow storing token otherwise call will fail with 401
@@ -9051,17 +9056,28 @@ var LoginPageView = GoldstoneBaseView2.extend({
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-
-                try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
-                } catch (e) {
-                    goldstone.raiseInfo(fail.responseText);
-                    console.log(e);
-                }
-
+                // and add a failure message to the top of the screen
+                goldstone.raiseInfo("Username / Password combo failed. Please try again");
             });
+    },
+
+    storeUsernameIfChecked: function() {
+
+        // is the 'remember me' checkbox checked?
+        var rememberMeChecked = document.getElementById('chk1').checked;
+
+        if (rememberMeChecked) {
+
+            // grab and escape the username from the form
+            var username = _.escape(document.getElementsByName('username')[0].value);
+
+            // encrypt to base-64 (not secure, obsurred to casual glance)
+            var hashedUsername = btoa(username);
+            localStorage.setItem('rem', hashedUsername);
+        } else {
+            // otherwise remove the stored hash
+            localStorage.removeItem('rem');
+        }
     },
 
     storeAuthToken: function(token) {
@@ -9069,26 +9085,8 @@ var LoginPageView = GoldstoneBaseView2.extend({
     },
 
     redirectPostSuccessfulAuth: function() {
-        location.href = '#';
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="login-form">' +
-        '<h3><%=goldstone.translate(\'Please Sign In\')%></h3>' +
-        '<label for="inputUsername"><%=goldstone.contextTranslate(\'Username\', \'loginpage\')%></label>' +
-        '<input name="username" type="text" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Username\', \'loginpage\')%>" required autofocus>' +
-        '<label for="inputPassword"><%=goldstone.contextTranslate(\'Password\', \'loginpage\')%></label>' +
-        '<input name="password" type="password" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter Password\', \'loginpage\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Sign in\', \'loginpage\')%></button>' +
-        '</form>' +
-        '<div id="forgotUsername"><a href="#password"><%=goldstone.translate(\'Forgot Username or Password?\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+        location.href = '/';
+    }
 
 });
 ;
@@ -10882,35 +10880,34 @@ var NeutronReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView.extend({
-
-    defaults: {},
+var NewPasswordView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
+        this.getUidToken();
         this.addHandlers();
+    },
+
+    getUidToken: function() {
+        this.uidToken = window.location.search.slice(1);
     },
 
     addHandlers: function() {
         var self = this;
 
-        $('.new-password-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
 
             var $password = $('#password');
             var $confirm_password = $('#confirm_password');
 
             if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning(goldstone.translate("Passwords don't match."));
+                goldstone.raiseWarning("Passwords don't match.");
             } else {
 
                 // options.uidToken is passed in when the view is
                 // instantiated via goldstoneRouter.js
 
-                self.submitRequest(self.options.uidToken + '&' + $(this).serialize());
+                self.submitRequest(self.uidToken + '&' + $(this).serialize());
             }
         });
     },
@@ -10935,9 +10932,13 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 self.clearFields();
 
                 // and add a success message to the top of the screen
-                goldstone.raiseInfo(goldstone.translate('You have successfully changed your password.'));
+                goldstone.raiseInfo('Password changed. Redirecting to login.');
 
-                Backbone.history.navigate('#login', true);
+
+                setTimeout(function() {
+                    location.href = '/login/';
+
+                }, 2000);
 
             })
             .fail(function(fail) {
@@ -10948,7 +10949,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 } else {
                     // clear input fields
                     self.clearFields();
-                    goldstone.raiseWarning(goldstone.translate('Password reset failed.'));
+                    goldstone.raiseWarning('Password reset failed.');
                 }
 
             });
@@ -10957,24 +10958,7 @@ var NewPasswordView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="new-password-form">' +
-        '<h3><%=goldstone.translate(\'Enter new password\')%></h3>' +
-        '<label for="new_password"><%=goldstone.contextTranslate(\'New password\', \'newpassword\')%></label>' +
-        '<input name="new_password" type="password" class="form-control" id="password" placeholder="<%=goldstone.contextTranslate(\'Enter new password\', \'newpassword\')%>" required autofocus><br>' +
-        '<label><%=goldstone.translate(\'Password again for confirmation\')%></label>' +
-        '<input type="password" class="form-control" id="confirm_password" placeholder="<%=goldstone.contextTranslate(\'Confirm password\', \'newpassword\')%>" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Reset password\', \'newpassword\')%></button>' +
-        '</form>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
 ;
@@ -12477,22 +12461,16 @@ var NovaReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView.extend({
-
-    defaults: {},
+var PasswordResetView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
         this.addHandlers();
     },
 
     addHandlers: function() {
         var self = this;
 
-        $('.password-reset-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
             self.submitRequest($(this).serialize());
         });
@@ -12525,23 +12503,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="password-reset-form">' +
-        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
-        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
-        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
-        '</form>' +
-        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
 ;
@@ -13129,9 +13091,9 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         })
             .fail(function(fail) {
                 try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
+                    self.dataErrorMessage(fail.responseJSON.non_field_errors[0]);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText + e);
+                    self.dataErrorMessage(fail.responseText + e);
                 }
             });
     },

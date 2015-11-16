@@ -42,6 +42,14 @@
         {% endblock %}
     </head>
     <body>
+        <script>
+            // if user isn't logged in, redirect to login page without loading anything
+            var token = localStorage.getItem('userToken');
+            if(token === undefined || token === null) {
+                location.href = 'login/';
+            }
+        </script>
+
         <div id="wrap">
             <!-- Fixed navbar -->
             <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -155,8 +163,7 @@
 </div>
 <!-- BEGIN PAGE CONTENT -->
 <div id="body-container" class="container">
-    <div class="row alert alert-danger alert-dismissable"
-    hidden="true"></div>
+    <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
     <div class="alert alert-warning alert-dismissable" hidden="true"></div>
     <div class="alert alert-info alert-dismissable" hidden="true"></div>
     <div class="alert alert-success alert-dismissable" hidden="true"></div>

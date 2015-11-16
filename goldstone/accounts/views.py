@@ -67,7 +67,7 @@ def new_password_enter(request, uid, token):
     """
     from django.shortcuts import redirect
 
-    url = "http://%s/#client/newpasswordenter/?uid=%s&token=%s" % \
+    url = "http://%s/password/confirm/?uid=%s&token=%s" % \
           (request.META["HTTP_HOST"], uid, token)
 
     return redirect(url)
