@@ -49,7 +49,7 @@ def nova_hypervisors_stats():
     now = arrow.utcnow()
     conn = es_conn()
     es_index = daily_index(MetricData.INDEX_PREFIX)
-    es_doc_type = MetricData._doc_type.name
+    es_doc_type = MetricData._doc_type.name      # pylint: disable=W0212
 
     for key, value in response.items():
         doc = {

@@ -12,72 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.utils import TopologyMixin
 
 
-class DiscoverTree(TopologyMixin):
-
-    def __init__(self):
-        from goldstone.glance.models import ImagesData
-
-        self.images = ImagesData().get()
-
-    def _get_image_regions(self):
-        return set([s['region'] for s in self.images])
-
-    def get_regions(self):
-        from goldstone.utils import get_region_for_glance_client, get_client
-
-        keystone = get_client('keystone')['client']
-
-        return [{"rsrcType": "region",
-                 "label": get_region_for_glance_client(keystone)}]
-
-    def _populate_regions(self):
-
-        result = []
-        updated = self.images[0]['@timestamp']
-
-        for region in self._get_image_regions():
-            result.append(
-                {"rsrcType": "region",
-                 "label": region,
-                 "info": {"last_updated": updated},
-                 "children": [
-                     {
-                         "rsrcType": "images-leaf",
-                         "label": "images",
-                         "region": region,
-                         "info": {
-                             "last_update": updated
-                         }
-                     }
-                 ]}
-            )
-
-        return result
-
-    def build_topology_tree(self):
-        from goldstone.utils import NoResourceFound
-
-        try:
-            if self.images is None or len(self.images.hits) == 0:
-                raise NoResourceFound("No glance images found in database")
-
-            regions = self._populate_regions()
-
-            if len(regions) > 1:
-                return {"rsrcType": "cloud",
-                        "label": "Cloud",
-                        "children": regions}
-            else:
-                return regions[0]
-
-        except (IndexError, NoResourceFound):
-            return {"rsrcType": "error", "label": "No data found"}
-
-
-def update_glance_nodes():
+def update_nodes():
     """Update the Resource graph's Glance nodes and edges from the current
     OpenStack cloud state.
 

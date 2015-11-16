@@ -2631,7 +2631,7 @@ class FloatingIPPool(PolyResource):
                  MATCHING_FN: lambda f, t: False,    # for now.
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-               ]
+                ]
 
     @classmethod
     def integration(cls):
