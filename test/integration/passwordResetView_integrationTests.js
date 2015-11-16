@@ -20,7 +20,15 @@
 describe('newPasswordView.js spec', function() {
     beforeEach(function() {
 
-        $('body').html('<div class="test-container"></div>');
+        $('body').html('' +
+            '<form class="login-form">' +
+            '<input name="new_password" type="password" id="password" placeholder="Enter new password" required autofocus>' +
+            '<input type="password" id="confirm_password" placeholder="Confirm password" required>' +
+            '<button class="full-width-btn" type="submit">Set new password</button>' +
+            '<a class="reset-pw" href="/login/">cancel and return to login</a>' +
+            '</form>'
+
+        );
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();

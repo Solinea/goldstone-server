@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView.extend({
-
-    defaults: {},
+var PasswordResetView = GoldstoneBaseView2.extend({
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
         this.addHandlers();
     },
 
     addHandlers: function() {
         var self = this;
 
-        $('.password-reset-form').on('submit', function(e) {
+        $('.login-form').on('submit', function(e) {
             e.preventDefault();
             self.submitRequest($(this).serialize());
         });
@@ -62,22 +56,6 @@ var PasswordResetView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
-    },
-
-    template: _.template('' +
-        '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
-        '<form class="password-reset-form">' +
-        '<h3><%=goldstone.contextTranslate(\'Reset Password\', \'passwordreset\')%></h3>' +
-        '<label for="email"><%=goldstone.contextTranslate(\'Email Address\', \'passwordreset\')%></label>' +
-        '<input name="email" type="email" class="form-control" placeholder="<%=goldstone.contextTranslate(\'Enter email associated with your account\', \'passwordreset\')%>" required autofocus><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit"><%=goldstone.contextTranslate(\'Send Reset Email\', \'passwordreset\')%></button>' +
-        '</form>' +
-        '<div id="cancelReset"><a href="#login"><%=goldstone.translate(\'Cancel and Return to Login\')%></a></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
+    }
 
 });
