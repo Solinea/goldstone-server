@@ -22,7 +22,7 @@ var NewPasswordView = GoldstoneBaseView2.extend({
     },
 
     getUidToken: function() {
-        this.uidToken = window.location.search;
+        this.uidToken = window.location.search.slice(1);
     },
 
     addHandlers: function() {
