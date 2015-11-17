@@ -6188,7 +6188,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var self = this;
 
         this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this. collection, 'error', this.dataErrorMessage);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
             self.updateSettings();
@@ -6244,7 +6244,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // you can change the value in colorArray to select
         // a particular number of different colors
         var colorArray = new GoldstoneColors().get('colorSets');
-        ns.color = d3.scale.ordinal().range(colorArray.distinct[1]);
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
 
         /*
          * The graph and axes
@@ -6283,21 +6283,18 @@ var EventTimelineView = GoldstoneBaseView.extend({
             })
             .html(function(d) {
 
-                d.host = d.traits.host || 'No host logged';
-                d.log_message = d.log_message || 'No message logged';
-
-                if (d.log_message.length > 280) {
-                    d.log_message = d.log_message.slice(0, 300) + "...";
-                }
                 d.doc_type = d.doc_type || 'No event type logged';
+                d.initiator_name = d.traits.initiator_name || 'No initiator logged';
+                d.target_name = d.traits.target_name || 'No target logged';
+                d.outcome = d.traits.outcome || 'No outcome logged';
                 d.timestamp = d.timestamp || 'No date logged';
 
                 return "" +
-                    "Host: " + d.host + "<br>" +
-                    d.doc_type + " (click event line to persist popup info)<br>" +
-                    // "uuid: " + d.id + "<br>" +
+                    "Doc type: " + d.doc_type + "<br>" +
+                    "Initiator: " + d.initiator_name + "<br>" +
+                    "Target: " + d.target_name + "<br>" +
+                    "Outcome: " + d.outcome + "<br>" +
                     "Created: " + d.timestamp + "<br>";
-                    // "Message: " + d.log_message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -6408,7 +6405,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
             ns.filter[item] = ns.filter[item] || {
                 active: true,
-                color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
+                // color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
                 displayName: itemSpaced
             };
 
@@ -6468,21 +6465,21 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
         var rectangle = ns.graph.selectAll("rect")
 
-            // bind data to d3 nodes and create uniqueness based on
-            // th.timestamparam. This could possibly create some
-            // issues due to duplication of a supposedly unique
-            // param, but has not yet been a problem in practice.
-            .data(ns.dataset, function(d) {
-                return d.timestamp;
-            });
+        // bind data to d3 nodes and create uniqueness based on
+        // th.timestamparam. This could possibly create some
+        // issues due to duplication of a supposedly unique
+        // param, but has not yet been a problem in practice.
+        .data(ns.dataset, function(d) {
+            return d.timestamp;
+        });
 
         // enters at wider width and transitions to lesser width for a
         // dynamic resizing effect
         rectangle.enter()
             .append("rect")
-            .attr("x", ns.width)
+            .attr("x", ns.margin.left)
             .attr("y", ns.h.padding + 1)
-            .attr("width", 5)
+            .attr("width", 2)
             .attr("height", ns.h.main - ns.h.padding - 2)
             .attr("class", "single-event")
             .style("opacity", function(d) {
@@ -6493,29 +6490,23 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 return self.visibilityByFilter(d);
             })
             .attr("fill", function(d) {
-                return ns.color(ns.uniqueEventTypes.indexOf(d.doc_type) % ns.color.range().length);
+                var result;
+                if (d && d.traits && d.traits.outcome) {
+                    result = d.traits.outcome;
+
+                    // 0: green, 1: blue, 2: orange
+                    return result === 'success' ? ns.color(0) : result === 'pending' ? ns.color(1) : ns.color(2);
+                } else {
+                    return ns.color(2);
+                }
             })
             .on("mouseover", ns.tooltip.show)
-            .on("click", function() {
-                if (ns.tooltip.pause === undefined) {
-                    ns.tooltip.pause = true;
-                } else {
-                    ns.tooltip.pause = !ns.tooltip.pause;
-                }
-                if (ns.tooltip.pause === false) {
-                    ns.tooltip.hide();
-                }
-            })
             .on("mouseout", function() {
-                if (ns.tooltip.pause) {
-                    return;
-                }
                 ns.tooltip.hide();
             });
 
         rectangle
             .transition()
-            .attr("width", 2)
             .attr("x", function(d) {
                 return ns.xScale(d.timestamp);
             });
@@ -6545,10 +6536,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     render: function() {
         this.$el.html(this.template());
-
-        // commented out, as the settings are determined by the
-        // global lookback selector
-        // $('#modal-container-' + this.el.slice(1)).append(this.eventSettingModal());
 
         // append the modal that is triggered by
         // clicking the filter icon
@@ -6585,11 +6572,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '<div id = "goldstone-event-panel" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-
-        // cog icon
-        // '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-        // 'data-target="#modal-settings-<%= this.el.slice(1) %>' +
-        // '"></i>' +
 
         // filter icon
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
@@ -6649,71 +6631,8 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '</div>' +
         '</div>' +
         '</div>'
-    ),
-
-    eventSettingModal: _.template(
-        // event settings modal
-        // don't render if using global refresh/lookback
-        '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-        '<h4 class="modal-title" id="myModalLabel">Chart Range Settings</h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-
-        // insert start/end form elements:
-
-        '<form class="form-horizontal" role="form">' +
-        '<div class="form-group">' +
-        '<label for="lookbackRange" class="col-sm-2 control-label">Lookback: </label>' +
-        '<div class="col-sm-5">' +
-        '<div class="input-group">' +
-        '<select class="form-control" id="lookbackRange">' +
-        '<option value="15">15 minutes</option>' +
-        '<option value="60" selected>1 hour</option>' +
-        '<option value="360">6 hours</option>' +
-        '<option value="1440">1 day</option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-
-        // end of new start/end elements
-
-        '<form class="form-horizontal" role="form">' +
-        '<div class="form-group">' +
-        '<label for="eventAutoRefresh" class="col-sm-2 control-label">Refresh: </label>' +
-        '<div class="col-sm-5">' +
-        '<div class="input-group">' +
-        '<span class="input-group-addon">' +
-        '<input type="checkbox" class="eventAutoRefresh" checked>' +
-        '</span>' +
-        '<select class="form-control" id="eventAutoRefreshInterval">' +
-        '<option value="5">5 seconds</option>' +
-        '<option value="15">15 seconds</option>' +
-        '<option value="30" selected>30 seconds</option>' +
-        '<option value="60">1 minute</option>' +
-        '<option value="300">5 minutes</option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        '<div class="form-group">' +
-        '<button type="button" id="eventSettingsUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
     )
+
 });
 ;
 /**
