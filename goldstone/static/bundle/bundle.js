@@ -3990,7 +3990,10 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
 
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date() - (ns.globalLookback * 1000 * 60));
-        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
+
+        // set a lower limit to the interval of '2m'
+        // in order to avoid the sawtooth effect
+        ns.reportParams.interval = '' + Math.max(2, (ns.globalLookback / 24)) + 'm';
 
         _.each(self.defaults.metricNames, function(prefix) {
 
