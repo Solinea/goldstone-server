@@ -6294,7 +6294,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
                 return "" +
                     "Host: " + d.host + "<br>" +
-                    d.doc_type + " (click event line to persist popup info)<br>" +
+                    d.doc_type + "<br>" +
                     // "uuid: " + d.id + "<br>" +
                     "Created: " + d.timestamp + "<br>";
                     // "Message: " + d.log_message + "<br>";
@@ -6496,20 +6496,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 return ns.color(ns.uniqueEventTypes.indexOf(d.doc_type) % ns.color.range().length);
             })
             .on("mouseover", ns.tooltip.show)
-            .on("click", function() {
-                if (ns.tooltip.pause === undefined) {
-                    ns.tooltip.pause = true;
-                } else {
-                    ns.tooltip.pause = !ns.tooltip.pause;
-                }
-                if (ns.tooltip.pause === false) {
-                    ns.tooltip.hide();
-                }
-            })
             .on("mouseout", function() {
-                if (ns.tooltip.pause) {
-                    return;
-                }
                 ns.tooltip.hide();
             });
 
