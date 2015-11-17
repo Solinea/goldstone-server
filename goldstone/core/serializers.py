@@ -157,10 +157,13 @@ class EventSerializer(ReadOnlyElasticSerializer):
             if instance.meta.get(field):
                 result[field] = instance.meta[field]
 
-        # If the instance has a "traits" dict... (Aka, if it's an event...)
+        # If the instance is an event...
         if "traits" in instance:
-            # Add the resource type, and the resource name if we can find them.
-            # For every root type...
+            # For every desired entity, add the resource type and resource name
+            # if we can find them. This is an imperfect situation; for example,
+            # doc_types of compute.instance.create.end and
+            # compute.instance.update events have instance_ids that may not be
+            # in the resource graph right now.
             for id_root in self.INSTANCE_GRAPH_IDS:
                 # Make the source _id key, and the destination _name and _type
                 # keys. And initialize the destination keys to, "not found."
@@ -179,7 +182,8 @@ class EventSerializer(ReadOnlyElasticSerializer):
                     # we'll 'normalize' the ids here by removing the dashes.
                     target_value = target_value.replace('-', '')
 
-                    # For every node in the resource graph...
+                    # Iterate over every resource graph node, looking for this
+                    # id in one of the "id-ish" fields.
                     for node in resource.instances.graph.nodes():
                         # Look for a match against values in id-like fields. We
                         # filter out non-stering id-values because those will
@@ -196,11 +200,6 @@ class EventSerializer(ReadOnlyElasticSerializer):
                             result[resource_name] = \
                                 node.attributes.get("name", NOT_FOUND)
                             break
-                    else:
-                        # We didn't find this instance in the resource graph.
-                        logger.warning("%s[%s] isn't in the resource graph",
-                                       instance,
-                                       source_key)
 
         return result
 
