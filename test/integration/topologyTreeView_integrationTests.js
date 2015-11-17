@@ -38,7 +38,7 @@ describe('eventsReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testCollection = new ZoomablePartitionCollection({});
+        this.testCollection = new TopologyTreeCollection({});
 
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
