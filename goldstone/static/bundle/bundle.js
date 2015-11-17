@@ -8976,6 +8976,18 @@ var LoginPageView = GoldstoneBaseView2.extend({
     addHandlers: function() {
         var self = this;
 
+        // sets auth token with each xhr request.
+        // remove this if returning to SPA architecture with one main template
+
+        var $doc = $(document);
+        $doc.ajaxSend(function(event, xhr) {
+            var authToken = localStorage.getItem('userToken');
+            if (authToken) {
+                xhr.setRequestHeader("Authorization", "Token " +
+                    authToken);
+            }
+        });
+
         $('.login-form').on('submit', function(e) {
             e.preventDefault();
             self.trimInputField('[name="username"]');
