@@ -45,11 +45,6 @@ class GoldstoneAuthError(GoldstoneBaseException):
     pass
 
 
-class NoResourceFound(GoldstoneBaseException):
-    """Goldstone no-resource-found exception."""
-    pass
-
-
 def to_es_date(date_object):
     """Return the string version of a datetime object."""
 
@@ -82,7 +77,7 @@ def _get_region_for_cinder_client(client):
     return _get_region_for_client(catalog, 'volumev2')
 
 
-def _get_region_for_glance_client(client):
+def get_region_for_glance_client(client):
     """Return the region for a glance client."""
     catalog = client.service_catalog.catalog['catalog']
     return _get_region_for_client(catalog, 'image')
@@ -222,7 +217,7 @@ def get_client(service):
                 keystoneclient.endpoints.find(service_id=service_id,
                                               interface="admin").url
 
-            region = _get_region_for_glance_client(keystoneclient)
+            region = get_region_for_glance_client(keystoneclient)
             client = glclient.Client(endpoint=mgmt_url,
                                      token=keystoneclient.auth_token)
             return {'client': client, 'region': region}
@@ -233,107 +228,6 @@ def get_client(service):
     except (KeystoneUnauthorized, NovaUnauthorized, CinderUnauthorized,
             NeutronUnauthorized):
         raise GoldstoneAuthError(NO_AUTH % service.capitalize())
-
-
-class TopologyMixin(object):
-    """A base class that is used by "DiscoverTree" classes."""
-
-    def _get_children(self, children, rsrc_type):
-        """Return a list or dict of the children, or children of the children,
-        that match rsrc_type.
-
-        TODO: Fix this so it returns only one data type.
-
-        """
-
-        assert (isinstance(children, dict) or isinstance(children, list)), \
-            "children must be a list or dict"
-        assert rsrc_type, "rsrc_type must have a value"
-
-        if isinstance(children, list):
-            # Convert it into a dict.
-            children = {'rsrcType': None, 'children': children}
-
-        # this is a matching child
-        if children['rsrcType'] == rsrc_type:
-            return children
-
-        # this is not a match, but has children to check
-        elif children.get('children'):
-            result = [self._get_children(c, rsrc_type)
-                      for c in children['children']]
-
-            if result and isinstance(result[0], list):
-                # flatten it so we don't end up with nested lists
-                return [c for l in result for c in l]
-            else:
-                return result
-        else:
-            return []
-
-    @staticmethod
-    def _eval_condition(source, target, cond):
-        """Return the condition tested against the source and target dicts."""
-
-        # Substitute reference to source and target in condition.
-        cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-
-        try:
-            # pylint: disable=W0123
-            return eval(cond,
-                        {'__builtins__': {}},
-                        {"sc": source, "tc": target, "len": len})
-        except TypeError:
-            return False
-
-    def _attach_resource(self, attach_descriptor, source, target):
-        """Attach one resource tree to another at a described point.
-
-        The descriptor format is:
-
-            {'sourceRsrcType': 'string',
-             'targetRsrcType': 'string',
-             'conditions': 'string'}
-
-        If sourceRsrcType will be treated as the top level thing to attach.  If
-        there are resources above it in the source dict, they will be ignored.
-        The resource(s) of type sourceResourceType along with their descendants
-        will be attached to resources of targetRsrcType in the target dict
-        which match the condition expression.  The target dict assumes that
-        nesting is via the 'children' key.  The condition will be evaluated as
-        a boolean expression, and will have access to the items in both source
-        and target.
-
-        """
-        import copy
-
-        # basic sanity check.  all args should be dicts, source and target
-        # should have a rsrcType field
-        assert isinstance(source, list), "source param must be a list"
-        assert isinstance(target, list), "target param must be a list"
-        assert isinstance(attach_descriptor, dict), \
-            "attach_descriptor param must be a dict"
-
-        # make copies so they are not subject to mutation during or after the
-        # the call.
-        targ = copy.deepcopy(target)
-        src = copy.deepcopy(source)
-        ad_copy = attach_descriptor
-
-        targ_children = self._get_children(targ, ad_copy['targetRsrcType'])
-        src_children = self._get_children(src, ad_copy['sourceRsrcType'])
-
-        for target_child in targ_children:
-            for src_child in src_children:
-                match = self._eval_condition(src_child,
-                                             target_child,
-                                             ad_copy['conditions'])
-                if match:
-                    if 'children' not in target_child:
-                        target_child['children'] = []
-                    target_child['children'].append(src_child)
-
-        return targ
 
 
 def django_admin_only(wrapped_function):

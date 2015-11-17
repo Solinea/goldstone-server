@@ -355,26 +355,20 @@ class ConstantDict(object):
         return cls.__values
 
 
-class ResourceEdge(ConstantDict):
-    """The types of edges in the Resource Type and Resource graphs."""
+class IntegrationNames(ConstantDict):
+    """The names of OpenStack integrations."""
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
-    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
-    APPLIES_TO = "appliesto"          # An <<applies to>> edge
-    ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
-    ATTACHED_TO = "attachedto"        # An <<attached to>> edge
-    CONSUMES = "consumes"             # A <<consumes>> edge
-    CONTAINS = "contains"             # A <<contains>> edge
-    DEFINES = "defines"               # A <<defines>> edge
-    INSTANCE_OF = "instanceof"        # An <<instance of>> edge
-    MANAGES = "manages"               # A <<manages>> edge
-    MEMBER_OF = "memberof"            # A <<member of>> edge
-    OWNS = "owns"                     # An <<owns>> edge
-    ROUTES_TO = "routesto"            # A <<routes to>> edge
-    SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
-    USES = "uses"                     # A <<uses>> edge
 
-R_EDGE = ResourceEdge()
+    # The attributes to attache (that are attached) to an edge.
+    KEYSTONE = "Keystone"
+    NOVA = "Nova"
+    CINDER = "Cinder"
+    GLANCE = "Glance"
+
+# We need this because classes aren't imported via "from django.conf import
+# settings."
+INTEGRATION_NAMES = IntegrationNames()
 
 
 class ResourceAttribute(ConstantDict):
@@ -398,4 +392,32 @@ class ResourceAttribute(ConstantDict):
     # node, This is called with the from_attr_dict and to_attr_dict.
     MATCHING_FN = "matchingattributes"
 
+# We need this because classes aren't imported via "from django.conf import
+# settings."
 R_ATTRIBUTE = ResourceAttribute()
+
+
+class ResourceEdge(ConstantDict):
+    """The types of edges in the Resource Type and Resource graphs."""
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
+    APPLIES_TO = "appliesto"          # An <<applies to>> edge
+    ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
+    ATTACHED_TO = "attachedto"        # An <<attached to>> edge
+    CONSUMES = "consumes"             # A <<consumes>> edge
+    CONTAINS = "contains"             # A <<contains>> edge
+    DEFINES = "defines"               # A <<defines>> edge
+    INSTANCE_OF = "instanceof"        # An <<instance of>> edge
+    MANAGES = "manages"               # A <<manages>> edge
+    MEMBER_OF = "memberof"            # A <<member of>> edge
+    OWNS = "owns"                     # An <<owns>> edge
+    ROUTES_TO = "routesto"            # A <<routes to>> edge
+    SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
+    USES = "uses"                     # A <<uses>> edge
+    # A <<topologically owns>> edge. This is used by TopologyView.
+    TOPOLOGICALLY_OWNS = "topo"
+
+# We need this because classes aren't imported via "from django.conf import
+# settings."
+R_EDGE = ResourceEdge()

@@ -8,7 +8,6 @@
 .leases-installed
 .opentrail-installed
 CLA
-api_docs
 design_docs
 dist
 docs

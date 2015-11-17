@@ -158,6 +158,9 @@ def custom_exception_handler(exc, context):
 def process_resource_type(nodetype):
     """Update the persistent Resource graph nodes that are of this type.
 
+    Special processing for Region nodes: Nodes representing integrations are
+    forced into the graph for each region.
+
     Nodes are:
        - deleted if they are no longer in the OpenStack cloud.
        - added if they are in the OpenStack cloud, but not in the graph.
@@ -168,7 +171,8 @@ def process_resource_type(nodetype):
 
     """
     from django.core.exceptions import ObjectDoesNotExist
-    from goldstone.core.models import Host
+    from goldstone.core.models import Host, Keystone, Nova, Neutron, Glance, \
+        Region, Cinder
 
     # Remove Resource graph nodes that no longer exist. First get the cloud
     # instances of the desired type, and nodes of that type in the persistent
@@ -189,8 +193,6 @@ def process_resource_type(nodetype):
 
     # Now, for every node of this type in the cloud, add it to the persistent
     # Resource graph if it's not there, or update its information if it is.
-    #
-    # For every actual node's data...
     for entry in actual_node_data:
         native_id = entry.get(nodetype_native_id_key)
 
@@ -226,6 +228,17 @@ def process_resource_type(nodetype):
                 # Update its persistent information, in the database.
                 persistent_node.cloud_attributes = dict(entry)
                 persistent_node.save()
+
+    # Special processing for Region nodes. Each region must have nodes
+    # representing the integrations. (Nova, Keystone, etc.)
+    if nodetype == Region:
+        for region in Region.objects.all():
+            regionname = region.cloud_attributes["id"]
+
+            for integration in [Keystone, Nova, Neutron, Glance, Cinder]:
+                integration.objects.get_or_create(
+                    native_id=regionname,
+                    cloud_attributes={integration.native_id_key(): regionname})
 
     # The persistent nodes have been updated. Now fill in / update all
     # nodes' outgoing edges.
@@ -310,14 +323,12 @@ def query_filter_map(key):
     import re
 
     # Each entry defines a function return value.
-    MAPPING = {"native_name": (lambda n, f: bool(re.search(f, n.native_name)),
-                               "db"),
-               "native_id": (lambda n, f: bool(re.search(f, n.native_id)),
-                             "db"),
+    MAPPING = {"native_name":
+               (lambda n, f: bool(re.search(f, n.native_name)), "db"),
+               "native_id":
+               (lambda n, f: bool(re.search(f, n.native_id)), "db"),
                "integration_name":
-               (lambda n, f:
-                bool(re.search(f, n.display_attributes()["integration_name"])),
-                "db"),
+               (lambda n, f: bool(re.search(f, n.integration())), "db"),
                }
 
     return MAPPING.get(key)

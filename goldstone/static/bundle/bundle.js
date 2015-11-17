@@ -3073,6 +3073,42 @@ var InfoButtonText = GoldstoneBaseModel.extend({
  * limitations under the License.
  */
 
+// define collection and link to model
+
+var TopologyTreeCollection = Backbone.Collection.extend({
+
+    defaults: {},
+
+    parse: function(data) {
+        return data;
+    },
+
+    model: GoldstoneBaseModel,
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.url = "/core/topology/";
+        this.fetch();
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
 
 instantiated on eventsBrowserPageView as:
@@ -4307,42 +4343,6 @@ var SpawnsCollection = Backbone.Collection.extend({
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var ZoomablePartitionCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-        return data;
-    },
-
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.url = "/core/nav_tree/";
-        this.fetch();
-    }
 });
 ;
 /**
@@ -6089,71 +6089,22 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Cloud Topology chart
-        // Style of chart depends on user pref selected in settings page
 
-        var topoTreePref = JSON.parse(localStorage.getItem('userPrefs'));
+        this.discoverTreeCollection = new TopologyTreeCollection({});
 
-        this.discoverTree = new ZoomablePartitionCollection({});
+        this.topologyTreeView = new TopologyTreeView({
+            blueSpinnerGif: blueSpinnerGif,
+            collection: this.discoverTreeCollection,
+            chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
+                'discoverCloudTopology'
+            ],
+            el: '#goldstone-discover-r2-c1',
+            h: 600,
+            leafDataUrls: this.leafDataUrls,
+            multiRsrcViewEl: '#goldstone-discover-r2-c2',
+            width: $('#goldstone-discover-r2-c2').width(),
+        });
 
-        if (topoTreePref && topoTreePref.topoTreeStyle &&
-            topoTreePref.topoTreeStyle === 'zoom') {
-
-            // if user prefs designate 'zoom'able style
-            this.zoomableTreeView = new ZoomablePartitionView({
-                blueSpinnerGif: blueSpinnerGif,
-                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
-                    'discoverZoomTopology'
-                ],
-                collection: this.discoverTree,
-                el: '#goldstone-discover-r2-c1',
-                h: 600,
-                leafDataUrls: this.leafDataUrls,
-                multiRsrcViewEl: '#goldstone-discover-r2-c2',
-                width: $('#goldstone-discover-r2-c1').width()
-            });
-
-        } else {
-
-            // if user prefs designate collapsable style
-            var topologyTreeView = new TopologyTreeView({
-                blueSpinnerGif: blueSpinnerGif,
-                collection: this.discoverTree,
-                chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
-                    'discoverCloudTopology'
-                ],
-                el: '#goldstone-discover-r2-c1',
-                h: 600,
-                leafDataUrls: this.leafDataUrls,
-                multiRsrcViewEl: '#goldstone-discover-r2-c2',
-                width: $('#goldstone-discover-r2-c1').width(),
-            });
-        }
-    },
-
-    // defined on the object to be used as common to both topo tree views above
-    leafDataUrls: {
-        "services-leaf": "/services",
-        "endpoints-leaf": "/endpoints",
-        "roles-leaf": "/roles",
-        "users-leaf": "/users",
-        "tenants-leaf": "/tenants",
-        "agents-leaf": "/agents",
-        "aggregates-leaf": "/aggregates",
-        "availability-zones-leaf": "/availability_zones",
-        "cloudpipes-leaf": "/cloudpipes",
-        "flavors-leaf": "/flavors",
-        "floating-ip-pools-leaf": "/floating_ip_pools",
-        "hosts-leaf": "/hosts",
-        "hypervisors-leaf": "/hypervisors",
-        "networks-leaf": "/networks",
-        "secgroups-leaf": "/security_groups",
-        "servers-leaf": "/servers",
-        "images-leaf": "/images",
-        "volumes-leaf": "/volumes",
-        "backups-leaf": "/backups",
-        "snapshots-leaf": "/snapshots",
-        "transfers-leaf": "/transfers",
-        "volume-types-leaf": "/volume_types"
     },
 
     template: _.template('' +
@@ -6167,7 +6118,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
         '</div>' +
 
-        '<div id="goldstone-discover-r3" class="row"><br><br></div>'
+        '<div class="row"><br><br></div>'
 
     )
 
@@ -13163,12 +13114,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             $('#theme-name').val(userTheme.theme);
         }
 
-        // set dropdown for topology tree style selection
-        // to current style preference
-        if (userTheme && userTheme.topoTreeStyle) {
-            $('#topo-tree-name').val(userTheme.topoTreeStyle);
-        }
-
         // set dropdown for language selection to
         // current language preference
         if (userTheme && userTheme.i18n) {
@@ -13219,18 +13164,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
             }
         });
 
-        // add listener to theme selection drop-down
-        // userPrefsView is instantiated in router.html
-        $('#topo-tree-name').on('change', function() {
-            var topoStyle = $('#topo-tree-name').val();
-            if (topoStyle === 'collapse') {
-                goldstone.userPrefsView.trigger('collapseTreeSelected');
-            }
-            if (topoStyle === 'zoom') {
-                goldstone.userPrefsView.trigger('zoomTreeSelected');
-            }
-        });
-
         // add listener to language selection drop-down
         // userPrefsView is instantiated in router.html
         $('#language-name').on('change', function() {
@@ -13271,24 +13204,6 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         '<select class="form-control" id="theme-name">' +
         '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
         '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
-
-
-        // topology tree style
-        '<div class="col-md-2">' +
-        '<h5><%=goldstone.translate("Topology Tree Style")%></h5>' +
-        '<form class="topo-tree-selector" role="form">' +
-        '<div class="form-group">' +
-        '<div class="col-xl-5">' +
-        '<div class="input-group">' +
-        '<select class="form-control" id="topo-tree-name">' +
-        '<option value="collapse"><%=goldstone.contextTranslate(\'Collapse\', \'settingspage\')%></option>' +
-        '<option value="zoom"><%=goldstone.contextTranslate(\'Zoom\', \'settingspage\')%></option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -14162,30 +14077,6 @@ var topologyTreeView = new TopologyTreeView({
     chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
     el: '#goldstone-discover-r2-c1',
     h: 600,
-    leafDataUrls: {
-        "services-leaf": "/services",
-        "endpoints-leaf": "/endpoints",
-        "roles-leaf": "/roles",
-        "users-leaf": "/users",
-        "tenants-leaf": "/tenants",
-        "agents-leaf": "/agents",
-        "aggregates-leaf": "/aggregates",
-        "availability-zones-leaf": "/availability_zones",
-        "cloudpipes-leaf": "/cloudpipes",
-        "flavors-leaf": "/flavors",
-        "floating-ip-pools-leaf": "/floating_ip_pools",
-        "hosts-leaf": "/hosts",
-        "hypervisors-leaf": "/hypervisors",
-        "networks-leaf": "/networks",
-        "secgroups-leaf": "/security_groups",
-        "servers-leaf": "/servers",
-        "images-leaf": "/images",
-        "volumes-leaf": "/volumes",
-        "backups-leaf": "/backups",
-        "snapshots-leaf": "/snapshots",
-        "transfers-leaf": "/transfers",
-        "volume-types-leaf": "/volume_types"
-    },
     multiRsrcViewEl: '#goldstone-discover-r2-c2',
     width: $('#goldstone-discover-r2-c1').width(),
 });
@@ -14195,7 +14086,32 @@ var topologyTreeView = new TopologyTreeView({
 
 var TopologyTreeView = GoldstoneBaseView.extend({
 
-    defaults: {},
+    defaults: {
+        leafDataUrls: {
+            "services-leaf": "/services",
+            "endpoints-leaf": "/endpoints",
+            "roles-leaf": "/roles",
+            "users-leaf": "/users",
+            "tenants-leaf": "/tenants",
+            "agents-leaf": "/agents",
+            "aggregates-leaf": "/aggregates",
+            "availability-zones-leaf": "/availability_zones",
+            "cloudpipes-leaf": "/cloudpipes",
+            "flavors-leaf": "/flavors",
+            "floating-ip-pools-leaf": "/floating_ip_pools",
+            "hosts-leaf": "/hosts",
+            "hypervisors-leaf": "/hypervisors",
+            "networks-leaf": "/networks",
+            "secgroups-leaf": "/security_groups",
+            "servers-leaf": "/servers",
+            "images-leaf": "/images",
+            "volumes-leaf": "/volumes",
+            "backups-leaf": "/backups",
+            "snapshots-leaf": "/snapshots",
+            "transfers-leaf": "/transfers",
+            "volume-types-leaf": "/volume_types"
+        }
+    },
 
     // this block is run upon instantiating the object
     initialize: function(options) {
@@ -14211,7 +14127,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
         this.defaults.w = options.width;
-        this.defaults.leafDataUrls = options.leafDataUrls;
+        this.defaults.leafDataUrls = this.defaults.leafDataUrls;
         this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
 
         var ns = this.defaults;
@@ -14305,6 +14221,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     },
     drawSingleRsrcInfoTable: function(scrollYpx, json) {
         // make a dataTable
+        var ns = this.defaults;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -14417,8 +14334,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
-                    oTable = $("#multi-rsrc-table").DataTable({
+                    $(ns.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    oTable = $(ns.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
                         "data": filteredFirstTsData,
@@ -14538,7 +14455,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
             .attr("class", function(d) {
-                if (d.rsrcType.match(/-leaf$/)) {
+                if (d.children === null && d._children === undefined) {
                     return "data-leaf node";
                 } else {
                     return "node";
@@ -14555,37 +14472,38 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 // for appending to resource chart header
                 var origClickedLabel = d.label;
 
-                if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType] + '/';
+                if (d.children === undefined && d._children === undefined && d.resource_list_url !== undefined) {
+                    var url = d.resource_list_url;
                     if (url !== undefined) {
-                        var hasParam = false;
-                        if (d.hasOwnProperty('region')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "region=" + d.region;
-                        }
-                        if (d.hasOwnProperty('zone')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "zone=" + d.zone;
-                        }
+
+                        // var hasParam = false;
+                        // if (d.hasOwnProperty('region')) {
+                        //     url = hasParam ? url + "&" : url + "?";
+                        //     hasParam = true;
+                        //     url = url + "region=" + d.region;
+                        // }
+                        // if (d.hasOwnProperty('zone')) {
+                        //     url = hasParam ? url + "&" : url + "?";
+                        //     hasParam = true;
+                        //     url = url + "zone=" + d.zone;
+                        // }
 
                         // prepend zone to url:
-                        var parentModule;
+                        // var parentModule;
                         // traverse up the tree until the
                         // parent module is reached
-                        while (d.rsrcType !== 'module') {
-                            d = d.parent;
-                        }
-                        parentModule = d.label;
+                        // while (d.rsrcType !== 'module') {
+                        //     d = d.parent;
+                        // }
+                        // parentModule = d.label;
 
-                        if (self.overrideSets[d.label]) {
-                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        if (self.overrideSets[d.integration.toLowerCase()]) {
+                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
                         } else {
                             ns.filterMultiRsrcDataOverride = null;
                         }
 
-                        url = "/" + parentModule + url;
+                        // url = "/" + parentModule + url;
 
                         // loadLeafData on TopologyTreeView
                         self.loadLeafData(url);
@@ -14631,29 +14549,29 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         nodeEnter
             .append("g")
             .attr("class", function(d) {
-                return "icon main " + (d.rsrcType || "cloud") + "-icon";
+                return "icon main " + (d.label || "cloud") + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
 
         // Map of icons to the classes in which they'll be used
         d3.map({
-            icon_backup: ['backups-leaf', 'snapshots-leaf'],
+            icon_backup: ['backups', 'snapshots'],
             icon_cloud: ['cloud', 'region'],
-            icon_endpoint: ['endpoints-leaf'],
-            icon_host: ['host', 'hosts-leaf', 'hypervisors-leaf',
-                'servers-leaf'
+            icon_endpoint: ['endpoints', 'internal', 'public', 'admin'],
+            icon_host: ['host', 'hosts', 'hypervisors',
+                'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder'
             ],
-            icon_image: ['images-leaf'],
-            icon_module: ['module', 'secgroups-leaf'],
-            icon_role: ['roles-leaf'],
-            icon_service: ['service', 'services-leaf'],
-            icon_tenant: ['tenants-leaf'],
-            icon_types: ['volume-types-leaf'],
-            icon_user: ['users-leaf'],
-            icon_volume: ['volume', 'volumes-leaf'],
-            icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
-            icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-                'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
+            icon_image: ['images'],
+            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons'],
+            icon_role: ['roles'],
+            icon_service: ['service', 'services'],
+            icon_tenant: ['tenants'],
+            icon_types: ['types'],
+            icon_user: ['users'],
+            icon_volume: ['volume', 'volumes'],
+            icon_vol_transfer: ['agents', 'transfers'],
+            icon_zone: ['zone', 'aggregates', 'cloudpipes',
+                'flavors', 'floating-ip-pools', 'networks', 'zones'
             ]
 
         }).forEach(function(icon, classes) {
@@ -14908,7 +14826,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             'snapshot_id',
             'source_volid'
         ],
-        keystone: ['@timestamp'],
+        keystone: ['@timestamp', 'links'],
         glance: ['@timestamp',
             'metadata',
             'region',
@@ -14980,20 +14898,6 @@ var UserPrefsView = Backbone.View.extend({
             self.defaults.userPrefs.theme = 'dark';
             self.setUserPrefs();
 
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'collapseTreeSelected', function() {
-            self.getUserPrefs();
-            self.defaults.userPrefs.topoTreeStyle = 'collapse';
-            self.setUserPrefs();
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'zoomTreeSelected', function() {
-            self.getUserPrefs();
-            self.defaults.userPrefs.topoTreeStyle = 'zoom';
-            self.setUserPrefs();
         });
 
         // triggered on settingsPageView
@@ -15280,303 +15184,5 @@ var UtilizationNetView = UtilizationCpuView.extend({
         return finalData;
 
     }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-instantiated on discoverView when user prefs for topoTreeStyle === 'zoom' as:
-
-this.discoverTree = new ZoomablePartitionCollection({});
-
-this.zoomableTreeView = new ZoomablePartitionView({
-    blueSpinnerGif: blueSpinnerGif,
-    chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-    collection: this.discoverTree,
-    el: '#goldstone-discover-r2-c1',
-    h: 600,
-    leafDataUrls: {
-        "services-leaf": "/services",
-        "endpoints-leaf": "/endpoints",
-        "roles-leaf": "/roles",
-        "users-leaf": "/users",
-        "tenants-leaf": "/tenants",
-        "agents-leaf": "/agents",
-        "aggregates-leaf": "/aggregates",
-        "availability-zones-leaf": "/availability_zones",
-        "cloudpipes-leaf": "/cloudpipes",
-        "flavors-leaf": "/flavors",
-        "floating-ip-pools-leaf": "/floating_ip_pools",
-        "hosts-leaf": "/hosts",
-        "hypervisors-leaf": "/hypervisors",
-        "networks-leaf": "/networks",
-        "secgroups-leaf": "/security_groups",
-        "servers-leaf": "/servers",
-        "images-leaf": "/images",
-        "volumes-leaf": "/volumes",
-        "backups-leaf": "/backups",
-        "snapshots-leaf": "/snapshots",
-        "transfers-leaf": "/transfers",
-        "volume-types-leaf": "/volume_types"
-    },
-    multiRsrcViewEl: '#goldstone-discover-r2-c2',
-    width: $('#goldstone-discover-r2-c1').width()
-});
-
-*/
-
-var ZoomablePartitionView = TopologyTreeView.extend({
-
-    defaults: {},
-
-    initialize: function(options) {
-        ZoomablePartitionView.__super__.initialize.apply(this, arguments);
-    },
-
-    initSvg: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        // ns.h = 600;
-        ns.x = d3.scale.linear().range([0, ns.w]);
-        ns.y = d3.scale.linear().range([0, ns.h]);
-
-        ns.vis = d3.select(self.el).append("div")
-            .attr("class", "chart")
-            .style("width", ns.w + "px")
-            .style("height", ns.h + "px")
-            .append("svg:svg")
-            .attr("width", ns.w)
-            .attr("height", ns.h);
-
-        ns.partition = d3.layout.partition()
-            .value(function(d) {
-                // set to constant for even sizing of nodes
-                // this was originally set to d.size
-                return 1;
-            });
-    },
-
-    update: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        var root = this.collection.toJSON()[0];
-
-        var g = ns.vis.selectAll("g")
-            .data(ns.partition.nodes(root))
-            .enter().append("svg:g")
-            .attr("transform", function(d) {
-                return "translate(" + ns.x(d.y) + "," + ns.y(d.x) + ")";
-            })
-            .on("click", click);
-
-        var kx = ns.w / root.dx,
-            ky = ns.h / 1;
-
-        g.append("svg:rect")
-            .attr("width", root.dy * kx)
-            .attr("height", function(d) {
-                return d.dx * ky;
-            })
-            .attr("class", function(d) {
-                return d.children ? "parent " + (d.rsrcType || "cloud") + "-icon" : "child" + (d.rsrcType || "cloud") + "-icon";
-            })
-            .attr("fill", function(d) {
-                // return d.children ? "#eee" : "#ddd";
-                return "#eee";
-            })
-            .attr("cursor", function(d) {
-                return d.children ? "pointer" : "default";
-            })
-            .attr({
-                "stroke": '#777'
-            })
-            .attr({
-                "fill-opacity": 0.8
-            });
-
-        g.append("svg:text")
-            .attr("class", "zoomable")
-            .attr("transform", transform)
-            .attr("x", 5)
-            .attr("dy", ".35em")
-            .style("opacity", function(d) {
-                return d.dx * ky > 12 ? 1 : 0;
-            })
-            .text(function(d) {
-                return d.label;
-            })
-            .attr({
-                'font-size': '12px'
-            })
-            .attr({
-                'pointer-events': 'none'
-            });
-
-        function imgFile(icon) {
-            return "/static/images/" + icon + ".svg";
-        }
-
-        var iconMap = {
-            icon_backup: ['backups-leaf', 'snapshots-leaf'],
-            icon_cloud: ['cloud', 'region'],
-            icon_endpoint: ['endpoints-leaf'],
-            icon_host: ['host', 'hosts-leaf', 'hypervisors-leaf',
-                'servers-leaf'
-            ],
-            icon_image: ['images-leaf'],
-            icon_module: ['module', 'secgroups-leaf'],
-            icon_role: ['roles-leaf'],
-            icon_service: ['service', 'services-leaf'],
-            icon_tenant: ['tenants-leaf'],
-            icon_types: ['volume-types-leaf'],
-            icon_user: ['users-leaf'],
-            icon_volume: ['volume', 'volumes-leaf'],
-            icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
-            icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-                'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
-            ]
-        };
-
-        g.append("svg:image")
-            .attr('x', 2)
-            .attr('y', function(d) {
-                return (d.dx * ky / 2) - 10;
-            })
-            .attr('width', 20)
-            .attr('height', 20)
-            .style("opacity", function(d) {
-                return d.dx * ky > 12 ? 1 : 0;
-            })
-            .attr('xlink:href', function(d) {
-                var finalIcon;
-                _.each(iconMap, function(classes, icon) {
-                    if (classes.indexOf(d.rsrcType) !== -1) {
-                        finalIcon = icon;
-                    }
-                });
-                return imgFile(finalIcon);
-            });
-
-        d3.select(self.el)
-            .on("click", function() {
-                click(root);
-            });
-
-        function click(d) {
-
-            // no d.children signifies a leaf which should
-            // load a table of the data, otherwise zoom in
-
-            if (!d.children) {
-
-                // for appending to resource chart header
-                var origClickedLabel = d.label;
-
-                if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType] + '/';
-                    if (url !== undefined) {
-                        var hasParam = false;
-                        if (d.hasOwnProperty('region')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "region=" + d.region;
-                        }
-                        if (d.hasOwnProperty('zone')) {
-                            url = hasParam ? url + "&" : url + "?";
-                            hasParam = true;
-                            url = url + "zone=" + d.zone;
-                        }
-
-                        // prepend zone to url:
-                        var parentModule;
-                        // traverse up the tree until the
-                        // parent module is reached
-                        while (d.rsrcType !== 'module') {
-                            d = d.parent;
-                        }
-                        parentModule = d.label;
-
-                        if (self.overrideSets[d.label]) {
-                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
-                        } else {
-                            ns.filterMultiRsrcDataOverride = null;
-                        }
-
-                        url = "/" + parentModule + url;
-
-                        // loadLeafData on TopologyTreeView
-                        self.loadLeafData(url);
-
-                        // appendLeafNameToResourceHeader on TopologyTreeView
-                        self.appendLeafNameToResourceHeader(origClickedLabel);
-                    }
-
-                }
-
-                d3.event.stopPropagation();
-                return;
-            }
-
-            // not a child node, so zoom in:
-
-            kx = (d.y ? ns.w - 40 : ns.w) / (1 - d.y);
-            ky = ns.h / d.dx;
-            ns.x.domain([d.y, 1]).range([d.y ? 40 : 0, ns.w]);
-            ns.y.domain([d.x, d.x + d.dx]);
-
-            var t = g.transition()
-                .duration(d3.event.altKey ? 2500 : 750)
-                .attr("transform", function(d) {
-                    return "translate(" + ns.x(d.y) + "," + ns.y(d.x) + ")";
-                });
-
-            t.select("rect")
-                .attr("width", d.dy * kx)
-                .attr("height", function(d) {
-                    return d.dx * ky;
-                });
-
-            t.select("text")
-                .attr("transform", transform)
-                .style("opacity", function(d) {
-                    return d.dx * ky > 12 ? 1 : 0;
-                });
-
-            t.select("image")
-                .style("opacity", function(d) {
-                    return d.dx * ky > 12 ? 1 : 0;
-                })
-                .attr('x', 2)
-                .attr('y', function(d) {
-                    return (d.dx * ky / 2) - 10;
-                });
-
-            d3.event.stopPropagation();
-        }
-
-        function transform(d) {
-            return "translate(22," + d.dx * ky / 2 + ")";
-        }
-
-    },
-
-    template: null
 
 });

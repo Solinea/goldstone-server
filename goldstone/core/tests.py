@@ -60,16 +60,21 @@ def load_persistent_rg(startnodes, startedges):
         nameindex += 1
 
     # Create the resource graph edges. We don't use the update_edges() method,
-    # because some of these tests test it. Each row's edge information is
-    # currently empty.
-    for source, dest in startedges:
+    # because some of these tests test it. Each startedges entry may have two
+    # or three values. Each row's edge information is currently empty.
+    for entry in startedges:
+        # Unpack the entry.
+        source = entry[0]
+        dest = entry[1]
+        attributes = entry[2] if len(entry) == 3 else {}
+
         # Get the from and to nodes.
         fromnode = source[0].objects.get(native_id=source[1])
         tonode = dest[0].objects.get(native_id=dest[1])
 
         # Add the edge
         edges = fromnode.edges
-        edges.append((tonode.uuid, {}))
+        edges.append((tonode.uuid, attributes))
 
         # Save it in the row.
         fromnode.edges = edges
@@ -495,226 +500,6 @@ class ProcessResourceType(SimpleTestCase):
         process_resource_type(Image)
 
         self.assertEqual(PolyResource.objects.count(), 3)
-
-    @patch('goldstone.core.models.get_glance_client')
-    def test_empty_rg_cloud_multi_noid(self, ggc):
-        """Nothing in the resource graph; something in the cloud, and some of
-        the glance services don't have a native_id.
-
-        Only the ones with an id should be added to the resource graph.
-
-        """
-
-        # Set up get_glance_client to return some glance services and other
-        # services. Some of the glance services won't have a native_id.
-        cloud = self.EmptyClientObject()
-
-        bad_image_0 = {"checksum": "aw1234234234234234",
-                       "container_format": "bare",
-                       "disk_format": "FAT",
-                       "name": "botchegaloot",
-                       "status": "oh mama"}
-        bad_image_1 = bad_image_0.copy()
-        bad_image_1["owner"] = "The Dude"
-
-        good_image_0 = {"checksum": "aw1234234234234234",
-                        "container_format": "bare",
-                        "disk_format": "FAT",
-                        "name": "botchegaloot",
-                        "status": "oh mama",
-                        "id": "123123233333"}
-        good_image_1 = good_image_0.copy()
-        good_image_1["owner"] = "The Dude"
-        good_image_1["id"] = "156"
-
-        cloud.images_list = [bad_image_0,
-                             good_image_1,
-                             good_image_0,
-                             bad_image_1]
-        cloud.images = cloud.Images(cloud.images_list)
-
-        ggc.return_value = {"client": cloud, "region": "Siberia"}
-
-        process_resource_type(Image)
-
-        self.assertEqual(PolyResource.objects.count(), 2)
-
-    @patch('goldstone.core.models.get_glance_client')
-    def test_rg_cloud(self, ggc):
-        """Something is in the graph, and cloud services exist; but their
-        intersection is null.
-
-        All of the existing resource graph glance (Image) nodes should be
-        deleted, and the new cloud services added.
-
-        """
-
-        # The initial resource graph nodes, as (Type, native_id) tuples.  The
-        # native_id's must be unique within a node type.
-        NODES = [(Image, "a"),
-                 (Image, "ab"),
-                 (ServerGroup, "0"),
-                 (ServerGroup, "ab"),
-                 (NovaLimits, "0")]
-
-        # The initial resource graph edges. Each entry is ((from_type,
-        # native_id), (to_type, native_id)).  The native_id's must be unique
-        # within a node type.
-        EDGES = [((Image, "a"), (Image, "ab")),
-                 ((Image, "a"), (ServerGroup, "0")),
-                 ((Image, "ab"), (ServerGroup, "ab")),
-                 ((NovaLimits, "0"), (ServerGroup, "ab")),
-                 ((NovaLimits, "0"), (Image, "a")),
-                 ((ServerGroup, "0"), (NovaLimits, "0")),
-                 ]
-
-        # Create the PolyResource database rows.
-        load_persistent_rg(NODES, EDGES)
-
-        # Set up get_glance_client to return some glance and other services.
-        cloud = self.EmptyClientObject()
-
-        good_image_0 = {"checksum": "aw1234234234234234",
-                        "container_format": "bare",
-                        "disk_format": "FAT",
-                        "name": "botchegaloot",
-                        "status": "oh mama",
-                        "id": "123123233333"}
-        good_image_1 = good_image_0.copy()
-        good_image_1["id"] = "156"
-        good_image_2 = good_image_0.copy()
-        good_image_2["id"] = "157"
-
-        cloud.images_list = [good_image_0, good_image_1, good_image_2]
-        cloud.images = cloud.Images(cloud.images_list)
-
-        ggc.return_value = {"client": cloud, "region": "Siberia"}
-
-        process_resource_type(Image)
-
-        self.assertEqual(PolyResource.objects.count(), 6)
-
-    @patch('goldstone.core.models.get_glance_client')
-    def test_rg_cloud_hit(self, ggc):
-        """Something is in the graph, and cloud services exist; and the
-        intersection is not null.
-
-        Some of the resource graph nodes should be deleted, some should be
-        updated, some should be added.
-
-        """
-
-        # The initial resource graph nodes, as (Type, native_id) tuples.  The
-        # native_id's must be unique within a node type.
-        NODES = [(Image, "a"),
-                 (Image, "ab"),
-                 (Image, "abc"),
-                 (Server, "ab"),
-                 (ServerGroup, "0"),
-                 (ServerGroup, "ab"),
-                 (NovaLimits, "0")]
-
-        # The initial resource graph edges. Each entry is ((from_type,
-        # native_id), (to_type, native_id)).  The native_id's must be unique
-        # within a node type. N.B. Some of these edges would not exist in a
-        # running system, because they're not defined in Types.
-        EDGES = [((Image, "a"), (Image, "ab")),
-                 ((Image, "a"), (ServerGroup, "0")),
-                 ((Image, "ab"), (ServerGroup, "ab")),
-                 ((Image, "ab"), (Image, "abc")),
-                 ((NovaLimits, "0"), (ServerGroup, "ab")),
-                 ((NovaLimits, "0"), (Image, "a")),
-                 ((ServerGroup, "0"), (NovaLimits, "0")),
-                 ]
-
-        # Create the PolyResource database rows.
-        load_persistent_rg(NODES, EDGES)
-
-        # Set up get_glance_client to return some glance and other services.
-        cloud = self.EmptyClientObject()
-
-        # Hits in the resource graph, but has new info.
-        good_image_0 = {"checksum": "aw1234234234234234",
-                        "container_format": "bare",
-                        "disk_format": "FAT",
-                        "name": "botchegaloot",
-                        "status": "oh mama",
-                        "id": "ab"}
-
-        # A new node. This will have a duplicate name, which shouldn't matter.
-        good_image_1 = good_image_0.copy()
-        good_image_1["id"] = "156"
-
-        # Hits in the resource graph, but has new info.
-        good_image_2 = good_image_0.copy()
-        good_image_2["id"] = "abc"
-        good_image_2["name"] = "Amber Waves"
-
-        cloud.images_list = [good_image_0, good_image_1, good_image_2]
-        cloud.images = cloud.Images(cloud.images_list)
-
-        ggc.return_value = {"client": cloud, "region": "Siberia"}
-
-        process_resource_type(Image)
-
-        self.assertEqual(PolyResource.objects.count(), 7 + 1 - 1)
-
-    @patch('goldstone.core.models.get_glance_client')
-    def test_duplicate_native_ids(self, ggc):
-        """Something in the resource graph, and some glance services in the
-        cloud; and some of the cloud's glance services have duplicate
-        native_ids.
-
-        This should never happen, as the native_ids are supposed to be unique
-        within each cloud. But we shouldn't throw an exception. The duplicate
-        native_ids should map to the same Image row in the PolyResource table.
-
-        """
-
-        # The initial resource graph nodes, as (Type, native_id) tuples.  The
-        # native_id's must be unique within a node type.
-        NODES = [(Image, "a"),
-                 (Image, "ab"),
-                 (ServerGroup, "0"),
-                 (NovaLimits, "0")]
-
-        # The initial resource graph edges. Each entry is ((from_type,
-        # native_id), (to_type, native_id)).  The native_id's must be unique
-        # within a node type.
-        EDGES = [((Image, "a"), (Image, "ab")),
-                 ((Image, "a"), (ServerGroup, "0")),
-                 ((NovaLimits, "0"), (Image, "a")),
-                 ((ServerGroup, "0"), (NovaLimits, "0")),
-                 ]
-
-        # Create the PolyResource database rows.
-        load_persistent_rg(NODES, EDGES)
-
-        # Set up get_glance_client to return some glance services, two of
-        # which have duplicate OpenStack ids.
-        cloud = self.EmptyClientObject()
-
-        good_image_0 = {"checksum": "aw1234234234234234",
-                        "container_format": "bare",
-                        "disk_format": "FAT",
-                        "name": "botchegaloot",
-                        "status": "oh mama",
-                        "id": "deadbeef"}
-        good_image_1 = good_image_0.copy()
-        good_image_1["owner"] = "Donny"
-        good_image_1["id"] = "beef"
-        good_image_2 = good_image_1.copy()
-        good_image_1["owner"] = "Muad'Dib"
-        good_image_2["id"] = "deadbeef"
-
-        cloud.images_list = [good_image_0, good_image_1, good_image_2]
-        cloud.images = cloud.Images(cloud.images_list)
-
-        ggc.return_value = {"client": cloud, "region": "Siberia"}
-
-        process_resource_type(Image)
-
-        self.assertEqual(PolyResource.objects.count(), 4)
 
 
 class ParseTests(SimpleTestCase):

@@ -36,7 +36,7 @@ describe('goldstoneRouter.js spec', function() {
     describe('router is instantiated properly', function() {
         it('contains routes', function() {
             expect(this.testRouter.routes).to.be.an('object');
-            expect(this.testRouter.routes.password).to.equal('password');
+            expect(this.testRouter.routes.discover).to.equal('discover');
         });
         it('extends objects properly', function() {
             var test1 = this.testRouter.extendOptions({
@@ -60,7 +60,6 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.help();
             this.testRouter.logSearch();
             this.testRouter.keystoneReport();
-            this.testRouter.login();
             this.testRouter.metricViewer();
             this.testRouter.metricViewer(6);
             this.testRouter.metricViewer(7);
@@ -68,7 +67,6 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.metricViewer();
             this.testRouter.neutronReport();
             this.testRouter.novaReport();
-            this.testRouter.password();
             this.testRouter.nodeReport('control-01');
             this.testRouter.settings();
             this.testRouter.tenant();

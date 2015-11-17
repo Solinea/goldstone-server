@@ -119,214 +119,244 @@ class CoreResourceTypes(Setup):
                  ]
 
         # Expected test results.
-        EXPECTED = [{u'display_attributes': {u'name': u'Host',
-                                             u'integration_name': u'Nova'},
+        EXPECTED = [{u'label': u'hosts',
+                     u'integration': u'nova',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Host'>"},
-                    {u'display_attributes': {u'name': u'Region',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'regions',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Region'>"},
-                    {u'display_attributes': {u'name': u'Floating IP Pool',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'floating ip pools',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.FloatingIPPool'>"},
-                    {u'display_attributes': {u'name': u'Group',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'groups',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Group'>"},
-                    {u'display_attributes': {u'name': u'Flavor',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'flavors',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Flavor'>"},
-                    {u'display_attributes': {u'name': u'LB Virtual IP',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'lb virtual ips',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.LBVIP'>"},
-                    {u'display_attributes': {u'name': u'Floating IP address',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'floating ip addresses',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.FloatingIP'>"},
-                    {u'display_attributes': {u'name': u'Hypervisor',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'hypervisors',
+                     u'integration': u'nova',
                      u'present': True,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Hypervisor'>"},
-                    {u'display_attributes': {u'name': u'Server',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'servers',
+                     u'integration': u'nova',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Server'>"},
-                    {u'display_attributes': {u'name': u'Project',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'projects',
+                     u'integration': u'keystone',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Project'>"},
-                    {u'display_attributes': {u'name': u'Fixed IP address',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'fixed ip addresses',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.FixedIP'>"},
-                    {u'display_attributes': {u'name': u'Router',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'routers',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Router'>"},
-                    {u'display_attributes': {u'name': u'User',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'users',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.User'>"},
-                    {u'display_attributes': {u'name': u'Remote Group',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'remote groups',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.RemoteGroup'>"},
-                    {u'display_attributes': {u'name': u'Limits',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'limits',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.NovaLimits'>"},
-                    {u'display_attributes': {u'name': u'Port',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'ports',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Port'>"},
-                    {u'display_attributes': {u'name': u'Volume Type',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'volume types',
+                     u'integration': u'cinder',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.VolumeType'>"},
-                    {u'display_attributes': {u'name': u'Network',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'networks',
+                     u'integration': u'neutron',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Network'>"},
-                    {u'display_attributes': {u'name': u'Limits',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'limits',
+                     u'integration': u'cinder',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Limits'>"},
-                    {u'display_attributes': {u'name': u'Image',
-                                             u'integration_name': u'Glance'},
+                    {u'label': u'images',
+                     u'integration': u'glance',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Image'>"},
-                    {u'display_attributes': {u'name': u'Availability Zone',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'availability zones',
+                     u'integration': u'nova',
                      u'present': True,
                      u'unique_id':
                      u"<class 'goldstone.core.models.AvailabilityZone'>"},
-                    {u'display_attributes': {u'name': u'Subnet',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'subnets',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Subnet'>"},
-                    {u'display_attributes': {u'name': u'Volume',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'volumes',
+                     u'integration': u'cinder',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Volume'>"},
-                    {u'display_attributes': {u'name': u'LB Pool',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'lb pools',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.LBPool'>"},
-                    {u'display_attributes': {u'name': u'Domain',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'domains',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Domain'>"},
-                    {u'display_attributes': {u'name': u'Metering Label',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'metering labels',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.MeteringLabel'>"},
-                    {u'display_attributes': {u'name': u'Metering Label Rule',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'metering label rules',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.MeteringLabelRule'>"},
-                    {u'display_attributes': {u'name': u'Token',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'tokens',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Token'>"},
-                    {u'display_attributes': {u'name': u'Security Rules',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'security rules',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.SecurityRules'>"},
-                    {u'display_attributes': {u'name': u'Keypair',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'keypairs',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Keypair'>"},
-                    {u'display_attributes': {u'name': u'Server Group',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'server groups',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.ServerGroup'>"},
-                    {u'display_attributes': {u'name': u'Role',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'roles',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Role'>"},
-                    {u'display_attributes': {u'name': u'Quota Set',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'quota sets',
+                     u'integration': u'cinder',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.QuotaSet'>"},
-                    {u'display_attributes': {u'name': u'Service',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'services',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Service'>"},
-                    {u'display_attributes': {u'name': u'LB Member',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'lb members',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.LBMember'>"},
-                    {u'display_attributes': {u'name': u'Snapshot',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'snapshots',
+                     u'integration': u'cinder',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Snapshot'>"},
-                    {u'display_attributes': {u'name': u'Aggregate',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'aggregates',
+                     u'integration': u'nova',
                      u'present': True,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Aggregate'>"},
-                    {u'display_attributes': {u'name': u'Cloudpipe',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'cloudpipes',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Cloudpipe'>"},
-                    {u'display_attributes': {u'name': u'Quota',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'quotas',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.NeutronQuota'>"},
-                    {u'display_attributes': {u'name': u'Credential',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'credentials',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Credential'>"},
-                    {u'display_attributes': {u'name': u'Security Group',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'security groups',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.SecurityGroup'>"},
-                    {u'display_attributes': {u'name': u'Endpoint',
-                                             u'integration_name': u'Keystone'},
+                    {u'label': u'endpoints',
+                     u'integration': u'keystone',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Endpoint'>"},
-                    {u'display_attributes': {u'name': u'Health Monitor',
-                                             u'integration_name': u'Neutron'},
+                    {u'label': u'health monitors',
+                     u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.HealthMonitor'>"},
-                    {u'display_attributes': {u'name': u'QoS Spec',
-                                             u'integration_name': u'Cinder'},
+                    {u'label': u'qos specs',
+                     u'integration': u'cinder',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.QOSSpec'>"},
-                    {u'display_attributes': {u'name': u'Interface',
-                                             u'integration_name': u'Nova'},
+                    {u'label': u'interfaces',
+                     u'integration': u'nova',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Interface'>"},
-                    {u'display_attributes': {u'name': u'Add-on',
-                                             u'integration_name': u'Add-on'},
+                    {u'label': u'transfers',
+                     u'integration': u'cinder',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Transfer'>"},
+                    {u'label': u'add-ons',
+                     u'integration': u'add-on',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Addon'>"},
+                    {u'label': u'cinder',
+                     u'integration': u'cinder',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Cinder'>"},
+                    {u'label': u'glance',
+                     u'integration': u'glance',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Glance'>"},
+                    {u'label': u'keystone',
+                     u'integration': u'keystone',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Keystone'>"},
+                    {u'label': u'nova',
+                     u'integration': u'nova',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Nova'>"},
+                    {u'label': u'neutron',
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'unique_id':
+                     u"<class 'goldstone.core.models.Neutron'>"},
                     ]
 
         # This code is for ticket #105611698. Coming into this test, the
@@ -338,9 +368,11 @@ class CoreResourceTypes(Setup):
 
         for entry in resource.types.graph.nodes():
             try:
-                entry.display_attributes()
+                entry().label()
+                entry.integration()
             except Exception as exc:        # pylint: disable=W0703
-                print "? %s doesn't have display_attributes, exception: %s" % \
+                print "? %s doesn't have label or integration, exception: %s" \
+                    % \
                     (entry, exc.message)
                 bad = True
 
@@ -372,13 +404,8 @@ class CoreResourceTypes(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
-        # Python 2.6 doesn't have assertListEqual(), so do this the hard way.
-        EXPECTED.sort()
         content = json.loads(response.content)["nodes"]
-        content.sort()
-
-        for item in EXPECTED:
-            self.assertTrue(item in content)
+        self.assertItemsEqual(content, EXPECTED)
 
 
 class CoreResourceTypesDetail(Setup):
@@ -517,15 +544,10 @@ class CoreResourceTypesDetail(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
-        # Python 2.6 doesn't have assertListEqual(), so do this the hard way.
-        EXPECTED.sort()
-
         content = json.loads(response.content)["nodes"]
         for entry in content:
             del entry["uuid"]
-        content.sort()
-
-        self.assertEqual(content, EXPECTED)
+        self.assertItemsEqual(content, EXPECTED)
 
 
 class AuthToken(Setup):

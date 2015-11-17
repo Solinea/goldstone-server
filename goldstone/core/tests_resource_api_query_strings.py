@@ -154,42 +154,42 @@ class CoreResources(Setup):
             [[{u'native_id': u'12345',
                u'native_name': u'host 1',
                u'resourcetype':
-               {u'name': u'Host',
+               {u'label': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
               {u'native_id': u'1234',
                u'native_name': u'host 0',
                u'resourcetype':
-               {u'name': u'Host',
+               {u'label': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
               {u'native_id': u'f23456',
                u'native_name': u'hypervisor 0',
                u'resourcetype':
-               {u'name': u'Hypervisor',
+               {u'label': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
               {u'native_id': u'f2345',
                u'native_name': u'hypervisor 0',
                u'resourcetype':
-               {u'name': u'Hypervisor',
+               {u'label': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
               {u'native_id': u'123456',
                u'native_name': u'host 2',
                u'resourcetype':
-               {u'name': u'Host',
+               {u'label': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
               {u'native_id': u'f234',
                u'native_name': u'hypervisor 0',
                u'resourcetype':
-               {u'name': u'Hypervisor',
+               {u'label': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -199,101 +199,101 @@ class CoreResources(Setup):
             [[{u'native_id': u'l123456',
                u'native_name': u'limits 2',
                u'resourcetype':
-               {u'name': u'Limits',
+               {u'label': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
               {u'native_id': u'l12345',
                u'native_name': u'limits 1',
                u'resourcetype':
-               {u'name': u'Limits',
+               {u'label': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
               {u'native_id': u'l1234',
                u'native_name': u'limits 0',
                u'resourcetype':
-               {u'name': u'Limits',
+               {u'label': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
               ],
              6],
             "?native_id=derosa": [[], 0],
-            "?integration_name=Neutron%20OR%20Keystone":
+            "?integration_name=neutron%20OR%20keystone":
             [[{u'native_id': u'p2',
                u'native_name': u'project 2',
                u'resourcetype':
-               {u'name': u'Project',
+               {u'label': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
               {u'native_id': u'p1',
                u'native_name': u'project 1',
                u'resourcetype':
-               {u'name': u'Project',
+               {u'label': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
               {u'native_id': u'p0',
                u'native_name': u'project 0',
                u'resourcetype':
-               {u'name': u'Project',
+               {u'label': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
               {u'native_id': u'n12345',
                u'native_name': u'network 1',
                u'resourcetype':
-               {u'name': u'Network',
+               {u'label': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
               {u'native_id': u'n1234',
                u'native_name': u'network 0',
                u'resourcetype':
-               {u'name': u'Network',
+               {u'label': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
               ],
              10],
-            "?integration_name=Nova&native_id=45":
+            "?integration_name=nova&native_id=45":
             [[{u'native_id': u'12345',
                u'native_name': u'host 1',
                u'resourcetype':
-               {u'name': u'Host',
+               {u'label': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
               {u'native_id': u'f23456',
                u'native_name': u'hypervisor 0',
                u'resourcetype':
-               {u'name': u'Hypervisor',
+               {u'label': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
               {u'native_id': u'f2345',
                u'native_name': u'hypervisor 0',
                u'resourcetype':
-               {u'name': u'Hypervisor',
+               {u'label': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
               {u'native_id': u'123456',
                u'native_name': u'host 2',
                u'resourcetype':
-               {u'name': u'Host',
+               {u'label': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
               ],
              4],
-            "?integration_name=Neutron&native_name=1":
+            "?integration_name=neutron&native_name=1":
             [[{u'native_id': u'n12345',
                u'native_name': u'network 1',
                u'resourcetype':
-               {u'name': u'Network',
+               {u'label': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
@@ -314,6 +314,9 @@ class CoreResources(Setup):
             resource.instances.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                         resourcetype=nodetype,
                                                         attributes=attributes))
+
+        # Force the instance graph to be re-evaluated now.
+        resource.instances._graph = None       # pylint: disable=W0212
 
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
@@ -355,8 +358,4 @@ class CoreResources(Setup):
             for entry in content["nodes"]:
                 del entry["uuid"]
 
-            # Python 2.6 doesn't have assertListEqual(), so do this the hard
-            # way.
-            expected_nodes.sort()
-            content["nodes"].sort()
-            self.assertEqual(content["nodes"], expected_nodes)
+            self.assertItemsEqual(content["nodes"], expected_nodes)

@@ -46,7 +46,7 @@ BAD_UUID = '4' * 32
 
 
 class Setup(SimpleTestCase):
-    """A base class to do necessary housekeeping before each test."""
+    """A base class to do housekeeping before each test."""
 
     def setUp(self):
         """Do explicit database reseting.
@@ -69,7 +69,10 @@ class Setup(SimpleTestCase):
         resource.types = resource.Types()
 
         PolyResource.objects.non_polymorphic().all().delete()
-        resource.instances.graph.clear()
+
+        # Resource.instances may have been used before this test, so force it
+        # into a virgin state.
+        resource.instances._graph = None        # pylint: disable=W0212
 
 
 def login(username, password):

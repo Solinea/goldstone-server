@@ -63,7 +63,7 @@ def do_test(type_from, data_from, match_from_key_fn, type_to, data_to,
     """
 
     # Get the matching function from the source type
-    from_to_entry = [x for x in type_from.outgoing_edges()
+    from_to_entry = [x for x in type_from.type_outgoing_edges()
                      if x[TO] == type_to][0]
     matching_fn = from_to_entry[MATCHING_FN]
 
@@ -681,7 +681,7 @@ class ResourceTypesTests(SimpleTestCase):
         # except for the no-match test.
         #
         # Get the matching function from the source type
-        from_to_entry = [x for x in Keypair.outgoing_edges()
+        from_to_entry = [x for x in Keypair.type_outgoing_edges()
                          if x[TO] == Server][0]
         matching_fn = from_to_entry[MATCHING_FN]
 

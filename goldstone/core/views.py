@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 from django.conf import settings
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
@@ -19,7 +21,6 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
-from goldstone.utils import TopologyMixin
 
 from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData, \
@@ -32,6 +33,9 @@ from .utils import parse, query_filter_map
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
+TOPOLOGICALLY_OWNS = settings.R_EDGE.TOPOLOGICALLY_OWNS
+
+logger = logging.getLogger(__name__)
 
 
 # Our API documentation extracts this docstring.
@@ -213,144 +217,114 @@ class MetricAggView(DateHistogramAggView):
 
 
 # Our API documentation extracts this docstring.
-class NavTreeView(RetrieveAPIView, TopologyMixin):
-    """Return data for the old-style discovery tree rendering.\n\n
+class TopologyView(RetrieveAPIView):
+    """Return the cloud's topology.
 
-    The data structure is a list of resource types.  If the list contains
-    only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.\n\n
+    In the present codebase, there is only one OpenStack cloud.
 
-    A resource has this structure:\n
-
-    {"rsrcType": "cloud|region|zone|service|volume|etc.",\n
-     "label": "string",\n
-     "info": {"key": "value" [, "key": "value", ...]}, (optional)\n
-     "lifeStage": "new|existing|absent", (optional)\n
-     "enabled": True|False, (optional)\n
-     "children": [rsrcType] (optional)
-    }
-
-     """
+    """
 
     serializer_class = PassthruSerializer
 
-    def get_object(self):
-        return self.build_topology_tree()
+    def _tree(self, node):
+        """Return the topology of the cloud starting at a node.
 
-    @staticmethod
-    def get_regions():
-        return []
-
-    @staticmethod
-    def _rescope_module_tree(tree, module_name):
-        """Return a tree that is ready to merge with the global tree.
-
-        This uses an rsrc_type of module, and a label of the module name.  If
-        cloud rsrc_type is the root, throws it away.  Result is wrapped in a
-        list.
+        :param node: A resource graph node
+        :type node: GraphNode
+        :return: The topology of this down "downward," including all of its
+                 children
+        :rtype: dict
 
         """
+        from networkx import has_path
+        from goldstone.core.models import Region
 
-        if tree['rsrcType'] == 'cloud':
-            result = []
-            for child in tree['children']:
-                child['region'] = child['label']
-                child['rsrcType'] = 'module'
-                child['label'] = module_name
-                result.append(child)
-            return result
+        # Get all the topological children by looking for a TOPOLOGICALLY_OWNS
+        # edge between this node and its children.
+        children = \
+            [self._tree(x)
+             for x in resource.instances.graph.successors(node)
+             if any(y[TYPE] == TOPOLOGICALLY_OWNS
+                    for y in
+                    resource.instances.graph.get_edge_data(node, x)
+                    .values())]
+
+        # Now we concoct the return value. If no children, return None rather
+        # than an empty list.
+        if not children:
+            children = None
+
+        # Create the resource list URL formatting dictionary.
+        #
+        # Find this node's region, and its predecessor's Integration name.
+        regionnodes = resource.instances.nodes_of_type(Region)
+        for region in regionnodes:
+            if has_path(resource.instances.graph, region, node):
+                region = region.attributes["id"]
+                break
         else:
-            tree['region'] = tree['label']
-            tree['rsrcType'] = 'module'
-            tree['label'] = module_name
-            return [tree]
+            region = None
 
-    def build_topology_tree(self):
-        """Return the topology tree that is displayed by this view."""
-        from goldstone.keystone.utils import DiscoverTree \
-            as KeystoneDiscoverTree
-        from goldstone.glance.utils import DiscoverTree as GlanceDiscoverTree
-        from goldstone.cinder.utils import DiscoverTree as CinderDiscoverTree
-        from goldstone.nova.utils import DiscoverTree as NovaDiscoverTree
+        # Find a predecessor's Integration name. Any one will do.
+        predecessor_nodes = resource.instances.graph.predecessors(node)
+        parent_integration = \
+            predecessor_nodes[0].resourcetype.integration().lower() \
+            if predecessor_nodes else None
 
-        # Too many short names here. Disable C0103 for now, just here!
-        # pylint: disable=C0103
-        # Too many variables here!
-        # pylint: disable=R0914
+        url_values = {"region": region,
+                      "parent_integration": parent_integration,
+                      "zone": node.attributes.get("zone"),
+                      }
 
-        keystone_topo = KeystoneDiscoverTree()
-        glance_topo = GlanceDiscoverTree()
-        cinder_topo = CinderDiscoverTree()
-        nova_topo = NovaDiscoverTree()
+        result = {"uuid": node.uuid,
+                  "integration": node.resourcetype.integration(),
+                  "label":
+                  node.resourcetype.objects.get(uuid=node.uuid).label(),
+                  "resource_list_url":
+                  node.resourcetype.resource_list_url().format(**url_values),
+                  "children": children}
 
-        topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
+        # The interface value will be "private", "public", or "admin", if it
+        # exists.
+        if "interface" in node.attributes:
+            result["interface"] = node.attributes["interface"]
 
-        # Get regions from everyone and remove the dups.
-        rll = [topo.get_regions() for topo in topo_list]
-        rl = [reg for rl in rll for reg in rl]
+        # The URL will help further identify this node, if it exists.
+        if "url" in node.attributes:
+            result["url"] = node.attributes["url"]
 
-        rl = [dict(t) for t in set([tuple(d.items()) for d in rl])]
+        return result
 
-        # we're going to bind everyone to the region tree. order is most likely
-        # going to be important for some modules, so eventually we'll have
-        # to be able to find a way to order or otherwise express module
-        # dependencies.  It will also be helpful to build from the bottom up.
+    def get_object(self):
+        """Return the cloud's toplogy.
 
-        # bind cinder zones to global at region
-        cl = [cinder_topo.build_topology_tree()]
+        :rtype: dict
 
-        # convert top level items to cinder modules
-        new_cl = []
+        """
+        from .models import Region
 
-        c = {}                # In case cl is empty. Plus, keeps pylint happy.
-        for c in cl:
-            if c['rsrcType'] != 'error':
-                c['rsrcType'] = 'module'
-                c['region'] = c['label']
-                c['label'] = 'cinder'
-                new_cl.append(c)
+        # We do this in multiple steps in order to be more robust in the face
+        # of bad cloud data.
+        regionnodes = set([resource.instances.get_uuid(x.uuid)
+                           for x in Region.objects.all()])
+        if not regionnodes:
+            return {"label": "No data found"}
+        elif len(regionnodes) > 1:
+            # We don't handle multiple regions correctly yet, so log this and
+            # trim the list.
+            logger.error("More than one region found: %s", regionnodes)
+            regionnodes = list(regionnodes)[:1]
 
-        ad = {'sourceRsrcType': 'module',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
+        # Find the children of each region.
+        children = [self._tree(x) for x in regionnodes if x]
 
-        rl = self._attach_resource(ad, new_cl, rl)
+        # This is a hack. The "label" key is unique per class, except for a
+        # Region node, where it's unique per region.
+        children[0]["label"] = list(regionnodes)[0].attributes["id"]
 
-        nl = [nova_topo.build_topology_tree()]
-
-        # convert top level items to nova module
-        new_nl = []
-        for n in nl:
-            if c['rsrcType'] != 'error':
-                n['rsrcType'] = 'module'
-                n['region'] = n['label']
-                n['label'] = 'nova'
-                new_nl.append(n)
-
-        rl = self._attach_resource(ad, new_nl, rl)
-
-        # bind glance region to region, but rename glance
-        gl = self._rescope_module_tree(
-            glance_topo.build_topology_tree(), "glance")
-        ad = {'sourceRsrcType': 'module',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
-        rl = self._attach_resource(ad, gl, rl)
-
-        # bind keystone region to region, but rename keystone
-        kl = self._rescope_module_tree(
-            keystone_topo.build_topology_tree(), "keystone")
-        ad = {'sourceRsrcType': 'module',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
-        rl = self._attach_resource(ad, kl, rl)
-
-        if len(rl) > 1:
-            return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
-        elif len(rl) == 1:
-            return rl[0]
-        else:
-            return {"rsrcType": "error", "label": "No data found"}
+        # Return a "cloud" response. The children are the regions cloud's
+        # regions.
+        return {"label": "cloud", "uuid": None, "children": children}
 
 
 # Our API documentation extracts this docstring.
@@ -370,8 +344,8 @@ class ResourceTypeList(ListAPIView):
         {"nodes": [<b>node</b>, <b>node</b>, ...],
          "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
 
-        <b>node</b> is {"display_attributes": {"integration_name": str,
-                                               "name": str},
+        <b>node</b> is {"integration": str,
+                        "name": str,
                         "unique_id": str,
                         "present": bool (True if >= 1 instance exists)
                         }\n\n
@@ -381,7 +355,8 @@ class ResourceTypeList(ListAPIView):
         """
 
         # Gather the nodes.
-        nodes = [{"display_attributes": entry.display_attributes(),
+        nodes = [{"integration": entry.integration(),
+                  "label": entry().label(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
                  for entry in resource.types.graph.nodes()]
@@ -539,8 +514,7 @@ class ResourcesList(ListAPIView):
                 nodes.append({"resourcetype":
                               {"unique_id":
                                node.resourcetype.unique_class_id(),
-                               "name":
-                               node.resourcetype.display_attributes()["name"]},
+                               "label": node.resourcetype().label()},
                               "uuid": node.uuid,
                               "native_id": row.native_id,
                               "native_name": row.native_name

@@ -16,7 +16,7 @@
 
 // define collection and link to model
 
-var ZoomablePartitionCollection = Backbone.Collection.extend({
+var TopologyTreeCollection = Backbone.Collection.extend({
 
     defaults: {},
 
@@ -29,7 +29,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.url = "/core/nav_tree/";
+        this.url = "/core/topology/";
         this.fetch();
     }
 });

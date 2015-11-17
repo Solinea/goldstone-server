@@ -26,18 +26,20 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
     RemoteGroup, SecurityRules, SecurityGroup, Port, LBVIP, LBPool, \
     HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember, Subnet, \
-    Network, Router, Addon, PolyResource
+    Network, Router, Addon, PolyResource, Cinder, Glance, Nova, Neutron, \
+    Keystone, Transfer
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
-                  Endpoint, Service, Project, AvailabilityZone,
-                  Aggregate, Flavor, Keypair, Host, Addon,
-                  Hypervisor, Cloudpipe, ServerGroup, Server, Interface,
-                  NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType,
-                  Volume, Limits, MeteringLabelRule, MeteringLabel,
-                  NeutronQuota, RemoteGroup, SecurityRules, SecurityGroup,
-                  Port, LBVIP, LBPool, HealthMonitor, FloatingIP,
-                  FloatingIPPool, FixedIP, LBMember, Subnet, Network, Router]
+                  Endpoint, Service, Project, AvailabilityZone, Aggregate,
+                  Flavor, Keypair, Host, Addon, Hypervisor, Cloudpipe,
+                  ServerGroup, Server, Interface, NovaLimits, Image, QuotaSet,
+                  QOSSpec, Snapshot, VolumeType, Volume, Limits,
+                  MeteringLabelRule, MeteringLabel, NeutronQuota, RemoteGroup,
+                  SecurityRules, SecurityGroup, Port, LBVIP, LBPool,
+                  HealthMonitor, FloatingIP, FloatingIPPool, FixedIP, LBMember,
+                  Subnet, Network, Router, Cinder, Glance, Nova, Neutron,
+                  Keystone, Transfer]
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO
@@ -69,6 +71,11 @@ class GraphNode(object):
         self.resourcetype = kwargs.get("resourcetype")
         self.attributes = kwargs.get("attributes", {})
 
+    def __repr__(self):
+        """Return a useful string."""
+
+        return "<%s, %s>" % (self.uuid, self.resourcetype().label())
+
 
 class Graph(object):
     """The base class for Resource Type and Instance graphs.
@@ -79,11 +86,7 @@ class Graph(object):
     """
 
     def __init__(self):
-        """Initialize the object.
-
-        A child class must call this before its initialization.
-
-        """
+        """Initialize the object."""
 
         self.graph = networkx.MultiDiGraph()
 
@@ -118,22 +121,17 @@ class Types(Graph):
     """
 
     def __init__(self):
-        """Initialize the object.
-
-        :return: self.graph: A graph of the resource types within an OpenStack
-                 cloud.
-
-        """
+        """Initialize the object."""
         from .utils import resource_types
 
         super(Types, self).__init__()
 
         # Add the built-in Goldstone resource types. For every control_dict in
-        # every outgoing_edges() list of every resource type...
+        # every type_outgoing_edges() list of every resource type...
         for source_type in RESOURCE_TYPES:
             self.graph.add_node(source_type)
 
-            for control_dict in source_type.outgoing_edges():
+            for control_dict in source_type.type_outgoing_edges():
                 # (If an edge connects nodes not yet in the graph, the
                 # nodes are automatically added.)
                 self.graph.add_edge(source_type,
@@ -156,7 +154,7 @@ class Types(Graph):
                                                        MAX: sys.maxint})
 
                     # Add edges from this node to others.
-                    for control_dict in source_type.outgoing_edges():
+                    for control_dict in source_type.type_outgoing_edges():
                         self.graph.add_edge(
                             source_type,
                             control_dict[TO],
@@ -307,7 +305,6 @@ class Instances(Graph):
 
         if self._graph is None or \
            self._timestamp + self.PERIOD < datetime.now():
-            # Unpack the graph from the database, and reset the timestamp.
             self._graph = self.unpack()
             self._timestamp = datetime.now()
 
