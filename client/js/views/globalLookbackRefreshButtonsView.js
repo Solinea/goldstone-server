@@ -102,7 +102,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30">' + goldstone.translate('refresh 30s') + '</option>' +
+            return '<option value="30" selected>' + goldstone.translate('refresh 30s') + '</option>' +
                 '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
                 '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
                 '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
