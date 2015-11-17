@@ -327,7 +327,8 @@ class PolyResource(PolymorphicModel):
 
         return ''
 
-    def label(self):                   # pylint: disable=R0201
+    @classmethod
+    def resourcetype(cls):
         """Return the name of this node's resource type.
 
         This should be lowercase plural.
@@ -335,6 +336,17 @@ class PolyResource(PolymorphicModel):
         """
 
         return ''
+
+    def label(self):                   # pylint: disable=R0201
+        """Return the display name of this node's resource type.
+
+        This should be lowercase plural. This will usually but not always be
+        the same value as resourcetype(). E.g., a region's resourcetype() will
+        return "region", and label() will return the region's name.
+
+        """
+
+        return self.resourcetype()
 
     def update_edges(self):
         """Update this persistent instance's edges with what's in the
@@ -393,18 +405,16 @@ class Addon(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         return [x.cloud_attributes for x in Addon.objects.all()]
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "add-on"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "add-ons"
 
@@ -423,12 +433,8 @@ class Keystone(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Since this is a virtual node, the persistent resource graph objects are
-        the, "nodes in the cloud."
-
-        """
+        """Since this is a virtual node, the persistent resource graph objects
+        are the, "nodes in the cloud." """
 
         return [x.cloud_attributes for x in Keystone.objects.all()]
 
@@ -456,12 +462,11 @@ class Keystone(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "keystone"
 
@@ -471,12 +476,8 @@ class User(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -527,18 +528,16 @@ class User(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("keystone-users") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "users"
 
@@ -548,7 +547,6 @@ class Domain(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -590,12 +588,11 @@ class Domain(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "domains"
 
@@ -605,7 +602,6 @@ class Group(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -633,12 +629,11 @@ class Group(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "groups"
 
@@ -658,12 +653,11 @@ class Token(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "tokens"
 
@@ -681,12 +675,11 @@ class Credential(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "credentials"
 
@@ -701,7 +694,6 @@ class Role(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -714,18 +706,16 @@ class Role(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("keystone-roles") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "roles"
 
@@ -735,7 +725,6 @@ class Region(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -783,14 +772,18 @@ class Region(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "regions"
+
+    def label(self):
+
+        # Id always be there, but it won't be there in some unit tests.
+        return self.cloud_attributes.get("id")    # pylint: disable=E1101
 
 
 class Endpoint(PolyResource):
@@ -798,12 +791,8 @@ class Endpoint(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry per interface.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry per interface."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -832,21 +821,23 @@ class Endpoint(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("keystone-endpoints") + "/?region={region}&zone={zone}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
+    @classmethod
+    def resourcetype(cls):
+
+        return "endpoints"
+
     def label(self):
-        """See the parent class' method's docstring."""
 
         zone = self.cloud_attributes.get("zone")    # pylint: disable=E1101
-        return "%s endpoints" % zone if zone else "endpoints"
+        return "%s endpoints" % zone if zone else self.resourcetype()
 
 
 class Service(PolyResource):
@@ -858,12 +849,8 @@ class Service(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry per Keystone, Cinder, or Nova, if services exist for them.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry per Keystone, Cinder, or Nova, if services exist for them."""
 
         # Set up to loop over the clients.
         keystone_client = get_keystone_client()['client']
@@ -888,18 +875,16 @@ class Service(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return "/{parent_integration}/" + cls().label() + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "services"
 
@@ -913,7 +898,6 @@ class Project(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         keystone_client = get_keystone_client()['client']
 
@@ -1024,12 +1008,11 @@ class Project(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "keystone"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "projects"
 
@@ -1048,12 +1031,8 @@ class Nova(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Since this is a virtual node, the persistent resource graph objects are
-        the, "nodes in the cloud."
-
-        """
+        """Since this is a virtual node, the persistent resource graph objects
+        are the, "nodes in the cloud." """
 
         return [x.cloud_attributes for x in Nova.objects.all()]
 
@@ -1095,12 +1074,11 @@ class Nova(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "nova"
 
@@ -1110,7 +1088,6 @@ class AvailabilityZone(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1133,7 +1110,6 @@ class AvailabilityZone(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "zoneName"
 
@@ -1170,12 +1146,11 @@ class AvailabilityZone(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "availability zones"
 
@@ -1185,7 +1160,6 @@ class Aggregate(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1208,24 +1182,21 @@ class Aggregate(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
     def native_id_from_attributes(cls, attributes):
-        """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "aggregates"
 
@@ -1235,12 +1206,8 @@ class Flavor(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry. """
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1254,13 +1221,11 @@ class Flavor(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
     def native_id_from_attributes(cls, attributes):
-        """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
@@ -1284,18 +1249,16 @@ class Flavor(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("nova-flavors") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "flavors"
 
@@ -1305,7 +1268,6 @@ class Keypair(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1324,7 +1286,6 @@ class Keypair(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "fingerprint"
 
@@ -1343,12 +1304,11 @@ class Keypair(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "keypairs"
 
@@ -1385,7 +1345,6 @@ class Host(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1422,13 +1381,11 @@ class Host(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
     def native_id_from_attributes(cls, attributes):
-        """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("host_name", ''))
 
@@ -1459,7 +1416,6 @@ class Host(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         # Unclear what the zone argument should be. Until this is resolved,
         # don't use it.
@@ -1468,12 +1424,11 @@ class Host(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "hosts"
 
@@ -1486,7 +1441,6 @@ class Hypervisor(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1511,13 +1465,11 @@ class Hypervisor(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
     def native_id_from_attributes(cls, attributes):
-        """See the parent class' method's docstring."""
 
         return _hash(cls.unique_class_id(), attributes.get("id", ''))
 
@@ -1542,18 +1494,16 @@ class Hypervisor(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("nova-hypervisors") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "hypervisors"
 
@@ -1563,7 +1513,6 @@ class Cloudpipe(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1584,7 +1533,6 @@ class Cloudpipe(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "project_id"
 
@@ -1601,12 +1549,11 @@ class Cloudpipe(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "cloudpipes"
 
@@ -1616,7 +1563,6 @@ class ServerGroup(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1636,12 +1582,11 @@ class ServerGroup(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "server groups"
 
@@ -1651,12 +1596,8 @@ class Server(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry per availability_zone.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry per availability_zone."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1718,21 +1659,27 @@ class Server(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("nova-servers") + "/?region={region}&zone={zone}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
+    @classmethod
+    def resourcetype(cls):
+
+        return "servers"
+
     def label(self):
-        """See the parent class' method's docstring."""
 
         zone = self.cloud_attributes.get("zone")    # pylint: disable=E1101
-        return "%s servers" % zone if zone else "servers"
+
+        if not zone or zone == "nova":
+            return self.resourcetype()
+        else:
+            return "%s servers" % zone
 
 
 class Interface(PolyResource):
@@ -1744,7 +1691,6 @@ class Interface(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1775,7 +1721,6 @@ class Interface(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "mac_addr"
 
@@ -1792,12 +1737,11 @@ class Interface(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "interfaces"
 
@@ -1807,7 +1751,6 @@ class NovaLimits(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -1827,12 +1770,11 @@ class NovaLimits(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "nova"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "limits"
 
@@ -1851,12 +1793,8 @@ class Glance(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Since this is a virtual node, the persistent resource graph objects are
-        the, "nodes in the cloud."
-
-        """
+        """Since this is a virtual node, the persistent resource graph objects
+        are the, "nodes in the cloud." """
 
         return [x.cloud_attributes for x in Glance.objects.all()]
 
@@ -1872,12 +1810,11 @@ class Glance(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "glance"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "glance"
 
@@ -1887,12 +1824,8 @@ class Image(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Because this is a topological leaf node, the returned list contains one
-        entry.
-
-        """
+        """Because this is a topological leaf node, the returned list contains
+        one entry."""
 
         glance_client = get_glance_client()["client"]
 
@@ -1915,18 +1848,16 @@ class Image(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("glance-images") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "glance"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "images"
 
@@ -1945,12 +1876,8 @@ class Cinder(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Since this is a virtual node, the persistent resource graph objects are
-        the, "nodes in the cloud."
-
-        """
+        """Since this is a virtual node, the persistent resource graph objects
+        are the, "nodes in the cloud." """
 
         return [x.cloud_attributes for x in Cinder.objects.all()]
 
@@ -1978,12 +1905,11 @@ class Cinder(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "cinder"
 
@@ -1993,18 +1919,16 @@ class QuotaSet(PolyResource):
 
     @classmethod
     def native_id_key(cls):
-        """See the parent class' method's docstring."""
 
         return "unique_cloud_id"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "quota sets"
 
@@ -2014,7 +1938,6 @@ class QOSSpec(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2043,12 +1966,11 @@ class QOSSpec(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "qos specs"
 
@@ -2058,7 +1980,6 @@ class Snapshot(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2086,18 +2007,16 @@ class Snapshot(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("cinder-snapshots") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "snapshots"
 
@@ -2107,7 +2026,6 @@ class Transfer(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2124,18 +2042,16 @@ class Transfer(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("cinder-transfers") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "transfers"
 
@@ -2145,7 +2061,6 @@ class VolumeType(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2177,18 +2092,16 @@ class VolumeType(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("cinder-volume-types") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "volume types"
 
@@ -2198,7 +2111,6 @@ class Volume(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2215,18 +2127,16 @@ class Volume(PolyResource):
 
     @classmethod
     def resource_list_url(cls):
-        """See the parent class' method's docstring."""
 
         return reverse("cinder-volumes") + "/?region={region}"
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "volumes"
 
@@ -2236,7 +2146,6 @@ class Limits(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
 
         result = []
 
@@ -2254,12 +2163,11 @@ class Limits(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "cinder"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "limits"
 
@@ -2278,12 +2186,8 @@ class Neutron(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring.
-
-        Since this is a virtual node, the persistent resource graph objects are
-        the, "nodes in the cloud."
-
-        """
+        """Since this is a virtual node, the persistent resource graph objects
+        are the, "nodes in the cloud." """
 
         return [x.cloud_attributes for x in Neutron.objects.all()]
 
@@ -2355,12 +2259,11 @@ class Neutron(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "neutron"
 
@@ -2370,12 +2273,11 @@ class MeteringLabelRule(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "metering label rules"
 
@@ -2393,12 +2295,11 @@ class MeteringLabel(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "metering labels"
 
@@ -2408,12 +2309,11 @@ class NeutronQuota(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "quotas"
 
@@ -2423,12 +2323,11 @@ class RemoteGroup(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "remote groups"
 
@@ -2448,12 +2347,11 @@ class SecurityRules(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "security rules"
 
@@ -2463,12 +2361,11 @@ class SecurityGroup(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "security groups"
 
@@ -2478,7 +2375,6 @@ class Port(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        """See the parent class' method's docstring."""
         from goldstone.neutron.utils import get_neutron_client
 
         # Get the one and only one Cloud row in the system
@@ -2516,12 +2412,11 @@ class Port(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "ports"
 
@@ -2547,12 +2442,11 @@ class LBVIP(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "lb virtual ips"
 
@@ -2562,12 +2456,11 @@ class LBPool(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "lb pools"
 
@@ -2585,12 +2478,11 @@ class HealthMonitor(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "health monitors"
 
@@ -2600,12 +2492,11 @@ class FloatingIP(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "floating ip addresses"
 
@@ -2635,12 +2526,11 @@ class FloatingIPPool(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "floating ip pools"
 
@@ -2650,12 +2540,11 @@ class FixedIP(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "fixed ip addresses"
 
@@ -2675,12 +2564,11 @@ class LBMember(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "lb members"
 
@@ -2700,12 +2588,11 @@ class Subnet(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "subnets"
 
@@ -2715,12 +2602,11 @@ class Network(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "networks"
 
@@ -2741,11 +2627,10 @@ class Router(PolyResource):
 
     @classmethod
     def integration(cls):
-        """See the parent class' method's docstring."""
 
         return "neutron"
 
-    def label(self):
-        """See the parent class' method's docstring."""
+    @classmethod
+    def resourcetype(cls):
 
         return "routers"

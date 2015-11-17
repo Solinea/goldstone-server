@@ -34,32 +34,7 @@ var topologyTreeView = new TopologyTreeView({
 
 var TopologyTreeView = GoldstoneBaseView.extend({
 
-    defaults: {
-        leafDataUrls: {
-            "services-leaf": "/services",
-            "endpoints-leaf": "/endpoints",
-            "roles-leaf": "/roles",
-            "users-leaf": "/users",
-            "tenants-leaf": "/tenants",
-            "agents-leaf": "/agents",
-            "aggregates-leaf": "/aggregates",
-            "availability-zones-leaf": "/availability_zones",
-            "cloudpipes-leaf": "/cloudpipes",
-            "flavors-leaf": "/flavors",
-            "floating-ip-pools-leaf": "/floating_ip_pools",
-            "hosts-leaf": "/hosts",
-            "hypervisors-leaf": "/hypervisors",
-            "networks-leaf": "/networks",
-            "secgroups-leaf": "/security_groups",
-            "servers-leaf": "/servers",
-            "images-leaf": "/images",
-            "volumes-leaf": "/volumes",
-            "backups-leaf": "/backups",
-            "snapshots-leaf": "/snapshots",
-            "transfers-leaf": "/transfers",
-            "volume-types-leaf": "/volume_types"
-        }
-    },
+    defaults: {},
 
     // this block is run upon instantiating the object
     initialize: function(options) {
@@ -75,7 +50,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
         this.defaults.w = options.width;
-        this.defaults.leafDataUrls = this.defaults.leafDataUrls;
         this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
 
         var ns = this.defaults;
@@ -347,7 +321,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 ns.multiRscsView.trigger('errorTrigger', [error]);
             }
 
-            // TODO: if this view is instantiated in a case where there
+            // NOTE: if this view is instantiated in a case where there
             // is no multiRscsViewEl defined, there will be no
             // ns.multiRscsView defined. In that case, error messages
             // will need to be appended to THIS view. So there will need
@@ -424,34 +398,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     var url = d.resource_list_url;
                     if (url !== undefined) {
 
-                        // var hasParam = false;
-                        // if (d.hasOwnProperty('region')) {
-                        //     url = hasParam ? url + "&" : url + "?";
-                        //     hasParam = true;
-                        //     url = url + "region=" + d.region;
-                        // }
-                        // if (d.hasOwnProperty('zone')) {
-                        //     url = hasParam ? url + "&" : url + "?";
-                        //     hasParam = true;
-                        //     url = url + "zone=" + d.zone;
-                        // }
-
-                        // prepend zone to url:
-                        // var parentModule;
-                        // traverse up the tree until the
-                        // parent module is reached
-                        // while (d.rsrcType !== 'module') {
-                        //     d = d.parent;
-                        // }
-                        // parentModule = d.label;
-
                         if (self.overrideSets[d.integration.toLowerCase()]) {
                             ns.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
                         } else {
                             ns.filterMultiRsrcDataOverride = null;
                         }
-
-                        // url = "/" + parentModule + url;
 
                         // loadLeafData on TopologyTreeView
                         self.loadLeafData(url);
@@ -497,17 +448,19 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         nodeEnter
             .append("g")
             .attr("class", function(d) {
-                return "icon main " + (d.label || "cloud") + "-icon";
+
+                // append icon based on resourcetype, mapped to the d3.map
+                return "icon main " + (d.resourcetype || "cloud") + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
 
         // Map of icons to the classes in which they'll be used
         d3.map({
             icon_backup: ['backups', 'snapshots'],
-            icon_cloud: ['cloud', 'region'],
+            icon_cloud: ['cloud'],
             icon_endpoint: ['endpoints', 'internal', 'public', 'admin'],
             icon_host: ['host', 'hosts', 'hypervisors',
-                'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder'
+                'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder', 'region', 'regions'
             ],
             icon_image: ['images'],
             icon_module: ['module', 'secgroups', 'interfaces', 'add-ons'],

@@ -267,6 +267,7 @@ class CoreResources(Setup):
                            u'native_name': u'project 2',
                            u'resourcetype':
                            {u'label': u'projects',
+                            u'resourcetype': u'projects',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
@@ -274,6 +275,7 @@ class CoreResources(Setup):
                            u'native_name': u'server 2',
                            u'resourcetype':
                            {u'label': u'servers',
+                            u'resourcetype': u'servers',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Server'>"},
                            },
@@ -281,6 +283,7 @@ class CoreResources(Setup):
                            u'native_name': u'server 1',
                            u'resourcetype':
                            {u'label': u'servers',
+                            u'resourcetype': u'servers',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Server'>"},
                            },
@@ -288,6 +291,7 @@ class CoreResources(Setup):
                            u'native_name': u'availabilityzone 1',
                            u'resourcetype':
                            {u'label': u'availability zones',
+                            u'resourcetype': u'availability zones',
                             u'unique_id':
                             u"<class 'goldstone.core.models.AvailabilityZone'>"
                             },
@@ -296,6 +300,7 @@ class CoreResources(Setup):
                            u'native_name': u'host 1',
                            u'resourcetype':
                            {u'label': u'hosts',
+                            u'resourcetype': u'hosts',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
@@ -303,6 +308,7 @@ class CoreResources(Setup):
                            u'native_name': u'project 1',
                            u'resourcetype':
                            {u'label': u'projects',
+                            u'resourcetype': u'projects',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
@@ -310,6 +316,7 @@ class CoreResources(Setup):
                            u'native_name': u'host 0',
                            u'resourcetype':
                            {u'label': u'hosts',
+                            u'resourcetype': u'hosts',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
@@ -317,6 +324,7 @@ class CoreResources(Setup):
                            u'native_name': u'limits 2',
                            u'resourcetype':
                            {u'label': u'limits',
+                            u'resourcetype': u'limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
@@ -324,6 +332,7 @@ class CoreResources(Setup):
                            u'native_name': u'aggregate 0',
                            u'resourcetype':
                            {u'label': u'aggregates',
+                            u'resourcetype': u'aggregates',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Aggregate'>"},
                            },
@@ -331,6 +340,7 @@ class CoreResources(Setup):
                            u'native_name': u'aggregate 1',
                            u'resourcetype':
                            {u'label': u'aggregates',
+                            u'resourcetype': u'aggregates',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Aggregate'>"},
                            },
@@ -338,6 +348,7 @@ class CoreResources(Setup):
                            u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'label': u'hypervisors',
+                            u'resourcetype': u'hypervisors',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
@@ -345,6 +356,7 @@ class CoreResources(Setup):
                            u'native_name': u'project 0',
                            u'resourcetype':
                            {u'label': u'projects',
+                            u'resourcetype': u'projects',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
@@ -352,6 +364,7 @@ class CoreResources(Setup):
                            u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'label': u'hypervisors',
+                            u'resourcetype': u'hypervisors',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
@@ -359,6 +372,7 @@ class CoreResources(Setup):
                            u'native_name': u'network 1',
                            u'resourcetype':
                            {u'label': u'networks',
+                            u'resourcetype': u'networks',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Network'>"},
                            },
@@ -366,6 +380,7 @@ class CoreResources(Setup):
                            u'native_name': u'availabilityzone 0',
                            u'resourcetype':
                            {u'label': u'availability zones',
+                            u'resourcetype': u'availability zones',
                             u'unique_id':
                             u"<class 'goldstone.core.models.AvailabilityZone'>"
                             },
@@ -374,6 +389,7 @@ class CoreResources(Setup):
                            u'native_name': u'network 0',
                            u'resourcetype':
                            {u'label': u'networks',
+                            u'resourcetype': u'networks',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Network'>"},
                            },
@@ -381,6 +397,7 @@ class CoreResources(Setup):
                            u'native_name': u'host 2',
                            u'resourcetype':
                            {u'label': u'hosts',
+                            u'resourcetype': u'hosts',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
@@ -388,6 +405,7 @@ class CoreResources(Setup):
                            u'native_name': u'limits 1',
                            u'resourcetype':
                            {u'label': u'limits',
+                            u'resourcetype': u'limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
@@ -395,6 +413,7 @@ class CoreResources(Setup):
                            u'native_name': u'limits 0',
                            u'resourcetype':
                            {u'label': u'limits',
+                            u'resourcetype': u'limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
@@ -402,6 +421,7 @@ class CoreResources(Setup):
                            u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'label': u'hypervisors',
+                            u'resourcetype': u'hypervisors',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
@@ -409,6 +429,7 @@ class CoreResources(Setup):
                            u'native_name': u'availabiltiyzone 2',
                            u'resourcetype':
                            {u'label': u'availability zones',
+                            u'resourcetype': u'availability zones',
                             u'unique_id':
                             u"<class 'goldstone.core.models.AvailabilityZone'>"
                             },

@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def _update_glance_image_records(client, region):
+    """Do the work for the discover_glance_topology task."""
     from goldstone.utils import to_es_date
     from .models import ImagesData
     import arrow

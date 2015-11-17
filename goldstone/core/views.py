@@ -278,6 +278,8 @@ class TopologyView(RetrieveAPIView):
 
         result = {"uuid": node.uuid,
                   "integration": node.resourcetype.integration(),
+                  "resourcetype":
+                  node.resourcetype.objects.get(uuid=node.uuid).resourcetype(),
                   "label":
                   node.resourcetype.objects.get(uuid=node.uuid).label(),
                   "resource_list_url":
@@ -318,10 +320,6 @@ class TopologyView(RetrieveAPIView):
         # Find the children of each region.
         children = [self._tree(x) for x in regionnodes if x]
 
-        # This is a hack. The "label" key is unique per class, except for a
-        # Region node, where it's unique per region.
-        children[0]["label"] = list(regionnodes)[0].attributes["id"]
-
         # Return a "cloud" response. The children are the regions cloud's
         # regions.
         return {"label": "cloud", "uuid": None, "children": children}
@@ -356,6 +354,7 @@ class ResourceTypeList(ListAPIView):
 
         # Gather the nodes.
         nodes = [{"integration": entry.integration(),
+                  "resourcetype": entry().resourcetype(),
                   "label": entry().label(),
                   "unique_id": entry.unique_class_id(),
                   "present": bool(resource.instances.nodes_of_type(entry))}
@@ -511,14 +510,17 @@ class ResourcesList(ListAPIView):
 
             if proceed:
                 # Include this node!
-                nodes.append({"resourcetype":
-                              {"unique_id":
-                               node.resourcetype.unique_class_id(),
-                               "label": node.resourcetype().label()},
-                              "uuid": node.uuid,
-                              "native_id": row.native_id,
-                              "native_name": row.native_name
-                              })
+                nodes.append(
+                    {"resourcetype":
+                     {"unique_id":
+                      node.resourcetype.unique_class_id(),
+                      "label": node.resourcetype().label(),
+                      "resourcetype": node.resourcetype().resourcetype()},
+                     "uuid": node.uuid,
+                     "native_id": row.native_id,
+                     "native_name": row.native_name
+                     })
+
                 node_uuids.append(node.uuid)
 
         # Gather the edges that are to or from the gathered nodes.
