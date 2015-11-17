@@ -182,7 +182,7 @@ Once you have a breakpoint set, you can use the following commands to get access
 
 This will only start linked containers, so you may not see all containers running.  You may also want to stop celery from executing scheduled tasks in order to have less output to sift through.  You can kill the celery processes by executing:
 
-    bin/gsexec pkill celery
+    bin/gsexec --container=goldstoneserver_gsappdev_run_1 --shell pkill celery
 
 When you have completed the debugging session, we recommend that you go back to using `start_dev_env.sh` so all containers are running.   
     
