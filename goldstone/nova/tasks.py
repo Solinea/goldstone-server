@@ -73,6 +73,7 @@ def nova_hypervisors_stats():
 
 
 def _update_nova_records(rec_type, region, database, items):
+    """Do the work for the discover_nova_topology task."""
     from goldstone.utils import to_es_date
 
     # image list is a generator, so we need to make it not sol lazy it...

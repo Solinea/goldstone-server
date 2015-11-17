@@ -47,9 +47,9 @@ class ElasticFilter(BaseFilterBackend):
     def _coerce_value(value):
         """Attempt to coerce a query parameter's value to a more accurate type.
 
+        :param value: The value for a query parameter
         :type value: str
-        :param value: the value for a query parameter
-        :return: the original value, possibly coerced by AST
+        :return: The original value, possibly coerced by AST
 
         """
         import ast
@@ -65,6 +65,11 @@ class ElasticFilter(BaseFilterBackend):
         determined by the request's query parameters.
 
         The returned queryset is effectively an AND of the conditions.
+
+        For "<term> = <value>" parameters, the value is lowercased if term is a
+        kind of regular expression parameter. E.g., _all__regexp. Note,
+        lowercasing isn't done for "'regexp': <dict>" parameters.
+
 
         :param request: The HTTP request
         :type request: Request
@@ -103,6 +108,10 @@ class ElasticFilter(BaseFilterBackend):
                 # First term is the field, second term is the query operation.
                 param = split_param[0]
                 operation = split_param[1]
+
+                # Lowercase the value if it's a regular expression.
+                if operation == "regexp":
+                    value = value.lower()      # pylint: disable=E1101
 
                 queryset = self._add_query(param,
                                            value,
