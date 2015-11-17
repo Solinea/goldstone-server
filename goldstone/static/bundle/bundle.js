@@ -6507,7 +6507,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
         rectangle
             .transition()
-            .attr("width", 2)
             .attr("x", function(d) {
                 return ns.xScale(d.timestamp);
             });
