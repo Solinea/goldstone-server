@@ -155,6 +155,7 @@ class CoreResources(Setup):
                u'native_name': u'host 1',
                u'resourcetype':
                {u'label': u'hosts',
+                u'resourcetype': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
@@ -162,6 +163,7 @@ class CoreResources(Setup):
                u'native_name': u'host 0',
                u'resourcetype':
                {u'label': u'hosts',
+                u'resourcetype': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
@@ -169,6 +171,7 @@ class CoreResources(Setup):
                u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'label': u'hypervisors',
+                u'resourcetype': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -176,6 +179,7 @@ class CoreResources(Setup):
                u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'label': u'hypervisors',
+                u'resourcetype': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -183,6 +187,7 @@ class CoreResources(Setup):
                u'native_name': u'host 2',
                u'resourcetype':
                {u'label': u'hosts',
+                u'resourcetype': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
@@ -190,6 +195,7 @@ class CoreResources(Setup):
                u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'label': u'hypervisors',
+                u'resourcetype': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -200,6 +206,7 @@ class CoreResources(Setup):
                u'native_name': u'limits 2',
                u'resourcetype':
                {u'label': u'limits',
+                u'resourcetype': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
@@ -207,6 +214,7 @@ class CoreResources(Setup):
                u'native_name': u'limits 1',
                u'resourcetype':
                {u'label': u'limits',
+                u'resourcetype': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
@@ -214,6 +222,7 @@ class CoreResources(Setup):
                u'native_name': u'limits 0',
                u'resourcetype':
                {u'label': u'limits',
+                u'resourcetype': u'limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
@@ -225,6 +234,7 @@ class CoreResources(Setup):
                u'native_name': u'project 2',
                u'resourcetype':
                {u'label': u'projects',
+                u'resourcetype': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
@@ -232,6 +242,7 @@ class CoreResources(Setup):
                u'native_name': u'project 1',
                u'resourcetype':
                {u'label': u'projects',
+                u'resourcetype': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
@@ -239,6 +250,7 @@ class CoreResources(Setup):
                u'native_name': u'project 0',
                u'resourcetype':
                {u'label': u'projects',
+                u'resourcetype': u'projects',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
@@ -246,6 +258,7 @@ class CoreResources(Setup):
                u'native_name': u'network 1',
                u'resourcetype':
                {u'label': u'networks',
+                u'resourcetype': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
@@ -253,6 +266,7 @@ class CoreResources(Setup):
                u'native_name': u'network 0',
                u'resourcetype':
                {u'label': u'networks',
+                u'resourcetype': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
@@ -263,6 +277,7 @@ class CoreResources(Setup):
                u'native_name': u'host 1',
                u'resourcetype':
                {u'label': u'hosts',
+                u'resourcetype': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
@@ -270,6 +285,7 @@ class CoreResources(Setup):
                u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'label': u'hypervisors',
+                u'resourcetype': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -277,6 +293,7 @@ class CoreResources(Setup):
                u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'label': u'hypervisors',
+                u'resourcetype': u'hypervisors',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
@@ -284,6 +301,7 @@ class CoreResources(Setup):
                u'native_name': u'host 2',
                u'resourcetype':
                {u'label': u'hosts',
+                u'resourcetype': u'hosts',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
@@ -294,6 +312,7 @@ class CoreResources(Setup):
                u'native_name': u'network 1',
                u'resourcetype':
                {u'label': u'networks',
+                u'resourcetype': u'networks',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },

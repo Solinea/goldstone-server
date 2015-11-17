@@ -145,6 +145,8 @@ class DateHistogramAggView(ElasticListAPIView):
             bounds_max=bounds_max)
 
     def _validate_params(self, request):
+        """Raise an exception if the request's query parameters aren't
+        valid."""
 
         self.interval = request.query_params.get('interval')
 

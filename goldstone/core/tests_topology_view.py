@@ -124,6 +124,7 @@ class TopologyViewTests(Setup):
 
         # The expected results, sans UUID.
         EXPECTED = {"label": Image().label(),
+                    "resourcetype": Image.resourcetype(),
                     "integration": Image.integration(),
                     "resource_list_url": "/glance/images/?region=None",
                     "children": None}
@@ -144,10 +145,12 @@ class TopologyViewTests(Setup):
         """Call _tree() on a node with one solo child."""
 
         EXPECTED = {"label": Image().label(),
+                    "resourcetype": Image.resourcetype(),
                     "integration": Image.integration(),
                     "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server().label(),
+                      "resourcetype": Server.resourcetype(),
                       "integration": Server.integration(),
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
@@ -169,15 +172,18 @@ class TopologyViewTests(Setup):
         """Call _tree() on a node with two solo children."""
 
         EXPECTED = {"label": Image().label(),
+                    "resourcetype": Image.resourcetype(),
                     "integration": Image.integration(),
                     "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server().label(),
+                      "resourcetype": Server.resourcetype(),
                       "integration": Server.integration(),
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
                       'children': None},
                      {'label': Server().label(),
+                      "resourcetype": Server.resourcetype(),
                       "integration": Server.integration(),
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
@@ -202,15 +208,18 @@ class TopologyViewTests(Setup):
         """Call _tree() on a node with one child with one child."""
 
         EXPECTED = {"label": Image().label(),
+                    "resourcetype": Image.resourcetype(),
                     "integration": Image.integration(),
                     "resource_list_url": "/glance/images/?region=None",
                     "children":
                     [{'label': Server().label(),
+                      "resourcetype": Server.resourcetype(),
                       "integration": Server.integration(),
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
                       'children':
                       [{'label': Interface().label(),
+                        "resourcetype": Interface.resourcetype(),
                         "integration": Interface.integration(),
                         "resource_list_url": '',
                         'children': None}],
@@ -236,41 +245,50 @@ class TopologyViewTests(Setup):
         """
 
         EXPECTED = {"label": Project().label(),
+                    "resourcetype": Project.resourcetype(),
                     "integration": Project.integration(),
                     "resource_list_url": Project.resource_list_url(),
                     "children":
                     [{'label': Server().label(),
+                      "resourcetype": Server.resourcetype(),
                       "integration": Server.integration(),
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
                       'children': None},
                      {'label': Network().label(),
+                      "resourcetype": Network.resourcetype(),
                       "integration": Network.integration(),
                       "resource_list_url": Network.resource_list_url(),
                       'children': None},
                      {'label': Image().label(),
+                      "resourcetype": Image.resourcetype(),
                       "integration": Image.integration(),
                       "resource_list_url": "/glance/images/?region=None",
                       'children':
                       [{'label': Server().label(),
+                        "resourcetype": Server.resourcetype(),
                         "integration": Server.integration(),
                         "resource_list_url":
                         "/nova/servers/?region=None&zone=None",
                         'children': None},
                        {'label': Server().label(),
+                        "resourcetype": Server.resourcetype(),
                         "integration": Server.integration(),
                         "resource_list_url":
                         "/nova/servers/?region=None&zone=None",
                         'children':
                         [{'label': Volume().label(),
+                          "resourcetype": Volume.resourcetype(),
                           "integration": Volume.integration(),
                           "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None},
                          {'label': Volume().label(),
+                          "resourcetype": Volume.resourcetype(),
                           "integration": Volume.integration(),
                           "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None},
                          {'label': Volume().label(),
+                          "resourcetype": Volume.resourcetype(),
                           "integration": Volume.integration(),
                           "resource_list_url": "/cinder/volumes/?region=None",
                           'children': None}],
