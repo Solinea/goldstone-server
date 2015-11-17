@@ -20,7 +20,7 @@ from rest_framework.response import Response
 
 
 class LogDataView(ElasticListAPIView):
-    """Return logging data.
+    """Return data for the /search endpoint.
 
     ---
 
@@ -36,6 +36,10 @@ class LogDataView(ElasticListAPIView):
              description: The desired service name prefix. E.g.,
                           nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
              paramType: query
+           - name: _all__regexp
+             description: A regular expression for which to search.  This is
+                          lowercased before its use
+             paramType: query
 
     """
 
@@ -47,7 +51,7 @@ class LogDataView(ElasticListAPIView):
 
 
 class LogAggView(ElasticListAPIView):
-    """Return a Logstash aggregation.
+    """Return data for the /summarize endpoint.
 
     ---
 

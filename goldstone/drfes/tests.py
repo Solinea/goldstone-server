@@ -188,6 +188,12 @@ class FilterTests(APITestCase):
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = False
 
+        EXPECTED = [
+            {'regexp': {'this.is.a.nested.field': '.+12345666666666'}},
+            {'terms': {'_type': ["audit.http.request",
+                                 "audit.http.response",
+                                 "identity.*"]}}]
+
         elasticfilter = ElasticFilter()
         request = MagicMock()
 
@@ -206,12 +212,6 @@ class FilterTests(APITestCase):
 
         result = \
             elasticfilter.filter_queryset(request, Search(), view).to_dict()
-
-        EXPECTED = [
-            {'regexp': {'this.is.a.nested.field': '.+12345666666666'}},
-            {'terms': {'_type': ["audit.http.request",
-                                 "audit.http.response",
-                                 "identity.*"]}}]
 
         for item in EXPECTED:
             self.assertTrue(item in result['query']['bool']['must'])
