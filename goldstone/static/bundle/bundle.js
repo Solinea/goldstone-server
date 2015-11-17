@@ -13237,7 +13237,7 @@ var SettingsPageView = GoldstoneBaseView2.extend({
         // popup message row
         '<div class="row">' +
         '<div class="col-md-8 col-md-offset-2">' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="alert alert-info popup-message" hidden="true"></div>' +
         '<br></div>' +
         '</div>' +
 
@@ -14003,7 +14003,7 @@ var TenantSettingsPageView = GoldstoneBaseView2.extend({
         // popup message row
         '<div class="row">' +
         '<div class="col-md-8 col-md-offset-2">' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="alert alert-info popup-message" hidden="true"></div>' +
         '<br></div>' +
         '</div>' +
 
