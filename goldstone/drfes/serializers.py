@@ -27,11 +27,13 @@ class ReadOnlyElasticSerializer(Serializer):
         exclude = ()
 
     def create(self, validated_data):
-        """Don't call create.  Here to satisfy abstract definition."""
+        """Don't call create."""
+
         raise NotImplementedError('Not used.')
 
     def update(self, instance, validated_data):
-        """Don't call update.  Here to satisfy abstract definition."""
+        """Don't call update."""
+
         raise NotImplementedError('Not used.')
 
     def to_representation(self, instance):
@@ -56,9 +58,8 @@ class ReadOnlyElasticSerializer(Serializer):
         return obj
 
 
-class SimpleAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from
-    ES."""
+class SimpleAggSerializer(ReadOnlyElasticSerializer):  # pylint: disable=W0223
+    """A serializer to manipulate the aggregation that comes back from ES."""
 
     AGG_NAME = None
 
@@ -66,8 +67,9 @@ class SimpleAggSerializer(ReadOnlyElasticSerializer):
         """Create serialized representation of a single top-level aggregation.
 
         :param instance: the result from the Model.simple_agg call
-        :return:
+
         """
+
         assert self.AGG_NAME is not None, (
             "'%s' should set the `AGG_NAME` attribute."
             % self.__class__.__name__
@@ -85,8 +87,8 @@ class SimpleAggSerializer(ReadOnlyElasticSerializer):
 
 
 class DateHistogramAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from
-    ES."""
+    """A serializer to manipulate the aggregation that comes back from ES."""
+    # pylint: disable=W0223
 
     AGG_NAME = 'per_interval'
 

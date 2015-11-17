@@ -26,7 +26,7 @@ from goldstone.drfes.utils import es_custom_exception_handler
 logger = logging.getLogger(__name__)
 
 
-class JsonReadOnlySerializer(serializers.Serializer):
+class JsonReadOnlySerializer(serializers.Serializer):   # pylint: disable=W0223
     """Serialize data that's already serialized."""
 
     def to_representation(self, instance):
