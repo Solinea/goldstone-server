@@ -16,8 +16,7 @@ from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 
 class SpawnsAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from
-    ES."""
+    """A serializer to manipulate the aggregation that comes back from ES."""
 
     DATEHIST_AGG_NAME = 'per_interval'
     SUCCESS_AGG_NAME = 'success'
@@ -26,11 +25,11 @@ class SpawnsAggSerializer(ReadOnlyElasticSerializer):
         """Create serialized representation of a single top-level aggregation.
 
         :param instance: the result from the Model.simple_agg call
-        :return:
 
         """
 
         datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
+
         assert datehist_agg_base is not None, (
             "DATEHIST_AGG_NAME must exist in the instance passed to %s."
             % self.__class__.__name__
