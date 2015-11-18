@@ -489,7 +489,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         }); // forEach
 
         function imgFile(icon) {
-            return "/static/images/" + icon + ".svg";
+            return "/static/discover-tree-icons/" + icon + ".svg";
         }
 
         // Transition nodes to their new position.
