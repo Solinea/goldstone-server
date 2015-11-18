@@ -317,8 +317,15 @@ class SpawnsAggView(DateHistogramAggView):
         model = SpawnsData
 
     def get(self, request):
+        from elasticsearch.exceptions import NotFoundError
 
-        search = self._get_search(request).query('term', event='finish')
+        try:
+            search = self._get_search(request).query('term', event='finish')
+        except NotFoundError:
+            # Elasticsearch has no nova spawns, so return zero results instead
+            # of an exception.
+            return Response([])
+
         search.aggs[self.AGG_NAME].bucket(
             self.SUCCESS_AGG_NAME, self.Meta.model.success_agg())
 
