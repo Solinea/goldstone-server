@@ -151,9 +151,9 @@ After the containers have started and OpenStack has been configured to interact 
 
 ## Kibana Configuration
 
-In the development environment, a Kibana container will be started.
+A Kibana container will be started.
 
-url: **http://`docker-machine ip default`:5601/**
+url: **`http://docker-machine ip default:5601/`**
 
 Upon first connection to the service, Kibana will prompt you to "Configure an index pattern."
 
