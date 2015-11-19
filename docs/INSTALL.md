@@ -30,11 +30,11 @@ The Goldstone web client is developed and tested with [Firefox](https://www.mozi
 
 This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
 
-* Download the [latest release](https://github.com/Solinea/goldstone-server/releases)
-* `yum localinstall -y goldstone-server-{version}.rpm`
-* Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
-* `systemctl enable goldstone-server`
-* `systemctl start goldstone-server`
+1. Download the [latest release](https://github.com/Solinea/goldstone-server/releases)
+1. `yum localinstall -y goldstone-server-{version}.rpm`
+1. Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
+1. `systemctl enable goldstone-server`
+1. `systemctl start goldstone-server`
 
 
 ## Enterprise Version Installation (as root)
@@ -43,14 +43,14 @@ This process downloads assets from the internet, and can take quite a while.  Du
 
 The enterprise version of Goldstone Server requires a username and password associated with an email address.  Prior to installing the software, you will need to set some environment variables to the values provided by Solinea.  
 
-* Obtain license credentials from Solinea
-* `export GOLDSTONE_REPO_EMAIL=your_email    # provided to Solinea`
-* `export GOLDSTONE_REPO_USER=your_username  # provided by Solinea`
-* `export GOLDSTONE_REPO_PASS=your_password  # provided by Solinea`
-* `yum localinstall -y link_provided_by_solinea`
-* Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
-* `systemctl enable goldstone-server`
-* `systemctl start goldstone-server`
+1. Obtain license credentials from Solinea
+1. `export GOLDSTONE_REPO_EMAIL=your_email    # provided to Solinea`
+1. `export GOLDSTONE_REPO_USER=your_username  # provided by Solinea`
+1. `export GOLDSTONE_REPO_PASS=your_password  # provided by Solinea`
+1. `yum localinstall -y link_provided_by_solinea`
+1. Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
+1. `systemctl enable goldstone-server`
+1. `systemctl start goldstone-server`
 
 
 ## Direct Logs and Events to the Goldstone Server

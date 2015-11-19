@@ -237,11 +237,15 @@ OS_AUTH_URL_MAX_LENGTH = 80
 TENANT_NAME_MAX_LENGTH = 80
 TENANT_OWNER_MAX_LENGTH = 80
 
-# Settings for the Djoser package.
+# Settings for the Djoser package, which is used for login and
+# password-resetting. We automatically login and activate after registration.
+#
+# Please review the DOMAIN value.
+# Please review the SITE_NAME value.
 DJOSER = {'DOMAIN': getfqdn(),
           'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':
-          'accounts/password/reset/enter/{uid}/{token}/',
+          'password/confirm/?uid={uid}&token={token}',
           'ACTIVATION_URL': '#/activate/{uid}/{token}/',
           'LOGIN_AFTER_REGISTRATION': True,
           }
