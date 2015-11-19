@@ -398,9 +398,10 @@ Then, chown the file so that root owns it:
 
 ### 4. Goldstone-dev.env
 
-In `~/devel/goldstone-server/docker/config/goldstone-dev.env`, add this line:
+In `~/devel/goldstone-server/docker/config/goldstone-dev.env`, add this:
 
     EMAIL_HOST=172.24.4.1
+    EXTERNAL_HOSTNAME=localhost:8000
 
 And then restart your development environment:
 
@@ -410,11 +411,12 @@ And then restart your development environment:
 
 ### 5. Goldstone-test
 
-If you want to use the password-reset sequence in your test environment, edit `~/devel/goldstone-server/docker/config/goldstone-test.env` and add this line:
+If you want to use the password-reset sequence in your test environment, edit `~/devel/goldstone-server/docker/config/goldstone-test.env` and add this:
 
     EMAIL_HOST=172.24.4.1
+    EXTERNAL_HOSTNAME=localhost:8000
 
-**_Note: Configuring SMTP in a CI or integration test environment is beyond this document's scope._**
+**_Note: Configuring SMTP in an integration test environment is beyond this document's scope._**
 
 ### 6. Start postfix
 
