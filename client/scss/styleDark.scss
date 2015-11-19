@@ -24,6 +24,19 @@ Goldstone user settings interface.
 
 $theme: dark;
 
+/*
+css stylesheets supporting redesign
+*/
+
+@import "redesign/redesign-global";
+@import "redesign/redesign-responsive";
+@import "redesign/redesign";
+@import "redesign/roboto";
+
+/*
+css stylesheets prior to redesign
+*/
+
 @import "main";
 @import "bootstrap-submenu-shim";
 @import "bootstrap_dark_override";
