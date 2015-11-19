@@ -9679,6 +9679,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // chartOptions is a backbone Model instantiated in initialize:
         var options = this.chartOptions.attributes;
 
+        // set minimum interval to 2 minutes to correct for jagged visualization
+        if (options.intervalUnit === 'm') {
+            options.intervalValue = Math.max(2, options.intervalValue);
+        }
+
         var url = '/core/metrics/summarize/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
@@ -9775,7 +9780,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<h5><%=goldstone.contextTranslate(\'Lookback\', \'metricviewer\')%></h5>' +
         '<input class="modal-lookback-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="1"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
         '<option value="60"><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
         '<option value="3600" selected><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
         '<option value="86400"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
@@ -9785,7 +9789,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<h5><%=goldstone.contextTranslate(\'Charting Interval\', \'metricviewer\')%></h5>' +
         '<input class="modal-interval-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="s"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
         '<option value="m" selected><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
         '<option value="h"><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
         '<option value="d"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
