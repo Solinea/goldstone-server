@@ -9630,11 +9630,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'resource': $(menu).find('.resource-dropdown-options').val(),
             'statistic': $(menu).find('.statistic-dropdown-options').val(),
             'standardDev': $(menu).find('.standard-dev:checked').length,
-            // if lookback is left blank, default to 1
-            'lookbackValue': $(menu).find('.modal-lookback-value').val() || 1,
+            'lookbackValue': $(menu).find('.modal-lookback-value').val(),
             'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
-            // if lookback is left blank, default to 1
-            'intervalValue': $(menu).find('.modal-interval-value').val() || 1,
+            'intervalValue': $(menu).find('.modal-interval-value').val(),
             'intervalUnit': $(menu).find('.interval-dropdown-options').val()
         });
     },
@@ -9678,6 +9676,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
     constructUrlFromParams: function() {
         // chartOptions is a backbone Model instantiated in initialize:
         var options = this.chartOptions.attributes;
+
+        // set minimum interval to 2 minutes to correct for jagged visualization
+        if (options.intervalUnit === 'm') {
+            options.intervalValue = Math.max(2, options.intervalValue);
+        }
 
         var url = '/core/metrics/summarize/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
@@ -9773,19 +9776,17 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // ES can handle s/m/h/d in the "interval" param
         '<h5><%=goldstone.contextTranslate(\'Lookback\', \'metricviewer\')%></h5>' +
-        '<input class="modal-lookback-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
+        '<input type="number" min="1" step="1" class="modal-lookback-value" value="1" required>' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="1"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
         '<option value="60"><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
         '<option value="3600" selected><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
         '<option value="86400"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
-        '<h5><%=goldstone.contextTranslate(\'Charting Interval\', \'metricviewer\')%></h5>' +
-        '<input class="modal-interval-value" placeholder="<%=goldstone.contextTranslate(\'default=1\', \'metricviewer\')%>" required="required">' + ' ' +
+        '<h5><%=goldstone.contextTranslate(\'Charting Interval (minimum 2 minutes)\', \'metricviewer\')%></h5>' +
+        '<input type="number" min="1" step="1" class="modal-interval-value" value="2" required>' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="s"><%=goldstone.contextTranslate(\'seconds\', \'metricviewer\')%></option>' +
         '<option value="m" selected><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
         '<option value="h"><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
         '<option value="d"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
