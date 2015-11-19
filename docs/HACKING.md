@@ -409,12 +409,6 @@ And then restart your development environment:
     $ ^C
     $ bin/start_dev_env.sh
 
-And then restart your development environment:
-
-    $ # Switch to your start_dev_env window, then:
-    $ ^C
-    $ bin/start_dev_env.sh
-
 ### 5. Goldstone-test
 
 If you want to use the password-reset sequence in your test environment, edit `~/devel/goldstone-server/docker/config/goldstone-test.env` and add this:
