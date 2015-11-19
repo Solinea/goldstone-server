@@ -51,17 +51,8 @@ STATIC_ROOT = '/var/www/goldstone/static/'
 STATIC_URL = '/static/'
 
 # Settings for the Djoser package, which is used for login and
-# password-resetting. We automatically login and activate after registration.
-#
-# Please review the DOMAIN value.
-# Please review the SITE_NAME value.
-DJOSER = {'DOMAIN': getfqdn(),
-          'SITE_NAME': 'Goldstone',
-          'PASSWORD_RESET_CONFIRM_URL':
-          'accounts/password/reset/confirm/{uid}/{token}',
-          'ACTIVATION_URL': '#/activate/{uid}/{token}',
-          'LOGIN_AFTER_REGISTRATION': True,
-          }
+# password-resetting, are in base.py. If you need to change any of its values,
+# override them here.
 
 LOGGING = {
     'version': 1,

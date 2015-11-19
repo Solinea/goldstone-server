@@ -402,6 +402,12 @@ In `~/devel/goldstone-server/docker/config/goldstone-dev.env`, add this line:
 
     EMAIL_HOST=172.24.4.1
 
+And then restart your development environment:
+
+    $ # Switch to your start_dev_env window, then:
+    $ ^C
+    $ bin/start_dev_env.sh
+
 ### 5. Goldstone-test
 
 If you want to use the password-reset sequence in your test environment, edit `~/devel/goldstone-server/docker/config/goldstone-test.env` and add this line:
@@ -417,13 +423,20 @@ Start or reload postfix, exit sudo:
     root# postfix start
     root# exit
 
-### 7. Test postfix
+### 7. Ensure Gmail will receive the relay
+
+1. Go to http://google.com
+2. Go to "My Account"
+3. Under, "Sign-in & security," click "Connected apps & sites"
+4. Set "Allow less secure apps" to ON
+
+### 8. Test postfix
 
 The easiest way to test your configuration is to browse to the Goldstone login page, click on "reset password," and send yourself a password-reset e-mail.
 
 Another way would be to install `mailutils` and `postfix` in your container, and send yourself an e-mail using the `mail` utility.
 
-### 8. Starting on a boot
+### 9. Starting on a boot
 
 If you want Postfix to always start when you boot your machine, edit
 `/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
