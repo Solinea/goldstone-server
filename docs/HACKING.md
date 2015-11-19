@@ -294,7 +294,7 @@ Executing commands in a container can be done via docker exec.  There are some o
 
 ### Installing Packages in Dev Containers
 
-Using emacs as an example, here is a procedure for installing additional Debian packages in a container:
+Using Emacs as an example, here is a procedure for installing additional Debian packages in a container:
 
     $ eval $(docker-machine env default)
     $ docker exec -u root -i -t goldstoneserver_gsappdev_1 apt-get update
@@ -311,7 +311,7 @@ If you amend the `requirements.txt` file, and want to test out the impact withou
 
 ## Using Kibana in Development
 
-
+TBS.
 
 ## Coding Guidelines
 
@@ -333,24 +333,30 @@ To test that your code conforms to this project's standards:
 
 ## Configuring Postfix
 
-If you're not working on or testing the password-reset sequence, you can skip
-to the next section.
+If you're not working on or using the password-reset sequence, you can skip
+this section.
 
-To test Goldstone's password-reset sequence, you'll need an
+To use Goldstone's password-reset sequence, you'll need an
 [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server
 running on your development machine.
 
 Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
-configure it to relay outgoing mail to a Gmail account, on OS X.
+configure it on OS X to relay outgoing mail to a Gmail account.
 
-First, if you're in a virtual ("workon") environment, deactivate it. Then:
+**_Note: Documenting all the issues that can arise with relaying e-mail is beyond this document's scope.  Please research your specific setup!_**
+
+### 1. Main.cf
+
+If you're in a virtual ("workon") environment, deactivate it. Then:
 
     $ sudo bash
     root# cd /etc/postfix
 
 Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
 
+    inet_interfaces = localhost, 172.24.4.1
     myhostname = localhost
+    mynetworks = 127.0.0.0/8, [::1]/128, 172.24.4.0/24
     relayhost = [smtp.gmail.com]:587
     smtp_sasl_auth_enable = yes
     smtp_sasl_mechanism_filter = plain
@@ -359,45 +365,65 @@ Edit `main.cf`. If any of these variables are already in the file, change them t
     smtp_tls_CAfile = /etc/postfix/systemdefault.pem
     smtp_use_tls = yes
 
-Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
-and password:
+NOTE: the `relayhost` value is appropriate for gmail.com. *You will need to adjust it for your SMTP server.
+
+### 2. Sasl_passwd
+
+Edit `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username and password:
 
     [smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
 
-
-(For example, your line might read, `[smtp.gmail.com]:587
+For example, your line might read, `[smtp.gmail.com]:587
 dirk_diggler@mycompany.com:12344321`.
 
 Then:
 
     root# postmap /etc/postfix/sasl_passwd
 
-Now put a valid certificate into
-`/etc/postfix/systemdefault.pem`. Here's one way to do it:
+### 3. Systemdefault.pem
+
+Put a valid certificate into `/etc/postfix/systemdefault.pem`. Here's one way
+to do it:
 
 1. Launch the KeyChain Access application
 2. In the sidebar, select "System" and "Certificates"
 3. In the main window, select `com.apple.systemdefault`
 4. `File | Export Items...`
-5. Select "Privacy Enhanced Mail (.pem)" and save it to your Desktop.
-
-Move the file you just saved to `/etc/postfix/systemdefault.pem`.
+5. Select "Privacy Enhanced Mail (.pem)" and save it to a file
+6. Move the file to `/etc/postfix/systemdefault.pem`
 
 Then, chown the file so that root owns it:
 
     root# chown root /etc/postfix/systemdefault.pem
 
+### 4. Goldstone-dev.env
 
-Now start postfix and test it:
+In `~/devel/goldstone-server/docker/config/goldstone-dev.env`, add this line:
+
+    EMAIL_HOST=172.24.4.1
+
+### 5. Goldstone-test
+
+If you want to use the password-reset sequence in your test environment, edit `~/devel/goldstone-server/docker/config/goldstone-test.env` and add this line:
+
+    EMAIL_HOST=172.24.4.1
+
+**_Note: Configuring SMTP in a CI or integration test environment is beyond this document's scope._**
+
+### 6. Start postfix
+
+Start or reload postfix, exit sudo:
 
     root# postfix start
-    root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
+    root# exit
 
-If you receive the test email, Postfix is running correctly!
+### 7. Test postfix
 
-If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
+The easiest way to test your configuration is to browse to the Goldstone login page, click on "reset password," and send yourself a password-reset e-mail.
 
-### Starting on a boot
+Another way would be to install `mailutils` and `postfix` in your container, and send yourself an e-mail using the `mail` utility.
+
+### 8. Starting on a boot
 
 If you want Postfix to always start when you boot your machine, edit
 `/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
@@ -415,7 +441,7 @@ Insert this text before the `</dict>`:
 
 ## Major Design Decisions
 
-* The client code supplied with Goldstone may be used in production, or it may be used as a reference design for your own custom client. Goldstone has been designed to be used through its API without using Django's authentication or view+template subsystems.
+* The client code supplied with Goldstone may be used in production, or as a reference design for your own custom client. Goldstone has been designed to be used through its API without using Django's authentication or view+template subsystems.
 * Goldstone uses [PostgreSQL](http://www.postgresql.org) for its main database.
 * For database and model migrations, Goldstone uses South.
 * [Celery](http://www.celeryproject.org) is used for asynchronous tasks.
