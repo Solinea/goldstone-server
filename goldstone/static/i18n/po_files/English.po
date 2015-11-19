@@ -872,17 +872,12 @@ msgstr ""
 
 #: metricViewerView.js
 msgctxt "metricviewer"
-msgid "Charting Interval"
+msgid "Charting Interval (minimum 2 minutes)"
 msgstr ""
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "default=1"
-msgstr ""
-
-#: metricViewerView.js
-msgctxt "metricviewer"
-msgid "seconds"
 msgstr ""
 
 #: metricViewerView.js
