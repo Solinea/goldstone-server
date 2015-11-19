@@ -19,15 +19,15 @@ body{
  font-family: 'Roboto', sans-serif;
 }
 .login-page{
- background:url(../images/background.jpg) no-repeat left top;
+ background:url(../../../images/background.jpg) no-repeat left top;
  background-size:cover;
 }
 .login-alternate{
- background:url(../images/background1.jpg) no-repeat left top;
+ background:url(../../../images/background1.jpg) no-repeat left top;
  background-size:cover;
 }
 .login-secondary-alt{
- background:url(../images/background2.jpg) no-repeat left top;
+ background:url(../../../images/background2.jpg) no-repeat left top;
  background-size:cover;
 }
 .login-page,.login-alternate,.login-secondary-alt{
@@ -46,7 +46,7 @@ body{
 .logo-large{
  height:56px;
  width:200px;
- background:url(../images/logo-large.png);
+ background:url(../../../images/logo-large.png);
  display:block;
  margin: 0 auto 44px;
  }
@@ -156,7 +156,7 @@ body{
 	display: inline-block;
 	height:24px;
 	width:14px;
-	background:url(../images/icon-settings.png) no-repeat left 8px;
+	background:url(../../../images/icon-settings.png) no-repeat left 8px;
 	cursor: pointer;
 	margin-left: 3px;
 }
@@ -198,13 +198,13 @@ body{
 	margin-right: 9%;
 }
 .online{
-	background:url(../images/icon-online.png) no-repeat left top;
+	background:url(../../../images/icon-online.png) no-repeat left top;
 }
 .offline{
-	background:url(../images/icon-offline.png) no-repeat left top;
+	background:url(../../../images/icon-offline.png) no-repeat left top;
 }
 .intermittent{
-	background:url(../images/icon-intermittent.png) no-repeat left top;
+	background:url(../../../images/icon-intermittent.png) no-repeat left top;
 }
 .online,.offline,.intermittent{
 	display: inline-block;
@@ -409,59 +409,59 @@ body{
 	width:20px;
 }
 .dashboard-icon{
-	background:url(../images/icon-dashboard-active.png) no-repeat center center;
+	background:url(../../../images/icon-dashboard-active.png) no-repeat center center;
 }
 
 .alerts{
-	background:url(../images/icon-notifications.png) no-repeat center center;
+	background:url(../../../images/icon-notifications.png) no-repeat center center;
 }
 .btn-grp li:hover .alerts{
-	background-image:url(../images/icon-notifications-active.png);
+	background-image:url(../../../images/icon-notifications-active.png);
 }
 .btn-grp li.active .alerts{
-	background-image:url(../images/icon-notifications-active1.png);
+	background-image:url(../../../images/icon-notifications-active1.png);
 }
 .metrics{
-	background:url(../images/icon-metrics.png) no-repeat center center;
+	background:url(../../../images/icon-metrics.png) no-repeat center center;
 }
 .btn-grp li:hover .metrics{
-	background-image:url(../images/icon-metrics-active.png);
+	background-image:url(../../../images/icon-metrics-active.png);
 }
 .btn-grp li.active .metrics{
-	background-image:url(../images/icon-metrics-active1.png);
+	background-image:url(../../../images/icon-metrics-active1.png);
 }
 .reports{
-	background:url(../images/icon-reports.png) no-repeat center center;
+	background:url(../../../images/icon-reports.png) no-repeat center center;
 }
 .btn-grp li:hover .reports{
-	background-image:url(../images/icon-reports-active.png);
+	background-image:url(../../../images/icon-reports-active.png);
 }
 .btn-grp li.active .reports{
-	background-image:url(../images/icon-reports-active1.png);
+	background-image:url(../../../images/icon-reports-active1.png);
 }
 .topology{
-	background:url(../images/icon-topology.png) no-repeat center center;
+	background:url(../../../images/icon-topology.png) no-repeat center center;
 }
 .btn-grp li:hover .topology{
-	background-image:url(../images/icon-topology-active.png);
+	background-image:url(../../../images/icon-topology-active.png);
 }
 .btn-grp li.active .topology{
-	background-image:url(../images/icon-topology-active1.png);
+	background-image:url(../../../images/icon-topology-active1.png);
 }
 .setting-btn-icon{
-	background:url(../images/icon-chart-settings.png) no-repeat center center;
+	background:url(../../../images/icon-chart-settings.png) no-repeat center center;
 }
 .btn-grp li:hover .setting-btn-icon{
-	background-image:url(../images/icon-chart-settings-active.png);
+	background-image:url(../../../images/icon-chart-settings-active.png);
 }
 .btn-grp li.active .setting-btn-icon{
-	background-image:url(../images/icon-chart-settings-active1.png);
+	background-image:url(../../../images/icon-chart-settings-active1.png);
 }
 .expand{
-	background:url(../images/icon-expand.png) no-repeat center center;
+	background:url(../../../images/icon-expand.png) no-repeat center center;
 }
 .expand.open{
-	background:url(../images/icon-collapse.png) no-repeat center center;
+	background:url(../../../images/icon-collapse.png) no-repeat center center;
 }
 .full-map img{
 	width:100%;
@@ -565,7 +565,7 @@ body{
 	display: inline-block;
 	height:14px;
 	width:14px;
-	background:url(../images/icon-close.png) no-repeat left top/14px 14px;
+	background:url(../../../images/icon-close.png) no-repeat left top/14px 14px;
 	float: right;
 	cursor:pointer;
 	margin: 5px 6px 0 0;

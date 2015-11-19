@@ -10,15 +10,15 @@ Goldstone user settings interface.
 css stylesheets supporting redesign
 */
 /*body{
-	background:url(../images/bg4.jpg) no-repeat left top;
+	background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
 /*Wrapper*/
 .dashboard .wrapper { overflow: hidden; }
 
 /*Header*/
-.header { background: url("../images/header-background.jpg") no-repeat left top; background-size: cover; padding: 15px 13px 12px; }
+.header { background: url("../../../images/header-background.jpg") no-repeat left top; background-size: cover; padding: 15px 13px 12px; }
 
-.logo-header { display: inline-block; height: 32px; width: 113px; background: url(../images/logo.png) no-repeat center top/cover; float: left; margin-top: 5px; }
+.logo-header { display: inline-block; height: 32px; width: 113px; background: url(../../../images/logo.png) no-repeat center top/cover; float: left; margin-top: 5px; }
 
 .user-control { float: right; margin-right: 22px; cursor: pointer; position: relative; }
 
@@ -26,7 +26,7 @@ css stylesheets supporting redesign
 
 .user img { height: 34px; width: 34px; display: inline-block; border-radius: 50%; }
 
-.username { float: left; font-size: 14px; color: #fff; line-height: 34px; padding-right: 19px; background: url(../images/icon-down-arrow.png) no-repeat right center; }
+.username { float: left; font-size: 14px; color: #fff; line-height: 34px; padding-right: 19px; background: url(../../../images/icon-down-arrow.png) no-repeat right center; }
 
 .menu-wrapper { padding-top: 17px; position: absolute; top: 28px; right: -4px; width: 176px; display: none; z-index: 99999; }
 
@@ -42,13 +42,13 @@ css stylesheets supporting redesign
 
 .icon { display: inline-block; height: 40px; width: 40px; background-size: 40px 40px; background-position: center center; background-repeat: no-repeat; }
 
-.icon.setting-icon { background-image: url(../images/icon-setting.png); }
+.icon.setting-icon { background-image: url(../../../images/icon-setting.png); }
 
-.icon.help-icon { background-image: url(../images/icon-help.png); }
+.icon.help-icon { background-image: url(../../../images/icon-help.png); }
 
-.icon.google-group-icon { background-image: url(../images/icon-google-groups.png); }
+.icon.google-group-icon { background-image: url(../../../images/icon-google-groups.png); }
 
-.icon.github-icon { background-image: url(../images/icon-github.png); }
+.icon.github-icon { background-image: url(../../../images/icon-github.png); }
 
 .menu .logout-btn { clear: left; width: 78px; min-height: 34px; font-size: 14px; line-height: 34px; text-transform: uppercase; margin: 0 auto !important; display: block; color: #1D9CA5; float: none; border-radius: 2px; padding: 0 5px; background: #eeeeee; }
 
@@ -113,24 +113,24 @@ css stylesheets supporting redesign
   .login-page, .login-alternate, .login-secondary-alt { overflow: inherit; } }
 @media only screen and (min-width: 480px) and (max-width: 767px) { /* Styles */
   .username { font-size: 14px; } }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .logo-large { background: url(../images/logo-large@2x.png) no-repeat center top/cover; }
-  .logo-header { background-image: url(../images/logo@2x.png); background-size: 113px 32px; }
-  .username { background-image: url(../images/icon-down-arrow@2x.png); background-size: 16px 12px; }
-  .dashboard-icon { background: url(../images/icon-dashboard-active@2x.png) no-repeat center center; }
-  .alerts { background: url(../images/icon-notifications@2x.png) no-repeat center center; background-size: 18px 20px; }
-  .metrics { background: url(../images/icon-metrics@2x.png) no-repeat center center; background-size: 19px 19px; }
-  .reports { background: url(../images/icon-reports@2x.png) no-repeat center center; background-size: 16px 20px; }
-  .topology { background: url(../images/icon-topology@2x.png) no-repeat center center; background-size: 20px 20px; }
-  .metrics:hover { background-image: url(../images/icon-metrics-active@2x.png); }
-  .btn-grp li.active .metrics { background-image: url(../images/icon-metrics-active1@2x.png); }
-  .alerts:hover { background-image: url(../images/icon-notifications-active@2x.png); }
-  .btn-grp li.active .alerts { background-image: url(../images/icon-notifications-active1@2x.png); }
-  .reports:hover { background-image: url(../images/icon-reports-active@2x.png); }
-  .btn-grp li.active .reports { background-image: url(../images/icon-reports-active1@2x.png); }
-  .topology:hover { background-image: url(../images/icon-topology-active@2x.png); }
-  .btn-grp li.active .topology { background-image: url(../images/icon-topology-active1@2x.png); }
-  .expand { background: url(../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
-  .expand.open { background: url(../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .logo-large { background: url(../../../images/logo-large@2x.png) no-repeat center top/cover; }
+  .logo-header { background-image: url(../../../images/logo@2x.png); background-size: 113px 32px; }
+  .username { background-image: url(../../../images/icon-down-arrow@2x.png); background-size: 16px 12px; }
+  .dashboard-icon { background: url(../../../images/icon-dashboard-active@2x.png) no-repeat center center; }
+  .alerts { background: url(../../../images/icon-notifications@2x.png) no-repeat center center; background-size: 18px 20px; }
+  .metrics { background: url(../../../images/icon-metrics@2x.png) no-repeat center center; background-size: 19px 19px; }
+  .reports { background: url(../../../images/icon-reports@2x.png) no-repeat center center; background-size: 16px 20px; }
+  .topology { background: url(../../../images/icon-topology@2x.png) no-repeat center center; background-size: 20px 20px; }
+  .metrics:hover { background-image: url(../../../images/icon-metrics-active@2x.png); }
+  .btn-grp li.active .metrics { background-image: url(../../../images/icon-metrics-active1@2x.png); }
+  .alerts:hover { background-image: url(../../../images/icon-notifications-active@2x.png); }
+  .btn-grp li.active .alerts { background-image: url(../../../images/icon-notifications-active1@2x.png); }
+  .reports:hover { background-image: url(../../../images/icon-reports-active@2x.png); }
+  .btn-grp li.active .reports { background-image: url(../../../images/icon-reports-active1@2x.png); }
+  .topology:hover { background-image: url(../../../images/icon-topology-active@2x.png); }
+  .btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1@2x.png); }
+  .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
+  .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
 /* Table Of Contents
  1.) Login 2.) Dashboard 3.) Colors ===============================================*/
 /* 1.) Login ----------------------------------------*/
@@ -138,17 +138,17 @@ html { position: relative; height: 100%; }
 
 body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; }
 
-.login-page { background: url(../images/background.jpg) no-repeat left top; background-size: cover; }
+.login-page { background: url(../../../images/background.jpg) no-repeat left top; background-size: cover; }
 
-.login-alternate { background: url(../images/background1.jpg) no-repeat left top; background-size: cover; }
+.login-alternate { background: url(../../../images/background1.jpg) no-repeat left top; background-size: cover; }
 
-.login-secondary-alt { background: url(../images/background2.jpg) no-repeat left top; background-size: cover; }
+.login-secondary-alt { background: url(../../../images/background2.jpg) no-repeat left top; background-size: cover; }
 
 .login-page, .login-alternate, .login-secondary-alt { overflow: hidden; }
 
 .login-area { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%); -ms-transform: translate(-50%, -50%); -moz-transform: translate(-50%, -50%); -o-transform: translate(-50%, -50%); }
 
-.logo-large { height: 56px; width: 200px; background: url(../images/logo-large.png); display: block; margin: 0 auto 44px; }
+.logo-large { height: 56px; width: 200px; background: url(../../../images/logo-large.png); display: block; margin: 0 auto 44px; }
 
 .login-form { padding: 0 10.5%; }
 
@@ -183,7 +183,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard h3 { font-size: 24px; color: #424242; margin: 0 0 5px; }
 
-.setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin-left: 3px; }
+.setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin-left: 3px; }
 
 .single-block { width: 30.76%; float: left; }
 
@@ -201,11 +201,11 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table .sf { margin-right: 9%; }
 
-.online { background: url(../images/icon-online.png) no-repeat left top; }
+.online { background: url(../../../images/icon-online.png) no-repeat left top; }
 
-.offline { background: url(../images/icon-offline.png) no-repeat left top; }
+.offline { background: url(../../../images/icon-offline.png) no-repeat left top; }
 
-.intermittent { background: url(../images/icon-intermittent.png) no-repeat left top; }
+.intermittent { background: url(../../../images/icon-intermittent.png) no-repeat left top; }
 
 .online, .offline, .intermittent { display: inline-block; height: 20px; width: 20px; background-size: 20px 20px; border-radius: 50%; }
 
@@ -300,41 +300,41 @@ transition:all 0.3s ease;
 
 .btn-grp .icon { height: 20px; width: 20px; }
 
-.dashboard-icon { background: url(../images/icon-dashboard-active.png) no-repeat center center; }
+.dashboard-icon { background: url(../../../images/icon-dashboard-active.png) no-repeat center center; }
 
-.alerts { background: url(../images/icon-notifications.png) no-repeat center center; }
+.alerts { background: url(../../../images/icon-notifications.png) no-repeat center center; }
 
-.btn-grp li:hover .alerts { background-image: url(../images/icon-notifications-active.png); }
+.btn-grp li:hover .alerts { background-image: url(../../../images/icon-notifications-active.png); }
 
-.btn-grp li.active .alerts { background-image: url(../images/icon-notifications-active1.png); }
+.btn-grp li.active .alerts { background-image: url(../../../images/icon-notifications-active1.png); }
 
-.metrics { background: url(../images/icon-metrics.png) no-repeat center center; }
+.metrics { background: url(../../../images/icon-metrics.png) no-repeat center center; }
 
-.btn-grp li:hover .metrics { background-image: url(../images/icon-metrics-active.png); }
+.btn-grp li:hover .metrics { background-image: url(../../../images/icon-metrics-active.png); }
 
-.btn-grp li.active .metrics { background-image: url(../images/icon-metrics-active1.png); }
+.btn-grp li.active .metrics { background-image: url(../../../images/icon-metrics-active1.png); }
 
-.reports { background: url(../images/icon-reports.png) no-repeat center center; }
+.reports { background: url(../../../images/icon-reports.png) no-repeat center center; }
 
-.btn-grp li:hover .reports { background-image: url(../images/icon-reports-active.png); }
+.btn-grp li:hover .reports { background-image: url(../../../images/icon-reports-active.png); }
 
-.btn-grp li.active .reports { background-image: url(../images/icon-reports-active1.png); }
+.btn-grp li.active .reports { background-image: url(../../../images/icon-reports-active1.png); }
 
-.topology { background: url(../images/icon-topology.png) no-repeat center center; }
+.topology { background: url(../../../images/icon-topology.png) no-repeat center center; }
 
-.btn-grp li:hover .topology { background-image: url(../images/icon-topology-active.png); }
+.btn-grp li:hover .topology { background-image: url(../../../images/icon-topology-active.png); }
 
-.btn-grp li.active .topology { background-image: url(../images/icon-topology-active1.png); }
+.btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1.png); }
 
-.setting-btn-icon { background: url(../images/icon-chart-settings.png) no-repeat center center; }
+.setting-btn-icon { background: url(../../../images/icon-chart-settings.png) no-repeat center center; }
 
-.btn-grp li:hover .setting-btn-icon { background-image: url(../images/icon-chart-settings-active.png); }
+.btn-grp li:hover .setting-btn-icon { background-image: url(../../../images/icon-chart-settings-active.png); }
 
-.btn-grp li.active .setting-btn-icon { background-image: url(../images/icon-chart-settings-active1.png); }
+.btn-grp li.active .setting-btn-icon { background-image: url(../../../images/icon-chart-settings-active1.png); }
 
-.expand { background: url(../images/icon-expand.png) no-repeat center center; }
+.expand { background: url(../../../images/icon-expand.png) no-repeat center center; }
 
-.expand.open { background: url(../images/icon-collapse.png) no-repeat center center; }
+.expand.open { background: url(../../../images/icon-collapse.png) no-repeat center center; }
 
 .full-map img { width: 100%; }
 
@@ -368,7 +368,7 @@ transition:all 0.3s ease;
 
 .list-content li:last-child { border-bottom: 0; }
 
-.remove-btn { display: inline-block; height: 14px; width: 14px; background: url(../images/icon-close.png) no-repeat left top/14px 14px; float: right; cursor: pointer; margin: 5px 6px 0 0; }
+.remove-btn { display: inline-block; height: 14px; width: 14px; background: url(../../../images/icon-close.png) no-repeat left top/14px 14px; float: right; cursor: pointer; margin: 5px 6px 0 0; }
 
 .msg-block { width: 90%; float: left; }
 

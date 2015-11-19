@@ -1,5 +1,5 @@
 /*body{
-	background:url(../images/bg4.jpg) no-repeat left top;
+	background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
 /*Wrapper*/
 .dashboard .wrapper{
@@ -8,7 +8,7 @@
 
 /*Header*/
 .header{
-	background:url('../images/header-background.jpg') no-repeat left top;
+	background:url('../../../images/header-background.jpg') no-repeat left top;
 	background-size:cover;
 	padding: 15px 13px 12px;
 }
@@ -16,7 +16,7 @@
 	display: inline-block;
 	height:32px;
 	width:113px;
-	background:url(../images/logo.png) no-repeat center top/cover;
+	background:url(../../../images/logo.png) no-repeat center top/cover;
 	float: left;
 	margin-top: 5px;
 }
@@ -42,7 +42,7 @@
 	color:#fff;
 	line-height:34px;
 	padding-right: 19px;
-	background:url(../images/icon-down-arrow.png) no-repeat right center;
+	background:url(../../../images/icon-down-arrow.png) no-repeat right center;
 }
 
 .menu-wrapper{
@@ -95,16 +95,16 @@
 	background-repeat:no-repeat;
 }
 .icon.setting-icon{
-	background-image:url(../images/icon-setting.png);
+	background-image:url(../../../images/icon-setting.png);
 }
 .icon.help-icon{
-	background-image:url(../images/icon-help.png);
+	background-image:url(../../../images/icon-help.png);
 }
 .icon.google-group-icon{
-	background-image:url(../images/icon-google-groups.png);
+	background-image:url(../../../images/icon-google-groups.png);
 }
 .icon.github-icon{
-	background-image:url(../images/icon-github.png);
+	background-image:url(../../../images/icon-github.png);
 }
 .menu .logout-btn{
 	clear:left;
