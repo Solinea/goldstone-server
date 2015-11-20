@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/postgres:v1-709cdb3-release
+FROM solinea/postgres:latest
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 

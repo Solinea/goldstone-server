@@ -136,16 +136,11 @@ fi
 #
 # clean up the containers that need access to source
 #
-# echo "##########################################################"
-# for folder in "${need_source[@]}" ; do
-#     echo "Removing source from $folder..."
-#     cd $folder || exit 1
-#     rm -rf goldstone-server/*
-# done
-# echo "##########################################################"
-# 
-# echo "##########################################################"
-# echo "Removing static files from $GS_WEB_DIR..."
-# cd $GS_WEB_DIR
-# rm -rf static/*
-# echo "##########################################################"
+echo "##########################################################"
+for folder in "${need_source[@]}" ; do
+    echo "Removing source from $folder..."
+    cd $folder || exit 1
+    rm -rf goldstone-server/*
+done
+echo "##########################################################"
+
