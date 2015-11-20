@@ -1,0 +1,204 @@
+<!--
+ Copyright 2015 Solinea, Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!-- django will render base.html, and then render router.html into block content  -->
+
+{% load staticfiles %}
+<html>
+    <head>
+        <link href='http://fonts.googleapis.com/css?family=Homenaje' rel='stylesheet' type='text/css'>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Goldstone</title>
+        <!-- Core CSS - Include with every page -->
+        <link rel="stylesheet" href="/static/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/static/css/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/static/css/plugins/dataTables/dataTables.bootstrap.css" rel="stylesheet" media="screen">
+        <link rel="stylesheet" href="/static/css/plugins/bootstrap-datetimepicker.css" rel="stylesheet">
+        <link rel="stylesheet" href="/static/css/client/scss/styleLight.css" rel="stylesheet" media="screen">
+        <link rel="alternate stylesheet" href="/static/css/client/scss/styleDark.css" rel="stylesheet" media="screen">
+        <link rel="icon" href="/static/images/favicon.ico">
+        <!--[if lt IE 9]>
+        <script src="/static/html5shiv.min.js"></script>
+        <![endif]-->
+
+        <!-- Example addon css link: -->
+        <!-- <link rel="stylesheet" href="/static/addons/yourapp/client-css/main.css" rel="stylesheet" media="screen"> -->
+        <!-- Append add-on link tags via "fab install_addon" command here -->
+
+
+        <!-- Append addon script tags via fab routine prior to here -->
+        {% block localcss %}
+        {% endblock %}
+    </head>
+    <body>
+        <script>
+            // if user isn't logged in, redirect to login page without loading anything
+            var token = localStorage.getItem('userToken');
+            if(token === undefined || token === null) {
+                location.href = 'login/';
+            }
+        </script>
+
+        <div id="wrap">
+            <!-- Fixed navbar -->
+            <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle"
+                        data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#discover"><img src="{% static 'images/favicon-32.png' %}"/></a>
+                    </div>
+                    <div class="collapse navbar-collapse">
+                        <ul class="nav navbar-nav">
+                            <li><a href="#discover" id="goldstone-text"> <span class="i18n" data-i18n="goldstone">goldstone</span></a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle"
+                                    data-toggle="dropdown"><i
+                                    class="fa fa-camera"></i> <span class="i18n" data-i18n="Metrics">Metrics</span><b
+                                class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#metrics/api_perf"><i
+                                    class="fa fa-puzzle-piece"></i> <span class="i18n" data-i18n="API Performance">API Performance</span></a></li>
+                                    <li><a href="#metrics/nova_report"><i
+                                    class="fa fa-cloud"></i> <span class="i18n" data-i18n="Compute">Compute</span></a></li>
+                                    <li><a href="#metrics/neutron_report"><i
+                                    class="fa fa-star"></i> <span class="i18n" data-i18n="Network">Network</span></a></li>
+                                    <li><a href="#metrics/cinder_report"><i
+                                    class="fa fa-hdd-o"></i> <span class="i18n" data-i18n="Block Storage">Block Storage</span></a></li>
+                                    <li><a href="#metrics/glance_report"><i
+                                    class="fa fa-picture-o"></i> <span class="i18n" data-i18n="Image">Image</span></a></li>
+                                    <li><a href="#metrics/keystone_report"><i
+                                    class="fa fa-key"></i> <span class="i18n" data-i18n="Identity">Identity</span></a></li>
+                                    <li><a href="#metrics/metric_report"><i
+                                    class="fa fa-bars"></i> <span class="i18n" data-i18n="Metric Report">Metric Report</span></a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle"
+                                    data-toggle="dropdown"><i
+                                    class="fa fa-pencil-square-o"></i> <span class="i18n" data-i18n="Reports">Reports</span><b
+                                class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#reports/logbrowser"><i
+                                    class="fa fa-search"></i> <span class="i18n" data-i18n="Log Browser">Log Browser</span></a>
+                                </li>
+                                <li><a href="#reports/eventbrowser"><i
+                                class="fa fa-search"></i> <span class="i18n" data-i18n="Event Browser">Event Browser</span></a>
+                            </li>
+                            <li><a href="#reports/apibrowser"><i
+                            class="fa fa-search"></i> <span class="i18n" data-i18n="Api Browser">Api Browser</span></a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown addon-menu-view-container">
+                   <!-- dynamically inserted by addonMenuView -->
+                </li>
+                <!-- additional menu bar space for addon devs -->
+                <li class="dropdown addon-additional-menu-hook">
+                   <!-- dynamically inserted by addonMenuView -->
+                </li>
+            </ul>
+            <!-- logout icon -->
+            <ul class="nav navbar-nav navbar pull-right">
+                <h4>
+                <a href="#login">
+                    <div style="margin-left:13px;" class="logout-icon-container"></div>
+                    <!-- this will be appended by logoutIcon view -->
+                    <!-- <i class="fa fa-sign-out pull-right"></i> -->
+                </a>
+                </h4>
+            </ul>
+            <!-- help icon -->
+            <ul class="nav navbar-nav navbar-right">
+                <h4>
+                <a href="#help" target="_blank">
+                    <i class="fa fa-question pull-right"></i>
+                </a>
+                </h4>
+            </ul>
+            <!-- global settings icon -->
+            <ul class="nav navbar-nav navbar pull-right">
+                <h4>
+                <a href="#settings">
+                    <i class="fa fa-cog pull-right"></i>
+                </a>
+                </h4>
+            </ul>
+            <!-- feedback icon -->
+            <ul class="nav navbar-nav navbar pull-right">
+                <h4>
+                <a href="https://solinea.freshdesk.com/support/tickets/new" target="_blank">
+                    <i class="fa fa-bug pull-right"></i>
+                </a>
+                </h4>
+            </ul>
+            <!-- contact icon -->
+            <ul class="nav navbar-nav navbar pull-right">
+                <h4>
+                <a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank" >
+                    <i class="fa fa-envelope-o pull-right"></i>
+                </a>
+                </h4>
+            </ul>
+            <div class="global-range-refresh-container"></div>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</div>
+<!-- BEGIN PAGE CONTENT -->
+<div id="body-container" class="container">
+    <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
+    <div class="alert alert-warning alert-dismissable" hidden="true"></div>
+    <div class="alert alert-info alert-dismissable" hidden="true"></div>
+    <div class="alert alert-success alert-dismissable" hidden="true"></div>
+    {% block content %}
+    {% endblock %}
+</div>
+</div>
+<div id="footer">
+<div id="footer-container" class="container">
+    <p class="text-muted credit"><span class="i18n" data-i18n="Copyright">Copyright</span> 2014-2015 <a
+        href="http://solinea.com">Solinea, Inc.</a><a class="pull-right" href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank"><span class="i18n" data-i18n="License">License</span></a></p>
+    </div>
+</div>
+<!-- script tags are concatenated into the following files -->
+<!-- which are ordered so that dependencies come first -->
+<!-- goldstone global object {} is defined in base.js -->
+<!-- when changing the client lib files, adjust siteLibLoadOrder.js -->
+<script src="{% static 'bundle/libs.js' %}"></script>
+<script src="{% static 'bundle/bundle.js' %}"></script>
+
+<!-- append addon script tags via "fab install_addon" command here -->
+<!-- example script tag: -->
+<!-- <script src="{% static 'addons/yourapp/client-js/main.js' %}"></script> -->
+
+
+<!-- append addon script tags via fab routine prior to here -->
+
+<!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
+<!-- django is loading router.html which extends this html template and -->
+<!-- fills in block localjs with a number of post-dom-ready function calls -->
+
+{% block localjs %}
+{% endblock %}
+</body>
+</html>

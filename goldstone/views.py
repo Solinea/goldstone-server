@@ -120,7 +120,7 @@ class TopLevelView(TemplateView):
 class RouterView(TemplateView):
     """Return the Goldstone Router page."""
 
-    template_name = 'router.html'
+    template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
         """Return template context data.
@@ -135,6 +135,35 @@ class RouterView(TemplateView):
         I18N_VARIABLE = "i18n_po_json_i18n_combined_json"
 
         context = super(RouterView, self).get_context_data(**kwargs)
+
+        # Include this file's contents as a template variable.
+        try:
+            with open(I18N_FILE) as f:
+                context[I18N_VARIABLE] = json.loads(f.read())
+        except IOError:
+            context[I18N_VARIABLE] = "file not found"
+
+        return context
+
+
+class RouterViewOld(TemplateView):
+    """Return the Goldstone Router page."""
+
+    template_name = 'router.html'
+
+    def get_context_data(self, **kwargs):
+        """Return template context data.
+
+        :rtype: dict
+
+        """
+
+        # The i18n JSON file we read, and the template variable we load its
+        # contents into.
+        I18N_FILE = "goldstone/static/i18n/po_json/i18n_combined.json"
+        I18N_VARIABLE = "i18n_po_json_i18n_combined_json"
+
+        context = super(RouterViewOld, self).get_context_data(**kwargs)
 
         # Include this file's contents as a template variable.
         try:

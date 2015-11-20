@@ -13,12 +13,13 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-{% extends "base_old.html" %}
+{% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
+
     <script>
         // assign "ajax-loader-solinea-blue" spinner gif
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
