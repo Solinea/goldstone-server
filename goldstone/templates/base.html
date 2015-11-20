@@ -17,6 +17,7 @@
 <!-- django will render base.html, and then render router.html into block content  -->
 
 {% load staticfiles %}
+{% load custom_filters %}
 <html>
     <head>
         <link href='http://fonts.googleapis.com/css?family=Homenaje' rel='stylesheet' type='text/css'>
@@ -170,8 +171,11 @@
     <div class="alert alert-warning alert-dismissable" hidden="true"></div>
     <div class="alert alert-info alert-dismissable" hidden="true"></div>
     <div class="alert alert-success alert-dismissable" hidden="true"></div>
+
     {% block content %}
+        <div class="router-content-container"></div>
     {% endblock %}
+
 </div>
 </div>
 <div id="footer">
@@ -199,6 +203,85 @@
 <!-- fills in block localjs with a number of post-dom-ready function calls -->
 
 {% block localjs %}
+    <script>
+        // assign "ajax-loader-solinea-blue" spinner gif
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+
+        $(function () {
+
+            /*
+            authLogoutIcon encapsulates the initialization of the $(document)
+            listener for ajaxSend events and uses xhr.setRequestHeader to append
+            the Auth token on all subsequent api calls. It also serves to handle
+            401 auth errors, removing any existing token, and redirecting to
+            the login page.
+
+            authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
+            router.html. Following that, only if there is a token
+            present (expired or not), it will use css to show/hide the logout
+            icon in the top-right corner of the page.
+
+            finally, authLogoutIcon prunes old unused keys in localStorage
+            */
+
+            goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+            goldstone.authLogoutIcon = new LogoutIcon({
+                el: ".logout-icon-container"
+            });
+
+            // assign json object from /static/i18n/po_json/
+            // this is transformed into a Jed.js compatible initialization
+            // object in I18nModel
+            goldstone.i18nJSON = {{i18n_po_json_i18n_combined_json|to_js}};
+
+            // instantiate translation data that can be set on settingsPageView.
+            // Settings page drop-downs will trigger userPrefsView
+            // to persist preferance, and triggers i18nModel to
+            // set selected language.
+            goldstone.i18n = new I18nModel();
+
+            // instantiate object that will manage user prefs / theme
+            goldstone.userPrefsView = new UserPrefsView();
+
+            // define the router
+            goldstone.gsRouter = new GoldstoneRouter();
+
+            // contains the machinery for appending/maintaining
+            // 'add-ons' dropdown menu
+            goldstone.addonMenuView = new AddonMenuView({
+                el: ".addon-menu-view-container"
+            });
+
+            // append global selectors to page
+            goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+            // start the backbone router that will handle /# calls
+            Backbone.history.start();
+
+            // subscribe the authLogoutIcon to the router
+            // object which will emit a trigger when a
+            // view is switched out.
+            goldstone.authLogoutIcon.listenTo(goldstone.gsRouter, 'switchingView', function() {
+                // viewSwitchTriggered defined
+                // in authLogoutIconView
+                this.viewSwitchTriggered();
+            });
+
+            // subscribe the addonMenuView item to the router object
+            // which will emit a trigger when a view is switched out
+            goldstone.addonMenuView.listenTo(goldstone.gsRouter, 'switchingView', function() {
+
+                // calling refreshAddonsMenu without passing true as an argument
+                // will update the add-ons drop-down menu, but will not again
+                // re-register the url routes with Backbone router.
+                this.refreshAddonsMenu();
+            });
+
+        });
+
+    </script>
 {% endblock %}
+
 </body>
 </html>
