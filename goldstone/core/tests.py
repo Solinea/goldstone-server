@@ -23,6 +23,7 @@ import mock
 from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase
 
+from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
 
@@ -385,7 +386,7 @@ class UpdateEdges(SimpleTestCase):
         self.assertEqual(len(edges), 2)
 
 
-class ProcessResourceType(SimpleTestCase):
+class ProcessResourceType(Setup):
     """Test utilities.process_resource_type."""
 
     class EmptyClientObject(object):
@@ -409,6 +410,8 @@ class ProcessResourceType(SimpleTestCase):
 
     def setUp(self):
         """Run before every test."""
+
+        super(ProcessResourceType, self).setUp()
 
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
