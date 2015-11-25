@@ -47,9 +47,12 @@ limitations under the License.
             <!--Header Start-->
             <header class="header clearfix">
                 <a class="logo-header" href="#">&nbsp;</a>
+
+                <div class="global-range-refresh-container"></div>
+
                 <div class="user-control">
                     <i class="user"><img src="/static/images/icon-avatar-32.png" alt=""></i>
-                    <span class="username">mega@slideux.com</span>
+                    <span class="username">user@solinea.com</span>
                     <div class="menu-wrapper">
                         <div class="menu shadow-block">
                             <a href="#settings/" class="setting">
@@ -88,7 +91,7 @@ limitations under the License.
                         <span class="btn-txt">Alerts</span>
                     </li>
                     <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Metrics">
-                        <span class="btn-icon-block"><i class="icon metrics">&nbsp;</i></span>
+                        <a href="#metrics/metric_report"><span class="btn-icon-block"><i class="icon metrics">&nbsp;</i></span></a>
                         <span class="btn-txt">Metrics</span>
                     </li>
                     <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Report">
@@ -146,6 +149,7 @@ limitations under the License.
                             </div>
                         </div>
                     </div>
+
                     <div class="tab alert-tab">
                         <h4 class="header-block">Alerts2</h4>
                         <div class="subtab">
@@ -293,200 +297,24 @@ limitations under the License.
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
             <!--Sidebar End-->
-            {% block content %}
-                <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
-                <div class="alert alert-warning alert-dismissable" hidden="true"></div>
-                <div class="alert alert-info alert-dismissable" hidden="true"></div>
-                <div class="alert alert-success alert-dismissable" hidden="true"></div>
-                <div class="router-content-container"></div>
-            {% endblock %}
+
             <!--Content Area Start-->
+            <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
+            <div class="alert alert-warning alert-dismissable" hidden="true"></div>
+            <div class="alert alert-info alert-dismissable" hidden="true"></div>
+            <div class="alert alert-success alert-dismissable" hidden="true"></div>
+
             <div class="content">
                 <div class="container">
-                    <div class="row first-row">
-                        <div class="single-block service-status">
-                            <h3>Service Status<i class="setting-btn">&nbsp;</i></h3>
-                            <ul class="service-status-table shadow-block">
-                                <li class="table-header">
-                                    <span class="service">Service</span>
-                                    <span class="sf">Sf</span>
-                                    <span class="nm">Nm</span>
-                                </li>
-                                <li>
-                                    <span class="service">Compute</span>
-                                    <span class="sf"><i class="online">&nbsp;</i></span>
-                                    <span class="nm"><i class="online">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Image</span>
-                                    <span class="sf"><i class="offline">&nbsp;</i></span>
-                                    <span class="nm"><i class="offline">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Network</span>
-                                    <span class="sf"><i class="online">&nbsp;</i></span>
-                                    <span class="nm"><i class="online">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Block Storage</span>
-                                    <span class="sf"><i class="online">&nbsp;</i></span>
-                                    <span class="nm"><i class="online">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Object Storage</span>
-                                    <span class="sf"><i class="intermittent">&nbsp;</i></span>
-                                    <span class="nm"><i class="intermittent">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Orchestration</span>
-                                    <span class="sf"><i class="online">&nbsp;</i></span>
-                                    <span class="nm"><i class="online">&nbsp;</i></span>
-                                </li>
-                                <li>
-                                    <span class="service">Identity</span>
-                                    <span class="sf"><i class="online">&nbsp;</i></span>
-                                    <span class="nm"><i class="online">&nbsp;</i></span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="double-block metrics-overview">
-                            <h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="map-block shadow-block">
-                                <div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt=""></div>
-                                <div class="map-data">
-                                    <span class="stats time">
-                                        21 secs ago
-                                    </span>
-                                    <span class="stats logs">
-                                        300 Logs
-                                    </span>
-                                    <span class="stats events">
-                                        17 Events
-                                    </span>
-                                    <span class="stats call">
-                                        12 API Calls
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+
+                    <div class="router-content-container">
+                    <!-- content clipped into discoverView.js -->
                     </div>
-                    <div class="row second-row">
-                        <div class="single-block service-status">
-                            <h3>Node Presence<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="node-block shadow-block">
-                                <ul class="node-list">
-                                    <li class="node color1"></li>
-                                    <li class="node color2"></li>
-                                    <li class="node color3"></li>
-                                    <li class="node color4"></li>
-                                    <li class="node color5"></li>
-                                    <li class="node color6"></li>
-                                    <li class="node color7"></li>
-                                    <li class="node color8"></li>
-                                    <li class="node color9"></li>
-                                    <li class="node color10"></li>
-                                    <li class="node color11"></li>
-                                    <li class="node color12"></li>
-                                    <li class="node color13"></li>
-                                    <li class="node color14"></li>
-                                    <li class="node color15"></li>
-                                    <li class="node color16"></li>
-                                    <li class="node color17"></li>
-                                    <li class="node color18"></li>
-                                    <li class="node color19"></li>
-                                    <li class="node color20"></li>
-                                    <li class="node color21"></li>
-                                    <li class="node color22"></li>
-                                    <li class="node color23"></li>
-                                    <li class="node color24"></li>
-                                    <li class="node color25"></li>
-                                    <li class="node color26"></li>
-                                    <li class="node color27"></li>
-                                    <li class="node color28"></li>
-                                    <li class="node color29"></li>
-                                    <li class="node color30"></li>
-                                    <li class="node color31"></li>
-                                    <li class="node color32"></li>
-                                    <li class="node color33"></li>
-                                    <li class="node color34"></li>
-                                    <li class="node color35"></li>
-                                    <li class="node color36"></li>
-                                    <li class="node color37"></li>
-                                    <li class="node color38"></li>
-                                    <li class="node color39"></li>
-                                    <li class="node color40"></li>
-                                    <li class="node color41"></li>
-                                    <li class="node color42"></li>
-                                    <li class="node color43"></li>
-                                    <li class="node color44"></li>
-                                    <li class="node color45"></li>
-                                    <li class="node color46"></li>
-                                    <li class="node color47"></li>
-                                    <li class="node color48"></li>
-                                    <li class="node color49"></li>
-                                    <li class="node color50"></li>
-                                    <li class="node color51"></li>
-                                    <li class="node color52"></li>
-                                    <li class="node color53"></li>
-                                    <li class="node color54"></li>
-                                    <li class="node color55"></li>
-                                    <li class="node color56"></li>
-                                    <li class="node color57"></li>
-                                    <li class="node color58"></li>
-                                    <li class="node color59"></li>
-                                    <li class="node color60"></li>
-                                    <li class="node color61"></li>
-                                    <li class="node color62"></li>
-                                    <li class="node color63"></li>
-                                    <li class="node color64"></li>
-                                    <li class="node color65"></li>
-                                    <li class="node color66"></li>
-                                    <li class="node color67"></li>
-                                    <li class="node color68"></li>
-                                    <li class="node color69"></li>
-                                    <li class="node color70"></li>
-                                    <li class="node color71"></li>
-                                    <li class="node color72"></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="single-block service-status">
-                            <h3>Logs by Type<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="full-map shadow-block">
-                                <img src="/static/images/Chart-Logs-by-Type.jpg" alt="">
-                            </div>
-                        </div>
-                        <div class="single-block service-status">
-                            <h3>Average API Performance<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="full-map shadow-block">
-                                <img src="/static/images/API-Performance.jpg" alt="">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <h4>Resource Usage</h4>
-                        <div class="single-block service-status">
-                            <h3>CPU<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="full-map shadow-block">
-                                <img src="/static/images/Chart-CPU.jpg" alt="">
-                            </div>
-                        </div>
-                        <div class="single-block service-status">
-                            <h3>Memory<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="full-map shadow-block">
-                                <img src="/static/images/Chart-Memory.jpg" alt="">
-                            </div>
-                        </div>
-                        <div class="single-block service-status">
-                            <h3>Disk<i class="setting-btn">&nbsp;</i></h3>
-                            <div class="full-map shadow-block">
-                                <img src="/static/images/Chart-Disk.jpg" alt="">
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
             <!--Content Area End-->
@@ -559,20 +387,20 @@ limitations under the License.
             goldstone.userPrefsView = new UserPrefsView();
 
             // define the router
-            // goldstone.gsRouter = new GoldstoneRouter();
+            goldstone.gsRouter = new GoldstoneRouter();
 
             // contains the machinery for appending/maintaining
             // 'add-ons' dropdown menu
             goldstone.addonMenuView = new AddonMenuView({
-            el: ".addon-menu-view-container"
+                el: ".addon-menu-view-container"
             });
 
             // append global selectors to page
-            // goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
-            // $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+            goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
             // start the backbone router that will handle /# calls
-            // Backbone.history.start();
+            Backbone.history.start();
 
             // subscribe the addonMenuView item to the router object
             // which will emit a trigger when a view is switched out

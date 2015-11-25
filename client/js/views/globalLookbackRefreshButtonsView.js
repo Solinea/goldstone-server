@@ -110,9 +110,9 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
     },
 
     template: _.template('' +
-        '<div style="width:10%;" class="col-xl-1 pull-right">&nbsp;' +
+        '<div style="width:10%;" class="col-xl-1 pull-left">&nbsp;' +
         '</div>' +
-        '<div class="col-xl-2 pull-right">' +
+        '<div class="col-xl-2 pull-left">' +
         '<form class="global-refresh-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-1">' +
@@ -129,7 +129,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</div>' +
         '</form>' +
         '</div>' +
-        '<div class="col-xl-1 pull-right">' +
+        '<div class="col-xl-1 pull-left">' +
         '<form class="global-lookback-selector" role="form">' +
         '<div class="form-group">' +
         '<div class="col-xl-1">' +
