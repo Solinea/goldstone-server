@@ -127,7 +127,7 @@ def _v3_auth_url(auth_url):
     elif auth_url.endswith('/v2.0/'):
         return auth_url.replace('/v2.0/', '/v3/')
     else:
-        raise GoldstoneAuthError("Unknown os_auth_url version")
+        raise GoldstoneAuthError("Unknown os_auth_url version: %s", auth_url)
 
 
 def _v2_auth_url(auth_url):
@@ -142,7 +142,7 @@ def _v2_auth_url(auth_url):
     elif auth_url.endswith('/v3/'):
         return auth_url.replace('/v3/', '/v2.0/')
     else:
-        raise GoldstoneAuthError("Unknown os_auth_url version")
+        raise GoldstoneAuthError("Unknown os_auth_url version: %s", auth_url)
 
 
 def get_client(service):
