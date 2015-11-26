@@ -26,7 +26,7 @@ instantiated in goldstoneRouter as
     });
 */
 
-var LogSearchPageView = GoldstoneBasePageView2.extend({
+var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.computeLookback();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var EventsBrowserPageView = GoldstoneBasePageView2.extend({
+var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var DiscoverView = GoldstoneBasePageView2.extend({
+var DiscoverView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged') {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NodeReportView = GoldstoneBasePageView2.extend({
+var NodeReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
 

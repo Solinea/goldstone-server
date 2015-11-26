@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var CinderReportView = GoldstoneBasePageView2.extend({
+var CinderReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {

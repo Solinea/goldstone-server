@@ -29,7 +29,7 @@ At the moment /#metric will default to 6 charts.
 ...etc, up to a maximum of 6 charts.
 */
 
-var MetricViewerPageView = GoldstoneBasePageView2.extend({
+var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     instanceSpecificInit: function(options) {
 

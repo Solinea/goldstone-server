@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var KeystoneReportView = GoldstoneBasePageView2.extend({
+var KeystoneReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {

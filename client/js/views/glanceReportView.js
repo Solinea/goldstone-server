@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var GlanceReportView = GoldstoneBasePageView2.extend({
+var GlanceReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {

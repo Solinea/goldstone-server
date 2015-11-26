@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NovaReportView = GoldstoneBasePageView2.extend({
+var NovaReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ApiBrowserPageView = GoldstoneBasePageView2.extend({
+var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
