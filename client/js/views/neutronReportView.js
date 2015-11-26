@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NeutronReportView = GoldstoneBasePageView.extend({
+var NeutronReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -38,6 +38,9 @@ var NeutronReportView = GoldstoneBasePageView.extend({
             el: '#neutron-report-r1-c1',
             width: $('#neutron-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.neutronApiPerfChart, this.neutronApiPerfChartView];
+
     },
 
     template: _.template('' +

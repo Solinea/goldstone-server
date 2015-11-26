@@ -16,29 +16,15 @@
 
 var DiscoverView = GoldstoneBasePageView2.extend({
 
-    instanceSpecificInit: function() {
-        // this.options = options || {};
-        // this.defaults = _.clone(this.defaults);
-        // this.el = options.el;
-        // this.defaults.globalLookback = null;
-        // this.defaults.globalRefresh = null;
-
-        this.render();
-        // this.getGlobalLookbackRefresh();
-        // this.renderCharts();
-        // this.setGlobalLookbackRefreshTriggers();
-        // this.scheduleInterval();
-    },
-
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged') {
-            this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            this.nodeAvailChartView.trigger('lookbackSelectorChanged');
+            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
+            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
         }
 
         if (change === 'lookbackIntervalReached') {
-            this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            this.nodeAvailChartView.trigger('lookbackIntervalReached');
+            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
+            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
         }
     },
 

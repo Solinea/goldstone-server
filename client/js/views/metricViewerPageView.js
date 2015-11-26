@@ -29,16 +29,16 @@ At the moment /#metric will default to 6 charts.
 ...etc, up to a maximum of 6 charts.
 */
 
-var MetricViewerPageView = GoldstoneBasePageView.extend({
+var MetricViewerPageView = GoldstoneBasePageView2.extend({
 
-    initialize: function(options) {
+    instanceSpecificInit: function(options) {
 
         // hide global lookback selector
         $("select#global-lookback-range").hide();
 
         // options.numCharts passed in by goldstoneRouter
         // and reflects the number n (1-6) following "/#metric/n"
-        this.numCharts = options.numCharts;
+        this.numCharts = this.options.numCharts;
 
         // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
@@ -48,7 +48,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiate initialize in GoldstoneBasePageView
-        MetricViewerPageView.__super__.initialize.apply(this, arguments);
+        MetricViewerPageView.__super__.instanceSpecificInit.apply(this, arguments);
     },
 
     onClose: function() {

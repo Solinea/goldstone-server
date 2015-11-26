@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var KeystoneReportView = GoldstoneBasePageView.extend({
+var KeystoneReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -38,6 +38,8 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
             el: '#keystone-report-r1-c1',
             width: $('#keystone-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.keystoneApiPerfChart, this.keystoneApiPerfChartView];
 
     },
 

@@ -993,6 +993,10 @@ var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
         clearInterval(this.currentInterval);
     },
 
+    // populate with the rendered charts in order to
+    // remove listeners from the view
+    viewsToStopListening: undefined,
+
     onClose: function() {
         if (this.currentInterval) {
             clearInterval(this.currentInterval);
@@ -5187,13 +5191,7 @@ var ApiBrowserView = ChartSet.extend({
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
-
-    defaults: {},
-
-    initialize: function(options) {
-        ApiPerfReportView.__super__.initialize.apply(this, arguments);
-    },
+var ApiPerfReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -5206,8 +5204,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-
-        var ns = this.defaults;
 
         //----------------------------
         // instantiate charts via
@@ -5309,6 +5305,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
         });
+
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
 
     },
 
@@ -5859,7 +5857,7 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
  * limitations under the License.
  */
 
-var CinderReportView = GoldstoneBasePageView.extend({
+var CinderReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -5883,6 +5881,8 @@ var CinderReportView = GoldstoneBasePageView.extend({
             el: '#cinder-report-r1-c1',
             width: $('#cinder-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.cinderApiPerfChart, this.cinderApiPerfChartView];
     },
 
     template: _.template('' +
@@ -6012,29 +6012,15 @@ var DetailsReportView = GoldstoneBaseView.extend({
 
 var DiscoverView = GoldstoneBasePageView2.extend({
 
-    instanceSpecificInit: function() {
-        // this.options = options || {};
-        // this.defaults = _.clone(this.defaults);
-        // this.el = options.el;
-        // this.defaults.globalLookback = null;
-        // this.defaults.globalRefresh = null;
-
-        this.render();
-        // this.getGlobalLookbackRefresh();
-        // this.renderCharts();
-        // this.setGlobalLookbackRefreshTriggers();
-        // this.scheduleInterval();
-    },
-
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged') {
-            this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            this.nodeAvailChartView.trigger('lookbackSelectorChanged');
+            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
+            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
         }
 
         if (change === 'lookbackIntervalReached') {
-            this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            this.nodeAvailChartView.trigger('lookbackIntervalReached');
+            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
+            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
         }
     },
 
@@ -7281,7 +7267,7 @@ var EventsReportView = GoldstoneBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var GlanceReportView = GoldstoneBasePageView.extend({
+var GlanceReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -7305,6 +7291,8 @@ var GlanceReportView = GoldstoneBasePageView.extend({
             el: '#glance-report-r1-c1',
             width: $('#glance-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.glanceApiPerfChart, this.glanceApiPerfChartView];
     },
 
     template: _.template('' +
@@ -8055,7 +8043,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
  * limitations under the License.
  */
 
-var KeystoneReportView = GoldstoneBasePageView.extend({
+var KeystoneReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -8079,6 +8067,8 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
             el: '#keystone-report-r1-c1',
             width: $('#keystone-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.keystoneApiPerfChart, this.keystoneApiPerfChartView];
 
     },
 
@@ -8889,7 +8879,7 @@ instantiated in goldstoneRouter as
     });
 */
 
-var LogSearchPageView = GoldstoneBasePageView.extend({
+var LogSearchPageView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
@@ -8958,6 +8948,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             urlRoot: "/logging/summarize/?",
             specificHost: ns.specificHost
         });
+
+        this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 
     template: _.template('' +
@@ -9567,16 +9559,16 @@ At the moment /#metric will default to 6 charts.
 ...etc, up to a maximum of 6 charts.
 */
 
-var MetricViewerPageView = GoldstoneBasePageView.extend({
+var MetricViewerPageView = GoldstoneBasePageView2.extend({
 
-    initialize: function(options) {
+    instanceSpecificInit: function(options) {
 
         // hide global lookback selector
         $("select#global-lookback-range").hide();
 
         // options.numCharts passed in by goldstoneRouter
         // and reflects the number n (1-6) following "/#metric/n"
-        this.numCharts = options.numCharts;
+        this.numCharts = this.options.numCharts;
 
         // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
@@ -9586,7 +9578,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiate initialize in GoldstoneBasePageView
-        MetricViewerPageView.__super__.initialize.apply(this, arguments);
+        MetricViewerPageView.__super__.instanceSpecificInit.apply(this, arguments);
     },
 
     onClose: function() {
@@ -10882,7 +10874,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var NeutronReportView = GoldstoneBasePageView.extend({
+var NeutronReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -10906,6 +10898,9 @@ var NeutronReportView = GoldstoneBasePageView.extend({
             el: '#neutron-report-r1-c1',
             width: $('#neutron-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.neutronApiPerfChart, this.neutronApiPerfChartView];
+
     },
 
     template: _.template('' +
@@ -11944,17 +11939,16 @@ TODO: probably change this to d.timestamp
  * limitations under the License.
  */
 
-var NodeReportView = GoldstoneBasePageView.extend({
+var NodeReportView = GoldstoneBasePageView2.extend({
 
     defaults: {},
 
-    initialize: function(options) {
-
+    instanceSpecificInit: function() {
         // options.node_uuid passed in during View instantiation
-        this.node_uuid = options.node_uuid;
+        this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.initialize.apply(this, arguments);
+        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
@@ -11992,28 +11986,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
         var ns = this.defaults;
         ns.end = +new Date();
         ns.start = ns.end - (ns.globalLookback * 60 * 1000);
-    },
-
-    setGlobalLookbackRefreshTriggers: function() {
-        // sets listeners on global selectors
-
-        var self = this;
-
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
-            self.getGlobalLookbackRefresh();
-            self.triggerChange();
-
-            // changing the lookback also resets the setInterval counter
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
-            self.getGlobalLookbackRefresh();
-
-            // reset the setInterval counter
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
     },
 
     // simple model to record which tab is currently visible
@@ -12270,6 +12242,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
             specificHost: this.node_uuid,
             urlRoot: "/logging/summarize/?"
         });
+
+        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logsReportCollection, this.logAnalysisView];
     },
 
     template: _.template('' +
@@ -12369,7 +12343,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var NovaReportView = GoldstoneBasePageView.extend({
+var NovaReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
 
@@ -12477,6 +12451,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             width: $('#nova-report-r3-c1').width(),
             yAxisLabel: goldstone.translate('GB')
         });
+
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChart, this.vmSpawnChart, this.vmSpawnChartView, this.cpuResourcesChart, this.cpuResourcesChartView, this.memResourcesChart, this.memResourcesChartView, this.diskResourcesChart, this.diskResourcesChartView];
 
     },
 

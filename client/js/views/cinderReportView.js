@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var CinderReportView = GoldstoneBasePageView.extend({
+var CinderReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -38,6 +38,8 @@ var CinderReportView = GoldstoneBasePageView.extend({
             el: '#cinder-report-r1-c1',
             width: $('#cinder-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.cinderApiPerfChart, this.cinderApiPerfChartView];
     },
 
     template: _.template('' +

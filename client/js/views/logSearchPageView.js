@@ -26,7 +26,7 @@ instantiated in goldstoneRouter as
     });
 */
 
-var LogSearchPageView = GoldstoneBasePageView.extend({
+var LogSearchPageView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
@@ -95,6 +95,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             urlRoot: "/logging/summarize/?",
             specificHost: ns.specificHost
         });
+
+        this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 
     template: _.template('' +

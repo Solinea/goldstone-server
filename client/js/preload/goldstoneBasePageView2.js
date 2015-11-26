@@ -46,6 +46,10 @@ var GoldstoneBasePageView2 = GoldstoneBaseView2.extend({
         clearInterval(this.currentInterval);
     },
 
+    // populate with the rendered charts in order to
+    // remove listeners from the view
+    viewsToStopListening: undefined,
+
     onClose: function() {
         if (this.currentInterval) {
             clearInterval(this.currentInterval);

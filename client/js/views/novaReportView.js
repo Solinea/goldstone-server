@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NovaReportView = GoldstoneBasePageView.extend({
+var NovaReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
 
@@ -122,6 +122,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             width: $('#nova-report-r3-c1').width(),
             yAxisLabel: goldstone.translate('GB')
         });
+
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChart, this.vmSpawnChart, this.vmSpawnChartView, this.cpuResourcesChart, this.cpuResourcesChartView, this.memResourcesChart, this.memResourcesChartView, this.diskResourcesChart, this.diskResourcesChartView];
 
     },
 

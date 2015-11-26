@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var GlanceReportView = GoldstoneBasePageView.extend({
+var GlanceReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -37,6 +37,8 @@ var GlanceReportView = GoldstoneBasePageView.extend({
             el: '#glance-report-r1-c1',
             width: $('#glance-report-r1-c1').width()
         });
+
+        this.viewsToStopListening = [this.glanceApiPerfChart, this.glanceApiPerfChartView];
     },
 
     template: _.template('' +

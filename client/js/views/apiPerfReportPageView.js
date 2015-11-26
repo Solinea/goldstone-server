@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
-
-    defaults: {},
-
-    initialize: function(options) {
-        ApiPerfReportView.__super__.initialize.apply(this, arguments);
-    },
+var ApiPerfReportView = GoldstoneBasePageView2.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -33,8 +27,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-
-        var ns = this.defaults;
 
         //----------------------------
         // instantiate charts via
@@ -136,6 +128,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
         });
+
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
 
     },
 
