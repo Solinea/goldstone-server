@@ -47,6 +47,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         "metrics/metric_report/:numCharts": "metricViewer",
         "metrics/neutron_report": "neutronReport",
         "metrics/nova_report": "novaReport",
+        "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/eventbrowser": "eventsBrowser",
@@ -193,5 +194,8 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     tenant: function() {
         this.switchView(TenantSettingsPageView);
+    },
+    topology: function() {
+        this.switchView(topologyPageView);
     }
 });
