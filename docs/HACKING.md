@@ -44,7 +44,7 @@ If you install in a location other than `~/devel/goldstone-server`, you will nee
 Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different):
 
 
-     $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
+     $ /usr/local/bin/pyenv-sh-virtualenvwrapper
 
 
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
