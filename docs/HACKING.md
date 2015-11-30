@@ -135,7 +135,7 @@ It may be helpful to create a couple of instances via the API in order to genera
     $ eval $(docker-machine env default)
     $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
 
-Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
+Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
 
 
 ## Logging In
@@ -144,9 +144,9 @@ After the containers have started and OpenStack has been configured to interact 
 
 * url: **http://127.0.0.1:8000**
 * django admin username: **admin**
-* django admin password: **goldstone**
+* django admin password: **solinea**
 * Goldstone admin username: **gsadmin**
-* Goldstone admin password: **goldstone**
+* Goldstone admin password: **solinea**
 
 
 ## Kibana Configuration
