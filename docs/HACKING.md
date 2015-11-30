@@ -144,9 +144,9 @@ After the containers have started and OpenStack has been configured to interact 
 
 * url: **http://127.0.0.1:8000**
 * django admin username: **admin**
-* django admin password: **solinea**
+* django admin password: **goldstone**
 * Goldstone admin username: **gsadmin**
-* Goldstone admin password: **solinea**
+* Goldstone admin password: **goldstone**
 
 
 ## Kibana Configuration
