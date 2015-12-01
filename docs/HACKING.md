@@ -44,7 +44,7 @@ If you install in a location other than `~/devel/goldstone-server`, you will nee
 Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different):
 
 
-     $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
+     $ /usr/local/bin/pyenv-sh-virtualenvwrapper
 
 
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
@@ -55,13 +55,11 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     export PROJECT_HOME=$HOME/devel
     source /usr/local/bin/virtualenvwrapper.sh
 
-On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile: 
+Wherever you add these flags, ensure to source it on all your open terminal windows. On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile: 
 
     if [ -f ~/.bashrc ]; then
         . ~/.bashrc
     fi 
-
-Wherever you add these flags, ensure to source it on all your open terminal windows.  
 
 Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
@@ -145,7 +143,7 @@ It may be helpful to create a couple of instances via the API in order to genera
     $ eval $(docker-machine env default)
     $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
 
-Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
+Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
 
 
 ## Logging In
