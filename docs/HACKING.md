@@ -55,9 +55,17 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     export PROJECT_HOME=$HOME/devel
     source /usr/local/bin/virtualenvwrapper.sh
 
+Wherever you add these flags, ensure to source it on all your open terminal windows. On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile: 
+
+    if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+    fi 
+
 Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
+
+If mkvirtualenv command fails, check to see if WORKON_HOME and other environmentvariables you exported earlier are set correctly. In some cases, virtualenvwrapper.sh can be located in /usr/bin instead of /usr/local/bin. Change the variables correspondingly in your settings and source them again.  
 
 Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
 
@@ -151,9 +159,11 @@ After the containers have started and OpenStack has been configured to interact 
 
 ## Kibana Configuration
 
-A Kibana container will be started.
+A Kibana container will be automatically started as a part of docker-compose-dev.yml getting executed.
 
-url: **`http://docker-machine ip default:5601/`**
+The default url to access your kibana service is : 
+
+    http://localhost:5601/
 
 Upon first connection to the service, Kibana will prompt you to "Configure an index pattern."
 
@@ -161,6 +171,7 @@ Upon first connection to the service, Kibana will prompt you to "Configure an in
 - The *Index name or pattern* should be set to `logstash-*`.
 - Select `@timestamp` from the *Time-field name* dropdown menu.
 - Click **Create** to save the configuration.
+- To verify index creation, check the "Indices" tab (top-left corner) on your Kibana console 
 
 [Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
 
