@@ -44,7 +44,7 @@ If you install in a location other than `~/devel/goldstone-server`, you will nee
 Execute the following script to complete the virtualenv wrapper package setup (note that the version in the path may be different):
 
 
-     $ /usr/local/bin/pyenv-sh-virtualenvwrapper
+     $ /usr/local/Cellar/pyenv-virtualenvwrapper/20140609/bin/pyenv-sh-virtualenvwrapper
 
 
 Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.):
@@ -55,9 +55,19 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     export PROJECT_HOME=$HOME/devel
     source /usr/local/bin/virtualenvwrapper.sh
 
+On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile: 
+
+    if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+    fi 
+
+Wherever you add these flags, ensure to source it on all your open terminal windows.  
+
 Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
+
+If mkvirtualenv command fails, check to see if WORKON_HOME and other environmentvariables you exported earlier are set correctly. In some cases, virtualenvwrapper.sh can be located in /usr/bin instead of /usr/local/bin. Change the variables correspondingly in your settings and source them again.  
 
 Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
 
@@ -135,7 +145,7 @@ It may be helpful to create a couple of instances via the API in order to genera
     $ eval $(docker-machine env default)
     $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
 
-Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
+Here are some [screenshots](https://photos.google.com/album/AF1QipPsFIXlFUzuJflAowyshNoDtF3ph9hMAIdK4WGa) of a working dev environment. Your environment should look similar.
 
 
 ## Logging In
@@ -151,9 +161,11 @@ After the containers have started and OpenStack has been configured to interact 
 
 ## Kibana Configuration
 
-A Kibana container will be started.
+A Kibana container will be automatically started as a part of docker-compose-dev.yml getting executed.
 
-url: **`http://docker-machine ip default:5601/`**
+The default url to access your kibana service is : 
+
+    http://localhost:5601/
 
 Upon first connection to the service, Kibana will prompt you to "Configure an index pattern."
 
@@ -161,6 +173,7 @@ Upon first connection to the service, Kibana will prompt you to "Configure an in
 - The *Index name or pattern* should be set to `logstash-*`.
 - Select `@timestamp` from the *Time-field name* dropdown menu.
 - Click **Create** to save the configuration.
+- To verify index creation, check the "Indices" tab (top-left corner) on your Kibana console 
 
 [Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
 
