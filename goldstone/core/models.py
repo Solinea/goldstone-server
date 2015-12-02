@@ -104,8 +104,7 @@ class ReportData(DailyIndexDocType):
 
     class Meta:          # pylint: disable=C0111,W0232,C1001
         doc_type = 'core_report'
-
-
+    
 class EventData(DailyIndexDocType):
     """The model for logstash events data."""
 
@@ -2634,3 +2633,38 @@ class Router(PolyResource):
     def resourcetype(cls):
 
         return "routers"
+
+class EventDef(DailyIndexDocType):
+
+    """ Model of EventDef data structure, this defines how events get
+        generated from parsing queries and log indices """
+
+    event_uuid       = UUIDField(version=1, auto=True, primary_key=True)
+    event_name       = CharField(max_length=128)
+    event_desc       = CharField(max_length=1024)
+    event_protected  = True
+    event_created_ts = CreationDateTimeField(editable=False,
+                                    blank=True,
+                                    default=utc_now)
+    event_updated_ts = CreationDateTimeField(editable=False,
+                                    blank=True,
+                                    default=utc_now)
+
+
+class AlertDef(DailyIndexDocType):
+
+    """ Model of AlertDef data structure, this defines how alerts get
+        generated from parsing event indices """
+
+    alert_uuid       = UUIDField(version=1, auto=True, primary_key=True)
+    alert_name       = CharField(max_length=128)
+    alert_desc       = CharField(max_length=1024)
+    alert_query      = CharField(max_length=1024)
+    alert_protected  = True
+    alert_created_ts = CreationDateTimeField(editable=False,
+                                    blank=True,
+                                    default=utc_now)
+    alert_updated_ts = CreationDateTimeField(editable=False,
+                                    blank=True,
+                                    default=utc_now)
+ 
