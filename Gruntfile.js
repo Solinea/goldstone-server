@@ -69,14 +69,9 @@ module.exports = function(grunt) {
                     message: ".po > json conversion complete"
                 }
             },
-            openTrail: {
+            compliance: {
                 options: {
-                    message: "OpenTrail tasks complete"
-                }
-            },
-            leases: {
-                options: {
-                    message: "Leases tasks complete"
+                    message: "Compliance tasks complete"
                 }
             }
         },
@@ -173,13 +168,9 @@ module.exports = function(grunt) {
                 files: clientIncludeOrder.poSourceFiles,
                 tasks: ['pojson']
             },
-            opentrail: {
-                files: clientIncludeOrder.otWatch,
-                tasks: ['concat:ot', 'clean:ot', 'copy:ot', 'lint', 'notify:openTrail' ]
-            },
-            leases: {
-                files: clientIncludeOrder.leasesWatch,
-                tasks: ['concat:leases', 'clean:leases', 'copy:leases', 'lint', 'notify:leases' ]
+            compliance: {
+                files: clientIncludeOrder.complianceWatch,
+                tasks: ['concat:compliance', 'clean:compliance', 'copy:compliance', 'lint', 'notify:compliance']
             }
         },
 
@@ -224,26 +215,24 @@ module.exports = function(grunt) {
                 },
                 src: clientIncludeOrder.leasesConcatWildcards,
                 dest: clientIncludeOrder.leasesConcatBundle
+            },
+            compliance: {
+                nonull: true,
+                options: {
+                    separator: '\n'
+                },
+                src: clientIncludeOrder.complianceConcatWildcards,
+                dest: clientIncludeOrder.complianceConcatBundle
             }
         },
 
         // copy files between folders and/or repos
         copy: {
-            ot: {
+            compliance: {
                 files: [{
-                    cwd: clientIncludeOrder.otCopyFolder,
+                    cwd: clientIncludeOrder.complianceCopyFolder,
                     src: ['**'],
-                    dest: clientIncludeOrder.otRepoCopy,
-                    flatten: false,
-                    expand: true,
-                    nonull: true
-                }]
-            },
-            leases: {
-                files: [{
-                    cwd: clientIncludeOrder.leasesCopyFolder,
-                    src: ['**'],
-                    dest: clientIncludeOrder.leasesRepoCopy,
+                    dest: clientIncludeOrder.complianceRepoCopy,
                     flatten: false,
                     expand: true,
                     nonull: true
@@ -253,14 +242,8 @@ module.exports = function(grunt) {
 
         // clean out directories, usually used prior to a 'copy' task
         clean: {
-            ot: {
-                src: [clientIncludeOrder.otRepoCopy],
-                options: {
-                    force: true
-                }
-            },
-            leases: {
-                src: [clientIncludeOrder.leasesRepoCopy],
+            compliance: {
+                src: [clientIncludeOrder.complianceRepoCopy],
                 options: {
                     force: true
                 }
