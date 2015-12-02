@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase
+from django.test import TransactionTestCase
 from rest_framework.status import HTTP_200_OK
 
 # Test URLs.
@@ -45,30 +45,16 @@ BAD_TOKEN = '4' * 40
 BAD_UUID = '4' * 32
 
 
-class Setup(SimpleTestCase):
+class Setup(TransactionTestCase):
     """A base class to do housekeeping before each test."""
 
     def setUp(self):
-        """Do explicit database reseting.
-
-        SimpleTestCase doesn't always reset the database to as much of an
-        initial state as we expect. And we need reset the resource and resource
-        type graphs.
-
-        """
-        from goldstone.addons.models import Addon
-        from goldstone.core.models import PolyResource
+        """Do additional inter-test resetting."""
         from goldstone.core import resource
-        from goldstone.tenants.models import Tenant
 
         get_user_model().objects.all().delete()
-        Tenant.objects.all().delete()
-
-        Addon.objects.all().delete()
 
         resource.types = resource.Types()
-
-        PolyResource.objects.non_polymorphic().all().delete()
 
         # Resource.instances may have been used before this test, so force it
         # into a virgin state.

@@ -12,13 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+import sys
+
 import arrow
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase
 from elasticsearch import Elasticsearch
-import os
-import sys
 
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient

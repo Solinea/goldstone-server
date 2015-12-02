@@ -14,12 +14,13 @@
 # limitations under the License.
 import socket
 
+import functools
+
 import cinderclient.v2.services
 from keystoneclient.v3 import client as ksclient
 from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from glanceclient.v2 import client as glclient
-import functools
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
 from novaclient.openstack.common.apiclient.exceptions \
