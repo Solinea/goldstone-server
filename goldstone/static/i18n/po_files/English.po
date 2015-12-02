@@ -26,11 +26,7 @@ msgid "Add-ons"
 msgstr ""
 
 #: addonMenuView.js
-msgid "leases"
-msgstr ""
-
-#: addonMenuView.js
-msgid "opentrail"
+msgid "compliance"
 msgstr ""
 
 #: addonMenuView.js

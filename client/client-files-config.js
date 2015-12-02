@@ -87,28 +87,15 @@ module.exports = {
     poSourceFiles: 'goldstone/static/i18n/po_files/*.po',
     poJsonDest: 'goldstone/static/i18n/po_json/i18n_combined.json',
 
-    // location of source and destination of opentrail files
+    // location of source and destination of compliance files
     // files in `/head/` will come first, `/middle/` next, and `/tail/` last
-    opentrailConcatWildcards: [
-        'goldstone/static/addons/opentrail/client-dev/head/*.js',
-        'goldstone/static/addons/opentrail/client-dev/middle/*.js',
-        'goldstone/static/addons/opentrail/client-dev/tail/*.js',
+    complianceConcatWildcards: [
+        'goldstone/static/addons/compliance/client-dev/head/*.js',
+        'goldstone/static/addons/compliance/client-dev/middle/*.js',
+        'goldstone/static/addons/compliance/client-dev/tail/*.js',
     ],
-    otConcatBundle: 'goldstone/static/addons/opentrail/client-js/main.js',
-    otCopyFolder: 'goldstone/static/addons/opentrail/',
-    otWatch: 'goldstone/static/addons/opentrail/**/*',
-    otRepoCopy: '../django-opentrail/opentrail/static/',
-
-    // location of source and destination of leases files
-    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
-    leasesConcatWildcards: [
-        'goldstone/static/addons/leases/client-dev/head/*.js',
-        'goldstone/static/addons/leases/client-dev/middle/*.js',
-        'goldstone/static/addons/leases/client-dev/tail/*.js',
-    ],
-    leasesConcatBundle: 'goldstone/static/addons/leases/client-js/main.js',
-    leasesCopyFolder: 'goldstone/static/addons/leases/',
-    leasesWatch: 'goldstone/static/addons/leases/**/*',
-    leasesRepoCopy: '../django-leases/leases/static/'
-
+    complianceConcatBundle: 'goldstone/static/addons/compliance/client-js/main.js',
+    complianceCopyFolder: 'goldstone/static/addons/compliance/',
+    complianceWatch: 'goldstone/static/addons/compliance/**/*',
+    complianceRepoCopy: '../goldstone-compliance/compliance/static/',
 };
