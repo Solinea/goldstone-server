@@ -15,11 +15,10 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-# from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import RouterView
-from django.views.generic import TemplateView
 
 admin.autodiscover()
 
