@@ -804,6 +804,8 @@ var GoldstoneBasePageView = GoldstoneBaseView2.extend({
     extra options passed in with GoldstoneRouter.switchView will be accessible via this.options
     */
 
+    defaults: {},
+
     instanceSpecificInit: function() {
         this.render();
         this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView2
@@ -8752,7 +8754,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     computeLookback: function() {
         var ns = this.defaults;
         ns.end = +new Date();
-        ns.start = ns.end - (ns.globalLookback * 60 * 1000);
+        ns.start = ns.end - (this.globalLookback * 60 * 1000);
     },
 
     renderCharts: function() {
