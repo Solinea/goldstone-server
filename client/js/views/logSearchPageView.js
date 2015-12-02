@@ -101,6 +101,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     template: _.template('' +
 
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton active btn btn-default"><a href="#reports/logbrowser"><%=goldstone.translate(\'Log Browser\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><a href="#reports/eventbrowser"><%=goldstone.translate(\'Event Browser\')%></a></button>' +
+        '<button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><a href="#reports/apibrowser"><%=goldstone.translate(\'Api Browser\')%></a</button>' +
+        '</div><br><br>' +
+
         // container for new prototype d3 log chart
         '<div class="log-analysis-container"></div>' +
 

@@ -4635,6 +4635,13 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
     template: _.template('' +
 
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><a href="#reports/logbrowser"><%=goldstone.translate(\'Log Browser\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><a href="#reports/eventbrowser"><%=goldstone.translate(\'Event Browser\')%></a></button>' +
+        '<button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><a href="#reports/apibrowser"><%=goldstone.translate(\'Api Browser\')%></a</button>' +
+        '</div><br><br>' +
+
         '<div class="row">' +
         '<div id="api-histogram-visualization" class="col-md-12"></div>' +
         '</div>' +
@@ -5140,6 +5147,13 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for metric viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><a href="#metrics/nova_report"><%=goldstone.translate(\'Compute\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton active btn btn-default"><a href="#metrics/api_perf"><%=goldstone.translate(\'API Performance\')%></a></button>' +
+        '</div><br><br>' +
+
         '<div id="api-perf-report-r1" class="row">' +
         '<div id="api-perf-report-r1-c1" class="col-md-6"></div>' +
         '<div id="api-perf-report-r1-c2" class="col-md-6"></div>' +
@@ -6769,6 +6783,13 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><a href="#reports/logbrowser"><%=goldstone.translate(\'Log Browser\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton active btn btn-default"><a href="#reports/eventbrowser"><%=goldstone.translate(\'Event Browser\')%></a></button>' +
+        '<button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><a href="#reports/apibrowser"><%=goldstone.translate(\'Api Browser\')%></a</button>' +
+        '</div><br><br>' +
 
         '<div class="row">' +
         '<div id="events-histogram-visualization" class="col-md-12"></div>' +
@@ -8782,6 +8803,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton active btn btn-default"><a href="#reports/logbrowser"><%=goldstone.translate(\'Log Browser\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><a href="#reports/eventbrowser"><%=goldstone.translate(\'Event Browser\')%></a></button>' +
+        '<button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><a href="#reports/apibrowser"><%=goldstone.translate(\'Api Browser\')%></a</button>' +
+        '</div><br><br>' +
 
         // container for new prototype d3 log chart
         '<div class="log-analysis-container"></div>' +
@@ -12286,6 +12314,13 @@ var NovaReportView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for metric viewers
+        '<div class="btn-group" role="group">' +
+        '<button type="button" data-title="Log Browser" class="headerBar servicesButton active btn btn-default"><a href="#metrics/nova_report"><%=goldstone.translate(\'Compute\')%></a></button>' +
+        '<button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><a href="#metrics/api_perf"><%=goldstone.translate(\'API Performance\')%></a></button>' +
+        '</div><br><br>' +
+
         '<div id="nova-report-r1" class="row">' +
         '<div id="nova-report-r1-c1" class="col-md-6"></div>' +
         '<div id="nova-report-r1-c2" class="col-md-6"></div>' +
