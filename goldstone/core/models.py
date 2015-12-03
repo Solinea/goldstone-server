@@ -2634,3 +2634,38 @@ class Router(PolyResource):
     def resourcetype(cls):
 
         return "routers"
+
+class EventQueryDef(PolyResource):
+
+    """ This model defines how events get generated from parsing
+        queries and log indices """
+
+    uuid = UUIDField(version=1, auto=True, primary_key=True)
+    name = CharField(max_length=128)
+    desc = CharField(max_length=1024)
+    protected = True
+    protected_sys_filters = LogEvent.LOG_EVENT_TYPES
+    created_ts = CreationDateTimeField(editable=False,
+                                       blank=True,
+                                       default=utc_now)
+    updated_ts = CreationDateTimeField(editable=False,
+                                       blank=True,
+                                       default=utc_now)
+
+
+class AlertQueryDef(PolyResource):
+
+    """ This model defines how alerts get generated from parsing
+        event indices """
+
+    uuid = UUIDField(version=1, auto=True, primary_key=True)
+    name = CharField(max_length=128)
+    desc = CharField(max_length=1024)
+    query = CharField(max_length=1024)
+    protected = True
+    created_ts = CreationDateTimeField(editable=False,
+                                       blank=True,
+                                       default=utc_now)
+    updated_ts = CreationDateTimeField(editable=False,
+                                       blank=True,
+                                       default=utc_now)
