@@ -24,7 +24,7 @@ from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
 
 from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData, \
-    ApiPerfData, EventQueryDef, AlertQueryDef
+    ApiPerfData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     NamesAggSerializer, PassthruSerializer, MetricAggSerializer, \
     EventSerializer, ApiPerfSerializer, EventSummarizeSerializer, \
@@ -71,7 +71,7 @@ class ReportNamesAggView(SimpleAggView):
 
     This currently supports a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
-    query params such as host=xyz or @timestamp__range={'gt': 0}.
+    query params such has host=xyz or @timestamp__range={'gt': 0}.
 
     ---
 
