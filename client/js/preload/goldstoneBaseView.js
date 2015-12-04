@@ -64,7 +64,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
         this.collection = this.options.collection || undefined;
         this.infoIcon = this.options.infoIcon;
-
+        this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {
@@ -96,7 +96,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.globalLookback = $('#global-lookback-range').val() || 15;
 
         // in seconds
-        this.globalRefresh = $('#global-refresh-range').val() || 60;
+        this.globalRefresh = $('#global-refresh-range').val() || 30;
     },
 
     setSpinner: function() {

@@ -20,10 +20,12 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     model: GoldstoneBaseModel.extend(),
 
+    defaults: {},
 
     initialize: function(options) {
         options = options || {};
         this.options = _.clone(options);
+        this.defaults = _.clone(this.defaults);
         this.url = this.options.url || null;
         this.instanceSpecificInit();
     },
@@ -104,6 +106,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     // },
 
     computeLookbackAndInterval: function() {
+        console.log(this.getGlobalLookbackRefresh);
         this.getGlobalLookbackRefresh();
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
@@ -112,9 +115,10 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     },
 
     getGlobalLookbackRefresh: function() {
+
+
         this.epochNow = +new Date();
-        this.globalLookback = parseInt($('#global-lookback-range').val(), 10);
-        this.globalRefresh = parseInt($('#global-refresh-range').val(), 10);
+        this.getGlobalLookbackRefresh();
     },
 
     fetchWithReset: function() {
@@ -136,3 +140,4 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 });
 
 GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView.prototype.flattenObj;
+GoldstoneBaseCollection.prototype.getGlobalLookbackRefresh = GoldstoneBaseView.prototype.getGlobalLookbackRefresh;

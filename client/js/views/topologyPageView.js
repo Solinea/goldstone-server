@@ -41,6 +41,7 @@ var topologyPageView = GoldstoneBasePageView.extend({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
             chartTitle: goldstone.translate('Event Timeline'),
+            infoText: 'eventTimeline',
             width: $('#goldstone-discover-r1-c1').width()
         });
 
@@ -53,10 +54,11 @@ var topologyPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
-            h: {
+            height: {
                 "main": 150,
                 "swim": 50
             },
+            infoText: 'nodeAvailability',
             width: $('#goldstone-discover-r1-c2').width()
         });
 

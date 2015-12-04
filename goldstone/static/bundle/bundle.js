@@ -261,7 +261,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
         this.collection = this.options.collection || undefined;
         this.infoIcon = this.options.infoIcon;
-
+        this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {
@@ -293,7 +293,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.globalLookback = $('#global-lookback-range').val() || 15;
 
         // in seconds
-        this.globalRefresh = $('#global-refresh-range').val() || 60;
+        this.globalRefresh = $('#global-refresh-range').val() || 30;
     },
 
     setSpinner: function() {
@@ -655,10 +655,12 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     model: GoldstoneBaseModel.extend(),
 
+    defaults: {},
 
     initialize: function(options) {
         options = options || {};
         this.options = _.clone(options);
+        this.defaults = _.clone(this.defaults);
         this.url = this.options.url || null;
         this.instanceSpecificInit();
     },
@@ -739,6 +741,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     // },
 
     computeLookbackAndInterval: function() {
+        console.log(this.getGlobalLookbackRefresh);
         this.getGlobalLookbackRefresh();
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
@@ -747,9 +750,10 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     },
 
     getGlobalLookbackRefresh: function() {
+
+
         this.epochNow = +new Date();
-        this.globalLookback = parseInt($('#global-lookback-range').val(), 10);
-        this.globalRefresh = parseInt($('#global-refresh-range').val(), 10);
+        this.getGlobalLookbackRefresh();
     },
 
     fetchWithReset: function() {
@@ -771,6 +775,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 });
 
 GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView.prototype.flattenObj;
+GoldstoneBaseCollection.prototype.getGlobalLookbackRefresh = GoldstoneBaseView.prototype.getGlobalLookbackRefresh;
 ;
 /**
  * Copyright 2015 Solinea, Inc.
@@ -2919,7 +2924,7 @@ var EventTimelineModel = GoldstoneBaseModel.extend({
     idAttribute: 'timestamp'
 });
 
-var EventTimelineCollection = Backbone.Collection.extend({
+var EventTimelineCollection = GoldstoneBaseCollection.extend({
 
     parse: function(data) {
         var nextUrl;
@@ -2950,29 +2955,14 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
         this.defaults = _.clone(this.defaults);
 
-        this.urlUpdate(this.computeLookback());
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
+        this.getGlobalLookbackRefresh();
+        this.urlUpdate(this.globalLookback);
         this.fetchWithReset();
     },
 
     model: EventTimelineModel,
 
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-        return lookbackMinutes;
-    },
-
     fetchWithReset: function() {
-
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
         this.fetch({
@@ -3653,14 +3643,12 @@ Instantiated on discoverView as:
 
 var NodeAvailModel = GoldstoneBaseModel.extend({});
 
-var NodeAvailCollection = Backbone.Collection.extend({
-
-    defaults: {},
+var NodeAvailCollection = GoldstoneBaseCollection.extend({
 
     parse: function(data) {
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            var nextUrl = dp.slice(dp.indexOf('/logging'));
+        if (data && data.next && data.next !== null) {
+            var dN = data.next;
+            var nextUrl = dN.slice(dN.indexOf('/logging'));
             this.fetch({
                 url: nextUrl,
                 remove: false
@@ -3676,8 +3664,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     model: NodeAvailModel,
 
-    initialize: function(options) {
-        this.defaults = _.clone(this.defaults);
+    instanceSpecificInit: function(options) {
 
         // fetchInProgress = true will block further fetches
         this.defaults.fetchInProgress = false;
@@ -3692,21 +3679,6 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     },
 
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-
-        // returns the number of minutes corresponding
-        // to the global lookback selector
-        return lookbackMinutes;
-    },
-
     fetchMultipleUrls: function() {
         var self = this;
 
@@ -3717,7 +3689,8 @@ var NodeAvailCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 
-        var lookbackMinutes = (this.computeLookback());
+        this.getGlobalLookbackRefresh();
+        var lookbackMinutes = (this.globalLookback);
         var lookbackSeconds = (lookbackMinutes * 60);
         var lookbackMilliseconds = (lookbackSeconds * 1000);
 
@@ -6063,32 +6036,30 @@ var DiscoverView = GoldstoneBasePageView.extend({
  */
 
 /*
-Instantiated on discoverView as:
+Instantiated on topologyPageView as:
 
 var eventTimelineChart = new EventTimelineCollection({});
 
-var eventTimelineChartView = new EventTimelineView({
-    collection: eventTimelineChart,
+this.eventTimelineChartView = new EventTimelineView({
+    collection: this.eventTimelineChart,
     el: '#goldstone-discover-r1-c1',
-    chartTitle: 'Event Timeline',
+    chartTitle: goldstone.translate('Event Timeline'),
     width: $('#goldstone-discover-r1-c1').width()
 });
 */
 
 var EventTimelineView = GoldstoneBaseView.extend({
-    defaults: {
-        margin: {
-            top: 25,
-            bottom: 25,
-            right: 20,
-            left: 40
-        },
+    margin: {
+        top: 25,
+        bottom: 25,
+        right: 20,
+        left: 40
+    },
 
-        h: {
-            "main": 100,
-            "padding": 30,
-            "tooltipPadding": 50
-        }
+    h: {
+        "main": 100,
+        "padding": 30,
+        "tooltipPadding": 50
     },
 
     instanceSpecificInit: function() {
@@ -6102,73 +6073,75 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
         // appends spinner to el
+        this.setSpinner();
         this.showSpinner();
-        this.setInfoButtonPopover();
-    },
-
-    processOptions: function() {
-        this.defaults.colorArray = new GoldstoneColors().get('colorSets');
-        this.el = this.options.el;
-        this.defaults.chartTitle = this.options.chartTitle;
-        this.defaults.width = this.options.width;
     },
 
     processListeners: function() {
-        var self = this;
 
+        var self = this;
         this.listenTo(this.collection, 'sync', this.update);
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
-            self.updateSettings();
+            self.getGlobalLookbackRefresh();
             self.fetchNowWithReset();
         });
 
         this.on('lookbackIntervalReached', function() {
-            self.updateSettings();
+            self.getGlobalLookbackRefresh();
             self.fetchNowNoReset();
         });
     },
 
     processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
-    showSpinner: function() {
-        var ns = this.defaults;
+    setSpinner: function() {
+
+        // appends spinner with sensitivity to the fact that the View object
+        // may render before the .gif is served by django. If that happens,
+        // the hideSpinner method will set the 'display' css property to
+        // 'none' which will prevent it from appearing on the page
+
         var self = this;
+        this.spinnerDisplay = 'inline';
 
-        ns.spinnerDisplay = 'inline';
+        var appendSpinnerLocation;
+        if (this.spinnerPlace) {
+            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
+        } else {
+            appendSpinnerLocation = this.el;
+        }
 
-        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main / 2 + ns.h.padding),
-                'display': ns.spinnerDisplay
+                'margin-left': (self.width / 2),
+                'margin-top': (self.h.padding + self.h.tooltipPadding),
+                'display': self.spinnerDisplay
             });
         });
     },
 
     standardInit: function() {
-        var ns = this.defaults;
         var self = this;
 
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
+        self.mw = self.width - self.margin.left - self.margin.right;
+        self.mh = self.h.main - self.margin.top - self.margin.bottom;
 
-        ns.topAxis = d3.svg.axis()
+        self.topAxis = d3.svg.axis()
             .orient("top")
             .ticks(3)
             .tickFormat(d3.time.format("%a %b %e %Y"));
-        ns.bottomAxis = d3.svg.axis()
+        self.bottomAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
-        ns.xScale = d3.time.scale()
-            .range([ns.margin.left, ns.width - ns.margin.right - 10]);
+        self.xScale = d3.time.scale()
+            .range([self.margin.left, self.width - self.margin.right - 10]);
 
 
         /*
@@ -6178,29 +6151,29 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // you can change the value in colorArray to select
         // a particular number of different colors
         var colorArray = new GoldstoneColors().get('colorSets');
-        ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
+        self.color = d3.scale.ordinal().range(colorArray.distinct[3]);
 
         /*
          * The graph and axes
          */
 
-        ns.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", ns.width + ns.margin.right)
-            .attr("height", ns.h.main + (ns.h.padding + ns.h.tooltipPadding));
+        self.svg = d3.select(this.el).select(".panel-body").append("svg")
+            .attr("width", self.width + self.margin.right)
+            .attr("height", self.h.main + (self.h.padding + self.h.tooltipPadding));
 
         // tooltipPadding adds room for tooltip popovers
-        ns.graph = ns.svg.append("g").attr("id", "graph")
-            .attr("transform", "translate(0," + ns.h.tooltipPadding + ")");
+        self.graph = self.svg.append("g").attr("id", "graph")
+            .attr("transform", "translate(0," + self.h.tooltipPadding + ")");
 
-        ns.graph.append("g")
+        self.graph.append("g")
             .attr("class", "xUpper axis")
-            .attr("transform", "translate(0," + ns.h.padding + ")");
+            .attr("transform", "translate(0," + self.h.padding + ")");
 
-        ns.graph.append("g")
+        self.graph.append("g")
             .attr("class", "xLower axis")
-            .attr("transform", "translate(0," + ns.h.main + ")");
+            .attr("transform", "translate(0," + self.h.main + ")");
 
-        ns.tooltip = d3.tip()
+        self.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .offset(function() {
                 var leftOffset;
@@ -6208,8 +6181,8 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 var halfToolWidth = 260;
                 if (this.getBBox().x < halfToolWidth) {
                     leftOffset = halfToolWidth - this.getBBox().x;
-                } else if (this.getBBox().x > ns.width - halfToolWidth) {
-                    leftOffset = -(halfToolWidth - (ns.width - this.getBBox().x));
+                } else if (this.getBBox().x > self.width - halfToolWidth) {
+                    leftOffset = -(halfToolWidth - (self.width - this.getBBox().x));
                 } else {
                     leftOffset = 0;
                 }
@@ -6231,39 +6204,25 @@ var EventTimelineView = GoldstoneBaseView.extend({
                     "Created: " + d.timestamp + "<br>";
             });
 
-        ns.graph.call(ns.tooltip);
+        self.graph.call(self.tooltip);
 
-    },
-
-    lookbackRange: function() {
-        var lookbackMinutes;
-        lookbackMinutes = $('.global-lookback-selector .form-control').val();
-        return parseInt(lookbackMinutes, 10);
-    },
-
-    updateSettings: function() {
-        var ns = this.defaults;
-        ns.lookbackRange = this.lookbackRange();
     },
 
     fetchNowWithReset: function() {
-        var ns = this.defaults;
-        $(this.el).find('#spinner').show();
-        this.collection.urlUpdate(ns.lookbackRange);
+        this.showSpinner();
+        this.collection.urlUpdate(this.globalLookback);
         this.collection.fetchWithReset();
     },
 
     fetchNowNoReset: function() {
-        var ns = this.defaults;
-        $(this.el).find('#spinner').show();
-        this.collection.urlUpdate(ns.lookbackRange);
+        this.showSpinner();
+        this.collection.urlUpdate(this.globalLookback);
         this.collection.fetchNoReset();
     },
 
     opacityByFilter: function(d) {
-        var ns = this.defaults;
-        for (var filterType in ns.filter) {
-            if (filterType === d.doc_type && !ns.filter[filterType].active) {
+        for (var filterType in this.filter) {
+            if (filterType === d.doc_type && !this.filter[filterType].active) {
                 return 0;
             }
         }
@@ -6271,9 +6230,8 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     visibilityByFilter: function(d) {
-        var ns = this.defaults;
-        for (var filterType in ns.filter) {
-            if (filterType === d.doc_type && !ns.filter[filterType].active) {
+        for (var filterType in this.filter) {
+            if (filterType === d.doc_type && !this.filter[filterType].active) {
                 return "hidden";
             }
         }
@@ -6281,7 +6239,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.hideSpinner();
@@ -6296,7 +6253,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
             return evt.timestamp;
         })));
 
-        ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
+        self.xScale = self.xScale.domain([xEnd._d, xStart._d]);
 
         // If we didn't receive any valid files, append "No Data Returned"
         this.checkReturnedDataSet(allthelogs);
@@ -6306,7 +6263,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
          *   - Convert datetimes to integer
          *   - Sort by last seen (from most to least recent)
          */
-        ns.dataset = allthelogs
+        self.dataset = allthelogs
             .map(function(d) {
                 d.timestamp = moment(d.timestamp)._d;
                 return d;
@@ -6314,20 +6271,20 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
 
         // compile an array of the unique event types
-        ns.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
+        self.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
             return item.doc_type;
         }));
 
-        // populate ns.filter based on the array of unique event types
+        // populate self.filter based on the array of unique event types
         // add uniqueEventTypes to filter modal
-        ns.filter = ns.filter || {};
+        self.filter = self.filter || {};
 
         // clear out the modal and reapply based on the unique events
         if ($(this.el).find('#populateEventFilters').length) {
             $(this.el).find('#populateEventFilters').empty();
         }
 
-        _.each(ns.uniqueEventTypes, function(item) {
+        _.each(self.uniqueEventTypes, function(item) {
 
             // regEx to create separate words out of the event types
             // GenericSyslogError --> Generic Syslog Error
@@ -6337,14 +6294,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
             }
             itemSpaced = item.replace(re, ' $1').trim();
 
-            ns.filter[item] = ns.filter[item] || {
+            self.filter[item] = self.filter[item] || {
                 active: true,
-                // color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
+                // color: self.color(self.uniqueEventTypes.indexOf(item) % self.color.range().length),
                 displayName: itemSpaced
             };
 
             var addCheckIfActive = function(item) {
-                if (ns.filter[item].active) {
+                if (self.filter[item].active) {
                     return 'checked';
                 } else {
                     return '';
@@ -6358,7 +6315,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
                     '<div class="col-lg-12">' +
                     '<div class="input-group">' +
                     '<span class="input-group-addon"' +
-                    'style="opacity: 0.8; background-color:' + ns.filter[item].color + ';">' +
+                    'style="opacity: 0.8; background-color:' + self.filter[item].color + ';">' +
                     '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                     '</span>' +
                     '<span type="text" class="form-control">' + itemSpaced + '</span>' +
@@ -6371,7 +6328,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
 
             var checkboxId = this.id;
-            ns.filter[this.id].active = !ns.filter[this.id].active;
+            self.filter[this.id].active = !self.filter[this.id].active;
             self.redraw();
 
         });
@@ -6382,28 +6339,28 @@ var EventTimelineView = GoldstoneBaseView.extend({
          *   - adjust each axis to its new scale.
          */
 
-        ns.topAxis.scale(ns.xScale);
-        ns.bottomAxis.scale(ns.xScale);
+        self.topAxis.scale(self.xScale);
+        self.bottomAxis.scale(self.xScale);
 
-        ns.svg.select(".xUpper.axis")
+        self.svg.select(".xUpper.axis")
             .transition()
-            .call(ns.topAxis);
+            .call(self.topAxis);
 
-        ns.svg.select(".xLower.axis")
+        self.svg.select(".xLower.axis")
             .transition()
-            .call(ns.bottomAxis);
+            .call(self.bottomAxis);
 
         /*
          * New rectangles appear at the far right hand side of the graph.
          */
 
-        var rectangle = ns.graph.selectAll("rect")
+        var rectangle = self.graph.selectAll("rect")
 
         // bind data to d3 nodes and create uniqueness based on
         // th.timestamparam. This could possibly create some
         // issues due to duplication of a supposedly unique
         // param, but has not yet been a problem in practice.
-        .data(ns.dataset, function(d) {
+        .data(self.dataset, function(d) {
             return d.timestamp;
         });
 
@@ -6411,10 +6368,10 @@ var EventTimelineView = GoldstoneBaseView.extend({
         // dynamic resizing effect
         rectangle.enter()
             .append("rect")
-            .attr("x", ns.margin.left)
-            .attr("y", ns.h.padding + 1)
+            .attr("x", self.margin.left)
+            .attr("y", self.h.padding + 1)
             .attr("width", 2)
-            .attr("height", ns.h.main - ns.h.padding - 2)
+            .attr("height", self.h.main - self.h.padding - 2)
             .attr("class", "single-event")
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
@@ -6429,20 +6386,20 @@ var EventTimelineView = GoldstoneBaseView.extend({
                     result = d.traits.outcome;
 
                     // 0: green, 1: blue, 2: orange
-                    return result === 'success' ? ns.color(0) : result === 'pending' ? ns.color(1) : ns.color(2);
+                    return result === 'success' ? self.color(0) : result === 'pending' ? self.color(1) : self.color(2);
                 } else {
-                    return ns.color(2);
+                    return self.color(2);
                 }
             })
-            .on("mouseover", ns.tooltip.show)
+            .on("mouseover", self.tooltip.show)
             .on("mouseout", function() {
-                ns.tooltip.hide();
+                self.tooltip.hide();
             });
 
         rectangle
             .transition()
             .attr("x", function(d) {
-                return ns.xScale(d.timestamp);
+                return self.xScale(d.timestamp);
             });
 
         rectangle.exit().remove();
@@ -6451,13 +6408,12 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     redraw: function() {
-        var ns = this.defaults;
         var self = this;
 
-        ns.graph.selectAll("rect")
+        self.graph.selectAll("rect")
             .transition().duration(500)
             .attr("x", function(d) {
-                return ns.xScale(d.timestamp);
+                return self.xScale(d.timestamp);
             })
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
@@ -6469,69 +6425,37 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-        this.$el.html(this.template());
+        this.appendChartHeading();
+        this.$el.append(this.template());
 
         // append the modal that is triggered by
         // clicking the filter icon
         $('#modal-container-' + this.el.slice(1)).append(this.eventFilterModal());
+        this.$el.find('.special-icon-post').append(this.filterButton());
+
 
         // standard Backbone convention is to return this
         return this;
     },
 
-    setInfoButtonPopover: function() {
-
-        var infoButtonText = new InfoButtonText().get('infoText');
-        var htmlGen = function() {
-            var result = infoButtonText.eventTimeline;
-            return result;
-        };
-        // attach click listeners to chart heading info button
-        $('#goldstone-event-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('hide');
-            });
-    },
+    filterButton: _.template('' +
+        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
+    ),
 
     template: _.template(
         '<div id = "goldstone-event-panel" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
 
-        // filter icon
-        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-right: 15px;"></i>' +
-
-        // info-circle icon
-        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
-        'style="margin-right: 15px;"></i>' +
-        '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:<%= (this.defaults.h.padding * 2) %>' +
-        'px">' +
-        '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
-        '</div>' +
-        '</div>' +
-        '<div class="panel-body" style="height:<%= this.defaults.h.main %>' + 'px">' +
+        '<div class="panel-body" style="height:<%= this.h.main %>' + 'px">' +
+        '<div>' +
         '<div id="goldstone-event-chart">' +
         '<div class="clearfix"></div>' +
-        '</div>' +
-        '</div>' +
         '</div>' +
         '</div>' +
 
         '<div id="modal-container-<%= this.el.slice(1) %>' +
         '"></div>'
-
     ),
 
     eventFilterModal: _.template(
@@ -10928,50 +10852,47 @@ openstack syslog severity levels:
 /*
 View is linked to collection when instantiated
 
-Instantiated on discoverView as:
+Instantiated on topologyPageView as:
 
-var nodeAvailChart = new NodeAvailCollection({});
+this.nodeAvailChart = new NodeAvailCollection({});
 
-var nodeAvailChartView = new NodeAvailView({
-    collection: nodeAvailChart,
+this.nodeAvailChartView = new NodeAvailView({
+    chartTitle: goldstone.translate('Node Availability'),
+    collection: this.nodeAvailChart,
+    el: '#goldstone-discover-r1-c2',
     h: {
         "main": 150,
         "swim": 50
-        // "main": 450,
-        // "swim": 50
     },
-    el: '#goldstone-discover-r1-c2',
-    chartTitle: 'Node Availability',
-    width: $('#goldstone-discover-r2-c2').width()
+    width: $('#goldstone-discover-r1-c2').width()
 });
 */
 
 
 var NodeAvailView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 18,
-            bottom: 25,
-            right: 40,
-            left: 10
-        },
-
-        filter: {
-            // none must be set to false in order to not display
-            // nodes that have zero associated events.
-            emergency: true,
-            alert: true,
-            critical: true,
-            error: true,
-            warning: true,
-            notice: true,
-            info: true,
-            debug: true,
-            none: false,
-            actualZero: true
-        }
+    margin: {
+        top: 18,
+        bottom: 25,
+        right: 40,
+        left: 10
     },
+
+    filter: {
+        // none must be set to false in order to not display
+        // nodes that have zero associated events.
+        emergency: true,
+        alert: true,
+        critical: true,
+        error: true,
+        warning: true,
+        notice: true,
+        info: true,
+        debug: true,
+        none: false,
+        actualZero: true
+    },
+
 
     instanceSpecificInit: function() {
 
@@ -10979,44 +10900,36 @@ var NodeAvailView = GoldstoneBaseView.extend({
         this.processOptions();
         // sets page-element listeners, and/or event-listeners
         this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
         // Appends this basic chart template, usually overwritten
         this.render();
         // basic assignment of variables to be used in chart rendering
-        this.standardInit();
+        this.initSvg();
         // appends spinner to el
+        this.setSpinner();
         this.showSpinner();
-        // allows a container for any special afterthoughts that need to
-        // be invoked during the initialization of this View, or those that
-        // are descendent from this view.
-        this.setInfoButtonPopover();
     },
 
     processOptions: function() {
-        this.el = this.options.el;
-        this.defaults.chartTitle = this.options.chartTitle;
-        this.defaults.width = this.options.width;
-        this.defaults.height = this.options.h;
-        this.defaults.r = d3.scale.sqrt();
-        this.defaults.colorArray = new GoldstoneColors().get('colorSets');
+        NodeAvailView.__super__.processOptions.apply(this, arguments);
 
         // this will contain the results of the two seperate fetches
         // before they are zipped together in this.combineDatasets
-        this.defaults.dataToCombine = [];
+        this.r = d3.scale.sqrt();
+        this.dataToCombine = [];
 
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     processListeners: function() {
         var self = this;
-        var ns = this.defaults;
 
         this.listenTo(this.collection, 'sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
 
                 // if the 2nd fetch is done, store the 2nd dataset
                 // in dataToCombine
-                ns.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
+                self.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
 
                 // restore the fetch count
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
@@ -11030,7 +10943,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             } else if (self.collection.defaults.urlCollectionCount === 1) {
                 // if the 1st of 2 fetches are done, store the
                 // first dataset in dataToCombine
-                ns.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
+                self.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
             }
         });
 
@@ -11045,72 +10958,70 @@ var NodeAvailView = GoldstoneBaseView.extend({
         });
     },
 
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
-    },
+    setSpinner: function() {
 
-    showSpinner: function() {
-        var ns = this.defaults;
         var self = this;
+        this.spinnerDisplay = 'inline';
 
-        ns.spinnerDisplay = 'inline';
+        var appendSpinnerLocation;
+        if (this.spinnerPlace) {
+            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
+        } else {
+            appendSpinnerLocation = this.el;
+        }
 
-        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height.main * 0.55),
-                'display': ns.spinnerDisplay
+                'margin-left': (self.width / 2),
+                'margin-top': -(self.height.main * 0.55),
+                'display': self.spinnerDisplay
             });
         });
     },
 
     fetchNowWithReset: function() {
-        var ns = this.defaults;
         this.showSpinner();
         this.collection.fetchMultipleUrls();
     },
 
-    standardInit: function() {
-        var ns = this.defaults;
+    initSvg: function() {
         var self = this;
 
         // maps between input label domain and output color range for circles
-        ns.loglevel = d3.scale.ordinal()
+        self.loglevel = d3.scale.ordinal()
             .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug", "actualZero"])
         // concats darkgrey as a color for nodes
         // reported at 'actualZero'
-        .range(ns.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
+        .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
 
         // for 'disabled' axis
-        ns.xAxis = d3.svg.axis()
+        self.xAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(3)
             .tickFormat(d3.time.format("%m/%d %H:%M:%S"));
 
-        ns.xScale = d3.time.scale()
-            .range([ns.margin.left, ns.mw - ns.margin.right])
+        self.xScale = d3.time.scale()
+            .range([self.margin.left, self.mw - self.margin.right])
         // rounding
         .nice()
         // values above or below domain will be constrained to range
         .clamp(true);
 
-        ns.yAxis = d3.svg.axis()
+        self.yAxis = d3.svg.axis()
             .ticks(5)
             .orient("left");
-        ns.swimAxis = d3.svg.axis().orient("left");
-        ns.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin"].concat(ns.loglevel
+        self.swimAxis = d3.svg.axis().orient("left");
+        self.ySwimLane = d3.scale.ordinal()
+            .domain(["unadmin"].concat(self.loglevel
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([ns.height.main, 0]);
+            .rangeRoundBands([self.height.main, 0]);
 
-        ns.yLogs = d3.scale.linear()
+        self.yLogs = d3.scale.linear()
             .range([
-                ns.ySwimLane("unadmin") - ns.ySwimLane.rangeBand(),
-                ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
+                self.ySwimLane("unadmin") - self.ySwimLane.rangeBand(),
+                self.ySwimLane("ping") + self.ySwimLane.rangeBand()
             ]);
 
 
@@ -11118,28 +11029,28 @@ var NodeAvailView = GoldstoneBaseView.extend({
          * The graph and axes
          */
 
-        ns.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height.main + (ns.height.swim * 2) + ns.margin.top + ns.margin.bottom)
+        self.svg = d3.select(this.el).select(".panel-body").append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height.main + (self.height.swim * 2) + self.margin.top + self.margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
-        ns.graph = ns.svg.append("g").attr("id", "graph");
+        self.graph = self.svg.append("g").attr("id", "graph");
 
         // Visual swim lanes
-        ns.swimlanes = {
+        self.swimlanes = {
             // ping: {
             //     label: "Ping Only",
-            //     offset: -(ns.ySwimLane.rangeBand() / 2)
+            //     offset: -(self.ySwimLane.rangeBand() / 2)
             // },
             unadmin: {
                 label: "Disabled",
-                offset: ns.ySwimLane.rangeBand() / 2
+                offset: self.ySwimLane.rangeBand() / 2
             }
         };
 
-        ns.graph.selectAll(".swimlane")
-            .data(d3.keys(ns.swimlanes), function(d) {
+        self.graph.selectAll(".swimlane")
+            .data(d3.keys(self.swimlanes), function(d) {
                 return d;
             })
             .enter().append("g")
@@ -11148,30 +11059,30 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return d;
             })
             .attr("transform", function(d) {
-                return "translate(0," + ns.ySwimLane(d) + ")";
+                return "translate(0," + self.ySwimLane(d) + ")";
             });
 
-        // ns.graph.append("g")
+        // self.graph.append("g")
         //     .attr("class", "xping axis")
-        //     .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
+        //     .attr("transform", "translate(0," + (self.ySwimLane.rangeBand()) + ")");
 
-        ns.graph.append("g")
+        self.graph.append("g")
             .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (ns.height.main - ns.ySwimLane.rangeBand()) + ")");
+            .attr("transform", "translate(0," + (self.height.main - self.ySwimLane.rangeBand()) + ")");
 
-        ns.graph.append("g")
+        self.graph.append("g")
             .attr("class", "y axis invisible-axis")
-            .attr("transform", "translate(" + (ns.mw + 10) + ",0)");
+            .attr("transform", "translate(" + (self.mw + 10) + ",0)");
 
         // nudges visible y-axis to the right
-        ns.graph.append("g")
+        self.graph.append("g")
             .attr("class", "swim axis invisible-axis")
             .attr("transform", "translate(20,0)");
 
-        ns.tooltip = d3.tip()
+        self.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                if (this.getBBox().y < ns.height.swim) {
+                if (this.getBBox().y < self.height.swim) {
                     return 's';
                 } else {
                     return 'n';
@@ -11184,8 +11095,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 var halfToolHeight = 65;
                 if (this.getBBox().x < toolTipWidth) {
                     leftOffset = toolTipWidth - this.getBBox().x;
-                } else if (this.getBBox().x > ns.width - toolTipWidth) {
-                    leftOffset = -(toolTipWidth - (ns.width - this.getBBox().x));
+                } else if (this.getBBox().x > self.width - toolTipWidth) {
+                    leftOffset = -(toolTipWidth - (self.width - this.getBBox().x));
                 } else {
                     leftOffset = 0;
                 }
@@ -11195,17 +11106,17 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return self.formatTooltip(d);
             });
 
-        ns.graph.call(ns.tooltip);
+        self.graph.call(self.tooltip);
 
         // Label the swim lane ticks
-        ns.swimAxis
+        self.swimAxis
             .tickFormat(function(d) {
                 // Visual swim lanes
                 var swimlanes = {
                     // ping: "Ping Only",
                     unadmin: ""
                 };
-                var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
+                var middle = self.ySwimLane.domain()[Math.floor(self.ySwimLane.domain().length / 2)];
                 swimlanes[middle] = "";
                 if (swimlanes[d]) {
                     return swimlanes[d];
@@ -11216,7 +11127,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // Draw the axis on the screen
         d3.select(this.el).select(".swim.axis")
-            .call(ns.swimAxis.scale(ns.ySwimLane));
+            .call(self.swimAxis.scale(self.ySwimLane));
 
         // Transform the swim lane ticks into place
         // increases size of labels via font-size
@@ -11226,13 +11137,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     formatTooltip: function(d) {
-        var ns = this.defaults;
 
         // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
         var tooltipText = '<div class="text-left">Host: ' + d.name + '<br>' +
             'Time: ' + moment(d.created).toDate() + '<br>';
 
-        var levels = _.filter(_.keys(ns.filter), function(item) {
+        var levels = _.filter(_.keys(self.filter), function(item) {
             return item !== 'actualZero' && item !== 'none';
         });
 
@@ -11254,11 +11164,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     sums: function(datum) {
-        var ns = this.defaults;
-        // Return the sums for the filters that are on
-        return d3.sum(ns.loglevel.domain().map(function(k) {
+        var self = this;
 
-            if (ns.filter[k] && datum[k + "_count"]) {
+        // Return the sums for the filters that are on
+        return d3.sum(self.loglevel.domain().map(function(k) {
+
+            if (self.filter[k] && datum[k + "_count"]) {
                 return datum[k + "_count"];
             } else {
                 return 0;
@@ -11268,7 +11179,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function(data) {
-        var ns = this.defaults;
         var self = this;
 
         var finalData = [];
@@ -11334,7 +11244,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                         });
 
                         // set each alert level to 0 if still undefined
-                        _.each(ns.loglevel.domain().filter(function(item) {
+                        _.each(self.loglevel.domain().filter(function(item) {
                             return item !== 'actualZero';
                         }), function(level) {
                             hostResultObject[level + '_count'] = hostResultObject[level + '_count'] || 0;
@@ -11381,20 +11291,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         return dataArray[0];
     },
 
-    lookbackRange: function() {
-        var lookbackMinutes;
-        lookbackMinutes = $('.global-lookback-selector .form-control').val();
-        return parseInt(lookbackMinutes, 10);
-        // returns only the numerical value of the lookback range
-    },
-
-    updateLookbackMinutes: function() {
-        var ns = this.defaults;
-        ns.lookbackRange = this.lookbackRange();
-    },
-
     update: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.hideSpinner();
@@ -11403,11 +11300,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var allthelogs = this.collection.toJSON()[0];
 
         // get the currrent lookback to set the domain of the xAxis
-        this.updateLookbackMinutes();
+        this.getGlobalLookbackRefresh();
         xEnd = +new Date();
-        xStart = xEnd - (1000 * 60 * ns.lookbackRange);
+        xStart = xEnd - (1000 * 60 * this.globalLookback);
 
-        ns.xScale = ns.xScale.domain([xStart, xEnd]);
+        self.xScale = self.xScale.domain([xStart, xEnd]);
 
         // if no response from server, need to assign allthelogs.data
         allthelogs = allthelogs || {};
@@ -11424,7 +11321,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         }
 
         // populate the modal based on the event types.
-        _.each(_.keys(ns.filter), function(item) {
+        _.each(_.keys(self.filter), function(item) {
 
             // don't put type 'none' or 'actualZero'
             // in the modal checkbox options
@@ -11435,7 +11332,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             // function to determine if the html should format
             // a check box for the filter button in the modal
             var addCheckIfActive = function(item) {
-                if (ns.filter[item]) {
+                if (self.filter[item]) {
                     return 'checked';
                 } else {
                     return '';
@@ -11451,7 +11348,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
                 '<span class="input-group-addon"' +
-                'style="background-color:' + ns.loglevel([item]) + ';">' +
+                'style="background-color:' + self.loglevel([item]) + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
@@ -11464,7 +11361,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // click listerner for check box to redraw the viz upon change
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
-            ns.filter[checkboxId] = !ns.filter[checkboxId];
+            self.filter[checkboxId] = !self.filter[checkboxId];
             self.redraw();
 
         });
@@ -11476,7 +11373,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - Sort by last seen (from most to least recent)
          */
 
-        ns.dataset = this.combineDatasets(ns.dataToCombine)
+        self.dataset = this.combineDatasets(self.dataToCombine)
             .map(function(d) {
                 d.created = moment(d.created);
                 d.updated = moment(d.updated);
@@ -11501,26 +11398,26 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - adjust each axis to its new scale.
          */
 
-        // ns.pingAxis.scale(ns.xScale);
-        ns.xAxis.scale(ns.xScale);
+        // self.pingAxis.scale(self.xScale);
+        self.xAxis.scale(self.xScale);
 
-        // ns.svg.select(".xping.axis")
-        //     .call(ns.pingAxis);
+        // self.svg.select(".xping.axis")
+        //     .call(self.pingAxis);
 
-        ns.svg.select(".xunadmin.axis")
-            .call(ns.xAxis);
+        self.svg.select(".xunadmin.axis")
+            .call(self.xAxis);
 
-        ns.yAxis.scale(ns.yLogs);
+        self.yAxis.scale(self.yLogs);
 
-        ns.svg.select(".y.axis")
+        self.svg.select(".y.axis")
             .transition()
             .duration(500)
-            .call(ns.yAxis);
+            .call(self.yAxis);
 
 
         // binds circles to dataset
-        var circle = ns.graph.selectAll("circle")
-            .data(ns.dataset, function(d) {
+        var circle = self.graph.selectAll("circle")
+            .data(self.dataset, function(d) {
                 // if changing this, also must
                 // change idAttribute in backbone model
 
@@ -11535,13 +11432,13 @@ TODO: probably change this to d.timestamp
         circle.enter()
             .append("circle")
             .attr("cx", function(d) {
-                return ns.xScale.range()[1];
+                return self.xScale.range()[1];
             })
             .attr("cy", function(d) {
-                return ns.yLogs(self.sums(d));
+                return self.yLogs(self.sums(d));
             })
-            .on("mouseover", ns.tooltip.show)
-            .on("mouseout", ns.tooltip.hide)
+            .on("mouseover", self.tooltip.show)
+            .on("mouseout", self.tooltip.hide)
             .on("click", function(d) {
                 window.location.href = '#report/node/' + d.name;
             });
@@ -11554,7 +11451,6 @@ TODO: probably change this to d.timestamp
     },
 
     redraw: function() {
-        var ns = this.defaults;
         var self = this;
 
         /*
@@ -11562,19 +11458,19 @@ TODO: probably change this to d.timestamp
          * That will determine its color.
          */
 
-        _.each(ns.dataset, function(nodeObject) {
+        _.each(self.dataset, function(nodeObject) {
 
             // nonzero_levels returns an array of the node's
             // alert severities that are not filtered out
 
-            var nonzero_levels = ns.loglevel.domain()
+            var nonzero_levels = self.loglevel.domain()
                 .map(function(level) {
                     return [level, nodeObject[level + "_count"]];
                 })
                 .filter(function(level) {
 
                     // only consider 'active' filter buttons
-                    return ns.filter[level[0]] && (level[1] > 0);
+                    return self.filter[level[0]] && (level[1] > 0);
                 });
 
             // the .level paramater will determine visibility
@@ -11592,9 +11488,9 @@ TODO: probably change this to d.timestamp
 
         });
 
-        ns.yLogs.domain([
+        self.yLogs.domain([
             0,
-            d3.max(ns.dataset.map(function(d) {
+            d3.max(self.dataset.map(function(d) {
                 return self.sums(d);
             }))
         ]);
@@ -11606,9 +11502,9 @@ TODO: probably change this to d.timestamp
         d3.select(this.el).select(".y.axis")
             .transition()
             .duration(500)
-            .call(ns.yAxis.scale(ns.yLogs));
+            .call(self.yAxis.scale(self.yLogs));
 
-        ns.graph.selectAll("circle")
+        self.graph.selectAll("circle")
             .transition().duration(500)
         // this determines the color of the circle
         .attr("class", function(d) {
@@ -11619,17 +11515,17 @@ TODO: probably change this to d.timestamp
             }
         })
             .attr("fill", function(d) {
-                return ns.loglevel(d.level);
+                return self.loglevel(d.level);
             })
             .attr("cx", function(d) {
-                return ns.xScale(d.updated);
+                return self.xScale(d.updated);
             })
             .attr("cy", function(d, i) {
 
                 // add multiplier to give space between
                 // multiple items reporting the same numbers
                 if (d.level === 'actualZero') {
-                    return (ns.yLogs(self.sums(d)) - (i * 2));
+                    return (self.yLogs(self.sums(d)) - (i * 2));
                 } else {
 
                     // notice the [] at the end which is calling
@@ -11639,10 +11535,10 @@ TODO: probably change this to d.timestamp
 
                         // add multiplier to give space between
                         // multiple items reporting the same numbers
-                        logs: ns.yLogs(self.sums(d) - (i * 2)),
+                        logs: self.yLogs(self.sums(d) - (i * 2)),
 
-                        // ping: ns.ySwimLane(d.swimlane) - 15,
-                        unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
+                        // ping: self.ySwimLane(d.swimlane) - 15,
+                        unadmin: self.ySwimLane(d.swimlane) + self.ySwimLane.rangeBand() + 15
                     }[d.swimlane];
 
 
@@ -11655,9 +11551,9 @@ TODO: probably change this to d.timestamp
 
                 // radii at fixed size for now.
                 if (d.swimlane === "logs") {
-                    return ns.r(64);
+                    return self.r(64);
                 } else {
-                    return ns.r(20);
+                    return self.r(20);
                 }
 
             })
@@ -11666,7 +11562,7 @@ TODO: probably change this to d.timestamp
                 if (d.swimlane === "unadmin") {
                     return 1.0;
                 }
-                if (ns.filter[d.level]) {
+                if (self.filter[d.level]) {
                     return 1.0;
                 } else {
                     return 0;
@@ -11678,7 +11574,7 @@ TODO: probably change this to d.timestamp
                 // use visibility "hidden" to
                 // completely remove from dom to prevent
                 // tool tip hovering from still working
-                if (!ns.filter[d.level]) {
+                if (!self.filter[d.level]) {
                     return "hidden";
                 } else {
                     return "visible";
@@ -11688,62 +11584,27 @@ TODO: probably change this to d.timestamp
     },
 
     render: function() {
-        this.$el.html(this.template());
-        // this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal1());
+        this.appendChartHeading();
+        this.$el.append(this.template());
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
+        this.$el.find('.special-icon-post').append(this.filterButton());
+
         return this;
     },
 
-    setInfoButtonPopover: function() {
-
-        var infoButtonText = new InfoButtonText().get('infoText');
-        var htmlGen = function() {
-            var result = infoButtonText.nodeAvailability;
-            return result;
-        };
-        // attach click listeners to chart heading info button
-        $('#goldstone-node-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('hide');
-            });
-    },
+    filterButton: _.template('' +
+        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
+    ),
 
     template: _.template(
         '<div id = "goldstone-node-panel" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-        '<%= this.defaults.chartTitle %>' +
 
-        // cog icon
-        // '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-        // 'data-target="#modal-settings-<%= this.el.slice(1) %>' +
-        // '"></i>' +
-
-        // filter icon
-        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-right: 15px;"></i>' +
-
-        // info-circle icon
-        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-node-info"' +
-        'style="margin-right: 15px;"></i>' +
-        '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:169px">' +
-        '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
-        '</div>' +
+        '<div class="panel-body" style="height:250px">' +
         '</div>' +
         '<div id="goldstone-node-chart">' +
         '<div class="clearfix"></div>' +
-        '</div>' +
         '</div>' +
         '</div>' +
 
@@ -14232,6 +14093,7 @@ var topologyPageView = GoldstoneBasePageView.extend({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
             chartTitle: goldstone.translate('Event Timeline'),
+            infoText: 'eventTimeline',
             width: $('#goldstone-discover-r1-c1').width()
         });
 
@@ -14244,10 +14106,11 @@ var topologyPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
-            h: {
+            height: {
                 "main": 150,
                 "swim": 50
             },
+            infoText: 'nodeAvailability',
             width: $('#goldstone-discover-r1-c2').width()
         });
 
