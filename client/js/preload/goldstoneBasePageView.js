@@ -112,6 +112,12 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     setGlobalLookbackRefreshTriggers: function() {
         var self = this;
+
+        // if no globalLookbackRefreshSelectors, abort
+        if(!goldstone.globalLookbackRefreshSelectors) {
+            return;
+        }
+
         // wire up listenTo on global selectors
         // important: use obj.listenTo(obj, change, callback);
         this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {

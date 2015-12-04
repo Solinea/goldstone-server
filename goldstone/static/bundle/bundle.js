@@ -283,8 +283,17 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     getGlobalLookbackRefresh: function() {
-        this.globalLookback = $('#global-lookback-range').val();
-        this.globalRefresh = $('#global-refresh-range').val();
+
+        // currently searches for the existance of
+        // global page-level selectors, but will
+        // substitute sane defaults in their absense in
+        // the case of template redesign.
+
+        // in minutes
+        this.globalLookback = $('#global-lookback-range').val() || 15;
+
+        // in seconds
+        this.globalRefresh = $('#global-refresh-range').val() || 60;
     },
 
     setSpinner: function() {
@@ -441,9 +450,11 @@ var GoldstoneBaseView = Backbone.View.extend({
                 } else {
                     // set another variable equal to k in case key exists
                     var x = k;
-                    if (result[k] !== undefined) {
+
+                    while(result[x] !== undefined) {
                         x = x + '_';
                     }
+
                     result[x] = obj[k];
                 }
             }
@@ -568,6 +579,12 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     setGlobalLookbackRefreshTriggers: function() {
         var self = this;
+
+        // if no globalLookbackRefreshSelectors, abort
+        if(!goldstone.globalLookbackRefreshSelectors) {
+            return;
+        }
+
         // wire up listenTo on global selectors
         // important: use obj.listenTo(obj, change, callback);
         this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {

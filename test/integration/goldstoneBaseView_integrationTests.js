@@ -181,4 +181,146 @@ describe('goldstoneBaseView.js spec', function() {
             this.dataErrorMessage_spy.restore();
         });
     });
+    describe('unit testing flattenObj', function() {
+        it('should return a basic object', function() {
+            assert.isDefined(this.testView.flattenObj, 'this.testView.flattenObj has been defined');
+            expect(this.testView.flattenObj).to.be.a('function');
+            var fut = this.testView.flattenObj;
+            var testObj = {};
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({});
+        });
+        it('should handle non-nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            });
+
+        });
+        it('should handle nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    d: 'd',
+                    e: 'e',
+                    f: 'f'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                d: 'd',
+                e: 'e',
+                f: 'f',
+            });
+
+        });
+        it('should transfer null values', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: null,
+                d: undefined
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                c: null,
+                d: undefined
+            });
+
+        });
+        it('should not unpack nested arrays', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    d: [1, 2, 3, 4],
+                    e: [1, 2, 3, 4],
+                    f: [{
+                        1: 1,
+                        2: 2
+                    }, 'hi'],
+                    g: 'g'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                d: [1, 2, 3, 4],
+                e: [1, 2, 3, 4],
+                f: [{
+                    1: 1,
+                    2: 2
+                }, 'hi'],
+                g: 'g',
+            });
+
+        });
+        it('should not overwrite keys that are duplicated in the nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    b: 'new b',
+                    c: 'new c',
+                    d: 'd'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                b_: 'new b',
+                c: 'new c',
+                d: 'd'
+            });
+
+        });
+        it('should not handle multiple duplicated keys in the nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    b: 'new b',
+                    c: 'new c',
+                    d: 'd'
+                },
+                d: {
+                    b: 'new new b',
+                    c: 'new new c',
+                    d: 'new d'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                b_: 'new b',
+                c: 'new c',
+                d: 'd',
+                b__: 'new new b',
+                c_: 'new new c',
+                d_: 'new d'
+            });
+
+        });
+    });
 });
