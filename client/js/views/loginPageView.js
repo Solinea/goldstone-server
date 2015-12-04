@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var LoginPageView = GoldstoneBaseView2.extend({
+var LoginPageView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.checkForRememberedUsername();

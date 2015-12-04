@@ -45,14 +45,100 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         }
     },
 
+    instanceSpecificInit: function() {
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
+        // appends spinner to el
+        this.showSpinner();
+        // allows a container for any special afterthoughts that need to
+        // be invoked during the initialization of this View, or those that
+        // are descendent from this view.
+        this.specialInit();
+    },
+
     processOptions: function() {
 
-        // this will invoke the processOptions method of the parent view,
-        // and also add an additional param of featureSet which is used
-        // to create a polymorphic interface for a variety of charts
-        MultiMetricBarView.__super__.processOptions.apply(this, arguments);
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
 
         this.defaults.featureSet = this.options.featureSet || null;
+    },
+
+    processMargins: function() {
+        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
+        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+    },
+
+    standardInit: function() {
+
+        /*
+        D3.js convention works with the setting of a main svg, a sub-element
+        which we call 'chart' which is reduced in size by the amount of the top
+        and left margins. Also declares the axes, the doubleclick mechanism,
+        and the x and y scales, the axis details, and the chart colors.
+        */
+
+        var ns = this.defaults;
+        var self = this;
+
+        ns.svg = d3.select(this.el).append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
+
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // initialized the axes
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
+
+        ns.svg.on('dblclick', function() {
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
+
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
+
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .ticks(5)
+            .orient("bottom");
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {

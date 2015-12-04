@@ -135,4 +135,4 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     }
 });
 
-GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView2.prototype.flattenObj;
+GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView.prototype.flattenObj;

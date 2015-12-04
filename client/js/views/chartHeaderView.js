@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ChartHeaderView = GoldstoneBaseView2.extend({
+var ChartHeaderView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.columns = this.options.columns || 12;

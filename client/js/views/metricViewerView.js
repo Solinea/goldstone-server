@@ -33,8 +33,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     defaults: {},
 
-    initialize: function(options) {
-        this.options = options;
+    instanceSpecificInit: function() {
         this.processListeners();
         this.render();
         this.chartOptions = new Backbone.Model({});

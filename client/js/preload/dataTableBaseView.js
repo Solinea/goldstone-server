@@ -41,7 +41,7 @@ EXAMPLE SERVERSIDE DATATABLE IMPLEMENTATION ON APIBROWSERPAGEVIEW:
 
 */
 
-var DataTableBaseView = GoldstoneBaseView2.extend({
+var DataTableBaseView = GoldstoneBaseView.extend({
 
     render: function() {
         this.$el.html(this.template());

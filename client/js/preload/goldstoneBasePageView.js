@@ -28,17 +28,15 @@ selectors can be customized on the page's correspoinding django HTML template,
 by modifying the parameters of the globalLookbackRefreshButtonsView
 */
 
-var GoldstoneBasePageView = GoldstoneBaseView2.extend({
+var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     /*
     extra options passed in with GoldstoneRouter.switchView will be accessible via this.options
     */
 
-    defaults: {},
-
     instanceSpecificInit: function() {
         this.render();
-        this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView2
+        this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView
         this.renderCharts();
         this.setGlobalLookbackRefreshTriggers();
         this.scheduleInterval();

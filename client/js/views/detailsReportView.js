@@ -27,18 +27,15 @@ this.detailsReport = new DetailsReportView({
 
 var DetailsReportView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
+    instanceSpecificInit: function(options) {
         this.render();
 
         // node data was stored in localStorage before the
         // redirect from the discover page
         var data = JSON.parse(localStorage.getItem('detailsTabData'));
-        localStorage.removeItem('detailsTabData');
 
-        // TODO: after utilizing the stored data, clear it
-        // from localStorage
+        // clear after using
+        localStorage.removeItem('detailsTabData');
 
         if(data){
             this.drawSingleRsrcInfoTable(data);

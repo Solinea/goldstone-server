@@ -29,15 +29,7 @@ only requires an el to be defined, and looks like:
 
 var MultiRscsView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
+    instanceSpecificInit: function(options) {
 
         // processes the passed in hash of options when object is instantiated
         this.processOptions();

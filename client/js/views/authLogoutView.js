@@ -33,7 +33,7 @@ On router.html, this view is subscribed to the gsRouter object
 which will emit a trigger when a view is switched out.
 */
 
-var LogoutIcon = GoldstoneBaseView2.extend({
+var LogoutIcon = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
 

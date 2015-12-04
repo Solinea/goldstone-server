@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ChartSet = GoldstoneBaseView2.extend({
+var ChartSet = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.data = [];

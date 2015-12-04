@@ -34,35 +34,26 @@ var topologyTreeView = new TopologyTreeView({
 
 var TopologyTreeView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
     // this block is run upon instantiating the object
-    initialize: function(options) {
-
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-
-        this.defaults.blueSpinnerGif = options.blueSpinnerGif;
-        this.defaults.chartHeader = options.chartHeader || null;
-
-        this.defaults.h = options.h;
-
-        this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
-        this.defaults.w = options.width;
-        this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
-
-        var ns = this.defaults;
-        var self = this;
-
+    // and called by 'initialize' on the parent object
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.processListeners();
         this.render();
         this.initSvg();
-
-        this.processListeners();
     },
 
-    processListeners: function() {
-        this.listenTo(this.collection, 'sync', this.update);
+    processOptions: function() {
+        this.el = this.options.el;
+
+        this.defaults.blueSpinnerGif = this.options.blueSpinnerGif;
+        this.defaults.chartHeader = this.options.chartHeader || null;
+
+        this.defaults.h = this.options.h;
+
+        this.defaults.multiRsrcViewEl = this.options.multiRsrcViewEl || null;
+        this.defaults.w = this.options.width;
+        this.defaults.filterMultiRsrcDataOverride = this.options.filterMultiRsrcDataOverride || null;
     },
 
     filterMultiRsrcData: function(data) {

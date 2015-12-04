@@ -43,8 +43,18 @@ var EventTimelineView = GoldstoneBaseView.extend({
         }
     },
 
-    initialize: function(options) {
-        EventTimelineView.__super__.initialize.apply(this, arguments);
+    instanceSpecificInit: function() {
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
+        // appends spinner to el
+        this.showSpinner();
         this.setInfoButtonPopover();
     },
 
@@ -70,6 +80,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
             self.updateSettings();
             self.fetchNowNoReset();
         });
+    },
+
+    processMargins: function() {
+        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
+        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
     },
 
     showSpinner: function() {

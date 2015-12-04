@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView2.extend({
+var NewPasswordView = GoldstoneBaseView.extend({
 
     initialize: function(options) {
         this.getUidToken();
