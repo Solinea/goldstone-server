@@ -1,7 +1,9 @@
 # Goldstone Server Hacking Guide
 
 
-This explains how to install and run Goldstone Server locally, so you can do code development on the project.  These instructions are written for a Mac OS X Yosemite development.
+This explains how to install and run Goldstone Server locally, so you can do code development on the project.  These instructions are written for a Mac OS X El Capitan development environment.
+
+An overview of the goldstone-server repo file structure can be found at [CODEBASE.md](./CODEBASE.md)
 
 ## Prerequisites
 
