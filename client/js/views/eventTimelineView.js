@@ -28,6 +28,7 @@ this.eventTimelineChartView = new EventTimelineView({
 */
 
 var EventTimelineView = GoldstoneBaseView.extend({
+
     margin: {
         top: 25,
         bottom: 25,
@@ -35,25 +36,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         left: 40
     },
 
-    h: {
-        "main": 100,
-        "padding": 30,
-        "tooltipPadding": 50
-    },
-
     instanceSpecificInit: function() {
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
+        EventTimelineView.__super__.instanceSpecificInit.apply(this, arguments);
+
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
-        // appends spinner to el
-        this.setSpinner();
-        this.showSpinner();
     },
 
     processListeners: function() {
@@ -70,38 +57,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
         this.on('lookbackIntervalReached', function() {
             self.getGlobalLookbackRefresh();
             self.fetchNowNoReset();
-        });
-    },
-
-    processMargins: function() {
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
-    },
-
-    setSpinner: function() {
-
-        // appends spinner with sensitivity to the fact that the View object
-        // may render before the .gif is served by django. If that happens,
-        // the hideSpinner method will set the 'display' css property to
-        // 'none' which will prevent it from appearing on the page
-
-        var self = this;
-        this.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation;
-        if (this.spinnerPlace) {
-            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
-        } else {
-            appendSpinnerLocation = this.el;
-        }
-
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (self.width / 2),
-                'margin-top': (self.h.padding + self.h.tooltipPadding),
-                'display': self.spinnerDisplay
-            });
         });
     },
 
@@ -404,7 +359,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-        this.appendChartHeading();
         this.$el.append(this.template());
 
         // append the modal that is triggered by
@@ -420,21 +374,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
     filterButton: _.template('' +
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
         'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
-    ),
-
-    template: _.template(
-        '<div id = "goldstone-event-panel" class="panel panel-primary">' +
-
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:<%= this.h.main %>' + 'px">' +
-        '<div>' +
-        '<div id="goldstone-event-chart">' +
-        '<div class="clearfix"></div>' +
-        '</div>' +
-        '</div>' +
-
-        '<div id="modal-container-<%= this.el.slice(1) %>' +
-        '"></div>'
     ),
 
     eventFilterModal: _.template(

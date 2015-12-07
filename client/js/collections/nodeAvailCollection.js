@@ -19,8 +19,6 @@ Instantiated on discoverView as:
     this.nodeAvailChart = new NodeAvailCollection({});
 */
 
-var NodeAvailModel = GoldstoneBaseModel.extend({});
-
 var NodeAvailCollection = GoldstoneBaseCollection.extend({
 
     parse: function(data) {
@@ -39,8 +37,6 @@ var NodeAvailCollection = GoldstoneBaseCollection.extend({
         }
         return data;
     },
-
-    model: NodeAvailModel,
 
     instanceSpecificInit: function(options) {
 

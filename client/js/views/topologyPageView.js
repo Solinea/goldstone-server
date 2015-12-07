@@ -33,14 +33,18 @@ var topologyPageView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate event timeline chart
 
-        // fetch url is set in eventTimelineCollection
-
         this.eventTimelineChart = new EventTimelineCollection({});
 
         this.eventTimelineChartView = new EventTimelineView({
             collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
             chartTitle: goldstone.translate('Event Timeline'),
+            height: 300,
+            h: {
+                "main": 100,
+                "padding": 30,
+                "tooltipPadding": 50
+            },
             infoText: 'eventTimeline',
             width: $('#goldstone-discover-r1-c1').width()
         });
@@ -54,7 +58,8 @@ var topologyPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate('Node Availability'),
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
-            height: {
+            height: 300,
+            h: {
                 "main": 150,
                 "swim": 50
             },
@@ -66,17 +71,17 @@ var topologyPageView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Cloud Topology chart
 
-        this.discoverTreeCollection = new TopologyTreeCollection({});
+        this.discoverTreeCollection = new GoldstoneBaseCollection({
+            url: "/core/topology/"
+        });
 
         this.topologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
             collection: this.discoverTreeCollection,
-            chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
-                'discoverCloudTopology'
-            ],
+            chartTitle: goldstone.translate('Cloud Topology'),
             el: '#goldstone-discover-r2-c1',
-            h: 600,
-            leafDataUrls: this.leafDataUrls,
+            height: 600,
+            infoText: 'discoverCloudTopology',
             multiRsrcViewEl: '#goldstone-discover-r2-c2',
             width: $('#goldstone-discover-r2-c2').width(),
         });

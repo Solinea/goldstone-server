@@ -72,30 +72,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
 
     instanceSpecificInit: function() {
+        NodeAvailView.__super__.instanceSpecificInit.apply(this, arguments);
 
-        // processes the passed in hash of options when object is instantiated
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // Appends this basic chart template, usually overwritten
-        this.render();
         // basic assignment of variables to be used in chart rendering
         this.initSvg();
-        // appends spinner to el
-        this.setSpinner();
-        this.showSpinner();
-    },
-
-    processOptions: function() {
-        NodeAvailView.__super__.processOptions.apply(this, arguments);
-
-        // this will contain the results of the two seperate fetches
-        // before they are zipped together in this.combineDatasets
-        this.r = d3.scale.sqrt();
-        this.dataToCombine = [];
-
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     processListeners: function() {
@@ -135,28 +115,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
         });
     },
 
-    setSpinner: function() {
-
-        var self = this;
-        this.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation;
-        if (this.spinnerPlace) {
-            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
-        } else {
-            appendSpinnerLocation = this.el;
-        }
-
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (self.width / 2),
-                'margin-top': -(self.height.main * 0.55),
-                'display': self.spinnerDisplay
-            });
-        });
-    },
-
     fetchNowWithReset: function() {
         this.showSpinner();
         this.collection.fetchMultipleUrls();
@@ -164,6 +122,13 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
     initSvg: function() {
         var self = this;
+
+
+        this.r = d3.scale.sqrt();
+        this.dataToCombine = [];
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
         // maps between input label domain and output color range for circles
         self.loglevel = d3.scale.ordinal()
@@ -193,7 +158,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .domain(["unadmin"].concat(self.loglevel
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([self.height.main, 0]);
+            .rangeRoundBands([self.h.main, 0]);
 
         self.yLogs = d3.scale.linear()
             .range([
@@ -208,7 +173,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         self.svg = d3.select(this.el).select(".panel-body").append("svg")
             .attr("width", self.width)
-            .attr("height", self.height.main + (self.height.swim * 2) + self.margin.top + self.margin.bottom)
+            .attr("height", self.h.main + (self.h.swim * 2) + self.margin.top + self.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
@@ -245,7 +210,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         self.graph.append("g")
             .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (self.height.main - self.ySwimLane.rangeBand()) + ")");
+            .attr("transform", "translate(0," + (self.h.main - self.ySwimLane.rangeBand()) + ")");
 
         self.graph.append("g")
             .attr("class", "y axis invisible-axis")
@@ -259,7 +224,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         self.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                if (this.getBBox().y < self.height.swim) {
+                if (this.getBBox().y < self.h.swim) {
                     return 's';
                 } else {
                     return 'n';
@@ -761,7 +726,6 @@ TODO: probably change this to d.timestamp
     },
 
     render: function() {
-        this.appendChartHeading();
         this.$el.append(this.template());
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
         this.$el.find('.special-icon-post').append(this.filterButton());
@@ -772,22 +736,6 @@ TODO: probably change this to d.timestamp
     filterButton: _.template('' +
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
         'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
-    ),
-
-    template: _.template(
-        '<div id = "goldstone-node-panel" class="panel panel-primary">' +
-
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:250px">' +
-        '</div>' +
-        '<div id="goldstone-node-chart">' +
-        '<div class="clearfix"></div>' +
-        '</div>' +
-        '</div>' +
-
-        '<div id="modal-container-<%= this.el.slice(1) %>' +
-        '"></div>'
-
     ),
 
     modal1: _.template(

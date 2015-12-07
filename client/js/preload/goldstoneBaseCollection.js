@@ -30,7 +30,9 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.instanceSpecificInit();
     },
 
-    instanceSpecificInit: function() {},
+    instanceSpecificInit: function() {
+        this.fetch();
+    },
 
     parse: function(data) {
         this.checkForAdditionalPages(data);
@@ -106,19 +108,14 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     // },
 
     computeLookbackAndInterval: function() {
-        console.log(this.getGlobalLookbackRefresh);
+
+        // compute epochNow, globalLookback, globalRefresh
         this.getGlobalLookbackRefresh();
+
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
         // set interval equal to 1/24th of time range
         this.interval = ((this.epochNow - this.gte) / 1000) / 24;
-    },
-
-    getGlobalLookbackRefresh: function() {
-
-
-        this.epochNow = +new Date();
-        this.getGlobalLookbackRefresh();
     },
 
     fetchWithReset: function() {

@@ -51,6 +51,17 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     processOptions: function() {
+
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
+
+        // set defaults for the instantiated option in case they
+        // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
         this.infoText = this.options.infoText;
@@ -92,11 +103,15 @@ var GoldstoneBaseView = Backbone.View.extend({
         // substitute sane defaults in their absense in
         // the case of template redesign.
 
+        this.epochNow = +new Date();
+
         // in minutes
         this.globalLookback = $('#global-lookback-range').val() || 15;
+        this.globalLookback = parseInt(this.globalLookback, 10); // to integer
 
         // in seconds
         this.globalRefresh = $('#global-refresh-range').val() || 30;
+        this.globalRefresh = parseInt(this.globalRefresh, 10); // to integer
     },
 
     setSpinner: function() {
@@ -231,7 +246,16 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
     },
 
-    template: _.template(''),
+    template: _.template('' +
+        '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
+
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="panel-body" style="height:<%= this.height %>px">' +
+        '</div>' +
+        '</div>' +
+        '<div id="modal-container-<%= this.el.slice(1) %>' +
+        '"></div>'
+    ),
 
     render: function() {
         this.$el.html(this.template());
@@ -254,7 +278,7 @@ var GoldstoneBaseView = Backbone.View.extend({
                     // set another variable equal to k in case key exists
                     var x = k;
 
-                    while(result[x] !== undefined) {
+                    while (result[x] !== undefined) {
                         x = x + '_';
                     }
 
