@@ -26,12 +26,22 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         options = options || {};
         this.options = _.clone(options);
         this.defaults = _.clone(this.defaults);
-        this.url = this.options.url || null;
         this.instanceSpecificInit();
     },
 
     instanceSpecificInit: function() {
-        this.fetch();
+        this.processOptions();
+        this.urlGenerator();
+    },
+
+    processOptions: function() {
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
     },
 
     parse: function(data) {
@@ -79,6 +89,9 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         if (this.addPageSize) {
             this.url += this.addPageSize(this.pageSize);
         }
+        if (this.addCustom) {
+            this.url += this.addCustom(this.custom);
+        }
 
         // a gate to make sure this doesn't fire if
         // this collection is being used as a mixin
@@ -105,6 +118,10 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     // addPageSize: function(n) {
     //     n = n || 1000;
     //     return '&page_size=' + n;
+    // },
+
+    // addCustom: function(custom) {
+    //     return custom;
     // },
 
     computeLookbackAndInterval: function() {

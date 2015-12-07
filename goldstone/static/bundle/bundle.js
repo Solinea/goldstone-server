@@ -685,12 +685,22 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         options = options || {};
         this.options = _.clone(options);
         this.defaults = _.clone(this.defaults);
-        this.url = this.options.url || null;
         this.instanceSpecificInit();
     },
 
     instanceSpecificInit: function() {
-        this.fetch();
+        this.processOptions();
+        this.urlGenerator();
+    },
+
+    processOptions: function() {
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
     },
 
     parse: function(data) {
@@ -738,6 +748,9 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         if (this.addPageSize) {
             this.url += this.addPageSize(this.pageSize);
         }
+        if (this.addCustom) {
+            this.url += this.addCustom(this.custom);
+        }
 
         // a gate to make sure this doesn't fire if
         // this collection is being used as a mixin
@@ -764,6 +777,10 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     // addPageSize: function(n) {
     //     n = n || 1000;
     //     return '&page_size=' + n;
+    // },
+
+    // addCustom: function(custom) {
+    //     return custom;
     // },
 
     computeLookbackAndInterval: function() {
@@ -2836,15 +2853,9 @@ this.novaApiPerfChart = new ApiPerfCollection({
 });
 */
 
-// define collection and link to model
+var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
-var ApiPerfModel = GoldstoneBaseModel.extend({});
-
-var ApiPerfCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
+    preProcessData: function(data) {
         if (data && data.per_interval) {
             return data.per_interval;
         } else {
@@ -2852,37 +2863,17 @@ var ApiPerfCollection = Backbone.Collection.extend({
         }
     },
 
-    model: ApiPerfModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.componentParam = this.options.componentParam;
-        this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
-
-    urlGenerator: function() {
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        var ns = this.defaults;
-        ns.reportParams.end = +new Date();
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/core/apiperf/summarize/?@timestamp__range={"gte":' + ns.reportParams.start +
-            ',"lte":' + ns.reportParams.end +
-            '}&interval=' + ns.reportParams.interval +
-            '&component=' + this.defaults.componentParam;
-
-        // generates url string similar to:
-        // /core/apiperf/summarize/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
-
+    addInterval: function() {
+        n = Math.round(1 * this.globalLookback);
+        return '&interval=' + n + 's';
+    },
+    addCustom: function() {
+        return '&component=' + this.componentParam;
     }
+
 });
 ;
 /**
@@ -4771,19 +4762,21 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova'
+            componentParam: 'nova',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c1',
-            width: $('#api-perf-report-r1-c1').width()
+            width: $('#api-perf-report-r1-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
 
@@ -4791,32 +4784,35 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron'
+            componentParam: 'neutron',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
             }],
             el: '#api-perf-report-r1-c2',
-            width: $('#api-perf-report-r1-c2').width()
+            width: $('#api-perf-report-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-------------------------------
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone'
+            componentParam: 'keystone',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
@@ -4829,13 +4825,14 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance'
+            componentParam: 'glance',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
@@ -4848,13 +4845,14 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder'
+            componentParam: 'cinder',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
@@ -4933,155 +4931,36 @@ this.novaApiPerfChartView = new ApiPerfView({
 
 var ApiPerfView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 30,
-            right: 30,
-            bottom: 60,
-            left: 70
-        }
+    margin: {
+        top: 35,
+        right: 40,
+        bottom: 100,
+        left: 70
     },
 
     instanceSpecificInit: function() {
 
-        // processes the passed in hash of options when object is instantiated
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
+        ApiPerfView.__super__.instanceSpecificInit.apply(this, arguments);
+
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-
-        var ns = this.defaults;
-        var self = this;
-
-        // chart info button popover generator
-        this.htmlGen = function() {
-            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format();
-            var end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format();
-            var custom = _.map(ns.infoCustom, function(e) {
-                return e.key + ": " + e.value + "<br>";
-            });
-            var result = '<div class="infoButton"><br>' + custom +
-                goldstone.translate('Start') + ': ' + start + '<br>' +
-                goldstone.translate('End') + ': ' + end + '<br>' +
-                goldstone.translate('Interval') + ': ' + ns.interval + '<br>' +
-                '<br></div>';
-            return result;
-        };
-
-        $(this.el).find('#api-perf-info').popover({
-            trigger: 'manual',
-            content: function() {
-                return self.htmlGen.apply(this);
-            },
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('toggle');
-            })
-            .on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('hide');
-            });
-
-    },
-
-    showSpinner: function() {
-
-        // appends spinner with sensitivity to the fact that the View object
-        // may render before the .gif is served by django. If that happens,
-        // the hideSpinner method will set the 'display' css property to
-        // 'none' which will prevent it from appearing on the page
-
-        var ns = this.defaults;
-        var self = this;
-
-        ns.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation;
-        if (ns.spinnerPlace) {
-            appendSpinnerLocation = $(this.el).find(ns.spinnerPlace);
-        } else {
-            appendSpinnerLocation = this.el;
-        }
-
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2),
-                'display': ns.spinnerDisplay
-            });
-        });
-
-    },
-
-    hideSpinner: function() {
-
-        // the setting of spinnerDisplay to 'none' will prevent the spinner
-        // from being appended in the case that django serves the image
-        // AFTER the collection fetch returns and the chart is rendered
-
-        this.defaults.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
-    },
-
-    processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-        this.defaults.start = this.collection.defaults.reportParams.start || null;
-        this.defaults.end = this.collection.defaults.reportParams.end || null;
-        this.defaults.interval = this.collection.defaults.reportParams.interval || null;
     },
 
     processListeners: function() {
-        // registers 'sync' event so view 'watches' collection for data update
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
+
+        ApiPerfView.__super__.processListeners.apply(this, arguments);
+
+        var self = this;
 
         // this is triggered by a listener set on nodeReportView.js
-        this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.urlGenerator();
-            this.collection.fetch();
-            this.defaults.start = this.collection.defaults.reportParams.start;
-            this.defaults.end = this.collection.defaults.reportParams.end;
-            this.defaults.interval = this.collection.defaults.reportParams.interval;
+        // this.on('lookbackSelectorChanged', function() {
+        //     self.getGlobalLookbackRefresh();
+        //     self.collection.defaults.globalLookback = self.globalLookback;
+        //     self.collection.urlGenerator();
+        //     self.collection.fetch();
+        //     self.showSpinner();
+        // });
 
-            if ($(this.el).find('#chart-button-info').length) {
-                $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this)
-                });
-            }
-
-            this.defaults.spinnerDisplay = 'inline';
-            $(this.el).find('#spinner').show();
-        });
-
-    },
-
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
     },
 
     standardInit: function() {
@@ -5093,58 +4972,57 @@ var ApiPerfView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
-        ns.chart = ns.svg
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
+
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .ticks(5)
             .orient("bottom");
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left");
-
-        ns.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     update: function() {
-        var ns = this.defaults;
         var self = this;
         var json = this.collection.toJSON();
         json = this.dataPrep(json);
-        var mw = ns.mw;
-        var mh = ns.mh;
+        var mw = self.mw;
+        var mh = self.mh;
 
         this.hideSpinner();
 
@@ -5155,7 +5033,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
 
-        ns.y.domain([0, d3.max(json, function(d) {
+        self.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();
             return d[key].stats.max;
         })]);
@@ -5174,7 +5052,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             d.avg = d[key].stats.avg || 0;
         });
 
-        ns.x.domain(d3.extent(json, function(d) {
+        self.x.domain(d3.extent(json, function(d) {
             return d.time;
         }));
 
@@ -5182,46 +5060,46 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return ns.x(d.time);
+                return self.x(d.time);
             })
             .y0(function(d) {
-                return ns.y(d.min);
+                return self.y(d.min);
             })
             .y1(function(d) {
-                return ns.y(d.max);
+                return self.y(d.max);
             });
 
         var maxLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return ns.x(d.time);
+                return self.x(d.time);
             })
             .y(function(d) {
-                return ns.y(d.max);
+                return self.y(d.max);
             });
 
         var minLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return ns.x(d.time);
+                return self.x(d.time);
             })
             .y(function(d) {
-                return ns.y(d.min);
+                return self.y(d.min);
             });
 
         var avgLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return ns.x(d.time);
+                return self.x(d.time);
             })
             .y(function(d) {
-                return ns.y(d.avg);
+                return self.y(d.avg);
             });
 
-        var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
+        var hiddenBar = self.chart.selectAll(this.el + ' .hiddenBar')
             .data(json);
 
         var hiddenBarWidth = mw / json.length;
@@ -5236,53 +5114,53 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         // Invoke the tip in the context of your visualization
 
-        ns.chart.call(tip);
+        self.chart.call(tip);
 
         // initialize the chart lines
 
-        ns.chart.append("path")
+        self.chart.append("path")
             .datum(json)
             .attr("class", "area")
             .attr("id", "minMaxArea")
             .attr("d", area)
-            .attr("fill", ns.colorArray.distinct[3][1])
+            .attr("fill", self.colorArray.distinct[3][1])
             .style("opacity", 0.8);
 
-        ns.chart.append('path')
+        self.chart.append('path')
             .attr('class', 'line')
             .attr('id', 'minLine')
             .attr('data-legend', "Min")
-            .style("stroke", ns.colorArray.distinct[3][0])
+            .style("stroke", self.colorArray.distinct[3][0])
             .datum(json)
             .attr('d', minLine);
 
-        ns.chart.append('path')
+        self.chart.append('path')
             .attr('class', 'line')
             .attr('id', 'maxLine')
             .attr('data-legend', "Max")
-            .style("stroke", ns.colorArray.distinct[3][2])
+            .style("stroke", self.colorArray.distinct[3][2])
             .datum(json)
             .attr('d', maxLine);
 
-        ns.chart.append('path')
+        self.chart.append('path')
             .attr('class', 'line')
             .attr('id', 'avgLine')
             .attr('data-legend', "Avg")
             .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", ns.colorArray.grey[0][0])
+            .style("stroke", self.colorArray.grey[0][0])
             .datum(json)
             .attr('d', avgLine);
 
-        ns.chart.append('g')
+        self.chart.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0, ' + mh + ')')
-            .call(ns.xAxis);
+            .call(self.xAxis);
 
-        ns.chart.append('g')
+        self.chart.append('g')
             .attr('class', 'y axis')
-            .call(ns.yAxis);
+            .call(self.yAxis);
 
-        var legend = ns.chart.append("g")
+        var legend = self.chart.append("g")
             .attr("class", "legend")
             .attr("transform", "translate(20,-20)")
             .call(d3.legend);
@@ -5312,10 +5190,10 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 return "verticalRect" + i;
             })
             .attr("y", function(d) {
-                return ns.y(d.max);
+                return self.y(d.max);
             })
             .attr("height", function(d) {
-                return mh - ns.y(d.max);
+                return mh - self.y(d.max);
             })
             .attr("width", hiddenBarWidth);
 
@@ -5353,14 +5231,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         // EXIT
         // Remove old elements as needed.
-    },
-
-    template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>')
+    }
 
 });
 ;
@@ -13992,7 +13863,7 @@ var topologyPageView = GoldstoneBasePageView.extend({
         // instantiate Cloud Topology chart
 
         this.discoverTreeCollection = new GoldstoneBaseCollection({
-            url: "/core/topology/"
+            urlBase: "/core/topology/"
         });
 
         this.topologyTreeView = new TopologyTreeView({
