@@ -149,7 +149,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
         }));
 
         var area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -162,7 +162,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var maxLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -172,7 +172,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var minLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -182,7 +182,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var avgLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);

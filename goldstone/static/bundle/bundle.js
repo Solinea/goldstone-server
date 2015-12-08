@@ -232,7 +232,6 @@ var GoldstoneBaseView = Backbone.View.extend({
     instanceSpecificInit: function() {
         // processes the hash of options passed in when object is instantiated
         this.processOptions();
-        // sets page-element listeners, and/or event-listeners
         this.processListeners();
         this.render();
         this.appendChartHeading();
@@ -1605,7 +1604,7 @@ var ChartSet = GoldstoneBaseView.extend({
     areaSetter: function() {
         var self = this;
         this.area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -3458,6 +3457,7 @@ var MetricViewCollection = GoldstoneBaseCollection.extend({
 
     instanceSpecificInit: function() {
         this.reportParams = {};
+        this.processOptions();
         this.statistic = this.options.statistic;
         this.standardDev = this.options.standardDev;
         this.fetchWithReset();
@@ -4361,345 +4361,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
 var ApiBrowserView = ChartSet.extend({
 
-    // instanceSpecificInit: function() {
-    //     this.data = [];
-    //     this.processOptions();
-
-    //     this.renderChartBorders();
-    //     this.makeChart();
-    // },
-
-    // processOptions: function() {
-
-    //     this.collection = this.options.collection ? this.options.collection : undefined;
-    //     this.chartTitle = this.options.chartTitle || null;
-    //     if (this.options.el) {
-    //         this.el = this.options.el;
-    //     }
-    //     this.width = this.options.width || 300;
-    //     this.height = this.options.height || 400;
-    //     this.infoIcon = this.options.infoIcon;
-    //     this.infoText = this.options.infoText;
-    //     this.marginLeft = this.options.marginLeft || 50;
-    //     this.marginRight = this.options.marginRight || 120;
-    //     this.marginTop = this.options.marginTop || 20;
-    //     this.marginBottom = this.options.marginBottom || 80;
-    //     this.yAxisLabel = this.options.yAxisLabel;
-    //     this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
-    //     this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
-    //     this.colorArray = new GoldstoneColors().get('colorSets');
-    //     this.shapeArray = ['rect', 'circle'];
-    //     this.shapeCounter = 0;
-    //     this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
-    //     this.xParam = this.options.xParam;
-    //     this.yParam = this.options.yParam;
-    // },
-
-    // resetXParam: function(param) {
-    //     param = param || 'time';
-    //     this.xParam = param;
-    // },
-
-    // resetYParam: function(param) {
-    //     param = param || 'count';
-    //     this.yParam = param;
-    // },
-
-    // renderChartBorders: function() {
-    //     this.$el.append(new ChartHeaderView({
-    //         chartTitle: this.chartTitle,
-    //         infoText: this.infoText,
-    //         infoIcon: this.infoIcon,
-    //     }).el);
-    // },
-
-    // makeChart: function() {
-    //     this.processListeners();
-    //     this.svgAdder(this.width, this.height);
-    //     this.initializePopovers();
-    //     this.chartAdder();
-
-    //     this.setXDomain();
-    //     this.setYDomain();
-
-    //     this.setXAxis();
-    //     this.setYAxis();
-    //     this.callXAxis();
-    //     this.callYAxis();
-
-    //     this.setYAxisLabel();
-    //     this.setSpinner();
-    // },
-
-    // update: function() {
-    //     this.setData(this.collection.toJSON());
-    //     this.updateWithNewData();
-    // },
-
-    // updateWithNewData: function() {
-    //     this.setXDomain();
-    //     this.setYDomain();
-    //     this.resetAxes();
-    //     this.bindShapeToData(this.shape);
-    //     this.shapeUpdate(this.shape);
-    //     this.shapeEnter(this.shape);
-    //     this.shapeExit(this.shape);
-    //     this.hideSpinner();
-    // },
-
-    // initializePopovers: function() {
-    //     var self = this;
-    //     this.tip = d3.tip()
-    //         .attr('class', 'd3-tip')
-    //         .offset([-10, 0])
-    //         .html(function(d) {
-    //             return self.popoverTimeLabel + ": " + moment(+d.time).format() +
-    //                 "<br>" +
-    //                 self.popoverUnitLabel + ": " + d.count;
-    //         });
-
-    //     this.svg.call(this.tip);
-    // },
-
-    // setData: function(newData) {
-    //     this.data = newData;
-    // },
-
-    // svgAdder: function() {
-    //     this.svg = d3.select(this.el).append('svg')
-    //         .attr('width', this.width)
-    //         .attr('height', this.height);
-    // },
-
-    // chartAdder: function() {
-    //     this.chart = this.svg
-    //         .append('g')
-    //         .attr('class', 'chart')
-    //         .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
-    // },
-
-    // setXDomain: function() {
-    //     var param = this.xParam || 'time';
-    //     var self = this;
-    //     this.x = d3.time.scale()
-    //     // protect against invalid data and NaN for initial
-    //     // setting of domain with unary conditional
-    //     .domain(self.data.length ? d3.extent(this.data, function(d) {
-    //         return d[param];
-    //     }) : [1, 1])
-    //         .range([0, (this.width - this.marginLeft - this.marginRight)]);
-    // },
-
-    // setYDomain: function() {
-    //     var param = this.yParam || 'count';
-    //     var self = this;
-    //     // protect against invalid data and NaN for initial
-    //     // setting of domain with unary conditional
-    //     this.y = d3.scale.linear()
-    //         .domain([0, self.data.length ? d3.max(this.data, function(d) {
-    //             return d[param];
-    //         }) : 0])
-    //         .range([(this.height - this.marginTop - this.marginBottom), 0]);
-    // },
-
-    // setYAxisLabel: function() {
-    //     this.svg.append("text")
-    //         .attr("class", "axis.label")
-    //         .attr("transform", "rotate(-90)")
-    //         .attr("x", 0 - (this.height / 2))
-    //         .attr("y", -5)
-    //         .attr("dy", "1.5em")
-    //         .text(this.yAxisLabel)
-    //         .style("text-anchor", "middle");
-    // },
-
-    // bindShapeToData: function(shape, binding) {
-    //     this[shape] = this.chart.selectAll(shape)
-    //         .data(this.data, function(d) {
-    //             return binding ? d[binding] : d.time;
-    //         });
-    // },
-
-    // shapeUpdate: function(shape) {
-    //     var xParam = this.xParam || 'time';
-    //     var yParam = this.yParam || 'count';
-    //     var self = this;
-    //     this[shape]
-    //         .transition()
-    //         .attr('cx', function(d) {
-    //             return self.x(d[xParam]);
-    //         })
-    //         .attr('cy', function(d) {
-    //             return self.y(d[yParam]);
-    //         })
-    //         .attr('r', 10)
-    //         .attr('x', function(d) {
-    //             return self.x(d[xParam]);
-    //         })
-    //         .attr('y', function(d) {
-    //             return self.y(d[yParam]);
-    //         })
-    //         .attr('height', function(d) {
-    //             return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
-    //         })
-    //         .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length);
-    // },
-
-    // shapeEnter: function(shape) {
-    //     var xParam = this.xParam || 'time';
-    //     var yParam = this.yParam || 'count';
-    //     var self = this;
-    //     this[shape]
-    //         .enter()
-    //         .append(shape)
-    //         .attr("fill", this.colorArray.distinct[3][1])
-    //         .style('fill-opacity', 1e-6)
-    //         .attr('class', 'chart-rect')
-    //         .attr('id', 'chart-rect')
-    //         .attr('x', function(d) {
-    //             return self.x(d[xParam]);
-    //         })
-    //         .attr('y', function(d) {
-    //             return (self.y(d[yParam]));
-    //         })
-    //         .attr('height', function(d) {
-    //             return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
-    //         })
-    //         .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length)
-    //         .attr('cx', function(d) {
-    //             return self.x(d[xParam]);
-    //         })
-    //         .attr('cy', function(d) {
-    //             return (self.y(d[yParam]));
-    //         })
-    //         .attr('r', 10)
-    //         .on('mouseover', function(d) {
-    //             self.mouseoverAction(d);
-    //         })
-    //         .on('mouseout', function(d) {
-    //             self.mouseoutAction(d);
-    //         })
-    //         .transition()
-    //         .style('fill-opacity', 1);
-    // },
-
-    // mouseoverAction: function(d) {
-    //     this.tip.show(d);
-    // },
-
-    // mouseoutAction: function(d) {
-    //     this.tip.hide();
-    // },
-
-    // shapeExit: function(shape) {
-    //     this[shape]
-    //         .exit()
-    //         .transition()
-    //         .style('fill-opacity', 1e-6)
-    //         .remove();
-    // },
-
-    // switchShape: function() {
-    //     this.svgClearer(this.shape);
-    //     this.shape = this.shapeArray[this.shapeCounter++ % 2];
-    //     this.bindShapeToData(this.shape);
-    //     this.shapeUpdate(this.shape);
-    //     this.shapeEnter(this.shape);
-    //     this.shapeExit(this.shape);
-    // },
-
-    // areaSetter: function() {
-    //     var self = this;
-    //     this.area = d3.svg.area()
-    //         .interpolate("basis")
-    //         .tension(0.85)
-    //         .x(function(d) {
-    //             return self.x(d.time);
-    //         })
-    //         .y0(function(d) {
-    //             return self.y(0);
-    //         })
-    //         .y1(function(d) {
-    //             return self.y(d.count);
-    //         });
-    // },
-
-    // pathAdder: function(datum) {
-    //     var self = this;
-    //     this.chart.append("path")
-    //         .datum(datum)
-    //         .attr("class", "area")
-    //         .attr("id", "minMaxArea")
-    //         .attr("d", this.area)
-    //         .attr("fill", this.colorArray.distinct[3][1])
-    //         .style("opacity", 0.8);
-    // },
-
-    // svgClearer: function(attribute) {
-    //     var selector = this.chart;
-    //     selector.selectAll(attribute)
-    //         .data([])
-    //         .exit()
-    //         .transition()
-    //         .style("fill-opacity", 1e-6)
-    //         .remove();
-    // },
-
-    // setXAxis: function() {
-    //     this.xAxis = d3.svg.axis()
-    //         .scale(this.x)
-    //         .ticks(4)
-    //     // format: day month H:M:S
-    //     .tickFormat(d3.time.format("%e %b %X"))
-    //         .orient("bottom");
-    // },
-
-    // setYAxis: function() {
-    //     this.yAxis = d3.svg.axis()
-    //         .scale(this.y)
-    //         .ticks(5)
-    //         .orient("left");
-    // },
-
-    // callXAxis: function() {
-    //     this.svg
-    //         .append('g')
-    //         .attr("class", "x axis")
-    //         .attr('transform', 'translate(' + (this.marginLeft) + ',' + (this.height - this.marginBottom) + ')')
-    //         .call(this.xAxis);
-    // },
-
-    // callYAxis: function() {
-    //     this.svg
-    //         .append('g')
-    //         .attr("class", "y axis")
-    //         .attr('transform', 'translate(' + (this.marginLeft) + ',' + this.marginTop + ')')
-    //         .call(this.yAxis);
-    // },
-
-    // resetAxes: function() {
-    //     var self = this;
-    //     d3.select(this.el).select('.axis.x')
-    //         .transition()
-    //         .call(this.xAxis.scale(self.x));
-
-    //     self.svg.select('.axis.y')
-    //         .transition()
-    //         .call(this.yAxis.scale(self.y));
-    // },
-
-    // addToLegend: function(selector, legendText) {
-    //     d3.select(this.el).select(selector)
-    //         .attr('data-legend', legendText);
-    // },
-
-    // appendLegend: function() {
-    //     this.svg.append("g")
-    //         .attr("class", "legend")
-    //         .attr("transform", "translate(" + this.marginLeft + ",10)")
-    //         .call(d3.legend);
-    // }
-
 });
 ;
 /**
@@ -4999,7 +4660,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
         }));
 
         var area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -5012,7 +4673,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var maxLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -5022,7 +4683,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var minLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -5032,7 +4693,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             });
 
         var avgLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);
@@ -8634,31 +8295,22 @@ this.metricChartView = new MetricView({
 
 // view is linked to collection when instantiated
 
-var MetricView = ApiPerfView.extend({
+var MetricView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 40,
-            right: 15,
-            bottom: 30,
-            left: 60
-        }
+    margin: {
+        top: 40,
+        right: 15,
+        bottom: 30,
+        left: 60
     },
 
-    processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = "Response Time (s)";
-        }
-        this.defaults.start = this.collection.reportParams.start || null;
-        this.defaults.end = this.collection.reportParams.end || null;
-        this.defaults.interval = this.collection.reportParams.interval || null;
+    instanceSpecificInit: function() {
+
+        this.processOptions();
+        this.processListeners();
+        this.render();
+        this.setSpinner();
+        this.standardInit();
     },
 
     standardInit: function() {
@@ -8670,8 +8322,11 @@ var MetricView = ApiPerfView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
         ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.width)
@@ -8707,7 +8362,7 @@ var MetricView = ApiPerfView.extend({
     },
 
     update: function() {
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
         var data = this.collection.toJSON()[0];
         json = this.dataPrep(data.per_interval);
@@ -8770,7 +8425,7 @@ var MetricView = ApiPerfView.extend({
         }));
 
         var area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -8783,7 +8438,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var maxLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -8793,7 +8448,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var minLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -8803,7 +8458,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var avgLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -8813,7 +8468,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var stdHigh = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -8823,7 +8478,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var stdLow = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -9164,8 +8819,6 @@ this.metricViewerChartView = new MetricViewerView({
 
 var MetricViewerView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
     instanceSpecificInit: function() {
         this.processListeners();
         this.render();
@@ -9175,7 +8828,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     getResourceNames: function() {
-        var ns = this.defaults;
         var self = this;
 
         // 'host_name' will be extracted from the returned array of host objects
@@ -9184,7 +8836,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
-                    ns.resourceNames = data[0];
+                    self.resourceNames = data[0];
                     self.populateResources();
                 }
             })
@@ -9194,7 +8846,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     getMetricNames: function() {
-        var ns = this.defaults;
         var self = this;
 
         $.get("/core/metric_names/", function() {})
@@ -9203,7 +8854,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
-                    ns.metricNames = data;
+                    self.metricNames = data;
                     self.populateMetrics();
                 }
             })
@@ -9216,7 +8867,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     processListeners: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.listenTo(this, 'globalLookbackReached', function() {
@@ -9270,27 +8920,25 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     populateMetrics: function() {
         var self = this;
-        var ns = this.defaults;
 
         // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
 
         // append the options within the dropdown
-        _.each(ns.metricNames, function(item) {
+        _.each(self.metricNames, function(item) {
             $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
         });
     },
 
     populateResources: function() {
         var self = this;
-        var ns = this.defaults;
 
         // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text('');
 
         // host names will be similar to: ctrl-01.c2.oak.solinea.com
         // so slice from the beginning up to the first '.'
-        var resourceNames = _.uniq(_.map(ns.resourceNames, function(item) {
+        var resourceNames = _.uniq(_.map(self.resourceNames, function(item) {
             return (item.host_name).slice(0, item.host_name.indexOf('.'));
         }));
 

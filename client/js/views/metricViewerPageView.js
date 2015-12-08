@@ -33,8 +33,12 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     instanceSpecificInit: function(options) {
 
-        // hide global lookback selector
-        $("select#global-lookback-range").hide();
+        // hide global lookback selector, if present
+        var $glr = $("select#global-lookback-range");
+        if ($glr.length) {
+            this.$glr = $glr;
+            this.$glr.hide();
+        }
 
         // options.numCharts passed in by goldstoneRouter
         // and reflects the number n (1-6) following "/#metric/n"
@@ -55,8 +59,10 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // clear out grid of collections/views
         this.metricViewGridContainer.clear();
 
-        // return global lookback selector to page
-        $("select#global-lookback-range").show();
+        // return global lookback selector to page if relevant
+        if (this.$glr) {
+            $("select#global-lookback-range").show();
+        }
 
         MetricViewerPageView.__super__.onClose.apply(this, arguments);
     },

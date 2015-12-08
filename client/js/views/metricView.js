@@ -31,31 +31,22 @@ this.metricChartView = new MetricView({
 
 // view is linked to collection when instantiated
 
-var MetricView = ApiPerfView.extend({
+var MetricView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 40,
-            right: 15,
-            bottom: 30,
-            left: 60
-        }
+    margin: {
+        top: 40,
+        right: 15,
+        bottom: 30,
+        left: 60
     },
 
-    processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = "Response Time (s)";
-        }
-        this.defaults.start = this.collection.reportParams.start || null;
-        this.defaults.end = this.collection.reportParams.end || null;
-        this.defaults.interval = this.collection.reportParams.interval || null;
+    instanceSpecificInit: function() {
+
+        this.processOptions();
+        this.processListeners();
+        this.render();
+        this.setSpinner();
+        this.standardInit();
     },
 
     standardInit: function() {
@@ -67,8 +58,11 @@ var MetricView = ApiPerfView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
         ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.width)
@@ -104,7 +98,7 @@ var MetricView = ApiPerfView.extend({
     },
 
     update: function() {
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
         var data = this.collection.toJSON()[0];
         json = this.dataPrep(data.per_interval);
@@ -167,7 +161,7 @@ var MetricView = ApiPerfView.extend({
         }));
 
         var area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -180,7 +174,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var maxLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -190,7 +184,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var minLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -200,7 +194,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var avgLine = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -210,7 +204,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var stdHigh = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);
@@ -220,7 +214,7 @@ var MetricView = ApiPerfView.extend({
             });
 
         var stdLow = d3.svg.line()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return ns.x(d.time);

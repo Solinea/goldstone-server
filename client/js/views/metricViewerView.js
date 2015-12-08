@@ -31,8 +31,6 @@ this.metricViewerChartView = new MetricViewerView({
 
 var MetricViewerView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
     instanceSpecificInit: function() {
         this.processListeners();
         this.render();
@@ -42,7 +40,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     getResourceNames: function() {
-        var ns = this.defaults;
         var self = this;
 
         // 'host_name' will be extracted from the returned array of host objects
@@ -51,7 +48,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
-                    ns.resourceNames = data[0];
+                    self.resourceNames = data[0];
                     self.populateResources();
                 }
             })
@@ -61,7 +58,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     getMetricNames: function() {
-        var ns = this.defaults;
         var self = this;
 
         $.get("/core/metric_names/", function() {})
@@ -70,7 +66,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
-                    ns.metricNames = data;
+                    self.metricNames = data;
                     self.populateMetrics();
                 }
             })
@@ -83,7 +79,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     processListeners: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.listenTo(this, 'globalLookbackReached', function() {
@@ -137,27 +132,25 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     populateMetrics: function() {
         var self = this;
-        var ns = this.defaults;
 
         // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
 
         // append the options within the dropdown
-        _.each(ns.metricNames, function(item) {
+        _.each(self.metricNames, function(item) {
             $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
         });
     },
 
     populateResources: function() {
         var self = this;
-        var ns = this.defaults;
 
         // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text('');
 
         // host names will be similar to: ctrl-01.c2.oak.solinea.com
         // so slice from the beginning up to the first '.'
-        var resourceNames = _.uniq(_.map(ns.resourceNames, function(item) {
+        var resourceNames = _.uniq(_.map(self.resourceNames, function(item) {
             return (item.host_name).slice(0, item.host_name.indexOf('.'));
         }));
 

@@ -266,7 +266,7 @@ var ChartSet = GoldstoneBaseView.extend({
     areaSetter: function() {
         var self = this;
         this.area = d3.svg.area()
-            .interpolate("basis")
+            .interpolate("monotone")
             .tension(0.85)
             .x(function(d) {
                 return self.x(d.time);

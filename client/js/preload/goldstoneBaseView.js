@@ -35,7 +35,6 @@ var GoldstoneBaseView = Backbone.View.extend({
     instanceSpecificInit: function() {
         // processes the hash of options passed in when object is instantiated
         this.processOptions();
-        // sets page-element listeners, and/or event-listeners
         this.processListeners();
         this.render();
         this.appendChartHeading();
@@ -89,9 +88,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             this.getGlobalLookbackRefresh();
             if (this.collection) {
                 this.showSpinner();
-                // this.collection.globalLookback = this.globalLookback;
                 this.collection.urlGenerator();
-                // this.collection.fetch();
             }
         });
     },
