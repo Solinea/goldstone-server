@@ -36,13 +36,12 @@ this.cpuResourcesChartView = new MultiMetricBarView({
 */
 
 var MultiMetricBarView = GoldstoneBaseView.extend({
-    defaults: {
-        margin: {
-            top: 45,
-            right: 40,
-            bottom: 60,
-            left: 70
-        }
+
+    margin: {
+        top: 55,
+        right: 80,
+        bottom: 90,
+        left: 70
     },
 
     instanceSpecificInit: function() {
@@ -53,6 +52,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         this.processMargins();
         // Appends this basic chart template, usually overwritten
         this.render();
+        this.appendChartHeading();
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
         // appends spinner to el
@@ -65,26 +65,13 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     processOptions: function() {
 
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.featureSet = this.options.featureSet || null;
+        MultiMetricBarView.__super__.processOptions.apply(this, arguments);
+        this.featureSet = this.options.featureSet || null;
     },
 
     processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     standardInit: function() {
@@ -96,53 +83,51 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
 
-        ns.chart = ns.svg
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .ticks(5)
             .orient("bottom");
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left");
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.listenTo(this.collection, 'sync', function() {
@@ -175,38 +160,38 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     specialInit: function() {
-        var ns = this.defaults;
+        var self = this;
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
 
         // differentiate color sets for mem and cpu charts
-        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
+        if (self.featureSet === 'mem' || self.featureSet === 'cpu') {
+            self.color = d3.scale.ordinal().range(self.colorArray.distinct['3R']);
         }
-        if (ns.featureSet === 'metric') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
+        if (self.featureSet === 'metric') {
+            self.color = d3.scale.ordinal().range(self.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
-            ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct['2R']);
+            self.color = d3.scale.ordinal()
+                .range(self.colorArray.distinct['2R']);
         }
 
-        this.populateInfoButton();
     },
 
     collectionPrep: function(data) {
+        var self = this;
+
         var condensedData;
         var dataUniqTimes;
         var newData;
 
-        var ns = this.defaults;
         var uniqTimestamps;
         var finalData = [];
 
-        if (ns.featureSet === 'cpu') {
+        if (self.featureSet === 'cpu') {
 
             _.each(data, function(collection) {
 
@@ -264,7 +249,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-        } else if (ns.featureSet === 'disk') {
+        } else if (self.featureSet === 'disk') {
 
             _.each(data, function(collection) {
 
@@ -322,7 +307,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-        } else if (ns.featureSet === 'mem') {
+        } else if (self.featureSet === 'mem') {
 
             _.each(data, function(collection) {
 
@@ -386,7 +371,8 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this.defaults;
+
+        var self = this;
 
         /*
         filter function strips keys that are irrelevant to the d3.tip:
@@ -408,7 +394,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        if (ns.featureSet === 'metric') {
+        if (self.featureSet === 'metric') {
             valuesToReport.forEach(function(item) {
                 result += 'Value: ' + d[item] + '<br>';
             });
@@ -424,7 +410,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
         var self = this;
 
         // data originally returned from collection as:
@@ -458,7 +443,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
+        self.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
         }));
 
@@ -495,7 +480,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
             // calculates heights of each stacked bar by adding
             // to the heights of the previous bars
-            d.stackedBarPrep = ns.color.domain().map(function(name) {
+            d.stackedBarPrep = self.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
@@ -525,26 +510,26 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        ns.x.domain(d3.extent(data, function(d) {
+        self.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
         }));
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
-        ns.y.domain([0, d3.max(data, function(d) {
+        self.y.domain([0, d3.max(data, function(d) {
             return d.total;
         })]);
 
         // add x axis
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
 
         // add y axis
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "y axis")
-            .call(ns.yAxis)
+            .call(self.yAxis)
             .append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
@@ -552,17 +537,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .style("text-anchor", "end");
 
         // add primary svg g layer
-        ns.event = ns.chart.selectAll(".event")
+        self.event = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g")
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.eventTime) + ",0)";
+                return "translate(" + self.x(d.eventTime) + ",0)";
             });
 
         // add svg g layer for solid lines
-        ns.solidLineCanvas = ns.chart.selectAll(".event")
+        self.solidLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -570,7 +555,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr("class", "solid-line-canvas");
 
         // add svg g layer for dashed lines
-        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+        self.dashedLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -578,7 +563,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr("class", "dashed-line-canvas");
 
         // add svg g layer for hidden rects
-        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+        self.hiddenBarsCanvas = self.chart.selectAll(".hidden")
             .data(data)
             .enter()
             .append("g")
@@ -593,7 +578,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
         // Invoke the tip in the context of your visualization
-        ns.chart.call(tip);
+        self.chart.call(tip);
 
         // used below to determing whether to render as
         // a "rect" or "line" by affecting fill and stroke opacity below
@@ -607,27 +592,27 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         };
 
         // append rectangles
-        ns.event.selectAll("rect")
+        self.event.selectAll("rect")
             .data(function(d) {
                 return d.stackedBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                var segmentWidth = (ns.mw / data.length);
+                var segmentWidth = (self.mw / data.length);
 
                 // spacing corrected for proportional
                 // gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
-                return ns.y(d.y1);
+                return self.y(d.y1);
             })
             .attr("height", function(d) {
-                return ns.y(d.y0) - ns.y(d.y1);
+                return self.y(d.y0) - self.y(d.y1);
             })
             .attr("rx", 0.8)
             .attr("stroke", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             })
             .attr("stroke-opacity", function(d) {
                 if (!showOrHide[d.name]) {
@@ -645,28 +630,28 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             });
 
         // append hidden bars
-        ns.hiddenBarsCanvas.selectAll("rect")
+        self.hiddenBarsCanvas.selectAll("rect")
             .data(data)
             .enter().append("rect")
             .attr("width", function(d) {
-                var hiddenBarWidth = (ns.mw / data.length);
+                var hiddenBarWidth = (self.mw / data.length);
                 return hiddenBarWidth - hiddenBarWidth * 0.07;
             })
             .attr("opacity", "0")
             .attr("x", function(d) {
-                return ns.x(d.eventTime);
+                return self.x(d.eventTime);
             })
             .attr("y", 0)
             .attr("height", function(d) {
-                return ns.mh;
+                return self.mh;
             }).on('mouseenter', function(d) {
 
                 // coax the pointer to line up with the bar center
-                var nudge = (ns.mw / data.length) * 0.5;
+                var nudge = (self.mw / data.length) * 0.5;
                 var targ = d3.select(self.el).select('rect');
                 tip.offset([20, -nudge]).show(d, targ);
             }).on('mouseleave', function() {
@@ -679,20 +664,20 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return d3.svg.line()
                 .interpolate("linear")
                 .x(function(d) {
-                    return ns.x(d.eventTime);
+                    return self.x(d.eventTime);
                 })
                 .y(function(d) {
-                    return ns.y(d[param]);
+                    return self.y(d[param]);
                 });
         };
 
         // abstracts the path generator to accept a data param
         // and creates a solid line with the appropriate color
         var solidPathGenerator = function(param) {
-            return ns.solidLineCanvas.append("path")
+            return self.solidLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
@@ -701,10 +686,10 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // abstracts the path generator to accept a data param
         // and creates a dashed line with the appropriate color
         var dashedPathGenerator = function(param) {
-            return ns.dashedLineCanvas.append("path")
+            return self.dashedLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none")
@@ -715,7 +700,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
-        if (ns.featureSet === 'cpu') {
+        if (self.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
             // uncomment if supplying virtual stat again
@@ -726,12 +711,12 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             lineFunction = lineFunctionGenerator('Physical');
             dashedPathGenerator('Physical');
 
-        } else if (ns.featureSet === 'disk') {
+        } else if (self.featureSet === 'disk') {
 
             // generate solid line for Total data points
             lineFunction = lineFunctionGenerator('Total');
             solidPathGenerator('Total');
-        } else if (ns.featureSet === 'mem') {
+        } else if (self.featureSet === 'mem') {
 
             // generate solid line for Virtual data points
             // uncomment if supplying virtual stat again
@@ -773,54 +758,30 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             ]
         };
 
-        if (ns.featureSet !== null) {
-            this.appendLegend(legendSpecs[ns.featureSet]);
+        if (self.featureSet !== null) {
+            this.appendLegend(legendSpecs[self.featureSet]);
         } else {
             this.appendLegend(legendSpecs.spawn);
         }
     },
 
-    populateInfoButton: function() {
-        var self = this;
-        // chart info button popover generator
-        var infoButtonText = new InfoButtonText().get('infoText');
-        var htmlGen = function() {
-            var result = infoButtonText[this.defaults.infoCustom];
-            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
-            return result;
-        };
-
-        $(this.el).find('#chart-button-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('hide');
-            });
-    },
-
     appendLegend: function(legendSpecs) {
+
+        var self = this;
 
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this.defaults;
 
         _.each(legendSpecs, function(item) {
-            ns.chart.append('path')
+            self.chart.append('path')
                 .attr('class', 'line')
                 .attr('id', item[0])
                 .attr('data-legend', item[0])
-                .attr('data-legend-color', ns.color.range()[item[1]]);
+                .attr('data-legend-color', self.color.range()[item[1]]);
         });
 
-        var legend = ns.chart.append('g')
+        var legend = self.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)

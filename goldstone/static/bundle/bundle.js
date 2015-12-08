@@ -3828,10 +3828,24 @@ var ServiceStatusCollection = Backbone.Collection.extend({
  */
 
 /*
-This collection is currently direclty implemented in the
-Nova VM Spawns viz
-JSON payload format:
+Instantiated on novaReportView as:
 
+this.vmSpawnChart = new SpawnsCollection({
+    urlBase: '/nova/hypervisor/spawns/'
+});
+
+this.vmSpawnChartView = new SpawnsView({
+    chartTitle: goldstone.translate("VM Spawns"),
+    collection: this.vmSpawnChart,
+    height: 350,
+    infoText: 'novaSpawns',
+    el: '#nova-report-r1-c2',
+    width: $('#nova-report-r1-c2').width(),
+    yAxisLabel: goldstone.translate('Spawn Events')
+});
+
+
+returns:
 per_interval: [{
     timestamp:[count: 1, success: [{true: 1}]],
     timestamp:[count: 3, success: [{true: 2}, {false: 1}]],
@@ -3840,13 +3854,9 @@ per_interval: [{
 }]
 */
 
-// define collection and link to model
+var SpawnsCollection = GoldstoneBaseCollection.extend({
 
-var SpawnsCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
+    preProcessData: function(data) {
         if (data && data.per_interval) {
             return data.per_interval;
         } else {
@@ -3854,39 +3864,13 @@ var SpawnsCollection = Backbone.Collection.extend({
         }
     },
 
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.urlPrefix = this.options.urlPrefix;
-        this.defaults.reportParams = {};
-        // this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
-
-    urlGenerator: function() {
-        var ns = this.defaults;
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        // grabs minutes from global selector option value
-        ns.globalLookback = $('#global-lookback-range').val();
-
-        ns.reportParams.end = +new Date();
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
-
-        this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
-            ns.reportParams.start +
-            ',"lte":' + ns.reportParams.end +
-            '}&interval=' + ns.reportParams.interval;
-
-    }
-
+    addInterval: function() {
+        n = Math.max(1, (this.globalLookback / 24));
+        return '&interval=' + n + 'm';
+    },
 
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
@@ -4770,10 +4754,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width(),
             yAxisLabel: goldstone.translate("Response Time (s)")
@@ -4792,10 +4772,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width(),
             yAxisLabel: goldstone.translate("Response Time (s)")
@@ -4813,10 +4789,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
         });
@@ -4833,10 +4805,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
         });
@@ -4853,10 +4821,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
         });
@@ -4944,23 +4908,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
-    },
-
-    processListeners: function() {
-
-        ApiPerfView.__super__.processListeners.apply(this, arguments);
-
-        var self = this;
-
-        // this is triggered by a listener set on nodeReportView.js
-        // this.on('lookbackSelectorChanged', function() {
-        //     self.getGlobalLookbackRefresh();
-        //     self.collection.defaults.globalLookback = self.globalLookback;
-        //     self.collection.urlGenerator();
-        //     self.collection.fetch();
-        //     self.showSpinner();
-        // });
-
     },
 
     standardInit: function() {
@@ -9547,13 +9494,12 @@ this.cpuResourcesChartView = new MultiMetricBarView({
 */
 
 var MultiMetricBarView = GoldstoneBaseView.extend({
-    defaults: {
-        margin: {
-            top: 45,
-            right: 40,
-            bottom: 60,
-            left: 70
-        }
+
+    margin: {
+        top: 55,
+        right: 80,
+        bottom: 90,
+        left: 70
     },
 
     instanceSpecificInit: function() {
@@ -9564,6 +9510,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         this.processMargins();
         // Appends this basic chart template, usually overwritten
         this.render();
+        this.appendChartHeading();
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
         // appends spinner to el
@@ -9576,26 +9523,13 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     processOptions: function() {
 
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.featureSet = this.options.featureSet || null;
+        MultiMetricBarView.__super__.processOptions.apply(this, arguments);
+        this.featureSet = this.options.featureSet || null;
     },
 
     processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     standardInit: function() {
@@ -9607,53 +9541,51 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
 
-        ns.chart = ns.svg
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .ticks(5)
             .orient("bottom");
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left");
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.listenTo(this.collection, 'sync', function() {
@@ -9686,38 +9618,38 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     specialInit: function() {
-        var ns = this.defaults;
+        var self = this;
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
 
         // differentiate color sets for mem and cpu charts
-        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
+        if (self.featureSet === 'mem' || self.featureSet === 'cpu') {
+            self.color = d3.scale.ordinal().range(self.colorArray.distinct['3R']);
         }
-        if (ns.featureSet === 'metric') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
+        if (self.featureSet === 'metric') {
+            self.color = d3.scale.ordinal().range(self.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
-            ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct['2R']);
+            self.color = d3.scale.ordinal()
+                .range(self.colorArray.distinct['2R']);
         }
 
-        this.populateInfoButton();
     },
 
     collectionPrep: function(data) {
+        var self = this;
+
         var condensedData;
         var dataUniqTimes;
         var newData;
 
-        var ns = this.defaults;
         var uniqTimestamps;
         var finalData = [];
 
-        if (ns.featureSet === 'cpu') {
+        if (self.featureSet === 'cpu') {
 
             _.each(data, function(collection) {
 
@@ -9775,7 +9707,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-        } else if (ns.featureSet === 'disk') {
+        } else if (self.featureSet === 'disk') {
 
             _.each(data, function(collection) {
 
@@ -9833,7 +9765,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-        } else if (ns.featureSet === 'mem') {
+        } else if (self.featureSet === 'mem') {
 
             _.each(data, function(collection) {
 
@@ -9897,7 +9829,8 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this.defaults;
+
+        var self = this;
 
         /*
         filter function strips keys that are irrelevant to the d3.tip:
@@ -9919,7 +9852,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        if (ns.featureSet === 'metric') {
+        if (self.featureSet === 'metric') {
             valuesToReport.forEach(function(item) {
                 result += 'Value: ' + d[item] + '<br>';
             });
@@ -9935,7 +9868,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
         var self = this;
 
         // data originally returned from collection as:
@@ -9969,7 +9901,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
+        self.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
         }));
 
@@ -10006,7 +9938,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
             // calculates heights of each stacked bar by adding
             // to the heights of the previous bars
-            d.stackedBarPrep = ns.color.domain().map(function(name) {
+            d.stackedBarPrep = self.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
@@ -10036,26 +9968,26 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        ns.x.domain(d3.extent(data, function(d) {
+        self.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
         }));
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
-        ns.y.domain([0, d3.max(data, function(d) {
+        self.y.domain([0, d3.max(data, function(d) {
             return d.total;
         })]);
 
         // add x axis
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
 
         // add y axis
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "y axis")
-            .call(ns.yAxis)
+            .call(self.yAxis)
             .append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
@@ -10063,17 +9995,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .style("text-anchor", "end");
 
         // add primary svg g layer
-        ns.event = ns.chart.selectAll(".event")
+        self.event = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g")
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.eventTime) + ",0)";
+                return "translate(" + self.x(d.eventTime) + ",0)";
             });
 
         // add svg g layer for solid lines
-        ns.solidLineCanvas = ns.chart.selectAll(".event")
+        self.solidLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -10081,7 +10013,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr("class", "solid-line-canvas");
 
         // add svg g layer for dashed lines
-        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+        self.dashedLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -10089,7 +10021,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .attr("class", "dashed-line-canvas");
 
         // add svg g layer for hidden rects
-        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+        self.hiddenBarsCanvas = self.chart.selectAll(".hidden")
             .data(data)
             .enter()
             .append("g")
@@ -10104,7 +10036,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
         // Invoke the tip in the context of your visualization
-        ns.chart.call(tip);
+        self.chart.call(tip);
 
         // used below to determing whether to render as
         // a "rect" or "line" by affecting fill and stroke opacity below
@@ -10118,27 +10050,27 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         };
 
         // append rectangles
-        ns.event.selectAll("rect")
+        self.event.selectAll("rect")
             .data(function(d) {
                 return d.stackedBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                var segmentWidth = (ns.mw / data.length);
+                var segmentWidth = (self.mw / data.length);
 
                 // spacing corrected for proportional
                 // gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
-                return ns.y(d.y1);
+                return self.y(d.y1);
             })
             .attr("height", function(d) {
-                return ns.y(d.y0) - ns.y(d.y1);
+                return self.y(d.y0) - self.y(d.y1);
             })
             .attr("rx", 0.8)
             .attr("stroke", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             })
             .attr("stroke-opacity", function(d) {
                 if (!showOrHide[d.name]) {
@@ -10156,28 +10088,28 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             });
 
         // append hidden bars
-        ns.hiddenBarsCanvas.selectAll("rect")
+        self.hiddenBarsCanvas.selectAll("rect")
             .data(data)
             .enter().append("rect")
             .attr("width", function(d) {
-                var hiddenBarWidth = (ns.mw / data.length);
+                var hiddenBarWidth = (self.mw / data.length);
                 return hiddenBarWidth - hiddenBarWidth * 0.07;
             })
             .attr("opacity", "0")
             .attr("x", function(d) {
-                return ns.x(d.eventTime);
+                return self.x(d.eventTime);
             })
             .attr("y", 0)
             .attr("height", function(d) {
-                return ns.mh;
+                return self.mh;
             }).on('mouseenter', function(d) {
 
                 // coax the pointer to line up with the bar center
-                var nudge = (ns.mw / data.length) * 0.5;
+                var nudge = (self.mw / data.length) * 0.5;
                 var targ = d3.select(self.el).select('rect');
                 tip.offset([20, -nudge]).show(d, targ);
             }).on('mouseleave', function() {
@@ -10190,20 +10122,20 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return d3.svg.line()
                 .interpolate("linear")
                 .x(function(d) {
-                    return ns.x(d.eventTime);
+                    return self.x(d.eventTime);
                 })
                 .y(function(d) {
-                    return ns.y(d[param]);
+                    return self.y(d[param]);
                 });
         };
 
         // abstracts the path generator to accept a data param
         // and creates a solid line with the appropriate color
         var solidPathGenerator = function(param) {
-            return ns.solidLineCanvas.append("path")
+            return self.solidLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
@@ -10212,10 +10144,10 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // abstracts the path generator to accept a data param
         // and creates a dashed line with the appropriate color
         var dashedPathGenerator = function(param) {
-            return ns.dashedLineCanvas.append("path")
+            return self.dashedLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none")
@@ -10226,7 +10158,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
-        if (ns.featureSet === 'cpu') {
+        if (self.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
             // uncomment if supplying virtual stat again
@@ -10237,12 +10169,12 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             lineFunction = lineFunctionGenerator('Physical');
             dashedPathGenerator('Physical');
 
-        } else if (ns.featureSet === 'disk') {
+        } else if (self.featureSet === 'disk') {
 
             // generate solid line for Total data points
             lineFunction = lineFunctionGenerator('Total');
             solidPathGenerator('Total');
-        } else if (ns.featureSet === 'mem') {
+        } else if (self.featureSet === 'mem') {
 
             // generate solid line for Virtual data points
             // uncomment if supplying virtual stat again
@@ -10284,54 +10216,30 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             ]
         };
 
-        if (ns.featureSet !== null) {
-            this.appendLegend(legendSpecs[ns.featureSet]);
+        if (self.featureSet !== null) {
+            this.appendLegend(legendSpecs[self.featureSet]);
         } else {
             this.appendLegend(legendSpecs.spawn);
         }
     },
 
-    populateInfoButton: function() {
-        var self = this;
-        // chart info button popover generator
-        var infoButtonText = new InfoButtonText().get('infoText');
-        var htmlGen = function() {
-            var result = infoButtonText[this.defaults.infoCustom];
-            result = result ? result : goldstone.translate('Set in InfoButtonText.js');
-            return result;
-        };
-
-        $(this.el).find('#chart-button-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('hide');
-            });
-    },
-
     appendLegend: function(legendSpecs) {
+
+        var self = this;
 
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this.defaults;
 
         _.each(legendSpecs, function(item) {
-            ns.chart.append('path')
+            self.chart.append('path')
                 .attr('class', 'line')
                 .attr('id', item[0])
                 .attr('data-legend', item[0])
-                .attr('data-legend-color', ns.color.range()[item[1]]);
+                .attr('data-legend-color', self.color.range()[item[1]]);
         });
 
-        var legend = ns.chart.append('g')
+        var legend = self.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)
@@ -11870,13 +11778,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova'
+            componentParam: 'nova',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
@@ -11890,14 +11799,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new SpawnsCollection({
-            urlPrefix: '/nova/hypervisor/spawns/'
+            urlBase: '/nova/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new SpawnsView({
             chartTitle: goldstone.translate("VM Spawns"),
             collection: this.vmSpawnChart,
-            height: 300,
-            infoCustom: 'novaSpawns',
+            height: 350,
+            infoText: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
             yAxisLabel: goldstone.translate('Spawn Events')
@@ -11915,8 +11824,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("CPU Resources"),
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
-            height: 300,
-            infoCustom: 'novaCpuResources',
+            height: 350,
+            infoText: 'novaCpuResources',
             el: '#nova-report-r2-c1',
             width: $('#nova-report-r2-c1').width(),
             yAxisLabel: goldstone.translate('Cores')
@@ -11934,8 +11843,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Memory Resources"),
             collection: this.memResourcesChart,
             featureSet: 'mem',
-            height: 300,
-            infoCustom: 'novaMemResources',
+            height: 350,
+            infoText: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
             yAxisLabel: goldstone.translate('MB')
@@ -11953,8 +11862,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Disk Resources"),
             collection: this.diskResourcesChart,
             featureSet: 'disk',
-            height: 300,
-            infoCustom: 'novaDiskResources',
+            height: 350,
+            infoText: 'novaDiskResources',
             el: '#nova-report-r3-c1',
             width: $('#nova-report-r3-c1').width(),
             yAxisLabel: goldstone.translate('GB')
@@ -12964,78 +12873,19 @@ this.vmSpawnChartView = new SpawnsView({
 
 var SpawnsView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 45,
-            right: 40,
-            bottom: 60,
-            left: 70
-        }
+    margin: {
+        top: 55,
+        right: 70,
+        bottom: 100,
+        left: 70
     },
 
     instanceSpecificInit: function() {
-        // processes the passed in hash of options when object is instantiated
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
+
+        SpawnsView.__super__.instanceSpecificInit.apply(this, arguments);
+
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-    },
-
-    processOptions: function() {
-
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.featureSet = this.options.featureSet || null;
-    },
-
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
-    },
-
-    processListeners: function() {
-        // registers 'sync' event so view 'watches' collection for data update
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
-
-        // this is triggered by a listener set on nodeReportView.js
-        this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.urlGenerator();
-            this.collection.fetch();
-            this.defaults.start = this.collection.defaults.reportParams.start;
-            this.defaults.end = this.collection.defaults.reportParams.end;
-            this.defaults.interval = this.collection.defaults.reportParams.interval;
-
-            if ($(this.el).find('#chart-button-info').length) {
-                $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this)
-                });
-            }
-
-            this.defaults.spinnerDisplay = 'inline';
-            $(this.el).find('#spinner').show();
-        });
-
     },
 
     standardInit: function() {
@@ -13047,10 +12897,13 @@ var SpawnsView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
+
+        ns.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", ns.width)
             .attr("height", ns.height);
 
@@ -13112,7 +12965,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         from the x-axis of the graph going upward.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var uniqTimestamps;
         var result = [];
 
@@ -13145,7 +12998,7 @@ var SpawnsView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this.defaults;
+        var ns = this;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -13175,7 +13028,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
 
         var data = this.collection.toJSON();
@@ -13480,7 +13333,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this.defaults;
+        var ns = this;
 
         _.each(legendSpecs, function(item) {
             ns.chart.append('path')
@@ -13496,20 +13349,6 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr('opacity', 1.0)
             .call(d3.legend);
     },
-
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.defaults.chartTitle,
-            infoText: this.defaults.infoCustom
-        }).el);
-
-        $(this.el).find('.mainContainer').append(this.template());
-        return this;
-    }
 
 });
 ;

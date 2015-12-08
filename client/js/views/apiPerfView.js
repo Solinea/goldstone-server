@@ -55,23 +55,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         this.standardInit();
     },
 
-    processListeners: function() {
-
-        ApiPerfView.__super__.processListeners.apply(this, arguments);
-
-        var self = this;
-
-        // this is triggered by a listener set on nodeReportView.js
-        // this.on('lookbackSelectorChanged', function() {
-        //     self.getGlobalLookbackRefresh();
-        //     self.collection.defaults.globalLookback = self.globalLookback;
-        //     self.collection.urlGenerator();
-        //     self.collection.fetch();
-        //     self.showSpinner();
-        // });
-
-    },
-
     standardInit: function() {
 
         /*

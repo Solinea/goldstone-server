@@ -37,78 +37,19 @@ this.vmSpawnChartView = new SpawnsView({
 
 var SpawnsView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 45,
-            right: 40,
-            bottom: 60,
-            left: 70
-        }
+    margin: {
+        top: 55,
+        right: 70,
+        bottom: 100,
+        left: 70
     },
 
     instanceSpecificInit: function() {
-        // processes the passed in hash of options when object is instantiated
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
+
+        SpawnsView.__super__.instanceSpecificInit.apply(this, arguments);
+
         // basic assignment of variables to be used in chart rendering
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-    },
-
-    processOptions: function() {
-
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.featureSet = this.options.featureSet || null;
-    },
-
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
-    },
-
-    processListeners: function() {
-        // registers 'sync' event so view 'watches' collection for data update
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
-
-        // this is triggered by a listener set on nodeReportView.js
-        this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.urlGenerator();
-            this.collection.fetch();
-            this.defaults.start = this.collection.defaults.reportParams.start;
-            this.defaults.end = this.collection.defaults.reportParams.end;
-            this.defaults.interval = this.collection.defaults.reportParams.interval;
-
-            if ($(this.el).find('#chart-button-info').length) {
-                $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this)
-                });
-            }
-
-            this.defaults.spinnerDisplay = 'inline';
-            $(this.el).find('#spinner').show();
-        });
-
     },
 
     standardInit: function() {
@@ -120,10 +61,13 @@ var SpawnsView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
+
+        ns.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", ns.width)
             .attr("height", ns.height);
 
@@ -185,7 +129,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         from the x-axis of the graph going upward.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var uniqTimestamps;
         var result = [];
 
@@ -218,7 +162,7 @@ var SpawnsView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this.defaults;
+        var ns = this;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -248,7 +192,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
 
         var data = this.collection.toJSON();
@@ -553,7 +497,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this.defaults;
+        var ns = this;
 
         _.each(legendSpecs, function(item) {
             ns.chart.append('path')
@@ -569,19 +513,5 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr('opacity', 1.0)
             .call(d3.legend);
     },
-
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.defaults.chartTitle,
-            infoText: this.defaults.infoCustom
-        }).el);
-
-        $(this.el).find('.mainContainer').append(this.template());
-        return this;
-    }
 
 });
