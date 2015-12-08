@@ -286,9 +286,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             this.getGlobalLookbackRefresh();
             if (this.collection) {
                 this.showSpinner();
-                // this.collection.globalLookback = this.globalLookback;
                 this.collection.urlGenerator();
-                // this.collection.fetch();
             }
         });
     },
@@ -3489,19 +3487,24 @@ instantiated on nodeReportView and novaReportView
 
 instantiation example:
 
-this.cpuUsageChart = new MultiMetricComboCollection({
-    metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
-    globalLookback: ns.globalLookback, (optional)
+this.cpuResourcesChart = new MultiMetricComboCollection({
+    metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used'],
     nodeName: hostName (optional)
 });
 */
 
-var MultiMetricComboCollection = Backbone.Collection.extend({
+var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
-    defaults: {},
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.fetchInProgress = false;
+        this.urlCollectionCountOrig = this.metricNames.length;
+        this.urlCollectionCount = this.metricNames.length;
+        this.urlGenerator();
+    },
 
     parse: function(data) {
-        var ns = this.defaults;
+        var self = this;
 
         if (data.next && data.next !== null) {
             var dp = data.next;
@@ -3511,81 +3514,73 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
                 remove: false
             });
         } else {
-            ns.urlCollectionCount--;
+            this.urlCollectionCount--;
         }
 
         // before returning the collection, tag it with the metricName
         // that produced the data
-        data.metricSource = ns.metricNames[(ns.metricNames.length - 1) - ns.urlCollectionCount];
+        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
 
         return data;
     },
-
-    model: GoldstoneBaseModel,
 
     // will impose an order based on 'timestamp' for
     // the models as they are put into the collection
     comparator: '@timestamp',
 
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.reportParams = {};
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = this.options.nodeName;
-        this.defaults.metricNames = this.options.metricNames;
-        this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
-        this.defaults.urlCollectionCount = this.defaults.metricNames.length;
+    urlGenerator: function() {
         this.fetchMultipleUrls();
-
     },
 
     fetchMultipleUrls: function() {
         var self = this;
-        var ns = this.defaults;
 
-        if (ns.fetchInProgress) {
+
+        if (this.fetchInProgress) {
             return null;
         }
 
-        ns.fetchInProgress = true;
-        ns.urlsToFetch = [];
+        this.fetchInProgress = true;
+        this.urlsToFetch = [];
+
+        this.computeLookbackAndInterval();
 
         // grabs minutes from global selector option value
-        ns.globalLookback = $('#global-lookback-range').val();
+        // this.globalLookback = $('#global-lookback-range').val();
 
-        ns.reportParams.end = +new Date();
-        ns.reportParams.start = (+new Date() - (ns.globalLookback * 1000 * 60));
+        // this.epochNow = +new Date();
+        // this.gte = (+new Date() - (this.globalLookback * 1000 * 60));
 
         // set a lower limit to the interval of '2m'
         // in order to avoid the sawtooth effect
-        ns.reportParams.interval = '' + Math.max(2, (ns.globalLookback / 24)) + 'm';
+        this.interval = '' + Math.max(2, (this.globalLookback / 24)) + 'm';
 
-        _.each(self.defaults.metricNames, function(prefix) {
+
+        _.each(this.metricNames, function(prefix) {
 
             var urlString = '/core/metrics/summarize/?name=' + prefix;
 
-            if (self.defaults.nodeName) {
-                urlString += '&node=' + self.defaults.nodeName;
+            if (self.nodeName) {
+                urlString += '&node=' + self.nodeName;
             }
 
             urlString += '&@timestamp__range={"gte":' +
-                ns.reportParams.start + ',"lte":' + ns.reportParams.end +
-                '}&interval=' + ns.reportParams.interval;
+                self.gte + ',"lte":' + self.epochNow +
+                '}&interval=' + self.interval;
 
-            self.defaults.urlsToFetch.push(urlString);
+            self.urlsToFetch.push(urlString);
         });
 
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
-            url: ns.urlsToFetch[0],
+            url: self.urlsToFetch[0],
             success: function() {
 
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
+                _.each(self.urlsToFetch.slice(1), function(item) {
                     self.fetch({
                         url: item,
                         remove: false
@@ -9036,8 +9031,12 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     instanceSpecificInit: function(options) {
 
-        // hide global lookback selector
-        $("select#global-lookback-range").hide();
+        // hide global lookback selector, if present
+        var $glr = $("select#global-lookback-range");
+        if ($glr.length) {
+            this.$glr = $glr;
+            this.$glr.hide();
+        }
 
         // options.numCharts passed in by goldstoneRouter
         // and reflects the number n (1-6) following "/#metric/n"
@@ -9058,8 +9057,10 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // clear out grid of collections/views
         this.metricViewGridContainer.clear();
 
-        // return global lookback selector to page
-        $("select#global-lookback-range").show();
+        // return global lookback selector to page if relevant
+        if (this.$glr) {
+            $("select#global-lookback-range").show();
+        }
 
         MetricViewerPageView.__super__.onClose.apply(this, arguments);
     },
@@ -9503,21 +9504,10 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     instanceSpecificInit: function() {
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
-        this.appendChartHeading();
-        // basic assignment of variables to be used in chart rendering
+
+        MultiMetricBarView.__super__.instanceSpecificInit.apply(this, arguments);
+
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-        // allows a container for any special afterthoughts that need to
-        // be invoked during the initialization of this View, or those that
-        // are descendent from this view.
         this.specialInit();
     },
 
@@ -9525,11 +9515,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         MultiMetricBarView.__super__.processOptions.apply(this, arguments);
         this.featureSet = this.options.featureSet || null;
-    },
-
-    processMargins: function() {
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     standardInit: function() {
@@ -9542,6 +9527,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         */
 
         var self = this;
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
         self.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", self.width)
@@ -9589,20 +9577,19 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var self = this;
 
         this.listenTo(this.collection, 'sync', function() {
-            if (self.collection.defaults.urlCollectionCount === 0) {
+            if (self.collection.urlCollectionCount === 0) {
                 self.update();
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
-                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-                self.collection.defaults.fetchInProgress = false;
+                self.collection.urlCollectionCount = self.collection.urlCollectionCountOrig;
+                self.collection.fetchInProgress = false;
             }
         });
 
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.fetchMultipleUrls();
             $(this.el).find('#spinner').show();
+            this.collection.fetchMultipleUrls();
         });
     },
 
@@ -9613,8 +9600,8 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var self = this;
 
         // the collection count will have to be set back to the original count when re-triggering a fetch.
-        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-        self.collection.defaults.fetchInProgress = false;
+        self.collection.urlCollectionCount = self.collection.urlCollectionCountOrig;
+        self.collection.fetchInProgress = false;
     },
 
     specialInit: function() {

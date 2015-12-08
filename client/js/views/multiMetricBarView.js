@@ -45,21 +45,10 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     instanceSpecificInit: function() {
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
-        this.appendChartHeading();
-        // basic assignment of variables to be used in chart rendering
+
+        MultiMetricBarView.__super__.instanceSpecificInit.apply(this, arguments);
+
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-        // allows a container for any special afterthoughts that need to
-        // be invoked during the initialization of this View, or those that
-        // are descendent from this view.
         this.specialInit();
     },
 
@@ -67,11 +56,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         MultiMetricBarView.__super__.processOptions.apply(this, arguments);
         this.featureSet = this.options.featureSet || null;
-    },
-
-    processMargins: function() {
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
     },
 
     standardInit: function() {
@@ -84,6 +68,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         */
 
         var self = this;
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
 
         self.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", self.width)
@@ -131,20 +118,19 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var self = this;
 
         this.listenTo(this.collection, 'sync', function() {
-            if (self.collection.defaults.urlCollectionCount === 0) {
+            if (self.collection.urlCollectionCount === 0) {
                 self.update();
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
-                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-                self.collection.defaults.fetchInProgress = false;
+                self.collection.urlCollectionCount = self.collection.urlCollectionCountOrig;
+                self.collection.fetchInProgress = false;
             }
         });
 
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.fetchMultipleUrls();
             $(this.el).find('#spinner').show();
+            this.collection.fetchMultipleUrls();
         });
     },
 
@@ -155,8 +141,8 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var self = this;
 
         // the collection count will have to be set back to the original count when re-triggering a fetch.
-        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-        self.collection.defaults.fetchInProgress = false;
+        self.collection.urlCollectionCount = self.collection.urlCollectionCountOrig;
+        self.collection.fetchInProgress = false;
     },
 
     specialInit: function() {
