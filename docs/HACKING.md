@@ -1,7 +1,9 @@
 # Goldstone Server Hacking Guide
 
 
-This explains how to install and run Goldstone Server locally, so you can do code development on the project.  These instructions are written for a Mac OS X Yosemite development.
+This explains how to install and run Goldstone Server locally, so you can do code development on the project.  These instructions are written for a Mac OS X El Capitan development environment.
+
+An overview of the goldstone-server repo file structure can be found at [CODEBASE.md](./CODEBASE.md)
 
 ## Prerequisites
 
@@ -76,7 +78,7 @@ Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d
 
 ## Install the Development OpenStack VM
 
-Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://a248.e.akamai.net/cdn.hpcloudsvc.com/he27fba417855517f7da9656d4eedbfdc/prodaw2//RDO-kilo-20150902.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
+Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://ab869301cdc499c198b6-69cf3576870bc238e91b4537dc60466a.ssl.cf5.rackcdn.com/RDO-kilo-20150902.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
 
 ## Configure VirtualBox Networking
 
