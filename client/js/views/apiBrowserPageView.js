@@ -64,9 +64,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
         // button selectors for log viewers
         '<div class="btn-group" role="group">' +
-        '<button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><a href="#reports/logbrowser"><%=goldstone.translate(\'Log Browser\')%></a></button>' +
-        '<button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><a href="#reports/eventbrowser"><%=goldstone.translate(\'Event Browser\')%></a></button>' +
-        '<button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><a href="#reports/apibrowser"><%=goldstone.translate(\'Api Browser\')%></a></button>' +
+        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
+        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
+        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
         '</div><br><br>' +
 
         '<div class="row">' +

@@ -124,8 +124,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         // button selectors for metric viewers
         '<div class="btn-group" role="group">' +
-        '<button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><a href="#metrics/nova_report"><%=goldstone.translate(\'Compute\')%></a></button>' +
-        '<button type="button" data-title="Event Browser" class="headerBar reportsButton active btn btn-default"><a href="#metrics/api_perf"><%=goldstone.translate(\'API Performance\')%></a></button>' +
+        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
+        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
         '</div><br><br>' +
 
         '<div id="api-perf-report-r1" class="row">' +
