@@ -103,12 +103,12 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.epochNow = +new Date();
 
         // in minutes
-        this.globalLookback = $('#global-lookback-range').val() || 15;
-        this.globalLookback = parseInt(this.globalLookback, 10); // to integer
+        var globalLookback = $('#global-lookback-range').val() || 15;
+        this.globalLookback = parseInt(globalLookback, 10); // to integer
 
         // in seconds
-        this.globalRefresh = $('#global-refresh-range').val() || 30;
-        this.globalRefresh = parseInt(this.globalRefresh, 10); // to integer
+        var globalRefresh = $('#global-refresh-range').val() || 30;
+        this.globalRefresh = parseInt(globalRefresh, 10); // to integer
     },
 
     setSpinner: function() {

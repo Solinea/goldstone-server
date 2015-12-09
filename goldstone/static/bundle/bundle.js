@@ -300,12 +300,12 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.epochNow = +new Date();
 
         // in minutes
-        this.globalLookback = $('#global-lookback-range').val() || 15;
-        this.globalLookback = parseInt(this.globalLookback, 10); // to integer
+        var globalLookback = $('#global-lookback-range').val() || 15;
+        this.globalLookback = parseInt(globalLookback, 10); // to integer
 
         // in seconds
-        this.globalRefresh = $('#global-refresh-range').val() || 30;
-        this.globalRefresh = parseInt(this.globalRefresh, 10); // to integer
+        var globalRefresh = $('#global-refresh-range').val() || 30;
+        this.globalRefresh = parseInt(globalRefresh, 10); // to integer
     },
 
     setSpinner: function() {
@@ -7250,7 +7250,7 @@ openstack syslog severity levels:
 */
 
 // extends UtilizationCpuView
-var LogAnalysisView = UtilizationCpuView.extend({
+var LogAnalysisView = GoldstoneBaseView.extend({
     defaults: {
         margin: {
             top: 20,
@@ -7287,12 +7287,50 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     },
 
-    processOptions: function() {
+    instanceSpecificInit: function() {
+        // processes the passed in hash of options when object is instantiated
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
+        // appends spinner to el
+        this.showSpinner();
+        this.specialInit();
+    },
 
-        LogAnalysisView.__super__.processOptions.apply(this, arguments);
+    processOptions: function() {
 
         var self = this;
         var ns = this.defaults;
+
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
+
+        this.defaults.url = this.collection.url;
+        this.defaults.featureSet = this.options.featureSet || null;
+        if (ns.featureSet === 'memUsage') {
+            ns.divisor = (1 << 30);
+        }
+        ns.formatPercent = d3.format(".0%");
+        ns.height = this.options.height || this.options.width;
+        ns.yAxisLabel = '';
+
         ns.yAxisLabel = goldstone.contextTranslate('Log Events', 'loganalysis');
         ns.urlRoot = this.options.urlRoot;
 
@@ -7374,9 +7412,80 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     standardInit: function() {
-        LogAnalysisView.__super__.standardInit.apply(this, arguments);
 
         var ns = this.defaults;
+        var self = this;
+
+        ns.svg = d3.select(this.el).append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
+
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // initialized the axes
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
+
+        ns.svg.on('dblclick', function() {
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
+
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
+
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
+
+        // ns.xAxis = d3.svg.axis()
+        //     .scale(ns.x)
+        //     .orient("bottom")
+        //     .ticks(4);
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
+
+        if (ns.featureSet === "cpuUsage") {
+            ns.yAxis
+                .tickFormat(ns.formatPercent);
+        }
+
+        if (ns.featureSet === 'logEvents') {
+
+            ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .range(ns.colorArray.distinct.openStackSeverity8);
+        } else {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
+        }
+
+        ns.area = d3.svg.area()
+            .interpolate("monotone")
+            .x(function(d) {
+                return ns.x(d.date);
+            })
+            .y0(function(d) {
+                return ns.y(d.y0);
+            })
+            .y1(function(d) {
+                return ns.y(d.y0 + d.y);
+            });
+
+        ns.stack = d3.layout.stack()
+            .values(function(d) {
+                return d.values;
+            });
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -7419,9 +7528,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        $(this.el).find('#spinner').show();
+        this.showSpinner();
         ns.isZoomed = true;
-        $('.global-refresh-selector select').val(-1);
+
+        var $gls = $('.global-refresh-selector select');
+        if ($gls.length) {
+            $('.global-refresh-selector select').val(-1);
+        }
 
         var zoomedStart;
         var zoomedEnd;
@@ -7590,12 +7703,252 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     update: function() {
-        LogAnalysisView.__super__.update.apply(this, arguments);
-
-        this.hideSpinner();
 
         var ns = this.defaults;
         var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        this.hideSpinner();
+
+        // define allthelogs and ns.data even if
+        // rendering is halted due to empty data set
+        var allthelogs = this.collectionPrep();
+        ns.data = allthelogs;
+
+        if (ns.featureSet === 'logEvents') {
+            ns.data = allthelogs.finalData;
+            ns.loglevel = d3.scale.ordinal()
+                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .range(ns.colorArray.distinct.openStackSeverity8);
+        }
+
+        // If we didn't receive any valid files, append "No Data Returned" and halt
+        if (this.checkReturnedDataSet(allthelogs) === false) {
+            return;
+        }
+
+        // remove No Data Returned once data starts flowing again
+        this.clearDataErrorMessage();
+
+        ns.color.domain(d3.keys(ns.data[0]).filter(function(key) {
+
+            if (ns.featureSet === 'logEvents') {
+                return (ns.filter[key] && key !== "date" && key !== "total" && key !== "time");
+            } else {
+                return key !== "date";
+            }
+        }));
+
+        var components;
+        if (ns.featureSet === 'logEvents') {
+
+            var curr = false;
+            var anyLiveFilter = _.reduce(ns.filter, function(curr, status) {
+                return status || curr;
+            });
+
+            if (!anyLiveFilter) {
+                ns.chart.selectAll('.component')
+                    .remove();
+                return;
+            }
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: d[name]
+                        };
+                    })
+                };
+            }));
+
+        } else {
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
+                        };
+                    })
+                };
+            }));
+        }
+
+        $(this.el).find('.axis').remove();
+
+        ns.x.domain(d3.extent(ns.data, function(d) {
+            return d.date;
+        }));
+
+        if (ns.featureSet === 'memUsage') {
+            ns.y.domain([0, ns.memTotal / ns.divisor]);
+        }
+
+        if (ns.featureSet === 'netUsage') {
+            ns.y.domain([0, d3.max(allthelogs, function(d) {
+                return d.rx + d.tx;
+            })]);
+        }
+
+        if (ns.featureSet === 'logEvents') {
+            ns.y.domain([
+                0,
+                d3.max(ns.data.map(function(d) {
+                    return self.sums(d);
+                }))
+            ]);
+        }
+
+        ns.chart.selectAll('.component')
+            .remove();
+
+        var component = ns.chart.selectAll(".component")
+            .data(components)
+            .enter().append("g")
+            .attr("class", "component");
+
+        component.append("path")
+            .attr("class", "area")
+            .attr("d", function(d) {
+                return ns.area(d.values);
+            })
+            .style("stroke", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return ns.loglevel(d.name);
+                }
+            })
+            .style("stroke-width", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1.5;
+                }
+            })
+            .style("stroke-opacity", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1;
+                }
+            })
+            .style("fill", function(d) {
+
+                if (ns.featureSet === "cpuUsage") {
+                    if (d.name.toLowerCase() === "idle") {
+                        return "none";
+                    }
+                    return ns.color(d.name);
+                }
+
+                if (ns.featureSet === "memUsage") {
+                    if (d.name.toLowerCase() === "free") {
+                        return "none";
+                    }
+                    return ns.color(d.name);
+                }
+
+                if (ns.featureSet === "netUsage") {
+                    return ns.color(d.name);
+                }
+
+                if (ns.featureSet === "logEvents") {
+                    return ns.loglevel(d.name);
+                }
+
+                console.log('define featureSet in utilizationCpuView.js');
+
+            });
+
+        component.append("text")
+            .datum(function(d) {
+                return {
+                    name: d.name,
+                    value: d.values[d.values.length - 1]
+                };
+            })
+            .attr("transform", function(d) {
+                return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
+            })
+            .attr("x", 1)
+            .attr("y", function(d, i) {
+                // make space between the labels
+
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
+                        return -3;
+                    } else {
+                        return 0;
+                    }
+                }
+
+                if (ns.featureSet === 'cpuUsage') {
+                    return -i * 3;
+                }
+
+                if (ns.featureSet === 'netUsage') {
+                    return -i * 8;
+                }
+
+                if (ns.featureSet === 'logEvents') {
+                    return 0;
+                }
+
+                console.log('define feature set in utilizationCpuView.js');
+                return null;
+
+            })
+            .attr("text-anchor", function(d) {
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
+                        return 'end';
+                    }
+                }
+            })
+            .style("font-size", ".8em")
+            .text(function(d) {
+
+                if (ns.featureSet === 'cpuUsage') {
+                    return d.name;
+                }
+
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
+                        return 'Total: ' + ((Math.round(ns.memTotal / ns.divisor * 100)) / 100) + 'GB';
+                    }
+                    if (d.name === 'free') {
+                        return '';
+                    } else {
+                        return d.name;
+                    }
+                }
+
+                if (ns.featureSet === 'netUsage') {
+                    return d.name + " (kB)";
+                }
+
+                if (ns.featureSet === 'logEvents') {
+                    return null;
+                }
+
+                console.log('define feature set in utilizationCpuView.js');
+                return 'feature set undefined';
+
+            });
+
+        ns.chart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + ns.mh + ")")
+            .call(ns.xAxis);
+
+        ns.chart.append("g")
+            .attr("class", "y axis")
+            .call(ns.yAxis);
+
+
 
         // IMPORTANT: the order of the entries in the
         // Log Severity Filters modal is set by the order
