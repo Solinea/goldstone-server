@@ -52,7 +52,7 @@ limitations under the License.
 
                 <div class="user-control">
                     <i class="user"><img src="/static/images/icon-avatar-32.png" alt=""></i>
-                    <span class="username">user@solinea.com</span>
+                    <span class="username"></span>
                     <div class="menu-wrapper">
                         <div class="menu shadow-block">
                             <a href="#settings" class="setting">
@@ -398,6 +398,12 @@ limitations under the License.
             // append global selectors to page
             goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
             $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+            // append username to header
+            $.get('/user/', function(item) {
+                var userInfo = item.email;
+                $('.username').text(userInfo);
+            });
 
             // start the backbone router that will handle /# calls
             Backbone.history.start();
