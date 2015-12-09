@@ -16,7 +16,7 @@ css stylesheets supporting redesign
 .dashboard .wrapper { overflow: hidden; }
 
 /*Header*/
-.header { background: url("../../../images/header-background.jpg") no-repeat left top; background-size: cover; padding: 15px 13px 12px; }
+.main-header { background: url("../../../images/header-background.jpg") no-repeat left top; background-size: cover; padding: 15px 13px 12px; }
 
 .logo-header { display: inline-block; height: 32px; width: 113px; background: url(../../../images/logo.png) no-repeat center top/cover; float: left; margin-top: 5px; }
 
