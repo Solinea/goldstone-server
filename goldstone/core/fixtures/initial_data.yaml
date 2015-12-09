@@ -1,0 +1,30 @@
+  - model: core.definedsearch
+    pk: 1
+    fields:
+      name: sys_log_err_type_search_1
+      query: "{'prefix': {u'event_type__raw': 'OpenStackSyslogError'}}"
+      protected: true
+
+  - model: core.definedsearch
+    pk: 2
+    fields:
+      name: sys_log_err_type_search_2
+      query: "{'prefix': {u'event_type__raw': 'GenericSyslogError'}}"
+      protected: true
+
+  - model: core.definedsearch
+    pk: 3
+    fields:
+      name: solinea_defined_search_3
+      query: "{'multi_match': {'query': 'python django',
+                               'fields': ['title', 'body']},
+              }"
+      protected: true
+  - model: core.definedsearch
+    pk: 4
+    fields:
+      name: solinea_defined_search_4
+      query: "{'multi_match': {'query': 'python django',
+                               'fields': ['title', 'body']},
+              }"
+      protected: true

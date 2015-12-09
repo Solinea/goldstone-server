@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import ast
 from django.conf import settings
+from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
@@ -2636,36 +2638,68 @@ class Router(PolyResource):
         return "routers"
 
 
-class EventQueryDef(PolyResource):
+class DefinedSearch(models.Model):
+    """Defined searches, both system and user-created."""
 
-    """ This model defines how events get generated from parsing
-        queries and log indices """
-
+    # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
-    name = CharField(max_length=128)
-    desc = CharField(max_length=1024)
-    protected = True
-    created_ts = CreationDateTimeField(editable=False,
-                                       blank=True,
-                                       default=utc_now)
-    updated_ts = CreationDateTimeField(editable=False,
-                                       blank=True,
-                                       default=utc_now)
+
+    name = models.CharField(max_length=64)
+
+    desc = models.CharField(max_length=1024)
+
+    query = models.CharField(max_length=512,
+                             help_text='YAML Elasticsearch query body')
+
+    protected = models.BooleanField(default=False,
+                                    help_text='True if this is system-defined')
+
+    created = CreationDateTimeField(editable=False, blank=True)
+    updated = ModificationDateTimeField(editable=True, blank=True)
+
+    @classmethod
+    def field_has_raw(cls, _):
+        """Bypass the "field has raw representation" check in
+        drfes.models.DailyIndexDocType."""
+
+        return False
+
+    @classmethod
+    def execute_query(cls, name):
+        """ executes an elasticsearch query and returns rows of results.
+        :param query:
+        :return:
+        """
+
+        query = ast.literal_eval(DefinedSearch.objects.get(name=name))
+        # TBD : call bounded_search with timestamps once you add them
+        queryset = DailyIndexDocType.search(cls)
+        queryset = queryset.query(Q(query))
+
+        return queryset
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return u'defined search UUID %s' % self.uuid
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+        verbose_name_plural = "defined searches"
 
 
-class AlertQueryDef(PolyResource):
+class EventQueryDef(DefinedSearch):
 
-    """ This model defines how alerts get generated from parsing
-        event indices """
+    """ Defines an event-type based elastic search query definition """
 
-    uuid = UUIDField(version=1, auto=True, primary_key=True)
-    name = CharField(max_length=128)
-    desc = CharField(max_length=1024)
-    query = CharField(max_length=1024)
-    protected = True
-    created_ts = CreationDateTimeField(editable=False,
-                                       blank=True,
-                                       default=utc_now)
-    updated_ts = CreationDateTimeField(editable=False,
-                                       blank=True,
-                                       default=utc_now)
+    @classmethod
+    def search_by_syslog_err_type(cls):
+        """Return event rows that match the passed-in syslog error."""
+        result = DefinedSearch.execute_query('sys_log_err_type_search_1')
+        # TBD : call pycadf create_event() from here
+        return result
+
+
+class AlertQueryDef(DefinedSearch):
+
+    """ Defines an alter-type based elastic search query definition """
+    pass
