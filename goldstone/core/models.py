@@ -2646,7 +2646,7 @@ class DefinedSearch(models.Model):
 
     name = models.CharField(max_length=64)
 
-    desc = models.CharField(max_length=1024)
+    description = models.CharField(max_length=1024, default='Defined Search')
 
     query = models.CharField(max_length=512,
                              help_text='YAML Elasticsearch query body')
@@ -2666,7 +2666,7 @@ class DefinedSearch(models.Model):
 
     @classmethod
     def execute_query(cls, name):
-        """ executes an elasticsearch query and returns rows of results.
+        """ executes an elasticsearch query and returns the result of that query.
         :param query:
         :return:
         """

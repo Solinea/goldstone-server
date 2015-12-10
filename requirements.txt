@@ -46,3 +46,4 @@ python-neutronclient==2.5.0
 python-novaclient==2.25.0
 urllib3==1.8
 wsgiref==0.1.2
+pycadf==2.0.1
