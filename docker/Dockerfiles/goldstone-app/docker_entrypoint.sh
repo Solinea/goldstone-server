@@ -54,7 +54,7 @@ fi
 # this won't do anything if the django admin, goldstone tenant and cloud already
 # exist.  otherwise it will use the env vars to create missing entities.
 #
-python bin/post_install.py
+python post_install.py
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \

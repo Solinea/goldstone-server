@@ -293,6 +293,5 @@ if __name__ == "__main__":
     import django
     django.setup()
     print(green("starting postinstall steps for docker environment"))
-    print(cyan("python path = %s", os.environ.get('PYTHONPATH')))
     docker_install()
     print(green("finished postinstall steps for docker environment"))

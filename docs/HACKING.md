@@ -106,7 +106,7 @@ To start the development environment, execute:
     $ cd ~/devel/goldstone-server
     $ ./bin/start_dev_env.sh
 
-The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated shortly after running the `configure_stack.sh` command documented below.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
+The first time you start Goldstone Server, it will probably take several minutes to download docker containers and perform configuration tasks.  You may see errors and missing data in the user interface. You may also see failures if you execute the test suite.  The data should be sufficiently populated shortly after running the `configure_dev_stack.sh` command documented below.  If you continue to see errors in the UI or in tests, [please submit an issue!](https://github.com/Solinea/goldstone-server/issues)
 
 All output (database, search, task, app server, etc.) will be logged to the terminal window that you called `start_dev_env.sh`.  If you would like to send the output to a file, you could either:
 
@@ -137,7 +137,7 @@ Execute the following commands to configure the development OpenStack instance t
 Then in another window:
 
     $ eval $(docker-machine env default)
-    $ ./bin/configure_stack.sh
+    $ ./bin/configure_dev_stack.sh
 
 
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:

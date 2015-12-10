@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
-import django.utils.timezone
+from django.db import migrations, models
 import django_extensions.db.fields
 import picklefield.fields
 
@@ -22,8 +21,8 @@ class Migration(migrations.Migration):
                 ('native_name', models.CharField(max_length=64)),
                 ('edges', picklefield.fields.PickledObjectField(default=[], editable=False)),
                 ('cloud_attributes', picklefield.fields.PickledObjectField(default={}, editable=False)),
-                ('created', django_extensions.db.fields.CreationDateTimeField(default=django.utils.timezone.now, editable=False, blank=True)),
-                ('updated', django_extensions.db.fields.ModificationDateTimeField(default=django.utils.timezone.now, editable=True, blank=True)),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True)),
             ],
             options={
                 'verbose_name': 'polyresource',
