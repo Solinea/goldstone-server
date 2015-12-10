@@ -49,7 +49,7 @@
             // if user isn't logged in, redirect to login page without loading anything
             var token = localStorage.getItem('userToken');
             if(token === undefined || token === null) {
-                location.href = 'login/';
+                location.href = 'http://localhost:8000/login/';
             }
         </script>
 
