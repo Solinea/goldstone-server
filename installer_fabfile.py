@@ -332,7 +332,6 @@ def docker_install():
     OS_AUTH_URL (default: http://172.24.4.100:5000/v2.0/)
 
     """
-
     # test to see that this really is a docker container.
     if not os.path.isfile('/.dockerinit'):
         print()

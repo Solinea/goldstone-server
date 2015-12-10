@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.utils.unittest.case import skip
+from django.utils.unittest import skip
 from django.test import SimpleTestCase
 from goldstone.libs import secret_key
 import os

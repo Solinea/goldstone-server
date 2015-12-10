@@ -197,9 +197,7 @@ class PolyResource(PolymorphicModel):
     # This node's cloud attributes.
     cloud_attributes = PickledObjectField(default={})
 
-    created = CreationDateTimeField(editable=False,
-                                    blank=True,
-                                    default=utc_now)
+    created = CreationDateTimeField(editable=False, blank=True)
 
     updated = ModificationDateTimeField(editable=True, blank=True)
 
