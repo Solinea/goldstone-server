@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
 import django.utils.timezone
 import django.core.validators
 import django.contrib.auth.models
@@ -11,7 +11,7 @@ import django_extensions.db.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tenants', '0001_initial'),
+        ('tenants', '__first__'),
         ('auth', '0006_require_contenttypes_0002'),
     ]
 

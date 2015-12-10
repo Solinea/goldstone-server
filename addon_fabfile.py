@@ -26,8 +26,6 @@ from fabric.operations import prompt
 import os
 import sys
 
-from goldstone.core.utils import resource_types
-
 # Aliases to make the Resource Graph definitions less verbose.
 from django.conf import settings as simple_settings
 MAX = simple_settings.R_ATTRIBUTE.MAX
@@ -36,11 +34,12 @@ TYPE = simple_settings.R_ATTRIBUTE.TYPE
 OWNS = simple_settings.R_EDGE.OWNS
 
 # The Goldstone install dir
-INSTALL_DIR = '/opt/goldstone'
+INSTALL_DIR = os.environ.get('APPDIR', '/home/app')
 
 # The Goldstone settings path, relative to the Goldstone root where we're
 # executing from.
-PROD_SETTINGS = "goldstone.settings.production"
+PROD_SETTINGS = os.environ.get('DJANGO_SETTINGS_MODULE',
+                               'goldstone.settings.docker')
 
 
 # The start of the settings.base.INSTALLED_APPS definition.
@@ -487,11 +486,8 @@ def _add_root_node(name):
     """
     from goldstone.core.models import Addon
 
-    # Get the add-on's root type.
-    roottype = [x for x in resource_types(name) if hasattr(x, "root")][0]
-
-    # Add the root node to the persisten resource graph.
-    rootnode = roottype.objects.create(native_name=name, native_id=name)
+    # Add the root node to the persistent resource graph.
+    rootnode = Addon.objects.create(native_name=name, native_id=name)
 
     # Get the Addon node, and add an edge from it to the root. Note, calling
     # .append() on a PickledObjectField list will sometimes result in odd
@@ -537,6 +533,7 @@ def install_addon(name,
     with _django_env(settings, install_dir):
         from goldstone.addons.models import Addon
         from rest_framework.authtoken.models import Token
+        import django
 
         # Gather the package installation information from the package or user.
         # (The package has already been installed into Python's execution
@@ -612,8 +609,11 @@ def install_addon(name,
                     # Do a syncdb, to add the add-on's models. (This can't be
                     # done before INSTALLED_APPS is updated.)
                     error = "doing a syncdb."
+                    _django_manage("makemigrations --noinput " + name,
+                                   proj_settings=settings,
+                                   install_dir=install_dir)
 
-                    _django_manage("syncdb --noinput --migrate",
+                    _django_manage("migrate --noinput",
                                    proj_settings=settings,
                                    install_dir=install_dir)
 
@@ -621,6 +621,7 @@ def install_addon(name,
                     # graph. (Can't be done before the syncdb.)
                     error = "updating the persistent resource graph."
 
+                    django.setup()
                     _add_root_node(row.name)
 
                     # Now add the add-on to the end of the URLconf.

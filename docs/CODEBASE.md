@@ -36,11 +36,15 @@ client -> sitelib -> siteLibLoadOrder.js -> file that defines the exact order of
 
 ###docker
 
+Dockerfiles -> build instructions for docker containers supporting Goldstone server
+
+config -> configuration files that are mounted to Goldstone docker containers
+
+data -> data files that are mounted to Goldstone docker containers
+
 ###docs
 
 docs -> HACKING.md -> explains how to install and run Goldstone Server locally for dev (MAC OS only)
-
-###external
 
 ###goldstone
 

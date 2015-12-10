@@ -20,6 +20,7 @@ STARTUP_WAIT=60
 APP_CONTAINER=goldstoneserver_gsappdev_1
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
+CONFIG_DIR=/home/app/docker/config/goldstone-app
 
 function usage() {
     echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--app-container=name]"
@@ -71,6 +72,7 @@ else
     sleep ${STARTUP_WAIT}
 fi
 
-FAB_CMD="fab -f installer_fabfile.py -p solinea -H 172.24.4.100 configure_stack:goldstone_addr='172.24.4.1',restart_services='yes',accept='True'"
+echo "CONFIG_DIR = ${CONFIG_DIR}"
+FAB_CMD="fab -f configure_stack.py -p solinea -H 172.24.4.100 configure_stack:goldstone_addr='172.24.4.1',restart_services='yes',accept='True',config_loc='${CONFIG_DIR}'"
 docker exec -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to configure openstack vm"; exit 1; }
 

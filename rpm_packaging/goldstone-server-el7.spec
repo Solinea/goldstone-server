@@ -126,8 +126,8 @@ install -m 644 %{_sourcedir}/docs/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.
 install -m 644 %{_sourcedir}/docs/CHANGELOG.md %{buildroot}/opt/goldstone/CHANGELOG.md
 install -m 644 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 644 %{_sourcedir}/docker/docker-compose.yml %{buildroot}/opt/goldstone/docker-compose.yml
-install -m 644 %{_sourcedir}/external/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
-install -m 644 %{_sourcedir}/external/rsyslog/goldstone.conf %{buildroot}/etc/rsyslog.d/goldstone.conf
+install -m 644 %{_sourcedir}/rpm_packaging/systemd/system/goldstone-server.service %{buildroot}/usr/lib/systemd/system/goldstone-server.service
+install -m 644 %{_sourcedir}/rpm_packaging/rsyslog/goldstone.conf %{buildroot}/etc/rsyslog.d/goldstone.conf
 
 %clean
 rm -rf %{buildroot}
