@@ -18,6 +18,8 @@ echo ". ${ENVDIR}/bin/activate" > .bashrc
 
 GS_DEV_ENV=${GS_DEV_ENV:-false}
 
+export PYTHONPATH=$PYTHONPATH:`pwd`
+
 #test if postgres service is up
 PORT=5432
 HOST=gsdb
@@ -37,7 +39,8 @@ if [[ $status == "DOWN" ]] ; then
     exit 1
 fi
 
-python manage.py syncdb --noinput --migrate  # Apply database migrations
+# python manage.py syncdb --noinput   # Apply database models (may not be needed fore Django >= 1.7)
+python manage.py migrate --noinput  # Apply database migrations
 
 # gather up the static files at container start if this is a dev environment
 if [[ $GS_DEV_ENV == "true" ]] ; then
@@ -51,7 +54,7 @@ fi
 # this won't do anything if the django admin, goldstone tenant and cloud already
 # exist.  otherwise it will use the env vars to create missing entities.
 #
-fab -f installer_fabfile.py docker_install
+python bin/post_install.py
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \
