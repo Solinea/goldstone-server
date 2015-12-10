@@ -12,21 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
 import socket
 
-import functools
-
+from cinderclient.openstack.common.apiclient.exceptions \
+    import Unauthorized as CinderUnauthorized
 import cinderclient.v2.services
-from keystoneclient.v3 import client as ksclient
-from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from glanceclient.v2 import client as glclient
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
+from keystoneclient.v3 import client as ksclient
 from novaclient.openstack.common.apiclient.exceptions \
     import Unauthorized as NovaUnauthorized
-from cinderclient.openstack.common.apiclient.exceptions \
-    import Unauthorized as CinderUnauthorized
+from novaclient.v2 import client as nvclient
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 from rest_framework.exceptions import PermissionDenied
 
