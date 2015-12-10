@@ -146,6 +146,14 @@ body{
 .dashboard .content{
 	padding-top: 20px;
 	margin-bottom: 40px;
+	transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;
+}
+.dashboard .content.open{
+	margin-left:206px;
 }
 .dashboard h3{
 	font-size:24px;
@@ -466,6 +474,7 @@ body{
 .full-map img{
 	width:100%;
 }
+.sidebar.expand-menu .tooltip{display: none !important;}
 .tooltip-arrow{
 	display: none;
 }

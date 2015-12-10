@@ -187,7 +187,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(NovaReportView);
     },
     redirect: function() {
-        location.href = "#discover";
+        location.href = "#metrics/topology";
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -196,6 +196,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(TenantSettingsPageView);
     },
     topology: function() {
-        this.switchView(topologyPageView);
+        this.switchView(TopologyPageView);
     }
 });

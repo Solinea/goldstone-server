@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var topologyPageView = GoldstoneBasePageView.extend({
+var TopologyPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged') {
