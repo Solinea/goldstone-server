@@ -12,9 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from functools import partial
+
 from django.conf import settings
 from django.test import SimpleTestCase
-from functools import partial
 
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \

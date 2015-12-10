@@ -145,8 +145,7 @@ def check_response_without_uuid(response, expected_status_code,
                                  response.content contains a "uuid" key.
     :type uuid_under_results: bool
     :keyword extra_keys: If not None, a list of keys. These keys will be
-                         checked for their existence, and their values must
-                         be strings.
+                         checked for their existence
     :type extra_keys: list of str
 
     """
@@ -181,16 +180,15 @@ def check_response_without_uuid(response, expected_status_code,
         else:
             del response_content["UUID"]
 
-    # Check the extra_keys keys for existence, and their values must be
-    # strings.
+    # Check the extra_keys for existence.
     if extra_keys is not None:
         for key in extra_keys:
-            assert isinstance(response_content[key], basestring)
+            assert key in response_content
             del response_content[key]
 
     if uuid_under_results:
-        # assertEqual compares nested dict values with order sensitivity, if
-        # the values are lists.
+        # == compares nested dict values with order sensitivity, if the values
+        # are lists.
         response_content["results"].sort()
         expected_content["results"].sort()
 

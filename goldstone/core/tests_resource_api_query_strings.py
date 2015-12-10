@@ -20,16 +20,17 @@ non-filtered code paths.
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
 from django.conf import settings
+from mock import patch
+from rest_framework.status import HTTP_200_OK
+
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
     Aggregate, Server, Project, Network, Limits, PolyResource
-
 from goldstone.core.resource import Instances, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD
-import json
-from mock import patch
-from rest_framework.status import HTTP_200_OK
 from .tests_resource_api_2 import RES_URL
 
 # Aliases to make the Resource Graph definitions less verbose.

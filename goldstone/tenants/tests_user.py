@@ -214,7 +214,13 @@ class TenantsIdUsers(Setup):
             self.assertGreaterEqual(len(entry["uuid"]), 32)
 
             self.assertIsInstance(entry["date_joined"], basestring)
-            self.assertIsInstance(entry["last_login"], basestring)
+
+            # The tenant_admin has logged in, but the other two users have
+            # never logged in.
+            if entry["tenant_admin"]:
+                self.assertIsInstance(entry["last_login"], basestring)
+            else:
+                self.assertIsNone(entry["last_login"])
 
             del entry["uuid"]
             del entry["date_joined"]

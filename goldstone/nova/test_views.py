@@ -12,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import urllib
 
 import arrow
-import json
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse

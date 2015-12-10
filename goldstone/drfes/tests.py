@@ -15,19 +15,17 @@
 from django.http import QueryDict
 import elasticsearch
 from elasticsearch.client import IndicesClient
-
-from rest_framework.test import APITestCase
-
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.result import Response
+from mock import MagicMock, patch
+from rest_framework.test import APITestCase
+
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.drfes.utils import custom_exception_handler
 
 from goldstone.drfes.views import ElasticListAPIView
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer
-
-from mock import MagicMock, patch
 
 
 def dummy_response():

@@ -27,8 +27,9 @@ from fabric.operations import prompt
 
 # The Goldstone install dir
 INSTALL_DIR = os.environ.get('GOLDSTONE_INSTALL_DIR', '/home/app')
-SETTINGS = os.environ.get('DJANGO_SETTTINGS_MODULE',
-    'goldstone.settings.docker') 
+SETTINGS = \
+    os.environ.get('DJANGO_SETTTINGS_MODULE', 'goldstone.settings.docker')
+
 
 def cloud_init(gs_tenant,
                stack_tenant,

@@ -12,9 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf import settings
 import logging
 from subprocess import check_call
+
+from django.conf import settings
 
 from goldstone.celery import app as celery_app
 
