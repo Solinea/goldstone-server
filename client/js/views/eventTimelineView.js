@@ -358,17 +358,9 @@ var EventTimelineView = GoldstoneBaseView.extend({
             });
     },
 
-    render: function() {
-        this.$el.append(this.template());
-
-        // append the modal that is triggered by
-        // clicking the filter icon
+    addModalAndHeadingIcons: function() {
         $('#modal-container-' + this.el.slice(1)).append(this.eventFilterModal());
         this.$el.find('.special-icon-post').append(this.filterButton());
-
-
-        // standard Backbone convention is to return this
-        return this;
     },
 
     filterButton: _.template('' +

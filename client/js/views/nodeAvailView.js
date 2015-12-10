@@ -725,12 +725,9 @@ TODO: probably change this to d.timestamp
 
     },
 
-    render: function() {
-        this.$el.append(this.template());
+    addModalAndHeadingIcons: function() {
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
         this.$el.find('.special-icon-post').append(this.filterButton());
-
-        return this;
     },
 
     filterButton: _.template('' +

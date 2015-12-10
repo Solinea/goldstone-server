@@ -235,6 +235,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.processListeners();
         this.render();
         this.appendChartHeading();
+        this.addModalAndHeadingIcons();
         this.setSpinner();
     },
 
@@ -454,6 +455,10 @@ var GoldstoneBaseView = Backbone.View.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
+    },
+
+    addModalAndHeadingIcons: function() {
+        return true;
     },
 
     flattenObj: function(obj) {
@@ -5833,17 +5838,9 @@ var EventTimelineView = GoldstoneBaseView.extend({
             });
     },
 
-    render: function() {
-        this.$el.append(this.template());
-
-        // append the modal that is triggered by
-        // clicking the filter icon
+    addModalAndHeadingIcons: function() {
         $('#modal-container-' + this.el.slice(1)).append(this.eventFilterModal());
         this.$el.find('.special-icon-post').append(this.filterButton());
-
-
-        // standard Backbone convention is to return this
-        return this;
     },
 
     filterButton: _.template('' +
@@ -11238,12 +11235,9 @@ TODO: probably change this to d.timestamp
 
     },
 
-    render: function() {
-        this.$el.append(this.template());
+    addModalAndHeadingIcons: function() {
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
         this.$el.find('.special-icon-post').append(this.filterButton());
-
-        return this;
     },
 
     filterButton: _.template('' +

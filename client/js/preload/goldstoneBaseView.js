@@ -38,6 +38,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.processListeners();
         this.render();
         this.appendChartHeading();
+        this.addModalAndHeadingIcons();
         this.setSpinner();
     },
 
@@ -257,6 +258,10 @@ var GoldstoneBaseView = Backbone.View.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
+    },
+
+    addModalAndHeadingIcons: function() {
+        return true;
     },
 
     flattenObj: function(obj) {
