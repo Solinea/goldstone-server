@@ -28,7 +28,6 @@ module.exports = {
         'client/js/preload/base.js',
         'client/js/preload/goldstoneBaseModel.js',
         'client/js/preload/goldstoneBaseView.js',
-        'client/js/preload/goldstoneBaseView2.js',
         'client/js/preload/goldstoneBasePageView.js',
         'client/js/preload/goldstoneBaseCollection.js',
         'client/js/preload/dataTableBaseView.js',
