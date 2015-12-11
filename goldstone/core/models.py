@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import ast
+import pycadf
+from pycadf import event
+from pycadf import cadftaxonomy
 from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
@@ -2638,13 +2641,15 @@ class Router(PolyResource):
         return "routers"
 
 
-class DefinedSearch(models.Model):
+class SavedSearch(models.Model):
     """Defined searches, both system and user-created."""
 
     # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
     name = models.CharField(max_length=64)
+
+    owner = models.CharField(max_length=64)
 
     description = models.CharField(max_length=1024, default='Defined Search')
 
@@ -2666,17 +2671,15 @@ class DefinedSearch(models.Model):
 
     @classmethod
     def execute_query(cls, name):
-        """ executes an elasticsearch query and returns the result of that query.
-        :param query:
-        :return:
+        """ Execute an elasticsearch query and returns the result of that query.
+        :param query: name of the stored query (Eg: sys_log_err_type_search_1)
+        :return: result of that query (rows of events matching this query)
         """
 
-        query = ast.literal_eval(DefinedSearch.objects.get(name=name))
+        query = ast.literal_eval(SavedSearch.objects.get(name=name))
         # TBD : call bounded_search with timestamps once you add them
-        queryset = DailyIndexDocType.search(cls)
-        queryset = queryset.query(Q(query))
-
-        return queryset
+        queryset = DailyIndexDocType.search()
+        return queryset.query(Q(query))
 
     def __unicode__(self):
         """Return a useful string."""
@@ -2684,22 +2687,39 @@ class DefinedSearch(models.Model):
         return u'defined search UUID %s' % self.uuid
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
+        unique_together = ('name', 'owner')
         verbose_name_plural = "defined searches"
 
 
-class EventQueryDef(DefinedSearch):
+class EventQueryDef(SavedSearch):
 
-    """ Defines an event-type based elastic search query definition """
+    """ Define an event-type based elastic search query definition """
 
     @classmethod
     def search_by_syslog_err_type(cls):
-        """Return event rows that match the passed-in syslog error."""
-        result = DefinedSearch.execute_query('sys_log_err_type_search_1')
-        # TBD : call pycadf create_event() from here
-        return result
+        """Return syslog rows that match the passed-in syslog error.
+           For every such log returned, generate a pycadf event.
+        :param : None
+        :return: A list with event-id's of the generated events or nil
+        """
+
+        result = SavedSearch.execute_query('sys_log_err_type_search_1')
+        event_id_list = []
+        for i in result:
+            event_name = "event_" + str(i) + "_" + str(SavedSearch.uuid)
+            # generate a pycadf event here by calling Event() with
+            new_event = event.Event(action=cadftaxonomy.ACTION_CREATE,
+                                    outcome=cadftaxonomy.ACTION_UPDATE,
+                                    initiator='core/eventquerydef',
+                                    target='drfes/DailyIndexDocType/save',
+                                    reason='Automated event matching syslog',
+                                    observer='goldstone/glogging/LogDataView',
+                                    name=event_name)
+            # TBD : Tie this new_event with DailyIndexDocType.Save()
+        return event_id_list
 
 
-class AlertQueryDef(DefinedSearch):
+class AlertQueryDef(SavedSearch):
 
     """ Defines an alter-type based elastic search query definition """
     pass

@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import PolyResource
+from .models import PolyResource, SavedSearch
 from django.contrib import admin
 
 admin.site.register(PolyResource)
+admin.site.register(SavedSearch)
