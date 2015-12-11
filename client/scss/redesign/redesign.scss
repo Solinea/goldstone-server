@@ -159,6 +159,7 @@ body{
 	font-size:24px;
 	color:#424242;
 	margin: 0 0 5px;
+	border-radius: 8px 8px 0 0;
 }
 .setting-btn{
 	display: inline-block;
@@ -281,7 +282,7 @@ body{
 .dashboard .second-row.row{
 	margin-bottom: 22px;
 }
-.dashboard h4{
+.header-block h4{
 	margin-top:0;
 	font-size:16px;
 	color:#424242;

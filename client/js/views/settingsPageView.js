@@ -196,22 +196,24 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
+        // commented out pending definition of themes.
         // dark/light theme selector
-        '<div class="col-md-2">' +
-        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
-        '<form class="theme-selector" role="form">' +
-        '<div class="form-group">' +
-        '<div class="col-xl-5">' +
-        '<div class="input-group">' +
-        '<select class="form-control" id="theme-name">' +
-        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
-        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
+
+        // '<div class="col-md-2">' +
+        // '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
+        // '<form class="theme-selector" role="form">' +
+        // '<div class="form-group">' +
+        // '<div class="col-xl-5">' +
+        // '<div class="input-group">' +
+        // '<select class="form-control" id="theme-name">' +
+        // '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        // '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
+        // '</select>' +
+        // '</div>' +
+        // '</div>' +
+        // '</div>' +
+        // '</form>' +
+        // '</div>' +
 
         // language preference
         '<div class="col-md-2">' +
@@ -221,6 +223,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
+
         // dynamically filled in via renderLanguageChoices()
         // '<option value="English">English</option>' +
         // '<option value="Japanese">Japanese</option>' +

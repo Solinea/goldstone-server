@@ -67,7 +67,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         self.margin = {
             top: 10,
-            bottom: 85,
+            bottom: 45,
             right: 10,
             left: 35
         };
@@ -116,8 +116,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             d._children = null;
         }
     },
-    drawSingleRsrcInfoTable: function(scrollYpx, json) {
+    drawSingleRsrcInfoTable: function(json, click) {
         // make a dataTable
+        var self = this;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -129,19 +130,23 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             }
         });
 
-        $("#multi-rsrc-body").popover({
+        $(self.multiRsrcViewEl).find(".panel-heading").popover({
             trigger: "manual",
             placement: "left",
             html: true,
-            title: '<div>Resource Info<button type="button" style="color:#fff; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
+            title: '<div>Resource Info<button type="button" style="color:#000; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
                 'aria-hidden="true">&times;</button></div>',
             content: '<div id="single-rsrc-body" class="panel-body">' +
                 '<table id="single-rsrc-table" class="table table-hover"></table>' +
                 '</div>'
         });
-        $("#multi-rsrc-body").popover("show");
-        $("#popover-close").on("click", function() {
-            $("#multi-rsrc-body").popover("hide");
+        $(self.multiRsrcViewEl).find('.panel-heading').popover('show');
+
+        // shift popover to the left
+        $(self.multiRsrcViewEl).find('.popover').css('margin-left', '-172px');
+
+        $('#popover-close').on("click", function() {
+            $(self.multiRsrcViewEl).find(".panel-heading").popover("hide");
         });
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -149,7 +154,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         } else {
             var oTableParams = {
                 "data": data,
-                "scrollY": "300px",
+                "scrollY": "400px",
                 "autoWidth": true,
                 "info": false,
                 "paging": false,
@@ -229,7 +234,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -270,7 +275,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
                             // otherwise, render usual resource info    popover
                             if (!supress) {
-                                self.drawSingleRsrcInfoTable(self.mh, data[0]);
+                                self.drawSingleRsrcInfoTable(data[0], $(this));
                             }
                         }
                     });
@@ -321,7 +326,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     appendLeafNameToResourceHeader: function(text, location) {
 
         // appends the name of the resource list currently being displayed
-        location = location || '.panel-header-resource-title';
+        location = location || $(this.multiRsrcViewEl).find('.title-extra');
         $(location).text(': ' + text);
     },
 
@@ -600,7 +605,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 chartTitle: goldstone.translate("Resource List")
             });
 
-            var appendSpinnerLocation = $(self.multiRsrcViewEl).find('#spinner-container');
+            var appendSpinnerLocation = $(self.multiRsrcViewEl);
             $('<img id="spinner" src="' + self.blueSpinnerGif + '">').load(function() {
                 $(this).appendTo(appendSpinnerLocation).css({
                     'position': 'absolute',

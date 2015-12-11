@@ -9,43 +9,13 @@ Goldstone user settings interface.
 /*
 css stylesheets prior to redesign
 */
-/*body { background-color: if($theme==dark, $dark_background, null); height: 100%; color: if($theme==dark, $dark_chart_text, null);
-}
-*/
-/* Wrapper for page content to push down footer */
-/*#wrap { min-height: 100%; height: auto; margin: 0 auto -60px; padding: 0 0 60px;
-}
-*/
-/* Set the fixed height of the footer here */
-/*#footer { height: 60px; background-color: if($theme==dark, $dark_footer, #f5f5f5);
-}
-*/
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
-/*#wrap > .container { padding: 60px 15px 0;
-}
-*/
-/*.container .credit { margin: 20px 0;
-}
-*/
-/*#footer > .container { padding-left: 15px; padding-right: 15px;
-}
-*/
-/*#global-lookback-range, #global-refresh-range { margin-top: 5px;
-}
-*/
-/*#goldstone-text { font-family: 'Homenaje', sans-serif; font-size: x-large;
-}
-*/
-/*code { font-size: 80%;
-}
-*/
+#global-lookback-range, #global-refresh-range { margin-top: -12px; top: 12px; }
+
 .ajax-loader { position: absolute; left: 50%; top: 50%; margin-left: -32px; /* -1 * image width / 2 */ margin-top: -32px; /* -1 * image height / 2 */ display: block; }
 
-/*.row { margin-bottom: 20px;
-}
-*/
 /* Datatable font sizes */
 .table-hover th { font-size: 10px; }
 
@@ -61,17 +31,13 @@ css stylesheets prior to redesign
 
 .node text { font-size: 12px; stroke-width: 0; }
 
-.icon text { font-size: 12px; stroke-width: 0; }
-
 .link { fill: none; stroke: #9ecae1; stroke-width: 1.5px; }
 
 .axis path, .axis line { fill: none; stroke-width: 1.5px; stroke: #000; shape-rendering: crispEdges; }
 
-.axis text, .legend-items { font: 10px sans-serif; }
+text:not(.zoomable), .axis.label { font: 12px sans-serif; }
 
-text:not(.zoomable), .axis.label { font: 14px sans-serif; }
-
-#goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text { font-size: 10px; }
+#goldstone-primary-panel g.text text { font-size: 10px; }
 
 .legend rect { opacity: 0.0; }
 
@@ -96,9 +62,9 @@ text:not(.zoomable), .axis.label { font: 14px sans-serif; }
 
 .navbar .fa, #global-lookback-range .fa, #global-refresh-range .fa { color: #777; }
 
-.panel-body { background-color: #FFFFFF; }
+.panel-body { background-color: #fff; }
 
-.panel-primary > .panel-heading { background-color: #777777; border-color: #777777; color: #FFF; }
+.panel-primary > .panel-heading { background-color: #777777; }
 
 .panel { border: none; border-radius: 4px; background-color: #fff; box-shadow: none; }
 
@@ -106,7 +72,7 @@ text:not(.zoomable), .axis.label { font: 14px sans-serif; }
 
 #multi-rsrc-panel > div.popover.fade.left.in > h3 { background-color: rgba(0, 0, 0, 0.4); border-bottom-color: rgba(0, 0, 0, 0.4); }
 
-.popover { background: rgba(0, 0, 0, 0.4) !important; border-radius: 10px; padding: 0; max-width: 350px; }
+.popover { background: #ddd !important; border-radius: 10px; padding: 0; max-width: 350px; }
 
 .popover.bottom .arrow:after { border-bottom-color: rgba(0, 0, 0, 0.4); }
 
@@ -284,7 +250,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard .content.open { margin-left: 206px; }
 
-.dashboard h3 { font-size: 24px; color: #424242; margin: 0 0 5px; }
+.dashboard h3 { font-size: 24px; color: #424242; margin: 0 0 5px; border-radius: 8px 8px 0 0; }
 
 .setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin-left: 3px; }
 
@@ -344,7 +310,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard .second-row.row { margin-bottom: 22px; }
 
-.dashboard h4 { margin-top: 0; font-size: 16px; color: #424242; margin-bottom: 36px; }
+.header-block h4 { margin-top: 0; font-size: 16px; color: #424242; margin-bottom: 36px; }
 
 .node-block { padding: 18px 18px 0; background: #fafafa; }
 

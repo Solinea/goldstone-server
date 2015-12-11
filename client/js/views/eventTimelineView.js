@@ -31,9 +31,9 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     margin: {
         top: 25,
-        bottom: 25,
-        right: 20,
-        left: 40
+        bottom: 15,
+        right: 25,
+        left: 15
     },
 
     instanceSpecificInit: function() {

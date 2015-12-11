@@ -1,7 +1,7 @@
 $(document).ready(function() {
-    if ($('[data-toggle="tooltip"]').length) {
-        $('[data-toggle="tooltip"]').tooltip();
-    }
+
+    // trigger: 'hover' will dismiss when mousing-out
+    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
 
     $('.menu-toggle').click(function() {
         $('.tab-content').removeClass('open');
@@ -47,7 +47,6 @@ $(document).ready(function() {
         var ind;
         $('.btn-grp li').click(function() {
             ind = $(this).index() - 1;
-            console.log(ind);
 
             if ($(window).width() < 767) {
                 $('body').find('.sidebar').removeClass('expand-menu');
@@ -68,7 +67,7 @@ $(document).ready(function() {
                     $('.tab-content').removeClass('open');
                     $(this).addClass('active');
 
-                    if(ind === 0) {
+                    if (ind === 0) {
                         setTimeout(function() {
                             $('.tab-content').addClass('open');
                             $('.tab-content').find('.tab').eq(ind).show();

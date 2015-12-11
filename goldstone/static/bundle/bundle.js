@@ -5033,6 +5033,15 @@ var ChartHeaderView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><%= this.chartTitle %>' +
+        '<span class="pull-right special-icon-post"></span>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
+        '<span class="pull-right special-icon-pre"></span>' +
+        '</h3></div>' +
+        '<div class="mainContainer"></div>'),
+
+    templateOld: _.template('' +
         '<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.columns %>">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa <%= this.infoIcon %>"></i> <%= this.chartTitle %>' +
@@ -5511,9 +5520,9 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     margin: {
         top: 25,
-        bottom: 25,
-        right: 20,
-        left: 40
+        bottom: 15,
+        right: 25,
+        left: 15
     },
 
     instanceSpecificInit: function() {
@@ -10321,18 +10330,15 @@ var MultiRscsView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
+
         '<div class="panel-heading">' +
-        '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        ' <%= this.options.chartTitle %><span class="panel-header-resource-title"></span>' +
+        '<h3 class="panel-title"><%= this.chartTitle %>' +
+        '<span class="title-extra"></span>' +
+        '<span class="pull-right special-icon-post"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
-        '</h3>' +
-        '</div>' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<span id="spinner-container"></span>' +
-        '<div id="multi-rsrc-body" class="panel-body">' +
-        '</div>' +
-        '</div>' +
+        '<span class="pull-right special-icon-pre"></span>' +
+        '</h3></div>' +
+        '<div class="mainContainer"></div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +
@@ -12726,22 +12732,24 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         '<h3><%= goldstone.translate("User Settings") %></h3>' +
 
+        // commented out pending definition of themes.
         // dark/light theme selector
-        '<div class="col-md-2">' +
-        '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
-        '<form class="theme-selector" role="form">' +
-        '<div class="form-group">' +
-        '<div class="col-xl-5">' +
-        '<div class="input-group">' +
-        '<select class="form-control" id="theme-name">' +
-        '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
-        '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
+
+        // '<div class="col-md-2">' +
+        // '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
+        // '<form class="theme-selector" role="form">' +
+        // '<div class="form-group">' +
+        // '<div class="col-xl-5">' +
+        // '<div class="input-group">' +
+        // '<select class="form-control" id="theme-name">' +
+        // '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
+        // '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
+        // '</select>' +
+        // '</div>' +
+        // '</div>' +
+        // '</div>' +
+        // '</form>' +
+        // '</div>' +
 
         // language preference
         '<div class="col-md-2">' +
@@ -12751,6 +12759,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="col-xl-5">' +
         '<div class="input-group">' +
         '<select class="form-control" id="language-name">' +
+
         // dynamically filled in via renderLanguageChoices()
         // '<option value="English">English</option>' +
         // '<option value="Japanese">Japanese</option>' +
@@ -13789,7 +13798,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         self.margin = {
             top: 10,
-            bottom: 85,
+            bottom: 45,
             right: 10,
             left: 35
         };
@@ -13838,8 +13847,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             d._children = null;
         }
     },
-    drawSingleRsrcInfoTable: function(scrollYpx, json) {
+    drawSingleRsrcInfoTable: function(json, click) {
         // make a dataTable
+        var self = this;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -13851,19 +13861,23 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             }
         });
 
-        $("#multi-rsrc-body").popover({
+        $(self.multiRsrcViewEl).find(".panel-heading").popover({
             trigger: "manual",
             placement: "left",
             html: true,
-            title: '<div>Resource Info<button type="button" style="color:#fff; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
+            title: '<div>Resource Info<button type="button" style="color:#000; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
                 'aria-hidden="true">&times;</button></div>',
             content: '<div id="single-rsrc-body" class="panel-body">' +
                 '<table id="single-rsrc-table" class="table table-hover"></table>' +
                 '</div>'
         });
-        $("#multi-rsrc-body").popover("show");
-        $("#popover-close").on("click", function() {
-            $("#multi-rsrc-body").popover("hide");
+        $(self.multiRsrcViewEl).find('.panel-heading').popover('show');
+
+        // shift popover to the left
+        $(self.multiRsrcViewEl).find('.popover').css('margin-left', '-172px');
+
+        $('#popover-close').on("click", function() {
+            $(self.multiRsrcViewEl).find(".panel-heading").popover("hide");
         });
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -13871,7 +13885,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         } else {
             var oTableParams = {
                 "data": data,
-                "scrollY": "300px",
+                "scrollY": "400px",
                 "autoWidth": true,
                 "info": false,
                 "paging": false,
@@ -13951,7 +13965,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -13992,7 +14006,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
                             // otherwise, render usual resource info    popover
                             if (!supress) {
-                                self.drawSingleRsrcInfoTable(self.mh, data[0]);
+                                self.drawSingleRsrcInfoTable(data[0], $(this));
                             }
                         }
                     });
@@ -14043,7 +14057,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     appendLeafNameToResourceHeader: function(text, location) {
 
         // appends the name of the resource list currently being displayed
-        location = location || '.panel-header-resource-title';
+        location = location || $(this.multiRsrcViewEl).find('.title-extra');
         $(location).text(': ' + text);
     },
 
@@ -14322,7 +14336,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 chartTitle: goldstone.translate("Resource List")
             });
 
-            var appendSpinnerLocation = $(self.multiRsrcViewEl).find('#spinner-container');
+            var appendSpinnerLocation = $(self.multiRsrcViewEl);
             $('<img id="spinner" src="' + self.blueSpinnerGif + '">').load(function() {
                 $(this).appendTo(appendSpinnerLocation).css({
                     'position': 'absolute',
