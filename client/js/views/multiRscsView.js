@@ -84,6 +84,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
 
     template: _.template('' +
 
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><%= this.chartTitle %>' +
         '<span class="title-extra"></span>' +

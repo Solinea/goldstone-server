@@ -15,14 +15,10 @@
  */
 
 /*global sinon, todo, chai, describe, it, calledOnce*/
-//integration tests - serviceStatusView.js
 
-// basic sanity check.
-// base object is tested in apiPerfReportView_integrationTests.js
-
-describe('NodeReportView.js spec', function() {
+/*describe('GoldstoneBasePageView.js spec', function() {
     beforeEach(function() {
-        $('body').html('<div class="test-container"></div>' +
+        $('body').html('' +
             '<div style="width:10%;" class="col-xl-1 pull-right">&nbsp;' +
             '</div>' +
             '<div class="col-xl-2 pull-right">' +
@@ -57,7 +53,9 @@ describe('NodeReportView.js spec', function() {
             '</div>' +
             '</div>' +
             '</form>' +
-            '</div>');
+            '</div>' +
+            '<div class="test-container"></div>'
+            );
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -73,8 +71,17 @@ describe('NodeReportView.js spec', function() {
         // blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new GoldstoneBasePageView2({
-            el: '.test-container'
+        var testGoldstoneBasePageView = GoldstoneBasePageView.extend({
+            // el: '.test-container',
+            el: document.getElementsByClassName('test-container'),
+            render: function() {
+                $(this.el).html(this.template());
+                return this;
+            }
+        });
+
+        this.testView = new GoldstoneBasePageView({
+            el: document.getElementsByClassName('test-container')
         });
     });
     afterEach(function() {
@@ -136,3 +143,4 @@ describe('NodeReportView.js spec', function() {
         });
     });
 });
+*/

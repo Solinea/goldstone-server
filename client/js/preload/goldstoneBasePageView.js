@@ -36,11 +36,23 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.render();
+        this.processOptions();
         this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView
         this.renderCharts();
         this.setGlobalLookbackRefreshTriggers();
         this.scheduleInterval();
     },
+
+    processOptions: function() {
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
+    },
+
 
     clearScheduledInterval: function() {
         clearInterval(this.currentInterval);
@@ -114,7 +126,7 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         var self = this;
 
         // if no globalLookbackRefreshSelectors, abort
-        if(!goldstone.globalLookbackRefreshSelectors) {
+        if (!goldstone.globalLookbackRefreshSelectors) {
             return;
         }
 

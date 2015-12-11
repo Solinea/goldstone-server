@@ -77,12 +77,9 @@ describe('goldstoneBaseView.js spec', function() {
         this.testView = new GoldstoneBaseView({
             chartTitle: "Tester Base View",
             collection: this.testCollection,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "Hypervisor Show"
-            }],
             el: '.testContainer',
+            height: 300,
+            infoText: 'test',
             width: $('.testContainer').width(),
             yAxisLabel: 'yAxisTest'
         });
@@ -98,21 +95,10 @@ describe('goldstoneBaseView.js spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
         });
-        it('view update appends svg and border elements', function() {
-            expect(this.testView.update).to.be.a('function');
-            this.testView.update();
-            expect($('svg').length).to.equal(1);
-            expect($('g.legend-items').find('text').text()).to.equal('');
-            expect($('.panel-title').text().trim()).to.equal('Tester Base View');
-            expect($('svg').text()).to.not.include('Response was empty');
-        });
         it('can handle a null server payload and append appropriate response', function() {
-            this.update_spy = sinon.spy(this.testView, "update");
             this.testCollection.reset();
             this.testView.checkReturnedDataSet(this.testCollection.toJSON());
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            expect(this.update_spy.callCount).to.equal(0);
-            this.update_spy.restore();
         });
         it('appends dataErrorMessages to container', function() {
             this.testView.dataErrorMessage('this is a test');
@@ -152,8 +138,6 @@ describe('goldstoneBaseView.js spec', function() {
             expect($(this.testView.el).find('.popup-message').text()).to.include('234');
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
-            this.testView.update();
-
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
             this.testView.dataErrorMessage(null, {
                 responseJSON: {

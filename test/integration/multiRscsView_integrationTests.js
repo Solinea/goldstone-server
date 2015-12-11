@@ -41,11 +41,6 @@ describe('MultiRscsView.js spec', function() {
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
-        it('triggers MultiRscsView', function() {
-            assert.isDefined($('.test-container'));
-            assert.isDefined($('#multi-rsrc-panel'));
-            assert.lengthOf($('#multi-rsrc-panel'), 1);
-        });
         it('errorTrigger appends an error message', function() {
             this.testView.trigger('errorTrigger', []);
             expect($(this.testView.el).text()).to.not.contain('happy flowers');

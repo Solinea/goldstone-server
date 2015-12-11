@@ -264,6 +264,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.infoText = this.options.infoText;
         if (this.options.el) {
             this.el = this.options.el;
+        } else {
+            console.log('no options el ', this.el);
         }
         if (this.options.collectionMixin) {
             this.collectionMixin = this.options.collectionMixin;
@@ -448,12 +450,11 @@ var GoldstoneBaseView = Backbone.View.extend({
         '<div class="panel-body" style="height:<%= this.height %>px">' +
         '</div>' +
         '</div>' +
-        '<div id="modal-container-<%= this.el.slice(1) %>' +
-        '"></div>'
+        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
     ),
 
     render: function() {
-        this.$el.html(this.template());
+        $(this.el).html(this.template());
         return this;
     },
 
@@ -529,11 +530,23 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.render();
+        this.processOptions();
         this.getGlobalLookbackRefresh(); // defined on GoldstoneBaseView
         this.renderCharts();
         this.setGlobalLookbackRefreshTriggers();
         this.scheduleInterval();
     },
+
+    processOptions: function() {
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
+    },
+
 
     clearScheduledInterval: function() {
         clearInterval(this.currentInterval);
@@ -607,7 +620,7 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         var self = this;
 
         // if no globalLookbackRefreshSelectors, abort
-        if(!goldstone.globalLookbackRefreshSelectors) {
+        if (!goldstone.globalLookbackRefreshSelectors) {
             return;
         }
 
@@ -1180,13 +1193,9 @@ var GoldstoneRouter = Backbone.Router.extend({
         "discover": "discover",
         "help": "help",
         "metrics/api_perf": "apiPerfReport",
-        "metrics/cinder_report": "cinderReport",
-        "metrics/glance_report": "glanceReport",
-        "metrics/keystone_report": "keystoneReport",
         "metrics/metric_report": "metricViewer",
         "metrics/metric_report/": "metricViewer",
         "metrics/metric_report/:numCharts": "metricViewer",
-        "metrics/neutron_report": "neutronReport",
         "metrics/nova_report": "novaReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
@@ -2390,7 +2399,9 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key) {
-            console.error('missing .po file translation for: `' + key + '`');
+            if(!goldstone.skipI18nLog) {
+                console.error('missing .po file translation for: `' + key + '`');
+            }
         };
 
         finalResult.locale_data = {};
@@ -5068,57 +5079,6 @@ var ChartHeaderView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var CinderReportView = GoldstoneBasePageView.extend({
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.cinderApiPerfChartView.trigger('lookbackSelectorChanged');
-        }
-    },
-
-    renderCharts: function() {
-        this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder'
-        });
-
-        this.cinderApiPerfChartView = new ApiPerfView({
-            chartTitle: "Cinder API Performance",
-            collection: this.cinderApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '#cinder-report-r1-c1',
-            width: $('#cinder-report-r1-c1').width()
-        });
-
-        this.viewsToStopListening = [this.cinderApiPerfChart, this.cinderApiPerfChartView];
-    },
-
-    template: _.template('' +
-        '<div id="cinder-report-r1" class="row">' +
-        '<div id="cinder-report-r1-c1" class="col-md-6"></div>' +
-        '</div>'
-    )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /*
 This view makes up the "Details" tab of nodeReportView.js
 It is sub-classed from GoldstoneBaseView.
@@ -6398,56 +6358,6 @@ var EventsReportView = GoldstoneBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var GlanceReportView = GoldstoneBasePageView.extend({
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.glanceApiPerfChartView.trigger('lookbackSelectorChanged');
-        }
-    },
-
-    renderCharts: function() {
-        this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance'
-        });
-
-        this.glanceApiPerfChartView = new ApiPerfView({
-            chartTitle: "Glance API Performance",
-            collection: this.glanceApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '#glance-report-r1-c1',
-            width: $('#glance-report-r1-c1').width()
-        });
-
-        this.viewsToStopListening = [this.glanceApiPerfChart, this.glanceApiPerfChartView];
-    },
-
-    template: _.template('' +
-        '<div id="glance-report-r1" class="row">' +
-        '<div id="glance-report-r1-c1" class="col-md-6"></div>' +
-        '</div>'
-    )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 /*
 To instantiate lookback selectors with varying values:
@@ -7156,63 +7066,6 @@ var HypervisorVmCpuView = Backbone.View.extend({
         this.appendButtons();
         return this;
     }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var KeystoneReportView = GoldstoneBasePageView.extend({
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.keystoneApiPerfChartView.trigger('lookbackSelectorChanged');
-        }
-    },
-
-    renderCharts: function() {
-        this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone'
-        });
-
-        this.keystoneApiPerfChartView = new ApiPerfView({
-            chartTitle: "Keystone API Performance",
-            collection: this.keystoneApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '#keystone-report-r1-c1',
-            width: $('#keystone-report-r1-c1').width()
-        });
-
-        this.viewsToStopListening = [this.keystoneApiPerfChart, this.keystoneApiPerfChartView];
-
-    },
-
-    template: _.template('' +
-        '<div id="keystone-report-r1" class="row">' +
-        '<div id="keystone-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="keystone-report-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="keystone-report-r2" class="row">' +
-        '<div id="keystone-report-r2-c1" class="col-md-6"></div>' +
-        '</div>'
-    )
-
 });
 ;
 /**
@@ -10331,6 +10184,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
 
     template: _.template('' +
 
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><%= this.chartTitle %>' +
         '<span class="title-extra"></span>' +
@@ -10361,59 +10215,6 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '</div>' +
         '</div>'
     )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var NeutronReportView = GoldstoneBasePageView.extend({
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.neutronApiPerfChartView.trigger('lookbackSelectorChanged');
-        }
-    },
-
-    renderCharts: function() {
-        this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron'
-        });
-
-        this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
-            collection: this.neutronApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '#neutron-report-r1-c1',
-            width: $('#neutron-report-r1-c1').width()
-        });
-
-        this.viewsToStopListening = [this.neutronApiPerfChart, this.neutronApiPerfChartView];
-
-    },
-
-    template: _.template('' +
-        '<div id="neutron-report-r1" class="row">' +
-        '<div id="neutron-report-r1-c1" class="col-md-6"></div>' +
-        '</div>'
-    )
-
 });
 ;
 /**
@@ -10505,11 +10306,6 @@ var NewPasswordView = GoldstoneBaseView.extend({
                 }
 
             });
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     }
 
 });
@@ -10795,6 +10591,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     formatTooltip: function(d) {
+
+        var self = this;
 
         // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
         var tooltipText = '<div class="text-left">Host: ' + d.name + '<br>' +

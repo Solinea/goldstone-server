@@ -47,7 +47,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect($(this.testView.el).text()).to.include('30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1d');
+            expect($(this.testView.el).text()).to.include(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
         });
     });
     describe('view takes optional parameters for lookback/refresh values', function() {
@@ -57,7 +57,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
             this.testView = new GlobalLookbackRefreshButtonsView({
                 el: '.test-container',
             });
-            expect($(this.testView.el).text()).to.equal(' refresh 30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7d');
+            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
         });
         it('in the case of an empty array, should return the default set', function() {
             // clear existing selectors on page
@@ -69,7 +69,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                     refresh: []
                 }
             });
-            expect($(this.testView.el).text()).to.equal(' refresh 30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7d');
+            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
         });
         it('in the case of a lack of lookbackValues, should return the default set', function() {
             // clear existing selectors on page
@@ -81,7 +81,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                 //     refresh:[]
                 // }
             });
-            expect($(this.testView.el).text()).to.equal(' refresh 30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7d');
+            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
         });
         it('should allow for passing in lookback only', function() {
             // clear existing selectors on page
@@ -97,7 +97,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                     refresh: []
                 }
             });
-            expect($(this.testView.el).text()).to.equal(' refresh 30srefresh 1mrefresh 5mrefresh offtentwentythirty');
+            expect($(this.testView.el).text()).to.equal(' tentwentythirtyrefresh 30srefresh 1mrefresh 5mrefresh off');
         });
         it('should allow for passing in refresh only', function() {
             // clear existing selectors on page
@@ -113,7 +113,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                     ]
                 }
             });
-            expect($(this.testView.el).text()).to.equal(' twentyfortysixtylookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7d');
+            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7dtwentyfortysixty');
         });
         it('should select the first value as default if not designated', function() {
             // clear existing selectors on page

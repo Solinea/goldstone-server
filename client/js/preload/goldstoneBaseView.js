@@ -67,6 +67,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.infoText = this.options.infoText;
         if (this.options.el) {
             this.el = this.options.el;
+        } else {
+            console.log('no options el ', this.el);
         }
         if (this.options.collectionMixin) {
             this.collectionMixin = this.options.collectionMixin;
@@ -251,12 +253,11 @@ var GoldstoneBaseView = Backbone.View.extend({
         '<div class="panel-body" style="height:<%= this.height %>px">' +
         '</div>' +
         '</div>' +
-        '<div id="modal-container-<%= this.el.slice(1) %>' +
-        '"></div>'
+        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
     ),
 
     render: function() {
-        this.$el.html(this.template());
+        $(this.el).html(this.template());
         return this;
     },
 

@@ -111,12 +111,10 @@ describe('apiPerfView.js spec', function() {
                 test1: 'test1'
             });
             expect(this.testCollection.length).to.equal(2);
-            this.testCollection.parse(dataTest);
-            this.testCollection.parse(dataTest1);
-            expect(this.testCollection.parse(dataTest)).to.deep.equal({
+            expect(this.testCollection.preProcessData(dataTest)).to.deep.equal({
                 'hello': 'hi'
             });
-            expect(this.testCollection.parse(dataTest1)).to.deep.equal([]);
+            expect(this.testCollection.preProcessData(dataTest1)).to.deep.equal([]);
         });
     });
 
@@ -128,7 +126,7 @@ describe('apiPerfView.js spec', function() {
         });
         it('info button popover responds to click event', function() {
             expect($('div.popover').length).to.equal(0);
-            $(this.testView.el).find('#api-perf-info').click();
+            $(this.testView.el).find('.panel-info').click();
             expect($('div.popover').length).to.equal(1);
         });
         it('view update appends svg and border elements', function() {

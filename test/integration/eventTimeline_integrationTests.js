@@ -133,8 +133,15 @@ describe('eventTimeline.js spec', function() {
         this.testView = new EventTimelineView({
             collection: this.testCollection,
             el: '.testContainer',
-            chartTitle: "Test Chart Title",
-            width: 800
+            chartTitle: goldstone.translate('Test Chart Title'),
+            height: 300,
+            h: {
+                "main": 100,
+                "padding": 30,
+                "tooltipPadding": 50
+            },
+            infoText: 'eventTimeline',
+            width: $('#goldstone-discover-r1-c1').width()
         });
     });
     afterEach(function() {
@@ -192,25 +199,20 @@ describe('eventTimeline.js spec', function() {
         });
         it('registers changes on the global lookback/refresh selectors', function() {
 
-            this.updateSettingsSpy = sinon.spy(this.testView, "updateSettings");
             this.fetchNowWithResetSpy = sinon.spy(this.testView, "fetchNowWithReset");
             this.fetchNowNoResetSpy = sinon.spy(this.testView, "fetchNowNoReset");
 
-            expect(this.updateSettingsSpy.callCount).to.equal(0);
             expect(this.fetchNowNoResetSpy.callCount).to.equal(0);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(0);
 
             this.testView.trigger('lookbackSelectorChanged');
-            expect(this.updateSettingsSpy.callCount).to.equal(1);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.fetchNowNoResetSpy.callCount).to.equal(0);
 
             this.testView.trigger('lookbackIntervalReached');
-            expect(this.updateSettingsSpy.callCount).to.equal(2);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.fetchNowNoResetSpy.callCount).to.equal(1);
 
-            this.updateSettingsSpy.restore();
             this.fetchNowWithResetSpy.restore();
             this.fetchNowNoResetSpy.restore();
         });
@@ -307,10 +309,12 @@ describe('eventTimeline.js spec', function() {
             expect($('#GenericSyslogErr').prop('checked')).to.equal(undefined);
         });
         it('correctly identifies the lookback range', function() {
-            var test1 = this.testView.lookbackRange();
+            this.testView.getGlobalLookbackRefresh();
+            var test1 = this.testView.globalLookback;
             expect(test1).to.equal(60);
             $('.global-lookback-selector .form-control').val(360);
-            var test2 = this.testView.lookbackRange();
+            this.testView.getGlobalLookbackRefresh();
+            var test2 = this.testView.globalLookback;
             expect(test2).to.equal(360);
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
