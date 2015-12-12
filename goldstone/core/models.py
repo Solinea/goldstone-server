@@ -2653,8 +2653,7 @@ class SavedSearch(models.Model):
 
     description = models.CharField(max_length=1024, default='Defined Search')
 
-    query = models.CharField(max_length=512,
-                             help_text='YAML Elasticsearch query body')
+    query = models.TextField(help_text='YAML Elasticsearch query body')
 
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
