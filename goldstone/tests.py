@@ -32,7 +32,7 @@ from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 
 sys.path.append("..")      # For importing from fabfile.
-from installer_fabfile import tenant_init
+from post_install import tenant_init
 
 
 class TenantInit(Setup):
