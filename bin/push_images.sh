@@ -29,12 +29,12 @@ for arg in "$@" ; do
             shift
         ;;
         --help)
-            echo "Usage: $0"
+            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0"
+            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
             exit 1
         ;;
     esac
@@ -50,11 +50,24 @@ fi
 #
 
 if [[ $TAG == "" ]] ; then
-    echo "Must provide a tag"
+    echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
     exit 1
 fi 
 
-docker images | grep $TAG | awk '{print $1":"$2}' | while read image ; do
-   docker push $image
-done 
+OPEN_REGISTRY_ORG=solinea
+PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
+
+declare -a open_to_push=( goldstone-search goldstone-log goldstone-db \
+              goldstone-db-dvc goldstone-app goldstone-web goldstone-task-queue )
+
+declare -a priv_to_push=( goldstone-app-e )
+
+
+for name in "${open_to_push[@]}" ; do
+    docker push ${OPEN_REGISTRY_ORG}/${name}:${TAG}
+done
+
+for name in "${priv_to_push[@]}" ; do
+    docker push ${PRIV_REGISTRY_ORG}/${name}:${TAG}
+done
 

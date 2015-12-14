@@ -55,9 +55,9 @@ ALLOWED_HOSTS = ['*', ]
 # Application definition.
 
 INSTALLED_APPS = (
+    'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
@@ -68,7 +68,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_swagger',
-    'south',
     'goldstone.accounts',
     'goldstone.cinder',
     'goldstone.core',

@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
+import logging
 
 from goldstone.celery import app as celery_app
-import logging
 from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
 

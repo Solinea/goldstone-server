@@ -17,9 +17,10 @@ the Goldstone resource type graph.
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
+
 from django.conf import settings
 from goldstone.core.models import PolyResource
-import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX

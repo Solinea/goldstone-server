@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import urllib
 
 import arrow
-import json
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from django.utils.unittest.case import skip
+from django.utils.unittest import skip
 from rest_framework.test import APISimpleTestCase
 
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD

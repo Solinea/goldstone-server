@@ -12,8 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import arrow
 from copy import deepcopy
+
+import arrow
 
 from django.test import SimpleTestCase
 from goldstone.nova.models import SpawnsData

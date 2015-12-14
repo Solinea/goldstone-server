@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import PolyResource
 from django.contrib import admin
+from .models import PolyResource
 
 admin.site.register(PolyResource)
