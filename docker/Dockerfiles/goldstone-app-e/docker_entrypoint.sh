@@ -37,7 +37,6 @@ if [[ $status == "DOWN" ]] ; then
     exit 1
 fi
 
-python manage.py syncdb --noinput --migrate  # Apply database migrations
 
 # gather up the static files at container start if this is a dev environment
 if [[ $GS_DEV_ENV == "true" ]] ; then
@@ -47,22 +46,29 @@ if [[ $GS_DEV_ENV == "true" ]] ; then
     python manage.py collectstatic  --noinput
 fi
 
+echo "Applying database migrations"
+python manage.py migrate --noinput # Apply database migrations
+echo "Finished applying database migrations"
 
-declare -a addons=( opentrail leases )
+declare -a addons=( compliance )
 
 for addon in "${addons[@]}" ; do
     if [ ! -f ${APPDIR}/.${addon}-installed ] ; then
+        echo "Installing ${addon} addon."
         fab -f addon_fabfile.py \
              install_addon:name=${addon},install_dir=${APPDIR},settings=${DJANGO_SETTINGS_MODULE},interactive=False \
           && touch ${APPDIR}/.${addon}-installed
+        echo "Finished installing ${addon} addon."
     fi
 done
 
+# pick up any addon static files
+python manage.py collectstatic  --noinput
+
 # this won't do anything if the django admin, goldstone tenant and cloud already
 # exist.  otherwise it will use the env vars to create missing entities.
-fab -f installer_fabfile.py docker_install
 
-python manage.py collectstatic  --noinput
+python ${APPDIR}/post_install.py
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \

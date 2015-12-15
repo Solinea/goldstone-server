@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime, timedelta
-from django.conf import settings
 import logging
-import networkx
 import sys
+
+from django.conf import settings
+import networkx
 
 from goldstone.addons.models import Addon as AddonTable
 from .models import User, Domain, Group, Token, Credential, Role, Region, \

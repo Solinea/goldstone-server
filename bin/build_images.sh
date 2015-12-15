@@ -20,10 +20,6 @@
 DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
-GIT_BRANCH=$(git symbolic-ref --short HEAD)
-GIT_COMMIT=$(git rev-parse --short HEAD)
-TAGGED=true
-TAG=""
 
 GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
 GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
@@ -31,16 +27,18 @@ GS_SEARCH_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-search
 GS_LOG_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-log
 GS_DB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db
 GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
-GS_TASK_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task
 GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
+GS_APP_E_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app-e
 
-REGISTRY_ORG=solinea
+OPEN_REGISTRY_ORG=solinea
+PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 
-declare -a need_source=( $GS_APP_DIR $GS_TASK_DIR )
+declare -a need_source=( $GS_APP_DIR )
 
-declare -a to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR \
-              $GS_TASK_Q_DIR $GS_TASK_DIR )
+declare -a open_to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
+              $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
+
+declare -a priv_to_build=( $GS_APP_E_DIR )
 
 cd $TOP_DIR || exit 1 
 
@@ -50,24 +48,26 @@ for arg in "$@" ; do
             DOCKER_VM="${arg#*=}"
             shift
         ;;
-        --untagged)
-            TAGGED=false
-        ;;
         --tag=*)
             TAG="${arg#*=}"
             shift
         ;;
         --help)
-            echo "Usage: $0"
+            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0"
+            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
             exit 1
         ;;
     esac
 done
+
+if [[ ${TAG} == "" ]] ; then
+   echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
+   exit 1
+fi
 
 if [[ ${DOCKER_VM} != "false" ]] ; then
     docker-machine start ${DOCKER_VM}
@@ -94,44 +94,23 @@ for folder in "${need_source[@]}" ; do
     rm -rf goldstone-server 2> /dev/null || /bin/true
     tar xf ${DIST_DIR}/${DIST_FILE}
     mv ${DIST_FILE%%.tar.gz} goldstone-server
-    cp -R ${TOP_DIR}/external goldstone-server
 done
-echo "##########################################################"
-
 
 # 
-# build containers
+# build images
 #
 
-if [[ $TAGGED == 'true' ]] ; then
-    echo "##########################################################"
-    echo "Building tagged containers"
-    echo "##########################################################"
-    for folder in "${to_build[@]}" ; do
-        cd $folder || exit 1
-        echo "##########################################################"
-        echo "Building ${REGISTRY_ORG}/${folder##*/}..."
-        echo "##########################################################"
-        if [[ ${TAG} == "" ]] ; then
-            if [[ ${GIT_BRANCH} == "master" ]] ; then
-                NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} release --commit-id $GIT_COMMIT`
-            else
-                NEXT_TAG=`docker-tag-naming bump ${REGISTRY_ORG}/${folder##*/} develop --commit-id $GIT_COMMIT`
-            fi
-        else
-            NEXT_TAG=${TAG}
-        fi
-        docker build -t ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG} .
-        echo "Done building ${REGISTRY_ORG}/${folder##*/}:${NEXT_TAG}."
-    done
+echo "Building open source containers"
+for folder in "${open_to_build[@]}" ; do
+    cd $folder || exit 1
+    docker build -t ${OPEN_REGISTRY_ORG}/${folder##*/}:${TAG} .
+done
 
-else
-    echo "##########################################################"
-    echo "Building development containers"
-    echo "##########################################################"
-    cd $TOP_DIR || exit 1
-    docker-compose -f docker-compose-dev.yml build
-fi
+echo "Building private containers"
+for folder in "${priv_to_build[@]}" ; do
+    cd $folder || exit 1
+    docker build -t ${PRIV_REGISTRY_ORG}/${folder##*/}:${TAG} .
+done
 
 #
 # clean up the containers that need access to source
@@ -143,3 +122,4 @@ for folder in "${need_source[@]}" ; do
     rm -rf goldstone-server/*
 done
 echo "##########################################################"
+

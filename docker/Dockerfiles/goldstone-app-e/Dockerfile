@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-app
+FROM solinea/goldstone-app:0.7.3
 
 MAINTAINER John Stanford <john@solinea.com>
 
@@ -26,10 +26,8 @@ WORKDIR ${APPDIR}
 
 USER ${APPUSER}
 
-# really need a better way to loop through addons and install them
 RUN . ${ENVDIR}/bin/activate \
-  && pip install /tmp/addons/django-opentrail-0.1.0.tar.gz \
-  && pip install /tmp/addons/django-leases-0.1.0.tar.gz 
+  && find /tmp/addons/* -exec pip install {} \;
 
 USER root
 RUN  rm -rf /tmp/addons

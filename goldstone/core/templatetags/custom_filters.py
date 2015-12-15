@@ -12,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
 from django import template
 from django.utils.html import escapejs
 from django.utils.safestring import mark_safe
-import json
 
 register = template.Library()      # pylint: disable=C0103
 

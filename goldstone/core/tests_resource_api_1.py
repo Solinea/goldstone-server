@@ -18,18 +18,19 @@ Tests:
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
 from django.conf import settings
+from mock import patch
+from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, \
+    HTTP_401_UNAUTHORIZED
+
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
     Aggregate, Server, Project, Network, Limits
-
 from goldstone.core import resource
 from goldstone.core.resource import Types, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD
-import json
-from mock import patch
-from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, \
-    HTTP_401_UNAUTHORIZED
 
 # Aliases to make the Resource Graph definitions less verbose.
 TYPE = settings.R_ATTRIBUTE.TYPE
