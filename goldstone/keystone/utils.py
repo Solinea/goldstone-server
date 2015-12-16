@@ -30,7 +30,6 @@ def get_session(cloud=None):
     from keystoneclient.auth.identity import v2
     from keystoneclient import session
 
-
     if cloud is None:
         cloud = get_cloud()
 
