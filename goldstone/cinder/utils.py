@@ -14,6 +14,18 @@
 # limitations under the License.
 
 
+def get_client(session=None):
+    """Get a cinder v1 client from a keystone session."""
+
+    from goldstone.keystone.utils import get_session
+    from cinderclient import client
+
+    if session is None:
+        session = get_session()
+
+    return client.Client('1', session=session)
+
+
 def update_nodes():
     """Update the Resource graph's Cinder nodes and edges from the current
     OpenStack cloud state.

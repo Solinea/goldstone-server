@@ -14,23 +14,13 @@
 # limitations under the License.
 
 
-def get_neutron_client(username, password, tenant_name, auth_url):
-    """Return a Neutron client using Keystone v2.0 authentication.
+def get_client(session=None):
+    """Get a neutron v2 client from a keystone session."""
 
-    Neutron does not support Keystone v3 authentication. See
-    http://specs.openstack.org/openstack/neutron-specs/specs/juno/
-    keystone-v3-api-support.html.
+    from goldstone.keystone.utils import get_session
+    from neutronclient import client
 
-    This function replace the auth_url's "/v3" with "/v2.0" (if it exists),
-    makes the call, and returns the client.
+    if session is None:
+        session = get_session()
 
-    This function should be deleted when neutron is updated for keystone v3
-    authentication.
-
-    """
-    from neutronclient.v2_0 import client as neclient
-
-    return neclient.Client(username=username,
-                           password=password,
-                           tenant_name=tenant_name,
-                           auth_url=auth_url.replace("/v3", "/v2.0"))
+    return client.Client('2.0', session=session)

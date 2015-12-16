@@ -390,7 +390,7 @@ class ProcessResourceType(Setup):
     """Test utilities.process_resource_type."""
 
     class EmptyClientObject(object):
-        """A class that simulates one of get_glance_client's return
+        """A class that simulates one of glance client's return
         values."""
 
         images_list = []

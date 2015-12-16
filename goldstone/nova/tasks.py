@@ -29,7 +29,8 @@ from goldstone.nova.models import AgentsData, AggregatesData, \
     SecGroupsData, ServersData, ServicesData
 from goldstone.core.models import Host, MetricData
 from goldstone.celery import app as celery_app
-from goldstone.utils import get_region_for_nova_client
+from goldstone.keystone.utils import get_region
+from goldstone.nova.utils import get_client
 
 
 logger = logging.getLogger(__name__)
@@ -38,13 +39,11 @@ logger = logging.getLogger(__name__)
 @celery_app.task()
 def nova_hypervisors_stats():
     """Get stats from the nova API and add them as Goldstone metrics."""
-    from goldstone.utils import get_nova_client
     from goldstone.models import es_conn, daily_index
 
-    novaclient = get_nova_client()['client']
-    response = \
-        novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
-    region = get_region_for_nova_client(novaclient)
+    novaclient = get_client()
+    response = novaclient.hypervisors.statistics()._info
+    region = get_region()
     metric_prefix = 'nova.hypervisor.'
     now = arrow.utcnow()
     conn = es_conn()
@@ -94,14 +93,8 @@ def discover_nova_topology():
     :return: None
 
     """
-    from goldstone.utils import get_nova_client
-
-    nova_access = get_nova_client()
-
-    nova_client = nova_access['client']
-    nova_client.client.authenticate()
-
-    reg = get_region_for_nova_client(nova_client)
+    nova_client = get_client()
+    reg = get_region()
 
     _update_nova_records("agents",
                          reg,
@@ -203,11 +196,8 @@ def reconcile_hosts():
 
 def get_nova_host_list():
     """Retrieve a list of hosts from nova."""
-    from goldstone.utils import get_nova_client
 
-    nova_access = get_nova_client()
-    nova_client = nova_access['client']
-    nova_client.client.authenticate()
+    nova_client = get_client()
     return nova_client.hosts.list()
 
 

@@ -36,13 +36,10 @@ def _update_keystone_records(rec_type, region, database, items):
 
 @celery_app.task()
 def discover_keystone_topology():
-    from goldstone.utils import get_keystone_client, \
-        get_region_for_keystone_client
+    from goldstone.keystone.utils import get_client, get_region
 
-    access = get_keystone_client()
-
-    client = access['client']
-    reg = get_region_for_keystone_client(client)
+    client = get_client()
+    reg = get_region()
 
     _update_keystone_records("endpoints",
                              reg,

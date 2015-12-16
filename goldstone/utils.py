@@ -15,24 +15,7 @@
 import functools
 import socket
 
-from cinderclient.openstack.common.apiclient.exceptions \
-    import Unauthorized as CinderUnauthorized
-import cinderclient.v2.services
-from cinderclient.v2 import client as ciclient
-from glanceclient.v2 import client as glclient
-from keystoneclient.openstack.common.apiclient.exceptions \
-    import Unauthorized as KeystoneUnauthorized
-from keystoneclient.v3 import client as ksclient
-from novaclient.openstack.common.apiclient.exceptions \
-    import Unauthorized as NovaUnauthorized
-from novaclient.v2 import client as nvclient
-from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 from rest_framework.exceptions import PermissionDenied
-
-
-def _patched_cinder_service_repr(self):
-    """Hacking in a patch for the cinder service __repr__ method."""
-    return "<Service: %s>" % self.binary
 
 
 class GoldstoneBaseException(Exception):
@@ -54,47 +37,6 @@ def to_es_date(date_object):
     return result
 
 
-def _get_region_for_client(catalog, service_type):
-    """Return the region for a service type, given the
-    service catalog."""
-
-    candidates = [svc for svc in catalog if svc['type'] == service_type]
-
-    # lots of bumps with Keystone v3 client implementation, including that
-    # it doesn't have an endpoint for the v3 version of itself!  We have
-    # to assume that all endpoints for a service are in the same Region, so
-    # we'll just take the region from the first one.
-    return candidates[0]['endpoints'][0]['region']
-
-
-def _get_region_for_cinder_client(client):
-    """Return the region for a cinder client."""
-
-    # force authentication to populate management url
-    client.authenticate()
-    keystoneclient = get_keystone_client()['client']
-    catalog = keystoneclient.service_catalog.catalog['catalog']
-    return _get_region_for_client(catalog, 'volumev2')
-
-
-def get_region_for_glance_client(client):
-    """Return the region for a glance client."""
-    catalog = client.service_catalog.catalog['catalog']
-    return _get_region_for_client(catalog, 'image')
-
-
-def get_region_for_nova_client(client):
-    """Return the region for nova client."""
-    catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
-    return _get_region_for_client(catalog, 'compute')
-
-
-def get_region_for_keystone_client(client):
-    """Return the region for keystone client."""
-    catalog = client.service_catalog.catalog['catalog']
-    return _get_region_for_client(catalog, 'identity')
-
-
 def get_cloud():
     """Return an OpenStack cloud object.
 
@@ -113,121 +55,6 @@ def get_cloud():
     from goldstone.tenants.models import Cloud
 
     return Cloud.objects.all()[0]
-
-
-def _v3_auth_url(auth_url):
-    """Some services require a /v3 auth URL, so let's make one"""
-
-    if auth_url.endswith('/v3/'):
-        return auth_url
-    elif auth_url.endswith('/v3'):
-        return auth_url + "/"
-    elif auth_url.endswith('/v2.0'):
-        return auth_url.replace('/v2.0', '/v3/')
-    elif auth_url.endswith('/v2.0/'):
-        return auth_url.replace('/v2.0/', '/v3/')
-    else:
-        raise GoldstoneAuthError("Unknown os_auth_url version: %s", auth_url)
-
-
-def _v2_auth_url(auth_url):
-    """Some services require a /v2.0 auth URL, so let's make one"""
-
-    if auth_url.endswith('/v2.0/'):
-        return auth_url
-    elif auth_url.endswith('/v2.0'):
-        return auth_url + "/"
-    elif auth_url.endswith('/v3'):
-        return auth_url.replace('/v3', '/v2.0/')
-    elif auth_url.endswith('/v3/'):
-        return auth_url.replace('/v3/', '/v2.0/')
-    else:
-        raise GoldstoneAuthError("Unknown os_auth_url version: %s", auth_url)
-
-
-def get_client(service):
-    """Return a client object and authorization token.
-
-    :rtype: dict
-
-    """
-    from goldstone.neutron.utils import get_neutron_client
-
-    # Error message template.
-    NO_AUTH = "%s client failed to authorize. Check credentials in" \
-              " goldstone settings."
-
-    try:
-        cloud = get_cloud()
-        os_username = cloud.username
-        os_password = cloud.password
-        os_tenant_name = cloud.tenant_name
-        os_auth_url = cloud.auth_url
-
-        if service == 'keystone':
-            client = ksclient.Client(
-                username=os_username,
-                password=os_password,
-                tenant_name=os_tenant_name,
-                auth_url=_v3_auth_url(os_auth_url))
-
-            if client.auth_token is None:
-                raise GoldstoneAuthError("Keystone client call succeeded, but "
-                                         "auth token was not returned.  Check "
-                                         "credentials in goldstone settings.")
-            else:
-                return {'client': client, 'hex_token': client.auth_token}
-
-        elif service == 'nova':
-            client = nvclient.Client(
-                os_username,
-                os_password,
-                os_tenant_name,
-                _v2_auth_url(os_auth_url))
-
-            client.authenticate()
-            return {'client': client, 'hex_token': client.client.auth_token}
-
-        elif service == 'cinder':
-            cinderclient.v2.services.Service.__repr__ = \
-                _patched_cinder_service_repr
-            client = ciclient.Client(os_username,
-                                     os_password,
-                                     os_tenant_name,
-                                     _v2_auth_url(os_auth_url))
-            region = _get_region_for_cinder_client(client)
-            return {'client': client, 'region': region}
-
-        elif service == 'neutron':
-            client = get_neutron_client(os_username,
-                                        os_password,
-                                        os_tenant_name,
-                                        _v3_auth_url(os_auth_url))
-            return {'client': client}
-
-        elif service == 'glance':
-            keystoneclient = get_client("keystone")['client']
-
-            # This had used a "name='glance'" qualifier, but the V3 find method
-            # raised a NoUniqueMatch exception. Keystone no longer accepts
-            # 'name' as a qualifier, so use 'type'.
-            service_id = keystoneclient.services.find(type="image").id
-
-            mgmt_url = \
-                keystoneclient.endpoints.find(service_id=service_id,
-                                              interface="admin").url
-
-            region = get_region_for_glance_client(keystoneclient)
-            client = glclient.Client(endpoint=mgmt_url,
-                                     token=keystoneclient.auth_token)
-            return {'client': client, 'region': region}
-
-        else:
-            raise GoldstoneAuthError("Unknown service")
-
-    except (KeystoneUnauthorized, NovaUnauthorized, CinderUnauthorized,
-            NeutronUnauthorized):
-        raise GoldstoneAuthError(NO_AUTH % service.capitalize())
 
 
 def django_admin_only(wrapped_function):
@@ -318,10 +145,3 @@ def partition_hostname(hostname):
     parts = hostname.partition('.')
     return dict(hostname=parts[0],
                 domainname=parts[2] if parts[1] == '.' else None)
-
-
-# pylint: disable=C0103
-get_cinder_client = functools.partial(get_client, 'cinder')
-get_glance_client = functools.partial(get_client, 'glance')
-get_keystone_client = functools.partial(get_client, 'keystone')
-get_nova_client = functools.partial(get_client, 'nova')

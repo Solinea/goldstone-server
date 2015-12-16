@@ -14,6 +14,47 @@
 # limitations under the License.
 
 
+def get_region():
+    """Currently assumes that the cloud is a single region and takes the first
+    one from the list returned from the keystone client regions manager."""
+
+    client = get_client()
+    return client.regions.list()[0].id
+
+
+def get_session(cloud=None):
+    """Get a keystone session that can be used to create clients for this and
+    other services.  Assumes v2 semantics."""
+
+    from goldstone.utils import get_cloud
+    from keystoneclient.auth.identity import v2
+    from keystoneclient import session
+
+
+    if cloud is None:
+        cloud = get_cloud()
+
+    auth = v2.Password(
+        username=cloud.username,
+        tenant_name=cloud.tenant_name,
+        password=cloud.password,
+        auth_url=cloud.auth_url)
+
+    return session.Session(auth=auth)
+
+
+def get_client(session=None):
+    """Get a client object from the keystone service"""
+
+    from goldstone.utils import get_cloud
+    from keystoneclient.v3 import client
+    if session is None:
+        cloud = get_cloud()
+        session = get_session(cloud=cloud)
+
+    return client.Client(session=session)
+
+
 def update_nodes():
     """Update the Resource graph's Keystone nodes and edges from the current
     OpenStack cloud state.
