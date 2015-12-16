@@ -2368,7 +2368,6 @@ class Port(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        from goldstone.neutron.utils import get_neutron_client
 
         # Get the one and only one Cloud row in the system
         row = get_cloud()

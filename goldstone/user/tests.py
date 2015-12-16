@@ -12,11 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from copy import deepcopy
-from django.contrib.auth import get_user_model
+
 import json
+from copy import deepcopy
+
+from django.contrib.auth import get_user_model
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
+
 from goldstone.tenants.models import Tenant, Cloud
 from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
