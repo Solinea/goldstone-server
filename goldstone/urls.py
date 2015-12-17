@@ -18,7 +18,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import TemplateView
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
-from goldstone.views import RouterView, RouterViewOld
+from goldstone.views import RouterView
 
 admin.autodiscover()
 
@@ -42,7 +42,6 @@ urlpatterns += patterns(
     url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^nova/', include('goldstone.nova.urls')),
     url(r'^user/', include("goldstone.user.urls")),
-    url(r'^old/', RouterViewOld.as_view()),
     url(r'^login/', TemplateView.as_view(template_name='login.html')),
     url(r'^password/confirm/',
         TemplateView.as_view(template_name="password-confirm.html")),
