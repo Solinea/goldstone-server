@@ -80,7 +80,7 @@ text:not(.zoomable), .axis.label { font: 12px sans-serif; }
 
 .popover-content ul { list-style-type: none; list-style-position: inside; }
 
-.popover-content { line-height: 1; padding: 10px; color: #fff; width: 100%; font-size: 14px; }
+.popover-content { line-height: 1; padding: 10px; width: 100%; font-size: 14px; }
 
 .line { fill: none; stroke-width: 1.5px; }
 

@@ -35,7 +35,7 @@
 .popover-content {
   line-height: 1;
   padding: 10px;
-  color: #fff;
+  color: if($theme==dark, #fff, null);
   width: 100%;
   font-size: 14px;
 }
