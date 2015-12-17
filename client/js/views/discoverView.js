@@ -272,7 +272,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</div>' +
         '</div>' +
         '<div class="single-block service-status">' +
-        '<h3>Disk<i class="setting-btn">&nbsp;</i></h3>' +
+        '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
         '<div class="full-map shadow-block">' +
         '<img src="/static/images/Chart-Disk.jpg" alt="">' +
         '</div>' +
