@@ -219,7 +219,7 @@ css stylesheets supporting redesign
 
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
-.dashboard .footer { position: relative; left: 0; top: 0; }
+.dashboard .footer { position: relative; left: 0; top: 0; top: 18px; }
 
 .dashboard .footer .row { width: 100%; }
 
@@ -722,6 +722,7 @@ transition:all 0.3s ease;
   .topology { background: url(../../../images/icon-topology@2x.png) no-repeat center center; background-size: 20px 20px; }
   .metrics:hover { background-image: url(../../../images/icon-metrics-active@2x.png); }
   .btn-grp li.active .metrics { background-image: url(../../../images/icon-metrics-active1@2x.png); }
+  .btn-grp a { text-decoration: none; }
   .alerts:hover { background-image: url(../../../images/icon-notifications-active@2x.png); }
   .btn-grp li.active .alerts { background-image: url(../../../images/icon-notifications-active1@2x.png); }
   .reports:hover { background-image: url(../../../images/icon-reports-active@2x.png); }

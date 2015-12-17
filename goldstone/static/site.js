@@ -12,11 +12,6 @@ $(document).ready(function() {
         }
         $(this).find('.expand').toggleClass('open');
 
-        if ($('.content').hasClass('open2')) {
-            $('.content').removeClass('open2');
-            $('.footer').removeClass('open2');
-        }
-
         if ($(window).width() < 767) {
             $('.content').toggleClass('open');
             $('.footer').toggleClass('open');
@@ -53,13 +48,10 @@ $(document).ready(function() {
             }
             if (!$(this).hasClass('menu-toggle')) {
                 if ($(this).hasClass('active')) {
-                    $('.btn-grp li').removeClass('active');
                     $('.tab-content').find('.tab').hide();
                     $('.tab-content').removeClass('open');
-                    $(this).removeClass('active');
                     $('.tab-content').removeClass('open');
                     $('.tab-content').find('.tab').eq(ind).hide();
-
 
                 } else {
                     $('.btn-grp li').removeClass('active');
@@ -68,13 +60,9 @@ $(document).ready(function() {
                     $(this).addClass('active');
 
                     if (ind === 0) {
-                        setTimeout(function() {
-                            $('.tab-content').addClass('open');
-                            $('.tab-content').find('.tab').eq(ind).show();
-                        }, 20);
+                        $('.tab-content').addClass('open');
+                        $('.tab-content').find('.tab').eq(ind).show();
                     }
-
-
                 }
             }
 
@@ -92,19 +80,6 @@ $(document).ready(function() {
             }
 
 
-        });
-
-        $('.active-page').click(function() {
-            if ($('.content').hasClass('open2')) {
-                $('.content').removeClass('open2');
-                $('.footer').removeClass('open2');
-            } else if ($('.content').hasClass('open')) {
-                $('.content').removeClass('open');
-                $('.footer').removeClass('open');
-            }
-            if ($('.tab-content').hasClass('open')) {
-                $('.tab-content').removeClass('open');
-            }
         });
     }
     $('.setting-btn').click(function() {
