@@ -49,13 +49,13 @@
 }
 
 .panel-body {
-    background-color: if($theme==dark, $dark_chart_background, #FFFFFF);
+    background-color: if($theme==dark, $dark_chart_background, #fff);
 }
 
 .panel-primary > .panel-heading {
     background-color: if($theme==dark, $dark_chart_background, #777777);
-    border-color: if($theme==dark, $dark_footer, #777777);
-    color: if($theme==dark, $dark_chart_background, #FFF);
+    border-color: if($theme==dark, $dark_footer, null);
+    color: if($theme==dark, $dark_chart_background, null);
 }
 
 .panel {

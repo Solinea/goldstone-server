@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var TenantSettingsPageView = GoldstoneBaseView2.extend({
+var TenantSettingsPageView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function(options) {
         this.el = this.options.el;

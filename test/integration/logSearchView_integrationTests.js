@@ -103,17 +103,6 @@ describe('logSearchView.js spec', function() {
 
             this.getGlobalLookbackRefresh_spy.restore();
         });
-        it('view won\'t refresh if global refresh is set to off', function() {
-            var test1 = this.testView.defaults.scheduleInterval;
-            $('#global-refresh-range').val('-1');
-            this.testView.getGlobalLookbackRefresh();
-            this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.equal(test1);
-            $('#global-refresh-range').val('30');
-            this.testView.getGlobalLookbackRefresh();
-            this.testView.scheduleInterval();
-            expect(this.testView.defaults.scheduleInterval).to.not.equal(test1);
-        });
     });
 
 });

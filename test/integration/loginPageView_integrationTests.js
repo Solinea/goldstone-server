@@ -20,7 +20,18 @@
 describe('loginPageView.js spec', function() {
     beforeEach(function() {
 
-        $('body').html('<div class="test-container"></div>');
+        $('body').html('' +
+
+            '<form class="login-form">' +
+            '<input type="text" name="username" placeholder="Username" autofocus>' +
+            '<input type="password" name="password" placeholder="Password">' +
+            '<label class="chkbox" for="chk1">' +
+            '<input type="checkbox" value="remember" id="chk1"> <span class="chk-lab"></span> Remember me' +
+            '</label>' +
+            '<button class="full-width-btn" type="submit">Sign In</button>' +
+            '<a class="reset-pw" href="/password/">reset password</a>' +
+            '</form>'
+        );
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -28,9 +39,7 @@ describe('loginPageView.js spec', function() {
         this.server.respondWith(404, '{auth_token: 12345}');
         data = [];
 
-        this.testView = new LoginPageView({
-            el: '.test-container'
-        });
+        this.testView = new LoginPageView({});
 
     });
     afterEach(function() {
@@ -38,9 +47,6 @@ describe('loginPageView.js spec', function() {
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
-        it('renders view', function() {
-            this.testView.render();
-        });
         it('stores auth tokens', function() {
             this.testView.storeAuthToken('hoo_hah');
             expect(localStorage.getItem('userToken')).to.equal('hoo_hah');

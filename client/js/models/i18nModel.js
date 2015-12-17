@@ -35,7 +35,9 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key) {
-            console.error('missing .po file translation for: `' + key + '`');
+            if(!goldstone.skipI18nLog) {
+                console.error('missing .po file translation for: `' + key + '`');
+            }
         };
 
         finalResult.locale_data = {};

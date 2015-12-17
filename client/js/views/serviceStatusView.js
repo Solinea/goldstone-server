@@ -31,8 +31,41 @@ this.serviceStatusChartView = new ServiceStatusView({
 
 var ServiceStatusView = GoldstoneBaseView.extend({
 
+    defaults: {
+        margin: {
+            top: 30,
+            right: 30,
+            bottom: 60,
+            left: 70
+        }
+    },
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // appends spinner to el
+        this.showSpinner();
+    },
+
     processOptions: function() {
-        ServiceStatusView.__super__.processOptions.call(this);
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
 
         this.defaults.spinnerPlace = '.spinnerPlace';
     },
@@ -47,9 +80,10 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         });
     },
 
-    standardInit: function() {},
-
-    specialInit: function() {},
+    processMargins: function() {
+        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
+        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+    },
 
     dataErrorMessage: function(message, errorMessage) {
         ServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);

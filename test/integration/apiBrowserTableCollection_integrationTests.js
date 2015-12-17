@@ -72,7 +72,7 @@ describe('apiBrowserTableCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(4);
-            expect(this.testCollection.url).to.include("&interval=3600s&page=1&page_size=1000");
+            expect(this.testCollection.url).to.include("&interval=37.5s&page=1&page_size=1000");
 
             this.testCollection.addRange = function() {
                 return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';

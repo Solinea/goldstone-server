@@ -53,21 +53,20 @@ describe('goldstoneRouter.js spec', function() {
             });
         });
         it('calls routes properly', function() {
-            this.testRouter.apiPerfReport();
-            this.testRouter.cinderReport();
             this.testRouter.discover();
-            this.testRouter.glanceReport();
             this.testRouter.help();
-            this.testRouter.logSearch();
-            this.testRouter.keystoneReport();
+            this.testRouter.apiPerfReport();
             this.testRouter.metricViewer();
             this.testRouter.metricViewer(6);
             this.testRouter.metricViewer(7);
             this.testRouter.metricViewer();
             this.testRouter.metricViewer();
-            this.testRouter.neutronReport();
             this.testRouter.novaReport();
+            this.testRouter.topology();
             this.testRouter.nodeReport('control-01');
+            this.testRouter.logSearch();
+            this.testRouter.eventsBrowser();
+            this.testRouter.apiBrowser();
             this.testRouter.settings();
             this.testRouter.tenant();
             this.testRouter.redirect();

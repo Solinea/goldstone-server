@@ -17,7 +17,7 @@
 
 /*
 This view will be invoked upon initial site load, as it is
-baked into router.html, but not for every backbone router view load.
+baked into dashboard.html, but not for every backbone router view load.
 
 After ajaxSend Listener is bound to $(document), it will be triggered on all
 subsequent $.ajaxSend calls.
@@ -35,11 +35,7 @@ which will emit a trigger when a view is switched out.
 
 var LogoutIcon = GoldstoneBaseView.extend({
 
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.render();
+    instanceSpecificInit: function() {
 
         // prune old unused localStorage keys
         this.pruneLocalStorage();
@@ -47,9 +43,6 @@ var LogoutIcon = GoldstoneBaseView.extend({
         // if auth token present, hijack all subsequent ajax requests
         // with an auth header containing the locally stored token
         this.setAJAXSendRequestHeaderParams();
-
-        // only render the logout button if an auth token is present
-        this.makeVisibleIfTokenPresent();
 
         // clicking logout button > expire token via /accounts/logout
         // then clear token from localStorage and redirect to /login
@@ -73,11 +66,6 @@ var LogoutIcon = GoldstoneBaseView.extend({
                 localStorage.setItem(item, temp[item]);
             }
         });
-    },
-
-    // subscribed to gsRouter 'switching view' on router.html
-    viewSwitchTriggered: function() {
-        this.makeVisibleIfTokenPresent();
     },
 
     setAJAXSendRequestHeaderParams: function() {
@@ -106,20 +94,9 @@ var LogoutIcon = GoldstoneBaseView.extend({
         });
     },
 
-    makeVisibleIfTokenPresent: function() {
-
-        // only render logout icon if there is a token present
-        var authToken = localStorage.getItem('userToken');
-        if (authToken) {
-            $('.fa-sign-out').css('visibility', 'visible');
-        } else {
-            $('.fa-sign-out').css('visibility', 'hidden');
-        }
-    },
-
     setLogoutButtonHandler: function() {
         var self = this;
-        $('div.logout-icon-container .fa-sign-out').on('click', function() {
+        $('.logout-btn').on('click', function() {
 
             // clicking logout button => submit userToken to
             // remove userToken. Upon success, remove token
@@ -130,12 +107,10 @@ var LogoutIcon = GoldstoneBaseView.extend({
                 .done(function() {
                     goldstone.raiseSuccess('Logout Successful');
                     self.clearToken();
-                    self.makeVisibleIfTokenPresent();
                     self.redirectToLogin();
                 })
                 .fail(function() {
                     goldstone.raiseWarning('Logout Failed');
-                    self.makeVisibleIfTokenPresent();
                 });
         });
     },
@@ -146,15 +121,6 @@ var LogoutIcon = GoldstoneBaseView.extend({
 
     redirectToLogin: function() {
         location.href = "login/";
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
-    },
-
-    template: _.template('' +
-        '<i class="fa fa-sign-out pull-right"></i>'
-    )
+    }
 
 });

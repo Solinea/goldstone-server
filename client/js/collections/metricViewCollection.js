@@ -22,6 +22,7 @@ var MetricViewCollection = GoldstoneBaseCollection.extend({
 
     instanceSpecificInit: function() {
         this.reportParams = {};
+        this.processOptions();
         this.statistic = this.options.statistic;
         this.standardDev = this.options.standardDev;
         this.fetchWithReset();

@@ -34,35 +34,12 @@ var topologyTreeView = new TopologyTreeView({
 
 var TopologyTreeView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
     // this block is run upon instantiating the object
-    initialize: function(options) {
-
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-
-        this.defaults.blueSpinnerGif = options.blueSpinnerGif;
-        this.defaults.chartHeader = options.chartHeader || null;
-
-        this.defaults.h = options.h;
-
-        this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
-        this.defaults.w = options.width;
-        this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
-
-        var ns = this.defaults;
-        var self = this;
-
-        this.render();
+    // and called by 'initialize' on the parent object
+    instanceSpecificInit: function() {
+        TopologyTreeView.__super__.instanceSpecificInit.apply(this, arguments);
         this.initSvg();
-
-        this.processListeners();
-    },
-
-    processListeners: function() {
-        this.listenTo(this.collection, 'sync', this.update);
+        this.hideSpinner();
     },
 
     filterMultiRsrcData: function(data) {
@@ -71,15 +48,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // to omit from the returned data before rendering
         // as a data table in 'resource list'
 
-        var ns = this.defaults;
         var self = this;
 
-        if (ns.filterMultiRsrcDataOverride === null) {
+        if (self.filterMultiRsrcDataOverride === null) {
             return data;
         } else {
             var newData = jQuery.extend(true, {}, data);
             newData = _.map(newData, function(item) {
-                return _.omit(item, ns.filterMultiRsrcDataOverride);
+                return _.omit(item, self.filterMultiRsrcDataOverride);
             });
             return newData;
         }
@@ -88,34 +64,33 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
     initSvg: function() {
         var self = this;
-        var ns = this.defaults;
 
-        ns.margin = {
+        self.margin = {
             top: 10,
-            bottom: 10,
+            bottom: 45,
             right: 10,
             left: 35
         };
-        ns.mw = ns.w - ns.margin.left - ns.margin.right;
-        ns.mh = ns.h - ns.margin.top - ns.margin.bottom;
-        ns.svg = d3.select(self.el).select('#topology-tree')
+        self.mw = self.width - self.margin.left - self.margin.right;
+        self.mh = self.height - self.margin.top - self.margin.bottom;
+        self.svg = d3.select(self.el).select('.panel-body')
             .append("svg")
-            .attr("width", ns.w)
-            .attr("height", ns.h);
-        ns.tree = d3.layout.tree()
-            .size([ns.mh, ns.mw])
+            .attr("width", self.width)
+            .attr("height", self.height);
+        self.tree = d3.layout.tree()
+            .size([self.mh, self.mw])
             .separation(function(a, b) {
                 var sep = a.parent === b.parent ? 3 : 2;
                 return sep;
             });
-        ns.i = 0; // used in processTree for node id
-        ns.diagonal = d3.svg.diagonal()
+        self.i = 0; // used in processTree for node id
+        self.diagonal = d3.svg.diagonal()
             .projection(function(d) {
                 return [d.y, d.x];
             });
-        ns.chart = ns.svg.append("g")
+        self.chart = self.svg.append("g")
             .attr('class', 'chart')
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
     },
     hasRemovedChildren: function(d) {
         return d._children && _.findWhere(d._children, {
@@ -141,9 +116,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             d._children = null;
         }
     },
-    drawSingleRsrcInfoTable: function(scrollYpx, json) {
+    drawSingleRsrcInfoTable: function(json, click) {
         // make a dataTable
-        var ns = this.defaults;
+        var self = this;
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -155,19 +130,23 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             }
         });
 
-        $("#multi-rsrc-body").popover({
+        $(self.multiRsrcViewEl).find(".panel-heading").popover({
             trigger: "manual",
             placement: "left",
             html: true,
-            title: '<div>Resource Info<button type="button" style="color:#fff; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
+            title: '<div>Resource Info<button type="button" style="color:#000; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
                 'aria-hidden="true">&times;</button></div>',
             content: '<div id="single-rsrc-body" class="panel-body">' +
                 '<table id="single-rsrc-table" class="table table-hover"></table>' +
                 '</div>'
         });
-        $("#multi-rsrc-body").popover("show");
-        $("#popover-close").on("click", function() {
-            $("#multi-rsrc-body").popover("hide");
+        $(self.multiRsrcViewEl).find('.panel-heading').popover('show');
+
+        // shift popover to the left
+        $(self.multiRsrcViewEl).find('.popover').css('margin-left', '-172px');
+
+        $('#popover-close').on("click", function() {
+            $(self.multiRsrcViewEl).find(".panel-heading").popover("hide");
         });
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -175,7 +154,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         } else {
             var oTableParams = {
                 "data": data,
-                "scrollY": "300px",
+                "scrollY": "400px",
                 "autoWidth": true,
                 "info": false,
                 "paging": false,
@@ -192,9 +171,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
     loadLeafData: function(dataUrl) {
         var self = this;
-        var ns = this.defaults;
 
-        $(ns.multiRsrcViewEl).find('#spinner').show();
+        $(self.multiRsrcViewEl).find('#spinner').show();
 
         // This .get call has been converted to take advantage of
         // the 'promise' format that it supports. The 'success' and
@@ -211,7 +189,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // merely appending a resource info chart popup
 
             // clear any existing error message
-            self.clearDataErrorMessage(ns.multiRsrcViewEl);
+            self.clearDataErrorMessage(self.multiRsrcViewEl);
 
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
@@ -256,8 +234,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(ns.multiRsrcViewEl).find("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
-                    oTable = $(ns.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
+                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
                         "data": filteredFirstTsData,
@@ -297,19 +275,19 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
                             // otherwise, render usual resource info    popover
                             if (!supress) {
-                                self.drawSingleRsrcInfoTable(ns.mh, data[0]);
+                                self.drawSingleRsrcInfoTable(data[0], $(this));
                             }
                         }
                     });
                 }
             } else {
-                goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
+                goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
             }
 
         }).fail(function(error) {
 
-            // ns.multiRscsView is defined in this.render
-            if (ns.multiRscsView !== undefined) {
+            // self.multiRscsView is defined in this.render
+            if (self.multiRscsView !== undefined) {
 
                 // there is a listener defined in the
                 // multiRsrcView that will append the
@@ -318,12 +296,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 // trigger takes 2 args:
                 // 1: 'triggerName'
                 // 2: array of additional params to pass
-                ns.multiRscsView.trigger('errorTrigger', [error]);
+                self.multiRscsView.trigger('errorTrigger', [error]);
             }
 
             // NOTE: if this view is instantiated in a case where there
             // is no multiRscsViewEl defined, there will be no
-            // ns.multiRscsView defined. In that case, error messages
+            // self.multiRscsView defined. In that case, error messages
             // will need to be appended to THIS view. So there will need
             // to be a fallback instantiation of this.dataErrorMessage that will render on THIS view.
 
@@ -331,7 +309,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
             // always remove the spinner after the API
             // call returns
-            $(ns.multiRsrcViewEl).find('#spinner').hide();
+            $(self.multiRsrcViewEl).find('#spinner').hide();
         });
     },
     reportRedirect: function(data, keyName) {
@@ -348,7 +326,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     appendLeafNameToResourceHeader: function(text, location) {
 
         // appends the name of the resource list currently being displayed
-        location = location || '.panel-header-resource-title';
+        location = location || $(this.multiRsrcViewEl).find('.title-extra');
         $(location).text(': ' + text);
     },
 
@@ -356,12 +334,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // not used in zoomablePartitionView
         // but must keep for old collapsable tree style viz
 
-        var ns = this.defaults;
         var self = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
 
         // Compute the new tree layout.
-        var nodes = ns.tree.nodes(ns.data).reverse();
+        var nodes = self.tree.nodes(self.data).reverse();
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
@@ -369,9 +346,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         });
 
         // Update the nodes…
-        var node = ns.chart.selectAll("g.node")
+        var node = self.chart.selectAll("g.node")
             .data(nodes, function(d) {
-                return d.id || (d.id = ++ns.i);
+                return d.id || (d.id = ++self.i);
             });
 
         // Enter any new nodes at the parent's previous position.
@@ -399,9 +376,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     if (url !== undefined) {
 
                         if (self.overrideSets[d.integration.toLowerCase()]) {
-                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
+                            self.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
                         } else {
-                            ns.filterMultiRsrcDataOverride = null;
+                            self.filterMultiRsrcDataOverride = null;
                         }
 
                         // loadLeafData on TopologyTreeView
@@ -479,7 +456,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // Acutally attach the icons to the classes
             d3.xml(imgFile(icon), "image/svg+xml", function(img) {
                 classes.forEach(function(c) {
-                    ns.chart.selectAll(".icon.main." + c + "-icon")
+                    self.chart.selectAll(".icon.main." + c + "-icon")
                         .each(function() {
                             d3.select(this).node().appendChild(
                                 img.getElementsByTagName("svg")[0].cloneNode(true));
@@ -535,8 +512,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             .style("fill-opacity", 1e-6);
 
         // Update the links…
-        var link = ns.chart.selectAll("path.link")
-            .data(ns.tree.links(nodes), function(d) {
+        var link = self.chart.selectAll("path.link")
+            .data(self.tree.links(nodes), function(d) {
                 return d.target.id;
             });
 
@@ -548,19 +525,19 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     x: json.x0,
                     y: json.y0
                 };
-                return ns.diagonal({
+                return self.diagonal({
                     source: o,
                     target: o
                 });
             })
             .transition()
             .duration(duration)
-            .attr("d", ns.diagonal);
+            .attr("d", self.diagonal);
 
         // Transition links to their new position.
         link.transition()
             .duration(duration)
-            .attr("d", ns.diagonal);
+            .attr("d", self.diagonal);
 
         // Transition exiting nodes to the parent's new position.
         link.exit().transition()
@@ -570,7 +547,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     x: json.x,
                     y: json.y
                 };
-                return ns.diagonal({
+                return self.diagonal({
                     source: o,
                     target: o
                 });
@@ -584,19 +561,21 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         });
     },
     update: function() {
-        var ns = this.defaults;
         var self = this;
-        ns.data = self.collection.toJSON()[0];
+        self.data = self.collection.toJSON();
 
-        if (ns.data !== undefined) {
-            if (Object.keys(ns.data).length === 0) {
-                $(self.el).find('#topology-tree').prepend("<p> Response was empty.");
+        // append error message if no data returned
+        this.checkReturnedDataSet(self.data);
+
+        // convert after checking array length
+        self.data = self.data[0];
+        if (self.data !== undefined) {
+            if (Object.keys(self.data).length === 0) {
+                $(self.el).find('.panel-body').prepend("<p> Response was empty.");
             } else {
-                (function(ns) {
-                    ns.data.x0 = ns.h / 2;
-                    ns.data.y0 = 0;
-                    self.processTree(ns.data);
-                })(ns);
+                self.data.x0 = self.height / 2;
+                self.data.y0 = 0;
+                self.processTree(self.data);
 
                 // render resource url in localStorage, if any
                 if (localStorage.getItem('urlForResourceList') !== null) {
@@ -612,45 +591,33 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 localStorage.removeItem('urlForResourceList');
                 localStorage.removeItem('origClickedLabel');
             }
-        } else {
-            this.dataErrorMessage('Topology currently undefined');
         }
     },
 
     render: function() {
 
-        var ns = this.defaults;
-
-        // appends chart header to el with params passed in as array
-        if (ns.chartHeader !== null) {
-
-            $(ns.chartHeader[0]).append(new ChartHeaderView({
-                el: ns.chartHeader[0],
-                chartTitle: ns.chartHeader[1],
-                infoText: ns.chartHeader[2]
-            }).el);
-        }
+        var self = this;
 
         // appends Resource List dataTable View if applicable
-        if (ns.multiRsrcViewEl !== null) {
-            ns.multiRscsView = new MultiRscsView({
-                el: ns.multiRsrcViewEl,
+        if (self.multiRsrcViewEl !== null) {
+            self.multiRscsView = new MultiRscsView({
+                el: self.multiRsrcViewEl,
                 chartTitle: goldstone.translate("Resource List")
             });
 
-            var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');
-            $('<img id="spinner" src="' + ns.blueSpinnerGif + '">').load(function() {
+            var appendSpinnerLocation = $(self.multiRsrcViewEl);
+            $('<img id="spinner" src="' + self.blueSpinnerGif + '">').load(function() {
                 $(this).appendTo(appendSpinnerLocation).css({
                     'position': 'absolute',
-                    'margin-left': (ns.w / 2),
-                    'margin-top': 5,
+                    'margin-left': (self.width / 2),
+                    'margin-top': self.height / 2,
                     'display': 'none'
                 });
             });
 
         }
 
-        $(this.el).append(this.template);
+        $(this.el).append(this.template());
         return this;
     },
 
@@ -737,15 +704,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             'schema',
             'file'
         ]
-    },
+    }
 
-    template: _.template('' +
-        '<div class="panel-body" style="height:600px">' +
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div id="topology-tree">' +
-        '<div class="clearfix"></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
 });

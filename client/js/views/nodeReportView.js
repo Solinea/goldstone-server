@@ -18,13 +18,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
-    initialize: function(options) {
-
+    instanceSpecificInit: function() {
         // options.node_uuid passed in during View instantiation
-        this.node_uuid = options.node_uuid;
+        this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.initialize.apply(this, arguments);
+        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
@@ -62,28 +61,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
         var ns = this.defaults;
         ns.end = +new Date();
         ns.start = ns.end - (ns.globalLookback * 60 * 1000);
-    },
-
-    setGlobalLookbackRefreshTriggers: function() {
-        // sets listeners on global selectors
-
-        var self = this;
-
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
-            self.getGlobalLookbackRefresh();
-            self.triggerChange();
-
-            // changing the lookback also resets the setInterval counter
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
-            self.getGlobalLookbackRefresh();
-
-            // reset the setInterval counter
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
     },
 
     // simple model to record which tab is currently visible
@@ -340,6 +317,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
             specificHost: this.node_uuid,
             urlRoot: "/logging/summarize/?"
         });
+
+        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logsReportCollection, this.logAnalysisView];
     },
 
     template: _.template('' +

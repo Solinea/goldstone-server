@@ -27,7 +27,6 @@ describe('newPasswordView.js spec', function() {
             '<button class="full-width-btn" type="submit">Set new password</button>' +
             '<a class="reset-pw" href="/login/">cancel and return to login</a>' +
             '</form>'
-
         );
 
         // to answer GET requests
@@ -38,9 +37,16 @@ describe('newPasswordView.js spec', function() {
         }, '[]']);
         data = [];
 
-        this.testView = new NewPasswordView({
-            el: '.test-container'
+        var testNewPasswordView = NewPasswordView.extend({
+            getUidToken: function() {
+                return 'abc123';
+            },
+            submitRequest: function(input) {
+                return true;
+            }
         });
+
+        this.testView = new testNewPasswordView({});
 
     });
     afterEach(function() {
@@ -48,8 +54,8 @@ describe('newPasswordView.js spec', function() {
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
-        it('renders view', function() {
-            this.testView.render();
+        it('submits request', function() {
+            this.testView.submitRequest();
         });
     });
     describe('basic view functionality', function() {

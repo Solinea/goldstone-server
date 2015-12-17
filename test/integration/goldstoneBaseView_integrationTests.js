@@ -77,12 +77,9 @@ describe('goldstoneBaseView.js spec', function() {
         this.testView = new GoldstoneBaseView({
             chartTitle: "Tester Base View",
             collection: this.testCollection,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "Hypervisor Show"
-            }],
             el: '.testContainer',
+            height: 300,
+            infoText: 'test',
             width: $('.testContainer').width(),
             yAxisLabel: 'yAxisTest'
         });
@@ -98,21 +95,10 @@ describe('goldstoneBaseView.js spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
         });
-        it('view update appends svg and border elements', function() {
-            expect(this.testView.update).to.be.a('function');
-            this.testView.update();
-            expect($('svg').length).to.equal(1);
-            expect($('g.legend-items').find('text').text()).to.equal('');
-            expect($('.panel-title').text().trim()).to.equal('Tester Base View');
-            expect($('svg').text()).to.not.include('Response was empty');
-        });
         it('can handle a null server payload and append appropriate response', function() {
-            this.update_spy = sinon.spy(this.testView, "update");
             this.testCollection.reset();
             this.testView.checkReturnedDataSet(this.testCollection.toJSON());
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            expect(this.update_spy.callCount).to.equal(0);
-            this.update_spy.restore();
         });
         it('appends dataErrorMessages to container', function() {
             this.testView.dataErrorMessage('this is a test');
@@ -152,8 +138,6 @@ describe('goldstoneBaseView.js spec', function() {
             expect($(this.testView.el).find('.popup-message').text()).to.include('234');
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
-            this.testView.update();
-
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
@@ -179,6 +163,148 @@ describe('goldstoneBaseView.js spec', function() {
             expect($('#noDataReturned').text()).to.equal('');
             expect(this.dataErrorMessage_spy.callCount).to.equal(4);
             this.dataErrorMessage_spy.restore();
+        });
+    });
+    describe('unit testing flattenObj', function() {
+        it('should return a basic object', function() {
+            assert.isDefined(this.testView.flattenObj, 'this.testView.flattenObj has been defined');
+            expect(this.testView.flattenObj).to.be.a('function');
+            var fut = this.testView.flattenObj;
+            var testObj = {};
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({});
+        });
+        it('should handle non-nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            });
+
+        });
+        it('should handle nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    d: 'd',
+                    e: 'e',
+                    f: 'f'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                d: 'd',
+                e: 'e',
+                f: 'f',
+            });
+
+        });
+        it('should transfer null values', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: null,
+                d: undefined
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                c: null,
+                d: undefined
+            });
+
+        });
+        it('should not unpack nested arrays', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    d: [1, 2, 3, 4],
+                    e: [1, 2, 3, 4],
+                    f: [{
+                        1: 1,
+                        2: 2
+                    }, 'hi'],
+                    g: 'g'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                d: [1, 2, 3, 4],
+                e: [1, 2, 3, 4],
+                f: [{
+                    1: 1,
+                    2: 2
+                }, 'hi'],
+                g: 'g',
+            });
+
+        });
+        it('should not overwrite keys that are duplicated in the nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    b: 'new b',
+                    c: 'new c',
+                    d: 'd'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                b_: 'new b',
+                c: 'new c',
+                d: 'd'
+            });
+
+        });
+        it('should not handle multiple duplicated keys in the nested objects', function() {
+            var fut = this.testView.flattenObj;
+            var testObj = {
+                a: 'a',
+                b: 'b',
+                c: {
+                    b: 'new b',
+                    c: 'new c',
+                    d: 'd'
+                },
+                d: {
+                    b: 'new new b',
+                    c: 'new new c',
+                    d: 'new d'
+                }
+            };
+            var test1 = fut(testObj);
+            expect(test1).to.deep.equal({
+                a: 'a',
+                b: 'b',
+                b_: 'new b',
+                c: 'new c',
+                d: 'd',
+                b__: 'new new b',
+                c_: 'new new c',
+                d_: 'new d'
+            });
+
         });
     });
 });

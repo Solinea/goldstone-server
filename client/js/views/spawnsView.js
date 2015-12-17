@@ -37,32 +37,77 @@ this.vmSpawnChartView = new SpawnsView({
 
 var SpawnsView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 45,
-            right: 40,
-            bottom: 60,
-            left: 70
-        }
+    margin: {
+        top: 55,
+        right: 70,
+        bottom: 100,
+        left: 70
     },
 
-    processOptions: function() {
+    instanceSpecificInit: function() {
 
-        // this will invoke the processOptions method of the parent view,
-        // and also add an additional param of featureSet which is used
-        // to create a polymorphic interface for a variety of charts
-        SpawnsView.__super__.processOptions.apply(this, arguments);
+        SpawnsView.__super__.instanceSpecificInit.apply(this, arguments);
 
-        this.defaults.featureSet = this.options.featureSet || null;
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
     },
 
-    specialInit: function() {
-        var ns = this.defaults;
+    standardInit: function() {
+
+        /*
+        D3.js convention works with the setting of a main svg, a sub-element
+        which we call 'chart' which is reduced in size by the amount of the top
+        and left margins. Also declares the axes, the doubleclick mechanism,
+        and the x and y scales, the axis details, and the chart colors.
+        */
+
+        var ns = this;
+        var self = this;
+
+        this.mw = this.width - this.margin.left - this.margin.right;
+        this.mh = this.height - this.margin.top - this.margin.bottom;
+
+        ns.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
+
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // initialized the axes
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
+
+        ns.svg.on('dblclick', function() {
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
+
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
+
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .ticks(5)
+            .orient("bottom");
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
 
         ns.color = d3.scale.ordinal()
             .range(ns.colorArray.distinct['2R']);
@@ -84,7 +129,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         from the x-axis of the graph going upward.
         */
 
-        var ns = this.defaults;
+        var ns = this;
         var uniqTimestamps;
         var result = [];
 
@@ -117,7 +162,7 @@ var SpawnsView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this.defaults;
+        var ns = this;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -147,7 +192,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
+        var ns = this;
         var self = this;
 
         var data = this.collection.toJSON();
@@ -452,7 +497,7 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this.defaults;
+        var ns = this;
 
         _.each(legendSpecs, function(item) {
             ns.chart.append('path')
@@ -468,19 +513,5 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr('opacity', 1.0)
             .call(d3.legend);
     },
-
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.defaults.chartTitle,
-            infoText: this.defaults.infoCustom
-        }).el);
-
-        $(this.el).find('.mainContainer').append(this.template());
-        return this;
-    }
 
 });

@@ -141,6 +141,7 @@ describe('i18nModel.js spec', function() {
             this.testView.setTranslationObject();
             expect(goldstone.translate('hello')).to.equal('aloha');
             expect(goldstone.translate('goodbye')).to.equal('sayonara');
+            expect(goldstone.contextTranslate('')).to.equal('');
         });
     });
 });
