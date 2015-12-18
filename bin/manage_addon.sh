@@ -19,14 +19,13 @@ APP_CONTAINER=goldstoneserver_gsappdev_1
 VERBOSE=false
 ADDON_NAME=""
 ADDON_FILE=""
-MODULE_NAME=""
 OPERATION="install"
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
 
 function usage() {
     echo "Usage: $0 [--install] [--verbose] --addon-name=name --addon-file=filename [--docker-vm=name] [--app-container=name] |"
-    echo "          --uninstall --addon-name=name --package-name=py-package [--docker-vm=name] [--app-container=name]"
+    echo "          --uninstall --addon-name=name [--docker-vm=name] [--app-container=name]"
 }
 
 
@@ -51,10 +50,6 @@ for arg in "$@" ; do
         ;;
         --addon-name=*)
             ADDON_NAME="${arg#*=}"
-            shift
-        ;;
-        --package-name=*)
-            MODULE_NAME="${arg#*=}"
             shift
         ;;
         --addon-file=*)
@@ -94,20 +89,17 @@ if [[ ${OPERATION} == "install" ]] ; then
         echo "Addon file not found.  It must be in ${TOP_DIR}/addons during installation, but can be removed afterwards."
         exit 1
     fi
-    PIP_CMD="pip install --upgrade addons/${ADDON_FILE}"
+    TAR_CMD="tar -xf addons/${ADDON_FILE} -C goldstone"
+    PIP_CMD="pip install -r goldstone/${ADDON_NAME}/addon-requirements.txt"
     FAB_CMD="fab -f addon_fabfile.py install_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE},verbose=${VERBOSE}"
-    docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip module"; exit 1; }
+    docker exec -t ${APP_CONTAINER} bash -i -c "$TAR_CMD" || { echo "Failed to untar the tarball"; exit 1; }
+    docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip dependencies"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
-    grep ${ADDON_FILE} addon-requirements.txt || echo "addons/${ADDON_FILE}  # addon=${ADDON_NAME}" >> addon-requirements.txt
 else
-    if [[ ${MODULE_NAME} == "" ]] ; then
-        usage
-        exit 1
-    fi
     FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
-    PIP_CMD="yes | pip uninstall ${MODULE_NAME}"
+    RM_CMD="rm -rf goldstone/${ADDON_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
-    docker exec -i -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to remove pip module. Continuing."; }
+    docker exec -i -t ${APP_CONTAINER} bash -i -c "$RM_CMD" || { echo "Failed to remove addon directory. Continuing."; }
     sed -i '' "/addon=${ADDON_NAME}/d" addon-requirements.txt
 fi
 

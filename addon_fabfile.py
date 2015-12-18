@@ -46,12 +46,13 @@ PROD_SETTINGS = os.environ.get('DJANGO_SETTINGS_MODULE',
 INSTALLED_APPS_START = "INSTALLED_APPS = ("
 
 # The line we add to INSTALLED_APPS.
-INSTALLED_APP = "    '%s',     # Don't edit this line!\n"
+INSTALLED_APP = "    'goldstone.%s',     # Don't edit this line!\n"
 
 # The line we add to the end of urls.py.
 URLS_PY = "\n# Include the {0} add-on.  Don't edit this entry!\n" \
-          "import {0}\n" \
-          "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
+          "import goldstone.{0}\n" \
+          "urlpatterns += patterns('', url(r'^{1}/',\n" \
+          "                        include('goldstone.{0}.urls')))\n"
 
 # The path, under the add-on's Python installation directory, where we find its
 # static (JavaScript and CSS) files.
@@ -89,7 +90,7 @@ CELERYBEAT_APPS = \
     "# User-installed add-on tasks are inserted after this line."
 CELERYBEAT_APP_INCLUDE = \
     "# Tasks for {0}.\n" \
-    "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
+    "from goldstone.{0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
     "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n"
 
 
@@ -301,7 +302,7 @@ def _install_addon_info(name, install_dir, verbose):    # pylint: disable=R0914
         fastprint("\nCollecting information about %s ..." % name)
 
     try:
-        the_app = import_module(name)
+        the_app = import_module("goldstone.%s" % name)
     except ImportError:
         abort("Can't import the module. Have you installed it?")
 
@@ -606,13 +607,9 @@ def install_addon(name,
                     with open(filepath, 'w') as f:
                         f.write(filedata)
 
-                    # Do a syncdb, to add the add-on's models. (This can't be
+                    # Do a migration to add the add-on's models. (This can't be
                     # done before INSTALLED_APPS is updated.)
-                    error = "doing a syncdb."
-                    _django_manage("makemigrations --noinput " + name,
-                                   proj_settings=settings,
-                                   install_dir=install_dir)
-
+                    error = "doing a migrate."
                     _django_manage("migrate --noinput",
                                    proj_settings=settings,
                                    install_dir=install_dir)
@@ -671,6 +668,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
     :type install_dir: str
 
     """
+    import django
     from django.core.exceptions import ObjectDoesNotExist
 
     # Switch to the right environment because we're going to access the
@@ -692,13 +690,14 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
             try:
                 # First, delete the row.
                 error = "updating the Addon table. Check it."
+                django.setup()
                 row.delete()
 
                 # Now remove its root node, and any inferior nodes, from the
                 # resource graph.
                 error = "importing %s" % name
 
-                the_app = import_module("%s.models" % name)
+                the_app = import_module("goldstone.%s.models" % name)
                 remove_nodes = next((x[1]
                                      for x in getmembers(the_app, isfunction)
                                      if x[0] == "remove_nodes"),
