@@ -95,12 +95,13 @@ if [[ ${OPERATION} == "install" ]] ; then
     docker exec -t ${APP_CONTAINER} bash -i -c "$TAR_CMD" || { echo "Failed to untar the tarball"; exit 1; }
     docker exec -t ${APP_CONTAINER} bash -i -c "$PIP_CMD" || { echo "Failed to install pip dependencies"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to install addon"; exit 1; }
+    echo "-r goldstone/${ADDON_NAME}/addon-requirements.txt      # addon=${ADDON_NAME}" >> addon-requirements.txt
 else
     FAB_CMD="fab -f addon_fabfile.py remove_addon:name=${ADDON_NAME},install_dir=.,settings=${DJANGO_SETTINGS_MODULE}"
     RM_CMD="rm -rf goldstone/${ADDON_NAME}"
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$FAB_CMD" || { echo "Failed to remove addon"; exit 1; }
     docker exec -i -t ${APP_CONTAINER} bash -i -c "$RM_CMD" || { echo "Failed to remove addon directory. Continuing."; }
-    sed -i '' "/addon=${ADDON_NAME}/d" addon-requirements.txt
+    sed -i '' "/-r goldstone\/${ADDON_NAME}\/addon-requirements.txt/d" addon-requirements.txt
 fi
 
 docker commit ${APP_CONTAINER}

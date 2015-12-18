@@ -141,6 +141,7 @@ docs/site/
 
 # addon modules
 goldstone/static/addons/
+addon-requirements.txt
 /addons
 /docker/**/addons/
 

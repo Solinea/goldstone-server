@@ -65,19 +65,15 @@ STATIC_ADDONS_HOME = "goldstone/static/addons"
 
 # An add-on's script tag is inserted into base.html, after these lines.
 SCRIPT_START = \
-    '<!-- append addon script tags via "fab install_addon" command here ' \
-    '-->\n' \
-    '<!-- example script tag: -->\n' \
-    '<!-- <script src="{% static \'addons/yourapp/client-js/main.js\' %}">' \
-    '</script> ' \
-    '-->\n'
+    '<!-- Append add-on script tags via "fab install_addon" command here -->\n'
 
 # An add-on's LINK tag is inserted into base.html, after these lines.
 LINK_START = \
-    '<!-- Append add-on link tags via "fab install_addon" command here -->'
+    '<!-- Append add-on link tags via "fab install_addon" command here -->\n'
 
 # The add-on's script and link tag templates.
-SCRIPT_TAG = '<script src="{%% static \'addons/%s/client-js/main.js\' %%}">' \
+SCRIPT_TAG = '        ' \
+             '<script src="{%% static \'addons/%s/client-js/main.js\' %%}">' \
              '</script>\n'
 LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s' \
            '/client-css/main.css"' \
@@ -411,14 +407,13 @@ def _install_addon_static(name, addon_install, install_dir):
         filedata = f.read()
 
     insert = filedata.index(SCRIPT_START)
-    for _ in range(SCRIPT_START.count('\n')):
-        insert = filedata.index('\n', insert) + 1
+    insert = filedata.index('\n', insert) + 1
 
     # Insert the script tag line right after the herald.
     filedata = filedata[:insert] + script_tag + filedata[insert:]
 
     # Go to the start of the line after the add-on-link-tag-section's
-    # herald, and insert the link tag line right there.
+    # herald, and insert the link tag line there.
     insert = filedata.index(LINK_START)
     insert = filedata.index('\n', insert) + 1
     filedata = filedata[:insert] + link_tag + filedata[insert:]
