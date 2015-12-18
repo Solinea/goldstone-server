@@ -20,7 +20,7 @@
 describe('eventsReportView.js spec', function() {
     beforeEach(function() {
 
-        this.dummyData = '{"info":{"last_updated":"2014-12-03T20:38:37.047+0000"},"rsrcType":"region","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"flavors-leaf","label":"flavors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hypervisors-leaf","label":"hypervisors"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"west-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"west-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"west-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"west-zone","label":"services"}],"label":"west-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"east-zone","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"east-zone","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"east-zone","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"east-zone","label":"services"}],"label":"east-zone"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"zone","children":[{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"aggregates-leaf","zone":"internal","label":"aggregates"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"hosts-leaf","zone":"internal","label":"hosts"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"servers-leaf","zone":"internal","label":"instances"},{"info":{"last_update":"2014-12-03T20:38:37.047+0000"},"region":"RegionOne","rsrcType":"services-leaf","zone":"internal","label":"services"}],"label":"internal"}],"label":"RegionOne"}';
+        this.dummyData = '{"children":[{"uuid":"7b2014b2-9e9a-11e5-86ae-0242ac110006","resourcetype":"regions","resource_list_url":"","integration":"keystone","label":"RegionOne","children":[{"uuid":"7b216ed4-9e9a-11e5-86ae-0242ac110006","resourcetype":"keystone","resource_list_url":"","integration":"keystone","label":"keystone","children":[{"uuid":"7c1f846a-9e9a-11e5-86ae-0242ac110006","resourcetype":"roles","resource_list_url":"/keystone/roles/?region=RegionOne","integration":"keystone","label":"roles","children":null},{"uuid":"7b6d03d0-9e9a-11e5-86ae-0242ac110006","resourcetype":"endpoints","resource_list_url":"/keystone/endpoints/?region=RegionOne&zone=public","integration":"keystone","label":"public endpoints","children":null},{"uuid":"7b6bc934-9e9a-11e5-86ae-0242ac110006","resourcetype":"endpoints","resource_list_url":"/keystone/endpoints/?region=RegionOne&zone=admin","integration":"keystone","label":"admin endpoints","children":null},{"uuid":"7beec456-9e9a-11e5-86ae-0242ac110006","resourcetype":"services","resource_list_url":"/keystone/services/?region=RegionOne","integration":"keystone","label":"services","children":null},{"uuid":"7b6c4558-9e9a-11e5-86ae-0242ac110006","resourcetype":"endpoints","resource_list_url":"/keystone/endpoints/?region=RegionOne&zone=internal","integration":"keystone","label":"internal endpoints","children":null},{"uuid":"7acd6b2c-9e9a-11e5-86ae-0242ac110006","resourcetype":"users","resource_list_url":"/keystone/users/?region=RegionOne","integration":"keystone","label":"users","children":null}]},{"uuid":"7b240b4e-9e9a-11e5-86ae-0242ac110006","resourcetype":"neutron","resource_list_url":"","integration":"neutron","label":"neutron","children":null},{"uuid":"7b2530aa-9e9a-11e5-86ae-0242ac110006","resourcetype":"glance","resource_list_url":"","integration":"glance","label":"glance","children":[{"uuid":"7a39875e-9e9a-11e5-86ae-0242ac110006","resourcetype":"images","resource_list_url":"/glance/images/?region=RegionOne","integration":"glance","label":"images","children":null}]},{"uuid":"7b2321b6-9e9a-11e5-86ae-0242ac110006","resourcetype":"nova","resource_list_url":"","integration":"nova","label":"nova","children":[{"uuid":"7bef99bc-9e9a-11e5-86ae-0242ac110006","resourcetype":"services","resource_list_url":"/nova/services/?region=RegionOne","integration":"keystone","label":"services","children":null},{"uuid":"7d499970-9e9a-11e5-86ae-0242ac110006","resourcetype":"hypervisors","resource_list_url":"/nova/hypervisors/?region=RegionOne","integration":"nova","label":"hypervisors","children":null},{"uuid":"7ccdd83a-9e9a-11e5-86ae-0242ac110006","resourcetype":"flavors","resource_list_url":"/nova/flavors/?region=RegionOne","integration":"nova","label":"flavors","children":null},{"uuid":"7d12e920-9e9a-11e5-86ae-0242ac110006","resourcetype":"hosts","resource_list_url":"/nova/hosts/?region=RegionOne","integration":"nova","label":"hosts","children":null},{"uuid":"7e232122-9e9a-11e5-86ae-0242ac110006","resourcetype":"servers","resource_list_url":"/nova/servers/?region=RegionOne&zone=nova","integration":"nova","label":"servers","children":null}]},{"uuid":"7b27ab00-9e9a-11e5-86ae-0242ac110006","resourcetype":"cinder","resource_list_url":"","integration":"cinder","label":"cinder","children":[{"uuid":"79a6987c-9e9a-11e5-86ae-0242ac110006","resourcetype":"volume types","resource_list_url":"/cinder/volume_types/?region=RegionOne","integration":"cinder","label":"volume types","children":null},{"uuid":"7bf12d04-9e9a-11e5-86ae-0242ac110006","resourcetype":"services","resource_list_url":"/cinder/services/?region=RegionOne","integration":"keystone","label":"services","children":null}]}]}],"uuid":null,"label":"cloud"}';
 
         $('body').html('<div class="testContainer"></div><div id="testMultiRsrcView"></div>');
 
@@ -38,40 +38,17 @@ describe('eventsReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testCollection = new TopologyTreeCollection({});
+        this.testCollection = new GoldstoneBaseCollection({urlBase: "/go/team/"});
 
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
             collection: this.testCollection,
-            chartHeader: ['.testContainer', 'Test Topology', 'discoverCloudTopology'],
+            chartTitle: goldstone.translate('Cloud Topology'),
             el: '.testContainer',
-            h: 600,
+            height: 600,
+            infoText: 'discoverCloudTopology',
             multiRsrcViewEl: '#testMultiRsrcView',
-            width: $('.testContainer').width(),
-            leafDataUrls: {
-                "services-leaf": "/services",
-                "endpoints-leaf": "/endpoints",
-                "roles-leaf": "/roles",
-                "users-leaf": "/users",
-                "tenants-leaf": "/tenants",
-                "agents-leaf": "/agents",
-                "aggregates-leaf": "/aggregates",
-                "availability-zones-leaf": "/availability_zones",
-                "cloudpipes-leaf": "/cloudpipes",
-                "flavors-leaf": "/flavors",
-                "floating-ip-pools-leaf": "/floating_ip_pools",
-                "hosts-leaf": "/hosts",
-                "hypervisors-leaf": "/hypervisors",
-                "networks-leaf": "/networks",
-                "secgroups-leaf": "/security_groups",
-                "servers-leaf": "/servers",
-                "images-leaf": "/images",
-                "volumes-leaf": "/volumes",
-                "backups-leaf": "/backups",
-                "snapshots-leaf": "/snapshots",
-                "transfers-leaf": "/transfers",
-                "volume-types-leaf": "/volume_types"
-            }
+            width: $('.testContainer').width()
         });
 
     });
@@ -117,7 +94,7 @@ describe('eventsReportView.js spec', function() {
                 'else': 'ok!'
             }]);
 
-            this.testView.defaults.filterMultiRsrcDataOverride = ['@timestamp',
+            this.testView.filterMultiRsrcDataOverride = ['@timestamp',
                 'metadata',
                 'region',
                 'tags',
@@ -153,10 +130,10 @@ describe('eventsReportView.js spec', function() {
     describe('unit functions behave as expected', function() {
         it('appends leaf name to resource header', function() {
             expect(this.testView.appendLeafNameToResourceHeader).to.be.a('function');
-            expect($('.panel-header-resource-title').text()).to.equal('');
-            expect($('.additional-info-notice').text()).to.equal('');
+            expect($('.panel-title').eq(1).text()).to.equal('Resource List');
+            expect($('.title-extra').text()).to.equal('');
             var test1 = this.testView.appendLeafNameToResourceHeader('abc');
-            expect($('.panel-header-resource-title').text()).to.equal(': abc');
+            expect($('.panel-title').eq(1).text()).to.equal('Resource List: abc');
         });
         it('properly toggles d.children', function() {
             var test = {

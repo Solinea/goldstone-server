@@ -19,16 +19,12 @@ Instantiated on discoverView as:
     this.nodeAvailChart = new NodeAvailCollection({});
 */
 
-var NodeAvailModel = GoldstoneBaseModel.extend({});
-
-var NodeAvailCollection = Backbone.Collection.extend({
-
-    defaults: {},
+var NodeAvailCollection = GoldstoneBaseCollection.extend({
 
     parse: function(data) {
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            var nextUrl = dp.slice(dp.indexOf('/logging'));
+        if (data && data.next && data.next !== null) {
+            var dN = data.next;
+            var nextUrl = dN.slice(dN.indexOf('/logging'));
             this.fetch({
                 url: nextUrl,
                 remove: false
@@ -42,10 +38,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: NodeAvailModel,
-
-    initialize: function(options) {
-        this.defaults = _.clone(this.defaults);
+    instanceSpecificInit: function(options) {
 
         // fetchInProgress = true will block further fetches
         this.defaults.fetchInProgress = false;
@@ -60,21 +53,6 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     },
 
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-
-        // returns the number of minutes corresponding
-        // to the global lookback selector
-        return lookbackMinutes;
-    },
-
     fetchMultipleUrls: function() {
         var self = this;
 
@@ -85,7 +63,8 @@ var NodeAvailCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 
-        var lookbackMinutes = (this.computeLookback());
+        this.getGlobalLookbackRefresh();
+        var lookbackMinutes = (this.globalLookback);
         var lookbackSeconds = (lookbackMinutes * 60);
         var lookbackMilliseconds = (lookbackSeconds * 1000);
 

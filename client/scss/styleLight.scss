@@ -25,15 +25,6 @@ Goldstone user settings interface.
 $theme: light;
 
 /*
-css stylesheets supporting redesign
-*/
-
-@import "redesign/redesign-global";
-@import "redesign/redesign-responsive";
-@import "redesign/redesign";
-@import "redesign/roboto";
-
-/*
 css stylesheets prior to redesign
 */
 
@@ -42,3 +33,12 @@ css stylesheets prior to redesign
 @import "bootstrap_dark_override";
 @import "popover-and-tip";
 @import "data-tables";
+
+/*
+css stylesheets supporting redesign
+*/
+
+@import "redesign/roboto";
+@import "redesign/redesign-global";
+@import "redesign/redesign";
+@import "redesign/redesign-responsive";

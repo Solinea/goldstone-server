@@ -207,13 +207,13 @@ describe('stackedAreaCollection.js spec', function() {
             }
         });
         it('should parse appropriately', function() {
-            this.testCollection.defaults.urlCollectionCount = this.testCollection.defaults.metricNames.length;
-            expect(this.testCollection.defaults.urlCollectionCount).to.equal(3);
+            this.testCollection.urlCollectionCount = this.testCollection.metricNames.length;
+            expect(this.testCollection.urlCollectionCount).to.equal(3);
             var test = {
                 result: 'monkeys'
             };
             var res1 = this.testCollection.parse(test);
-            expect(this.testCollection.defaults.urlCollectionCount).to.equal(2);
+            expect(this.testCollection.urlCollectionCount).to.equal(2);
             expect(res1).to.deep.equal({
                 result: 'monkeys',
                 metricSource: 'os.mem.toad'
@@ -223,7 +223,7 @@ describe('stackedAreaCollection.js spec', function() {
                 next: null
             };
             res1 = this.testCollection.parse(test);
-            expect(this.testCollection.defaults.urlCollectionCount).to.equal(1);
+            expect(this.testCollection.urlCollectionCount).to.equal(1);
             expect(res1).to.deep.equal({
                 monkeys: 'apples',
                 next: null,
@@ -235,7 +235,7 @@ describe('stackedAreaCollection.js spec', function() {
                 results: [1, 2, 3]
             };
             var test1 = this.testCollection.parse(test);
-            expect(this.testCollection.defaults.urlCollectionCount).to.equal(1);
+            expect(this.testCollection.urlCollectionCount).to.equal(1);
             expect(test1).to.deep.equal({
                 monkeys: 'bananas',
                 next: 'rotten/core/apples/llamas.html',
@@ -248,7 +248,7 @@ describe('stackedAreaCollection.js spec', function() {
                 results: [1, 2, 3]
             };
             var test2 = this.testCollection.parse(test);
-            expect(this.testCollection.defaults.urlCollectionCount).to.equal(0);
+            expect(this.testCollection.urlCollectionCount).to.equal(0);
             expect(test2).to.deep.equal({
                 monkeys: 'bananas',
                 next: null,
@@ -298,11 +298,11 @@ describe('stackedAreaCollection.js spec', function() {
             this.testView.update();
             expect($('#noDataReturned').text()).to.equal('');
             this.testCollection.add(this.testData);
-            this.testCollection.defaults.urlCollectionCount = 0;
+            this.testCollection.urlCollectionCount = 0;
             this.testView.update();
             this.testCollection.trigger('sync');
             expect($('#noDataReturned').text()).to.equal('');
-            expect(this.update_spy.callCount).to.equal(4);
+            expect(this.update_spy.callCount).to.equal(3);
             expect($('g').find('text').text()).to.equal('usedTotal: 0GB09 AM09:1509:3009:4510 AM0.000000000.000000010.000000020.000000030.000000040.000000050.000000060.000000070.00000008');
             this.update_spy.restore();
         });

@@ -29,15 +29,7 @@ only requires an el to be defined, and looks like:
 
 var MultiRscsView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
+    instanceSpecificInit: function(options) {
 
         // processes the passed in hash of options when object is instantiated
         this.processOptions();
@@ -91,18 +83,16 @@ var MultiRscsView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        ' <%= this.options.chartTitle %><span class="panel-header-resource-title"></span>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
-        '</h3>' +
-        '</div>' +
+
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<span id="spinner-container"></span>' +
-        '<div id="multi-rsrc-body" class="panel-body">' +
-        '</div>' +
-        '</div>' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><%= this.chartTitle %>' +
+        '<span class="title-extra"></span>' +
+        '<span class="pull-right special-icon-post"></span>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
+        '<span class="pull-right special-icon-pre"></span>' +
+        '</h3></div>' +
+        '<div class="mainContainer"></div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +

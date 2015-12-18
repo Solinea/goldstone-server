@@ -40,18 +40,6 @@ describe('LogoutIcon.js spec', function() {
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
-        it('renders view', function() {
-            this.testView.render();
-        });
-        it('logout icon remains hidden when no auth token present', function() {
-            localStorage.clear();
-            expect($('.fa-sign-out').css('visibility')).to.equal('hidden');
-        });
-        it('renders view with auth token', function() {
-            localStorage.setItem('userToken', 'here_i_am!');
-            this.testView.viewSwitchTriggered();
-            expect($('.fa-sign-out').css('visibility')).to.equal('visible');
-        });
         it('clears a token', function() {
             localStorage.setItem('userToken', 'fun1with2tokens3');
             expect(localStorage.getItem('userToken')).to.equal('fun1with2tokens3');

@@ -1137,9 +1137,9 @@ describe('nodeAvailView.js spec', function() {
             }]
         };
 
-        this.testView.defaults.dataToCombine[0] = this.dummy0;
+        this.testView.dataToCombine[0] = this.dummy0;
 
-        this.testView.defaults.dataToCombine[1] = this.dummy1;
+        this.testView.dataToCombine[1] = this.dummy1;
 
     });
     afterEach(function() {
@@ -1482,8 +1482,8 @@ describe('nodeAvailView.js spec', function() {
         });
         it('populates the event filters', function() {
 
-            this.testView.defaults.dataToCombine[0] = this.dummy0;
-            this.testView.defaults.dataToCombine[1] = this.dummy1;
+            this.testView.dataToCombine[0] = this.dummy0;
+            this.testView.dataToCombine[1] = this.dummy1;
 
             //TODO: FIX THIS ONE
             this.testView.update();
@@ -1496,14 +1496,14 @@ describe('nodeAvailView.js spec', function() {
             var test1 = this.testView.sums(testData);
             expect(test1).to.equal(42);
 
-            this.testView.defaults.filter.info_count = false;
+            this.testView.filter.info_count = false;
             testData = {
                 "info_count": 0
             };
             var test2 = this.testView.sums(testData);
             expect(test2).to.equal(0);
 
-            this.testView.defaults.filter.info = false;
+            this.testView.filter.info = false;
             testData = {
                 "info_count": 42
             };
@@ -1513,7 +1513,7 @@ describe('nodeAvailView.js spec', function() {
         it('redraws successfully', function() {
             expect(this.testView.redraw).is.a('function');
 
-            this.testView.defaults.dataset = this.testCollection.toJSON();
+            this.testView.dataset = this.testCollection.toJSON();
 
             this.testView.redraw();
         });

@@ -22,7 +22,7 @@ var EventTimelineModel = GoldstoneBaseModel.extend({
     idAttribute: 'timestamp'
 });
 
-var EventTimelineCollection = Backbone.Collection.extend({
+var EventTimelineCollection = GoldstoneBaseCollection.extend({
 
     parse: function(data) {
         var nextUrl;
@@ -53,29 +53,14 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
         this.defaults = _.clone(this.defaults);
 
-        this.urlUpdate(this.computeLookback());
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
+        this.getGlobalLookbackRefresh();
+        this.urlUpdate(this.globalLookback);
         this.fetchWithReset();
     },
 
     model: EventTimelineModel,
 
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-        return lookbackMinutes;
-    },
-
     fetchWithReset: function() {
-
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
         this.fetch({

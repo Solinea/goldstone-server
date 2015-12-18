@@ -72,7 +72,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     computeLookback: function() {
         var ns = this.defaults;
         ns.end = +new Date();
-        ns.start = ns.end - (ns.globalLookback * 60 * 1000);
+        ns.start = ns.end - (this.globalLookback * 60 * 1000);
     },
 
     renderCharts: function() {
@@ -95,9 +95,18 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             urlRoot: "/logging/summarize/?",
             specificHost: ns.specificHost
         });
+
+        this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 
     template: _.template('' +
+
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
+        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
+        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
+        '</div><br><br>' +
 
         // container for new prototype d3 log chart
         '<div class="log-analysis-container"></div>' +

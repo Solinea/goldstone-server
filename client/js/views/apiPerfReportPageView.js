@@ -16,12 +16,6 @@
 
 var ApiPerfReportView = GoldstoneBasePageView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        ApiPerfReportView.__super__.initialize.apply(this, arguments);
-    },
-
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
             this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
@@ -34,8 +28,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
-        var ns = this.defaults;
-
         //----------------------------
         // instantiate charts via
         // backbone collection / views
@@ -45,19 +37,17 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova'
+            componentParam: 'nova',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
+            height: 350,
             el: '#api-perf-report-r1-c1',
-            width: $('#api-perf-report-r1-c1').width()
+            width: $('#api-perf-report-r1-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
 
@@ -65,36 +55,31 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron'
+            componentParam: 'neutron',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Neutron API Performance"),
             collection: this.neutronApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
+            height: 350,
             el: '#api-perf-report-r1-c2',
-            width: $('#api-perf-report-r1-c2').width()
+            width: $('#api-perf-report-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-------------------------------
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            componentParam: 'keystone'
+            componentParam: 'keystone',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Keystone API Performance"),
             collection: this.keystoneApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
+            height: 350,
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
         });
@@ -103,17 +88,14 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            componentParam: 'glance'
+            componentParam: 'glance',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Glance API Performance"),
             collection: this.glanceApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
+            height: 350,
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
         });
@@ -122,24 +104,31 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            componentParam: 'cinder'
+            componentParam: 'cinder',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Cinder API Performance"),
             collection: this.cinderApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
+            height: 350,
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
         });
 
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
+
     },
 
     template: _.template('' +
+
+        // button selectors for metric viewers
+        '<div class="btn-group" role="group">' +
+        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
+        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
+        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
+        '</div><br><br>' +
+
         '<div id="api-perf-report-r1" class="row">' +
         '<div id="api-perf-report-r1-c1" class="col-md-6"></div>' +
         '<div id="api-perf-report-r1-c2" class="col-md-6"></div>' +

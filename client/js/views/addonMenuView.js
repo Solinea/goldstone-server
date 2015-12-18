@@ -26,7 +26,7 @@ goldstone.addonMenuView = new AddonMenuView({
 });
 */
 
-var AddonMenuView = GoldstoneBaseView2.extend({
+var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.el = this.options.el;

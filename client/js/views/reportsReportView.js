@@ -35,8 +35,6 @@ this.reportsReport = new ReportsReportView({
 
 var ReportsReportView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
     urlGen: function(report) {
 
         // request page_size=1 in order to only
@@ -48,13 +46,39 @@ var ReportsReportView = GoldstoneBaseView.extend({
         return urlRouteConstruction;
     },
 
-    initialize: function(options) {
+    instanceSpecificInit: function(options) {
 
-        ReportsReportView.__super__.initialize.apply(this, arguments);
+        // processes the passed in hash of options when object is instantiated
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
+        // appends spinner to el
+        this.showSpinner();
+        // allows a container for any special afterthoughts that need to
+        // be invoked during the initialization of this View, or those that
+        // are descendent from this view.
     },
 
     processOptions: function() {
-        ReportsReportView.__super__.processOptions.apply(this, arguments);
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
 
         this.defaults.hostName = this.options.nodeName;
         this.defaults.globalLookback = this.options.globalLookback;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ChartHeaderView = GoldstoneBaseView2.extend({
+var ChartHeaderView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         this.columns = this.options.columns || 12;
@@ -62,6 +62,15 @@ var ChartHeaderView = GoldstoneBaseView2.extend({
     },
 
     template: _.template('' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><%= this.chartTitle %>' +
+        '<span class="pull-right special-icon-post"></span>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
+        '<span class="pull-right special-icon-pre"></span>' +
+        '</h3></div>' +
+        '<div class="mainContainer"></div>'),
+
+    templateOld: _.template('' +
         '<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.columns %>">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa <%= this.infoIcon %>"></i> <%= this.chartTitle %>' +

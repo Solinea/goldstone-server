@@ -66,14 +66,10 @@ describe('NovaReportView.js spec', function() {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
-        // confirm that dom is clear of view elements before each test:
-        expect($('svg').length).to.equal(0);
-        expect($('#spinner').length).to.equal(0);
-
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new NovaReportView({
-            el: '.test-container',
+            el: '.test-container'
         });
     });
     afterEach(function() {

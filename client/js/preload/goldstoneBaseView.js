@@ -19,114 +19,114 @@
 
 var GoldstoneBaseView = Backbone.View.extend({
 
+    defaults: {},
+
     initialize: function(options) {
 
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
+        options = options || {};
         this.defaults = _.clone(this.defaults);
 
-        // Breaks down init into discrete steps.
-        // Each step can be overwritten or amended in object
-        // that inherit from this view
+        // essential for a unique options object,
+        // as objects/arrays are pass by reference
+        this.options = _.clone(options);
+        this.instanceSpecificInit();
+    },
 
-        // processes the passed in hash of options when object is instantiated
+    instanceSpecificInit: function() {
+        // processes the hash of options passed in when object is instantiated
         this.processOptions();
-        // sets page-element listeners, and/or event-listeners
         this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
         this.render();
-        // basic assignment of variables to be used in chart rendering
-        this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
-        // allows a container for any special afterthoughts that need to
-        // be invoked during the initialization of this View, or those that
-        // are descendent from this view.
-        this.specialInit();
+        this.appendChartHeading();
+        this.addModalAndHeadingIcons();
+        this.setSpinner();
     },
 
-    defaults: {
-        margin: {
-            top: 30,
-            right: 30,
-            bottom: 60,
-            left: 70
-        }
-    },
-
-    onClose: function() {
-        if (this.defaults.scheduleInterval) {
-            clearInterval(this.defaults.scheduleInterval);
-        }
-        this.off();
+    appendChartHeading: function() {
+        this.$el.prepend(new ChartHeaderView({
+            chartTitle: this.chartTitle,
+            infoText: this.infoText,
+            infoIcon: this.infoIcon
+        }).el);
     },
 
     processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
 
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
+
+        // set defaults for the instantiated option in case they
+        // are not passed into the options hash
+        this.chartTitle = this.options.chartTitle || null;
+        this.height = this.options.height || 400;
+        this.infoText = this.options.infoText;
+        if (this.options.el) {
+            this.el = this.options.el;
         } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+            console.log('no options el ', this.el);
         }
+        if (this.options.collectionMixin) {
+            this.collectionMixin = this.options.collectionMixin;
+        }
+        this.width = this.options.width || 300;
+        this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
+        this.collection = this.options.collection || undefined;
+        this.infoIcon = this.options.infoIcon;
+        this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     processListeners: function() {
         // registers 'sync' event so view 'watches' collection for data update
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
 
-        // this is triggered by a listener set on nodeReportView.js
-        this.on('lookbackSelectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.urlGenerator();
-            this.collection.fetch();
-            this.defaults.start = this.collection.defaults.reportParams.start;
-            this.defaults.end = this.collection.defaults.reportParams.end;
-            this.defaults.interval = this.collection.defaults.reportParams.interval;
-
-            if ($(this.el).find('#chart-button-info').length) {
-                $(this.el).find('#chart-button-info').popover({
-                    content: this.htmlGen.apply(this)
-                });
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            if (this.collection) {
+                this.showSpinner();
+                this.collection.urlGenerator();
             }
-
-            this.defaults.spinnerDisplay = 'inline';
-            $(this.el).find('#spinner').show();
         });
-
     },
 
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+    getGlobalLookbackRefresh: function() {
+
+        // currently searches for the existance of
+        // global page-level selectors, but will
+        // substitute sane defaults in their absense in
+        // the case of template redesign.
+
+        this.epochNow = +new Date();
+
+        // in minutes
+        var globalLookback = $('#global-lookback-range').val() || 15;
+        this.globalLookback = parseInt(globalLookback, 10); // to integer
+
+        // in seconds
+        var globalRefresh = $('#global-refresh-range').val() || 30;
+        this.globalRefresh = parseInt(globalRefresh, 10); // to integer
     },
 
-    showSpinner: function() {
+    setSpinner: function() {
 
         // appends spinner with sensitivity to the fact that the View object
         // may render before the .gif is served by django. If that happens,
         // the hideSpinner method will set the 'display' css property to
         // 'none' which will prevent it from appearing on the page
 
-        var ns = this.defaults;
         var self = this;
-
-        ns.spinnerDisplay = 'inline';
+        this.spinnerDisplay = 'inline';
 
         var appendSpinnerLocation;
-        if (ns.spinnerPlace) {
-            appendSpinnerLocation = $(this.el).find(ns.spinnerPlace);
+        if (this.spinnerPlace) {
+            appendSpinnerLocation = $(this.el).find(this.spinnerPlace);
         } else {
             appendSpinnerLocation = this.el;
         }
@@ -134,12 +134,11 @@ var GoldstoneBaseView = Backbone.View.extend({
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2),
-                'display': ns.spinnerDisplay
+                'margin-left': (self.width / 2),
+                'margin-top': -(self.height / 2),
+                'display': self.spinnerDisplay
             });
         });
-
     },
 
     hideSpinner: function() {
@@ -148,8 +147,13 @@ var GoldstoneBaseView = Backbone.View.extend({
         // from being appended in the case that django serves the image
         // AFTER the collection fetch returns and the chart is rendered
 
-        this.defaults.spinnerDisplay = 'none';
+        this.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
+    },
+
+    showSpinner: function() {
+        this.spinnerDisplay = 'inline';
+        $(this.el).find('#spinner').show();
     },
 
     dblclicked: function(coordinates) {
@@ -157,71 +161,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         // a method to be overwritten in the descendent Views. It is invoked
         // by the user double clicking on a viz, and it receives the
         // x,y coordinates of the click
-
         return null;
     },
 
-    standardInit: function() {
-
-        /*
-        D3.js convention works with the setting of a main svg, a sub-element
-        which we call 'chart' which is reduced in size by the amount of the top
-        and left margins. Also declares the axes, the doubleclick mechanism,
-        and the x and y scales, the axis details, and the chart colors.
-        */
-
-        var ns = this.defaults;
-        var self = this;
-
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
-
-        ns.chart = ns.svg
-            .append("g")
-            .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-
-        // initialized the axes
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
-            .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
-            .style("text-anchor", "middle");
-
-        ns.svg.on('dblclick', function() {
-            var coord = d3.mouse(this);
-            self.dblclicked(coord);
-        });
-
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
-
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
-
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
-            .ticks(5)
-            .orient("bottom");
-
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
-            .orient("left");
-
-        ns.colorArray = new GoldstoneColors().get('colorSets');
-    },
-
-    specialInit: function() {
-
-        // To be overwritten if needed as a container for code execution
-        // during initialization of the View object.
-        // Runs after code contained in the "standard init" method.
-
-    },
+    standardInit: function() {},
 
     clearDataErrorMessage: function(location) {
         // remove error messages in div with '.popup-message' class, if any.
@@ -235,7 +178,6 @@ var GoldstoneBaseView = Backbone.View.extend({
                 $(this.el).find('.popup-message').fadeOut("slow");
             }
         }
-
     },
 
     dataErrorMessage: function(message, errorMessage) {
@@ -256,6 +198,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
                 if (errorMessage.responseJSON.detail) {
                     message += errorMessage.responseJSON.detail;
+                }
+                if (errorMessage.responseJSON.non_field_errors) {
+                    message += errorMessage.responseJSON.non_field_errors;
                 }
 
             } else {
@@ -288,30 +233,64 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     checkReturnedDataSet: function(data) {
-        // a convenience method to insert in the callback that is invoked
+        // a method to insert in the callback that is invoked
         // when the collection is done fetching api data. If an empty set
         // is returned, creates an error message, otherwise clears
         // any existing alert or error messages.
 
         if (data.length === 0) {
-            this.dataErrorMessage(goldstone.translate('No Data Returned'));
+            this.dataErrorMessage('No Data Returned');
             return false;
         } else {
             this.clearDataErrorMessage();
         }
     },
 
-    update: function() {},
+    template: _.template('' +
+        '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
 
-    template: _.template(
-        '<div id="chart-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="chart-button-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="panel-body" style="height:<%= this.height %>px">' +
+        '</div>' +
+        '</div>' +
+        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
+    ),
 
     render: function() {
-        this.$el.html(this.template());
+        $(this.el).html(this.template());
         return this;
+    },
+
+    addModalAndHeadingIcons: function() {
+        return true;
+    },
+
+    flattenObj: function(obj) {
+
+        // recursively un-nest object
+        // (will append '_' to nested keys that share a name
+        // with existing keys
+        var result = {};
+
+        var flattenator = function(obj) {
+            for (var k in obj) {
+                // won't unpack nested arrays
+                if (typeof obj[k] === 'object' && !Array.isArray(obj[k]) && obj[k] !== null) {
+                    flattenator(obj[k]);
+                } else {
+                    // set another variable equal to k in case key exists
+                    var x = k;
+
+                    while (result[x] !== undefined) {
+                        x = x + '_';
+                    }
+
+                    result[x] = obj[k];
+                }
+            }
+        };
+
+        flattenator(obj);
+        return result;
     }
 });

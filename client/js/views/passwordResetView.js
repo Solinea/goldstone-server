@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView2.extend({
+var PasswordResetView = GoldstoneBaseView.extend({
 
     initialize: function(options) {
         this.addHandlers();

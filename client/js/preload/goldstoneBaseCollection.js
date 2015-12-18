@@ -20,15 +20,29 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     model: GoldstoneBaseModel.extend(),
 
+    defaults: {},
 
     initialize: function(options) {
         options = options || {};
         this.options = _.clone(options);
-        this.url = this.options.url || null;
+        this.defaults = _.clone(this.defaults);
         this.instanceSpecificInit();
     },
 
-    instanceSpecificInit: function() {},
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.urlGenerator();
+    },
+
+    processOptions: function() {
+        var self = this;
+
+        // set each key-value pair passed into the options hash
+        // to a property of the view instantiation
+        _.each(this.options, function(item, key) {
+            self[key] = item;
+        });
+    },
 
     parse: function(data) {
         this.checkForAdditionalPages(data);
@@ -75,6 +89,9 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         if (this.addPageSize) {
             this.url += this.addPageSize(this.pageSize);
         }
+        if (this.addCustom) {
+            this.url += this.addCustom(this.custom);
+        }
 
         // a gate to make sure this doesn't fire if
         // this collection is being used as a mixin
@@ -103,18 +120,19 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     //     return '&page_size=' + n;
     // },
 
+    // addCustom: function(custom) {
+    //     return custom;
+    // },
+
     computeLookbackAndInterval: function() {
+
+        // compute epochNow, globalLookback, globalRefresh
         this.getGlobalLookbackRefresh();
+
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
         // set interval equal to 1/24th of time range
         this.interval = ((this.epochNow - this.gte) / 1000) / 24;
-    },
-
-    getGlobalLookbackRefresh: function() {
-        this.epochNow = +new Date();
-        this.globalLookback = parseInt($('#global-lookback-range').val(), 10);
-        this.globalRefresh = parseInt($('#global-refresh-range').val(), 10);
     },
 
     fetchWithReset: function() {
@@ -135,4 +153,5 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     }
 });
 
-GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView2.prototype.flattenObj;
+GoldstoneBaseCollection.prototype.flattenObj = GoldstoneBaseView.prototype.flattenObj;
+GoldstoneBaseCollection.prototype.getGlobalLookbackRefresh = GoldstoneBaseView.prototype.getGlobalLookbackRefresh;

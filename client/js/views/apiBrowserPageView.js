@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ApiBrowserPageView = GoldstoneBasePageView2.extend({
+var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
@@ -61,6 +61,13 @@ var ApiBrowserPageView = GoldstoneBasePageView2.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for log viewers
+        '<div class="btn-group" role="group">' +
+        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
+        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
+        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
+        '</div><br><br>' +
 
         '<div class="row">' +
         '<div id="api-histogram-visualization" class="col-md-12"></div>' +
