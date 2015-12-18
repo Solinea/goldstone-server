@@ -34,10 +34,6 @@ this.eventsReport = new EventsReportView({
 
 var EventsReportView = GoldstoneBaseView.extend({
 
-    // initialize empty 'defaults' object that will be used as a container
-    // for shared values amongst local functions
-    defaults: {},
-
     urlGen: function() {
 
         // urlGen is instantiated inside the beforeSend AJAX hook
@@ -60,13 +56,36 @@ var EventsReportView = GoldstoneBaseView.extend({
         this.defaults.url = urlRouteConstruction;
     },
 
-    initialize: function(options) {
+    instanceSpecificInit: function() {
 
-        EventsReportView.__super__.initialize.apply(this, arguments);
+        // processes the passed in hash of options when object is instantiated
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // basic assignment of variables to be used in chart rendering
+        this.standardInit();
+        // appends spinner to el
+        this.showSpinner();
     },
 
     processOptions: function() {
-        EventsReportView.__super__.processOptions.apply(this, arguments);
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
 
         this.defaults.hostName = this.options.nodeName;
         this.defaults.globalLookback = this.options.globalLookback;

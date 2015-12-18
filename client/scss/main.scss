@@ -8,58 +8,14 @@ $dark_tip: rgba(200,200,200, 0.8);
 $dark_chart_text: #bbb;
 $dark_datatable_text: #eee;
 
-html,
-body {
-  background-color: if($theme==dark, $dark_background, null);
-  height: 100%;
-  color: if($theme==dark, $dark_chart_text, null);
-  /* The html and body elements cannot have any padding or margin. */
-}
-
-/* Wrapper for page content to push down footer */
-#wrap {
-  min-height: 100%;
-  height: auto;
-  /* Negative indent footer by its height */
-  margin: 0 auto -60px;
-  /* Pad bottom by footer height */
-  padding: 0 0 60px;
-}
-
-/* Set the fixed height of the footer here */
-#footer {
-  height: 60px;
-  background-color: if($theme==dark, $dark_footer, #f5f5f5);
-}
 
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
-#wrap > .container {
-  padding: 60px 15px 0;
-}
-
-.container .credit {
-  margin: 20px 0;
-}
-
-#footer > .container {
-  padding-left: 15px;
-  padding-right: 15px;
-}
-
 #global-lookback-range, #global-refresh-range {
-  margin-top: 5px;
-}
-
-#goldstone-text {
-  font-family: 'Homenaje', sans-serif;
-  font-size: x-large;
-}
-
-code {
-  font-size: 80%;
+  margin-top: -12px;
+  top: 12px;
 }
 
 .ajax-loader {
@@ -69,10 +25,6 @@ code {
     margin-left: -32px; /* -1 * image width / 2 */
     margin-top: -32px;  /* -1 * image height / 2 */
     display: block;
-}
-
-.row {
-    margin-bottom: 20px;
 }
 
 /* Datatable font sizes */
@@ -107,11 +59,6 @@ code {
   stroke-width: 0;
 }
 
-.icon text {
-  font-size: 12px;
-  stroke-width: 0;
-}
-
 .link {
   fill: none;
   stroke: #9ecae1;
@@ -127,17 +74,12 @@ code {
   }
 }
 
-.axis text, .legend-items {
-    fill: if($theme==dark, $dark_chart_text, null);
-    font: 10px sans-serif;
-}
-
 text:not(.zoomable), .axis.label {
-    font: 14px sans-serif;
+    font: 12px sans-serif;
     fill: if($theme==dark, $dark_chart_text, null);
 }
 
-#goldstone-node-panel, #goldstone-event-panel, g.x.axis, g.y.axis {
+#goldstone-primary-panel g.text{
   text{
     font-size: 10px;
   }

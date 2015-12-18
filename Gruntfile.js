@@ -274,8 +274,6 @@ module.exports = function(grunt) {
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
     grunt.registerTask('scss', ['sass:dev', 'notify:scss']);
-    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
-    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
-    grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
+    grunt.registerTask('test', ['karma']);
     grunt.registerTask('pojson', ['po2json', 'notify:pojson']);
 };

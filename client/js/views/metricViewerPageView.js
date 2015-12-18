@@ -31,14 +31,18 @@ At the moment /#metric will default to 6 charts.
 
 var MetricViewerPageView = GoldstoneBasePageView.extend({
 
-    initialize: function(options) {
+    instanceSpecificInit: function(options) {
 
-        // hide global lookback selector
-        $("select#global-lookback-range").hide();
+        // hide global lookback selector, if present
+        var $glr = $("select#global-lookback-range");
+        if ($glr.length) {
+            this.$glr = $glr;
+            this.$glr.hide();
+        }
 
         // options.numCharts passed in by goldstoneRouter
         // and reflects the number n (1-6) following "/#metric/n"
-        this.numCharts = options.numCharts;
+        this.numCharts = this.options.numCharts;
 
         // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
@@ -48,15 +52,17 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiate initialize in GoldstoneBasePageView
-        MetricViewerPageView.__super__.initialize.apply(this, arguments);
+        MetricViewerPageView.__super__.instanceSpecificInit.apply(this, arguments);
     },
 
     onClose: function() {
         // clear out grid of collections/views
         this.metricViewGridContainer.clear();
 
-        // return global lookback selector to page
-        $("select#global-lookback-range").show();
+        // return global lookback selector to page if relevant
+        if (this.$glr) {
+            $("select#global-lookback-range").show();
+        }
 
         MetricViewerPageView.__super__.onClose.apply(this, arguments);
     },
@@ -113,6 +119,14 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
+
+        // button selectors for metric viewers
+        '<div class="btn-group" role="group">' +
+        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
+        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
+        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
+        '</div><br><br>' +
+
         '<div id="goldstone-metric-r1" class="row">' +
         '<div id="goldstone-metric-r1-c1" class="col-md-4"></div>' +
         '<div id="goldstone-metric-r1-c2" class="col-md-4"></div>' +

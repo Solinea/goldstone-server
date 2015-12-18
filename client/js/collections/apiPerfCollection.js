@@ -22,15 +22,9 @@ this.novaApiPerfChart = new ApiPerfCollection({
 });
 */
 
-// define collection and link to model
+var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
-var ApiPerfModel = GoldstoneBaseModel.extend({});
-
-var ApiPerfCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
+    preProcessData: function(data) {
         if (data && data.per_interval) {
             return data.per_interval;
         } else {
@@ -38,35 +32,15 @@ var ApiPerfCollection = Backbone.Collection.extend({
         }
     },
 
-    model: ApiPerfModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.componentParam = this.options.componentParam;
-        this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
-
-    urlGenerator: function() {
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        var ns = this.defaults;
-        ns.reportParams.end = +new Date();
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/core/apiperf/summarize/?@timestamp__range={"gte":' + ns.reportParams.start +
-            ',"lte":' + ns.reportParams.end +
-            '}&interval=' + ns.reportParams.interval +
-            '&component=' + this.defaults.componentParam;
-
-        // generates url string similar to:
-        // /core/apiperf/summarize/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
-
+    addInterval: function() {
+        n = Math.round(1 * this.globalLookback);
+        return '&interval=' + n + 's';
+    },
+    addCustom: function() {
+        return '&component=' + this.componentParam;
     }
+
 });

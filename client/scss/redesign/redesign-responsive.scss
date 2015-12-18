@@ -69,6 +69,9 @@
 .stats.events{
 	margin-bottom: 15px;
 }
+.dashboard .content.open{
+	margin-left: 126px;
+}
 }
 @media only screen and (min-width : 768px) and (max-width : 820px){
 	.dashboard .container{
@@ -86,7 +89,9 @@
 
 @media only screen and (max-width : 767px){
 /* Mobile Grids */
-
+.dashboard .content.open{
+	margin-left: inherit;
+}
 .dashboard .container{
 	width:100%;
 }
@@ -197,6 +202,11 @@
 .btn-grp li.active .metrics{
 	background-image:url(../../../images/icon-metrics-active1@2x.png);
 }
+
+.btn-grp a{
+	text-decoration: none;
+}
+
 .alerts:hover{
 	background-image:url(../../../images/icon-notifications-active@2x.png);
 }

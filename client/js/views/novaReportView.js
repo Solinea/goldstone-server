@@ -33,13 +33,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova'
+            componentParam: 'nova',
+            urlBase: '/core/apiperf/summarize/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
-            height: 300,
+            height: 350,
             infoCustom: [{
                 key: goldstone.translate("API Call"),
                 value: goldstone.translate("All")
@@ -53,14 +54,14 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new SpawnsCollection({
-            urlPrefix: '/nova/hypervisor/spawns/'
+            urlBase: '/nova/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new SpawnsView({
             chartTitle: goldstone.translate("VM Spawns"),
             collection: this.vmSpawnChart,
-            height: 300,
-            infoCustom: 'novaSpawns',
+            height: 350,
+            infoText: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
             yAxisLabel: goldstone.translate('Spawn Events')
@@ -78,8 +79,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("CPU Resources"),
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
-            height: 300,
-            infoCustom: 'novaCpuResources',
+            height: 350,
+            infoText: 'novaCpuResources',
             el: '#nova-report-r2-c1',
             width: $('#nova-report-r2-c1').width(),
             yAxisLabel: goldstone.translate('Cores')
@@ -97,8 +98,8 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Memory Resources"),
             collection: this.memResourcesChart,
             featureSet: 'mem',
-            height: 300,
-            infoCustom: 'novaMemResources',
+            height: 350,
+            infoText: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
             yAxisLabel: goldstone.translate('MB')
@@ -116,16 +117,26 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Disk Resources"),
             collection: this.diskResourcesChart,
             featureSet: 'disk',
-            height: 300,
-            infoCustom: 'novaDiskResources',
+            height: 350,
+            infoText: 'novaDiskResources',
             el: '#nova-report-r3-c1',
             width: $('#nova-report-r3-c1').width(),
             yAxisLabel: goldstone.translate('GB')
         });
 
+        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChart, this.vmSpawnChart, this.vmSpawnChartView, this.cpuResourcesChart, this.cpuResourcesChartView, this.memResourcesChart, this.memResourcesChartView, this.diskResourcesChart, this.diskResourcesChartView];
+
     },
 
     template: _.template('' +
+
+        // button selectors for metric viewers
+        '<div class="btn-group" role="group">' +
+        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
+        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
+        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
+        '</div><br><br>' +
+
         '<div id="nova-report-r1" class="row">' +
         '<div id="nova-report-r1-c1" class="col-md-6"></div>' +
         '<div id="nova-report-r1-c2" class="col-md-6"></div>' +

@@ -120,7 +120,7 @@ class TopLevelView(TemplateView):
 class RouterView(TemplateView):
     """Return the Goldstone Router page."""
 
-    template_name = 'router.html'
+    template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
         """Return template context data.

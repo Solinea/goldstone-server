@@ -16,12 +16,8 @@
 
 var HelpView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+    instanceSpecificInit: function() {
+        this.el = this.options.el;
         this.render();
     },
 

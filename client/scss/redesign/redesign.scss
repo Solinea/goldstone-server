@@ -146,11 +146,20 @@ body{
 .dashboard .content{
 	padding-top: 20px;
 	margin-bottom: 40px;
+	transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;
+}
+.dashboard .content.open{
+	margin-left:206px;
 }
 .dashboard h3{
 	font-size:24px;
 	color:#424242;
 	margin: 0 0 5px;
+	border-radius: 8px 8px 0 0;
 }
 .setting-btn{
 	display: inline-block;
@@ -273,7 +282,7 @@ body{
 .dashboard .second-row.row{
 	margin-bottom: 22px;
 }
-.dashboard h4{
+.header-block h4{
 	margin-top:0;
 	font-size:16px;
 	color:#424242;
@@ -466,6 +475,7 @@ body{
 .full-map img{
 	width:100%;
 }
+.sidebar.expand-menu .tooltip{display: none !important;}
 .tooltip-arrow{
 	display: none;
 }
