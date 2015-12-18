@@ -39,7 +39,7 @@ limitations under the License.
         <!-- Example addon css link: -->
         <!-- <link rel="stylesheet" href="/static/addons/yourapp/client-css/main.css" rel="stylesheet" media="screen"> -->
         <!-- Append add-on link tags via "fab install_addon" command here -->
-        <!-- Append add-on script tags via "fab install_addon" command here -->
+        
     </head>
     <body class="dashboard">
         <!--Page Wrapper Start-->
@@ -364,13 +364,13 @@ limitations under the License.
         <script src="{% static 'bundle/libs.js' %}"></script>
         <script src="{% static 'bundle/bundle.js' %}"></script>
         <script type="text/javascript" src="/static/site.js"></script>
-        <!-- append addon script tags via "fab install_addon" command here -->
+        
+        <!-- Append add-on script tags via "fab install_addon" command here -->
+
         <!-- example script tag: -->
         <!-- <script src="{% static 'addons/yourapp/client-js/main.js' %}"></script> -->
+        
         <!-- append addon script tags via fab routine prior to here -->
-        <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
-        <!-- django is loading router.html which extends this html template and -->
-        <!-- fills in block localjs with a number of post-dom-ready function calls -->
         {% block localjs %}
             <script>
             // assign "ajax-loader-solinea-blue" spinner gif
