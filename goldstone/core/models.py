@@ -2655,26 +2655,34 @@ class SavedSearch(models.Model):
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
 
-    created = CreationDateTimeField(editable=False, blank=True)
-    updated = ModificationDateTimeField(editable=True, blank=True)
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
     @classmethod
-    def field_has_raw(cls, _):
+    def field_has_raw(cls, field):
         """Bypass the "field has raw representation" check in
         drfes.models.DailyIndexDocType."""
 
-        return False
+        return DailyIndexDocType.field_has_raw(field=field)
 
     @classmethod
-    def execute_query(cls, name):
+    def execute_query(cls, query_name):
         """ Execute an elasticsearch query and returns the result of that query.
         :param query: name of the stored query (Eg: sys_log_err_type_search_1)
         :return: result of that query (rows of events matching this query)
         """
-
-        query = ast.literal_eval(SavedSearch.objects.get(name=name))
+        print " INSIDE EXECUTE_QUERY METHOD : "
+        all_entries = SavedSearch.objects.all()
+        for i in all_entries:
+            print str(i)
+        print all_entries
+        print query_name
+        query = ast.literal_eval(SavedSearch.objects.get(name=query_name))
+        print query
         # TBD : call bounded_search with timestamps once you add them
-        queryset = DailyIndexDocType.search()
+        d = DailyIndexDocType()
+        queryset = d.search()
+        # queryset = DailyIndexDocType.search()
         return queryset.query(Q(query))
 
     def __unicode__(self):
@@ -2703,16 +2711,12 @@ class EventQueryDef(SavedSearch):
         event_id_status_list = []
         for i in result:
             event_name = "event_" + str(i) + "_" + str(SavedSearch.uuid)
-            # generate a pycadf event here by calling Event() with
-            new_event = event.Event(action=cadftaxonomy.ACTION_CREATE,
-                                    outcome=cadftaxonomy.ACTION_UPDATE,
-                                    initiator='core/eventquerydef',
-                                    target='drfes/DailyIndexDocType/save',
-                                    reason='Automated event matching syslog',
-                                    observer='goldstone/glogging/LogDataView',
-                                    name=event_name)
+            # generate a pycadf event here by calling Event() class
+            new_event = event.Event()
             # return True/False if the document has been saved
-            event_saved_flag = DailyIndexDocType.save(new_event)
+            d = DailyIndexDocType()
+            event_saved_flag = d.save('pycadf_event', e_instance=new_event)
+            # event_saved_flag = DailyIndexDocType.save(new_event)
             event_dict = {new_event.id, event_saved_flag}
             event_id_status_list.append(event_dict.copy())
 
