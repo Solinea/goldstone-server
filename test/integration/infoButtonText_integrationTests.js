@@ -47,12 +47,6 @@ describe('infoButtonText.js spec', function() {
             assert.isDefined(test.novaDiskResources());
             assert.isDefined(test.searchLogAnalysis());
             assert.isDefined(test.cloudTopologyResourceList());
-            assert.isDefined(test.eventBrowserViz());
-            assert.isDefined(test.apiBrowserViz());
-            assert.isDefined(test.nodeReportLogTab());
-            assert.isDefined(test.openTrailManager());
-            assert.isDefined(test.openTrailLogHistory());
-            assert.isDefined(test.leasesManager());
         });
     });
 });

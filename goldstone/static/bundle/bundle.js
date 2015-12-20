@@ -2678,37 +2678,8 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             cloudTopologyResourceList: function() {
                 return goldstone.translate('Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages.');
 
-            },
-
-            eventBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            apiBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            nodeReportLogTab: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailManager: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailLogHistory: function() {
-                return goldstone.translate('');
-
-            },
-
-            leasesManager: function() {
-                return goldstone.translate('');
-            },
-
+            }
+            
         }
     }
 });
@@ -4328,7 +4299,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
-            infoText: 'hide',
             width: $('#api-browser-table').width()
         });
 
@@ -5019,6 +4989,14 @@ var ChartHeaderView = GoldstoneBaseView.extend({
 
     populateInfoButton: function() {
         var self = this;
+
+        // instantiate with infoText = 'hide' for option
+        // to hide info button and skip attaching click listener
+        if (this.infoText === undefined) {
+            $(this.el).find('#info-button').hide();
+            return;
+        }
+
         // chart info button popover generator
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
@@ -5040,12 +5018,6 @@ var ChartHeaderView = GoldstoneBaseView.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
-
-        // instantiate with infoText = 'hide' for
-        // option to hide info button
-        if (this.infoText === "hide") {
-            $(this.el).find('#info-button').hide();
-        }
     },
 
     template: _.template('' +
@@ -5993,7 +5965,6 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
-            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 
@@ -11588,14 +11559,10 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#nova-report-r1-c1',
-            width: $('#nova-report-r1-c1').width()
+            width: $('#nova-report-r1-c1').width(),
         });
-
+        
         /*
         VM Spawns Chart
         */
