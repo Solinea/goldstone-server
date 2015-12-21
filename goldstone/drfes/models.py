@@ -43,6 +43,8 @@ class DailyIndexDocType(DocType):
 
         See elasticsearch-dsl for parameter information.
         """
+        if using is None:
+            using = es_conn()
 
         if index is None:
             index = daily_index(self.INDEX_PREFIX)

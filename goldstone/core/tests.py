@@ -28,7 +28,7 @@ from goldstone.drfes.models import DailyIndexDocType
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon, \
-    SavedSearch, EventQueryDef
+    SavedSearch, EventQueryDef, PycadfEventConverter
 from goldstone.tests import ElasticSearchTests
 
 from . import tasks
@@ -97,6 +97,19 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
 
 
+class PycadfEventConverterTests(SimpleTestCase):
+    """
+        Test PycadfEventConverter class for correctness
+    """
+
+    @classmethod
+    def test_event_save(cls):
+        converter = PycadfEventConverter()
+        event_saved_flag = converter.save(converter)
+        print event_saved_flag
+        assert(event_saved_flag)
+
+
 class PycadflibraryTests(SimpleTestCase):
     """ Test pycadf library for correctness
 
@@ -118,8 +131,8 @@ class PycadflibraryTests(SimpleTestCase):
         d = DailyIndexDocType()
         save_flag = True
         # TBD : To test save() es_dsl connection needs to be established.
-        # save_flag = d.save('pycadf_test_event',
-        # event_instance=self.pycadf_event)
+        # save_flag = d.save(index='events_2015-12-18',
+        #                   event_instance=self.pycadf_event)
         assert(save_flag)
 
 
@@ -136,8 +149,8 @@ class SavedSearchModelTests(SimpleTestCase):
 
     @classmethod
     def test_loaded_data_from_fixtures(cls):
-        #s = SavedSearch()
-        #table_data = s.objects.all()
+        # s = SavedSearch()
+        # table_data = s.objects.all()
         assert(SavedSearch.objects.all())
 
     @classmethod
