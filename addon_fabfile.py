@@ -17,14 +17,14 @@ from contextlib import contextmanager
 from importlib import import_module
 from inspect import getmembers, isfunction
 from shutil import copytree, rmtree
+import os
+import sys
 
 from fabric.api import task
 from fabric.colors import green, cyan, red
 from fabric.contrib.console import confirm
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
-import os
-import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
 from django.conf import settings as simple_settings
@@ -481,9 +481,13 @@ def _add_root_node(name):
 
     """
     from goldstone.core.models import Addon
+    from goldstone.core.utils import resource_types
 
-    # Add the root node to the persistent resource graph.
-    rootnode = Addon.objects.create(native_name=name, native_id=name)
+    # Get the add-on's root type.
+    roottype = [x for x in resource_types(name) if hasattr(x, "root")][0]
+
+    # Add the root node to the persisten resource graph.
+    rootnode = roottype.objects.create(native_name=name, native_id=name)
 
     # Get the Addon node, and add an edge from it to the root. Note, calling
     # .append() on a PickledObjectField list will sometimes result in odd
