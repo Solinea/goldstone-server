@@ -83,6 +83,44 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node
         this.defaults.specificHost = this.options.specificHost || '';
+
+        //-----------------------------------------------
+        // refactored views to modularize log viewer view
+        this.logBrowserVizCollection = new LogAnalysisCollection({});
+
+        this.logBrowserViz = new LogBrowserViz ({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            featureSet: 'logEvents',
+            height: 300,
+            marginLeft: 60,
+            specificHost: ns.specificHost,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });
+        this.logBrowserTableCollection.urlBase = "/logging/search/";
+        this.logBrowserTableCollection.addRange = function() {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        };
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+
+
+        //---------------
+        // original views
         this.logAnalysisCollection = new LogAnalysisCollection({});
 
         this.logAnalysisView = new LogAnalysisView({
@@ -108,6 +146,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         }
 
         this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
+
+        this.viewsToStopListening.push(this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable);
+        
     },
 
     template: _.template('' +
@@ -118,6 +159,14 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
         '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
         '</div><br><br>' +
+
+        // divs for refactored log viewer
+        '<div class="row">' +
+        '<div id="log-viewer-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="log-viewer-table" class="col-md-12"></div>' +
+        '</div>' +
 
         // container for new prototype d3 log chart
         '<div class="log-analysis-container"></div>' +
