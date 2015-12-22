@@ -40,19 +40,21 @@ var LoginPageView = GoldstoneBaseView.extend({
     },
 
     checkForInstalledApps: function() {
+        var self = this;
+
+        // this call returns BEFORE redirecting to '/' to avoid async
+        // issue with firefox/safari where the addons dict wasn't
+        // added to localStorage
+
         $.ajax({
             type: 'get',
             url: '/addons/'
         }).done(function(success) {
             localStorage.setItem('addons', JSON.stringify(success));
 
-            // triggers view in addonMenuView.js
-            goldstone.addonMenuView.trigger('installedAppsUpdated');
+            self.redirectPostSuccessfulAuth();    
         }).fail(function(fail) {
-            console.log(goldstone.translate("Failed to initialize installed addons"));
-
-            // triggers view in addonMenuView.js
-            goldstone.addonMenuView.trigger('installedAppsUpdated');
+            self.redirectPostSuccessfulAuth();    
         });
     },
 
@@ -97,9 +99,12 @@ var LoginPageView = GoldstoneBaseView.extend({
                 self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
+                // after a successful login, check for installed apps BEFORE 
+                // redirecting to dashboard. Chrome can handle the async
+                // request to /addons/ but firefox/safari fail.
+
                 // must follow storing token otherwise call will fail with 401
                 self.checkForInstalledApps();
-                self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
                 // and add a failure message to the top of the screen

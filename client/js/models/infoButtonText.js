@@ -102,37 +102,8 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             cloudTopologyResourceList: function() {
                 return goldstone.translate('Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages.');
 
-            },
-
-            eventBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            apiBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            nodeReportLogTab: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailManager: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailLogHistory: function() {
-                return goldstone.translate('');
-
-            },
-
-            leasesManager: function() {
-                return goldstone.translate('');
-            },
-
+            }
+            
         }
     }
 });

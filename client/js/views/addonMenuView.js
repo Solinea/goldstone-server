@@ -29,7 +29,6 @@ goldstone.addonMenuView = new AddonMenuView({
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.el = this.options.el;
         this.processListeners();
 
         // passing true will also dynamically generate new routes in
@@ -64,10 +63,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
-            // the individual dropdowns and dropdown submenus are constructed
-            // as a html string, and then appended into the menu drop-down list
-            var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
-            $(this.el).find('.addon-menu-li-elements').html(extraMenuItems());
+            this.generateDropdownElementsPerAddon(addNewRoute);
 
             // must trigger html template translation in order to display a
             // language other than English upon initial render without
@@ -104,7 +100,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name +'</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name + '</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -144,12 +140,17 @@ var AddonMenuView = GoldstoneBaseView.extend({
                 result += '</ul></li>';
             } else {
 
-                var refreshMessage = goldstone.translate('Refresh browser and/or log in to complete addon installation process.');
+                var refreshMessage = goldstone.translate('Refresh browser and log out, and back in to complete addon installation process.');
 
                 goldstone.raiseInfo(refreshMessage);
                 result += '<li>' + refreshMessage;
             }
 
+        });
+
+        // initialize tooltip connected to new menu item
+        $('[data-toggle="tooltip"]').tooltip({
+            trigger: 'hover'
         });
 
         // return backbone template of html string that will construct
@@ -167,7 +168,9 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // passedValue will be created by routes with /:foo
             // passed value = 'foo'
             if (passedValue) {
-                this.switchView(routeToAdd[2], {'passedValue': passedValue});
+                this.switchView(routeToAdd[2], {
+                    'passedValue': passedValue
+                });
             } else {
                 this.switchView(routeToAdd[2]);
             }
@@ -175,10 +178,12 @@ var AddonMenuView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons</span><b class="caret"></b></a>' +
-        '<ul class="dropdown-menu addon-menu-li-elements">' +
-        '</ul>'
+        '<a href="#compliance/opentrail/manager/">' +
+        '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
+        '<span class="btn-txt">Compliance</span>' +
+        '</li>' +
+        '</a>'
     )
 
 });

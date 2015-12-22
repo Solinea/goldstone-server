@@ -17,14 +17,14 @@ from contextlib import contextmanager
 from importlib import import_module
 from inspect import getmembers, isfunction
 from shutil import copytree, rmtree
+import os
+import sys
 
 from fabric.api import task
 from fabric.colors import green, cyan, red
 from fabric.contrib.console import confirm
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
-import os
-import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
 from django.conf import settings as simple_settings
@@ -46,12 +46,13 @@ PROD_SETTINGS = os.environ.get('DJANGO_SETTINGS_MODULE',
 INSTALLED_APPS_START = "INSTALLED_APPS = ("
 
 # The line we add to INSTALLED_APPS.
-INSTALLED_APP = "    '%s',     # Don't edit this line!\n"
+INSTALLED_APP = "    'goldstone.%s',     # Don't edit this line!\n"
 
 # The line we add to the end of urls.py.
 URLS_PY = "\n# Include the {0} add-on.  Don't edit this entry!\n" \
-          "import {0}\n" \
-          "urlpatterns += patterns('', url(r'^{1}/', include('{0}.urls')))\n"
+          "import goldstone.{0}\n" \
+          "urlpatterns += patterns('', url(r'^{1}/',\n" \
+          "                        include('goldstone.{0}.urls')))\n"
 
 # The path, under the add-on's Python installation directory, where we find its
 # static (JavaScript and CSS) files.
@@ -64,19 +65,15 @@ STATIC_ADDONS_HOME = "goldstone/static/addons"
 
 # An add-on's script tag is inserted into base.html, after these lines.
 SCRIPT_START = \
-    '<!-- append addon script tags via "fab install_addon" command here ' \
-    '-->\n' \
-    '<!-- example script tag: -->\n' \
-    '<!-- <script src="{% static \'addons/yourapp/client-js/main.js\' %}">' \
-    '</script> ' \
-    '-->\n'
+    '<!-- Append add-on script tags via "fab install_addon" command here -->\n'
 
 # An add-on's LINK tag is inserted into base.html, after these lines.
 LINK_START = \
-    '<!-- Append add-on link tags via "fab install_addon" command here -->'
+    '<!-- Append add-on link tags via "fab install_addon" command here -->\n'
 
 # The add-on's script and link tag templates.
-SCRIPT_TAG = '<script src="{%% static \'addons/%s/client-js/main.js\' %%}">' \
+SCRIPT_TAG = '        ' \
+             '<script src="{%% static \'addons/%s/client-js/main.js\' %%}">' \
              '</script>\n'
 LINK_TAG = '        <link rel="stylesheet" href="/static/addons/%s' \
            '/client-css/main.css"' \
@@ -89,7 +86,7 @@ CELERYBEAT_APPS = \
     "# User-installed add-on tasks are inserted after this line."
 CELERYBEAT_APP_INCLUDE = \
     "# Tasks for {0}.\n" \
-    "from {0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
+    "from goldstone.{0}.settings import CELERYBEAT_SCHEDULE as {0}_celerybeat\n" \
     "CELERYBEAT_SCHEDULE.update({0}_celerybeat)\n"
 
 
@@ -301,7 +298,7 @@ def _install_addon_info(name, install_dir, verbose):    # pylint: disable=R0914
         fastprint("\nCollecting information about %s ..." % name)
 
     try:
-        the_app = import_module(name)
+        the_app = import_module("goldstone.%s" % name)
     except ImportError:
         abort("Can't import the module. Have you installed it?")
 
@@ -410,14 +407,13 @@ def _install_addon_static(name, addon_install, install_dir):
         filedata = f.read()
 
     insert = filedata.index(SCRIPT_START)
-    for _ in range(SCRIPT_START.count('\n')):
-        insert = filedata.index('\n', insert) + 1
+    insert = filedata.index('\n', insert) + 1
 
     # Insert the script tag line right after the herald.
     filedata = filedata[:insert] + script_tag + filedata[insert:]
 
     # Go to the start of the line after the add-on-link-tag-section's
-    # herald, and insert the link tag line right there.
+    # herald, and insert the link tag line there.
     insert = filedata.index(LINK_START)
     insert = filedata.index('\n', insert) + 1
     filedata = filedata[:insert] + link_tag + filedata[insert:]
@@ -485,9 +481,13 @@ def _add_root_node(name):
 
     """
     from goldstone.core.models import Addon
+    from goldstone.core.utils import resource_types
 
-    # Add the root node to the persistent resource graph.
-    rootnode = Addon.objects.create(native_name=name, native_id=name)
+    # Get the add-on's root type.
+    roottype = [x for x in resource_types(name) if hasattr(x, "root")][0]
+
+    # Add the root node to the persisten resource graph.
+    rootnode = roottype.objects.create(native_name=name, native_id=name)
 
     # Get the Addon node, and add an edge from it to the root. Note, calling
     # .append() on a PickledObjectField list will sometimes result in odd
@@ -606,13 +606,9 @@ def install_addon(name,
                     with open(filepath, 'w') as f:
                         f.write(filedata)
 
-                    # Do a syncdb, to add the add-on's models. (This can't be
+                    # Do a migration to add the add-on's models. (This can't be
                     # done before INSTALLED_APPS is updated.)
-                    error = "doing a syncdb."
-                    _django_manage("makemigrations --noinput " + name,
-                                   proj_settings=settings,
-                                   install_dir=install_dir)
-
+                    error = "doing a migrate."
                     _django_manage("migrate --noinput",
                                    proj_settings=settings,
                                    install_dir=install_dir)
@@ -671,6 +667,7 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
     :type install_dir: str
 
     """
+    import django
     from django.core.exceptions import ObjectDoesNotExist
 
     # Switch to the right environment because we're going to access the
@@ -692,13 +689,14 @@ def remove_addon(name,                       # pylint: disable=R0914,R0915
             try:
                 # First, delete the row.
                 error = "updating the Addon table. Check it."
+                django.setup()
                 row.delete()
 
                 # Now remove its root node, and any inferior nodes, from the
                 # resource graph.
                 error = "importing %s" % name
 
-                the_app = import_module("%s.models" % name)
+                the_app = import_module("goldstone.%s.models" % name)
                 remove_nodes = next((x[1]
                                      for x in getmembers(the_app, isfunction)
                                      if x[0] == "remove_nodes"),

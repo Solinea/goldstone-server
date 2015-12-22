@@ -124,11 +124,6 @@ describe('apiPerfView.js spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('body');
         });
-        it('info button popover responds to click event', function() {
-            expect($('div.popover').length).to.equal(0);
-            $(this.testView.el).find('.panel-info').click();
-            expect($('div.popover').length).to.equal(1);
-        });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
             this.testCollection.reset();
