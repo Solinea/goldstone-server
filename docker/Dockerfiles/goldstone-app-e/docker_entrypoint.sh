@@ -47,7 +47,7 @@ if [[ $GS_DEV_ENV == "true" ]] ; then
 fi
 
 python manage.py migrate --noinput # Apply database migrations
-python manage.py loaddata # Apply database fixtures
+python manage.py loaddata initial_data # Apply database fixtures
 
 declare -a addons=( compliance )
 
