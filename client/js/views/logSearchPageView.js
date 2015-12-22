@@ -98,9 +98,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
-            console.log('compliance addon detected');
-            if (goldstone.PredefinedSearchView) {
-                new goldstone.PredefinedSearchView();
+            if (goldstone.compliance.PredefinedSearchView) {
+                new goldstone.compliance.PredefinedSearchView({
+                    className: 'compliance-predefined-search nav nav-pills',
+                    hook: '.panel-heading',
+                    tagName: 'ul'
+                });
             }
         }
 

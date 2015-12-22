@@ -261,8 +261,6 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.infoText = this.options.infoText;
         if (this.options.el) {
             this.el = this.options.el;
-        } else {
-            console.log('no options el ', this.el);
         }
         if (this.options.collectionMixin) {
             this.collectionMixin = this.options.collectionMixin;
@@ -8261,9 +8259,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
-            console.log('compliance addon detected');
-            if (goldstone.PredefinedSearchView) {
-                new goldstone.PredefinedSearchView();
+            if (goldstone.compliance.PredefinedSearchView) {
+                new goldstone.compliance.PredefinedSearchView({
+                    className: 'compliance-predefined-search nav nav-pills',
+                    hook: '.panel-heading',
+                    tagName: 'ul'
+                });
             }
         }
 
