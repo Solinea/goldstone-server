@@ -45,17 +45,9 @@ describe('Testing the base.js file', function() {
             it('should exist', function() {
                 expect(goldstone).to.be.an('object');
             });
-            it('should create namespaced objects', function() {
-                goldstone.namespace('captain.beefheart');
-                expect(goldstone.captain.beefheart).to.be.an('object');
-                expect(goldstone).to.have.property('captain');
-                expect(goldstone.captain).to.have.property('beefheart');
-                delete goldstone.captain;
-                expect(goldstone).to.not.have.property('captain');
-            });
             it('goldstone.uuid should create unique vals', function() {
-                var testUuid1 = goldstone.uuid()();
-                var testUuid2 = goldstone.uuid()();
+                var testUuid1 = goldstone.uuid();
+                var testUuid2 = goldstone.uuid();
                 expect(testUuid1).to.be.length(36);
                 expect(testUuid2).to.be.length(36);
                 expect(testUuid1).to.not.equal(testUuid2);

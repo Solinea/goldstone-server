@@ -17,18 +17,6 @@
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
 
-goldstone.namespace = function(name) {
-    "use strict";
-    var parts = name.split('.');
-    var current = goldstone;
-    for (var i = 0; i < parts.length; i++) {
-        if (!current[parts[i]]) {
-            current[parts[i]] = {};
-        }
-        current = current[parts[i]];
-    }
-};
-
 // tools for raising alerts
 goldstone.raiseError = function(message) {
     "use strict";
@@ -95,6 +83,17 @@ goldstone.raiseAlert = function(selector, message, persist) {
 
 };
 
+goldstone.returnAddonPresent = function(checkName) {
+    var addonList = JSON.parse(localStorage.getItem('addons'));
+    var result = false;
+    _.each(addonList, function(item) {
+        if(item.name && item.name === checkName) {
+            result = true;
+        }
+    });
+    return result;
+};
+
 goldstone.uuid = function() {
     "use strict";
 
@@ -103,13 +102,12 @@ goldstone.uuid = function() {
             .toString(16)
             .substring(1);
     }
-    return function() {
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
-    };
+
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 };
 
-goldstone.namespace('time');
+goldstone.time = goldstone.time || {};
 
 goldstone.time.fromPyTs = function(t) {
     "use strict";
@@ -165,8 +163,7 @@ Date.prototype.addWeeks = function(d) {
     "use strict";
     this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
     return this;
-};
-;
+};;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -8262,6 +8259,14 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: ns.specificHost
         });
 
+        // check for compliance addon and render predefined search bar if present
+        if (goldstone.returnAddonPresent('compliance')) {
+            console.log('compliance addon detected');
+            if (goldstone.PredefinedSearchView) {
+                new goldstone.PredefinedSearchView();
+            }
+        }
+
         this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 
@@ -8313,8 +8318,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '</div>'
     )
 
-});
-;
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -13709,7 +13713,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
             var firstTsData = payload[0] !== undefined ? payload[0] : [];
-            var myUuid = goldstone.uuid()();
             var filteredFirstTsData;
             var keys;
             var columns;
@@ -13721,7 +13724,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // otherwise it will === undefined
             if (firstTsData[0] !== undefined) {
                 firstTsData = _.map(firstTsData, function(e) {
-                    e.datatableRecId = goldstone.uuid()();
+                    e.datatableRecId = goldstone.uuid();
                     return e;
                 });
 
