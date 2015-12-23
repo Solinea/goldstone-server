@@ -42,6 +42,24 @@ function stop_dev_env() {
     exit 0
 }
 
+function wait_for_docker() {
+
+    status="DOWN"
+    i="0"
+
+    while [ "$status" != "Running" -a $i -lt 20 ] ; do
+        status=`docker-machine status $DOCKER_VM`
+        echo -e "Docker machine VM status: $status"
+        sleep 5
+        let i++
+    done
+
+    if [[ $status != "Running" ]] ; then
+        echo "Docker machine VM not available.  Exiting."
+        exit 1
+    fi
+}
+
 
 for arg in "$@" ; do
     case $arg in
@@ -84,10 +102,12 @@ fi
 VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
-    docker-machine start ${DOCKER_VM}
+    docker-machine start ${DOCKER_VM} > /dev/null 2>&1
 else
-    echo "${STACK_VM} is already running"
+    echo "${DOCKER_VM} is already running"
 fi
+
+wait_for_docker
 
 eval "$(docker-machine env ${DOCKER_VM})"
 
