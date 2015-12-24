@@ -190,7 +190,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
             $(this.el).find('#spinner').show();
             this.constructUrl();
-            this.collection.fetchWithRemoval();
+            this.collection.fetchWithReset();
 
         });
 
@@ -200,7 +200,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             ns.start = params[0];
             ns.end = params[1];
             this.constructUrl();
-            this.collection.fetchWithRemoval();
+            this.collection.fetchWithReset();
         });
     },
 
@@ -288,7 +288,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.startEndToGlobalLookback();
         // this.triggerSearchTable();
         this.constructUrl();
-        this.collection.fetchWithRemoval();
+        this.collection.fetchWithReset();
 
     },
 
@@ -358,7 +358,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         this.constructUrl();
 
-        this.collection.fetchWithRemoval();
+        this.collection.fetchWithReset();
         return null;
     },
 
@@ -795,7 +795,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // eliminates the immediate re-rendering of search table
         // upon initial chart instantiation
         // this.refreshSearchTableAfterOnce();
-        
+
         this.redraw();
 
     },

@@ -86,7 +86,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         //-----------------------------------------------
         // refactored views to modularize log viewer view
-        this.logBrowserVizCollection = new LogAnalysisCollection({});
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/'
+        });
 
         this.logBrowserViz = new LogBrowserViz ({
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
@@ -148,7 +150,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
 
         this.viewsToStopListening.push(this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable);
-        
+
     },
 
     template: _.template('' +
