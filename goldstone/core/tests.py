@@ -17,9 +17,9 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from pycadf import event, cadftaxonomy
-import elasticsearch
+from elasticsearch_dsl import Search
 import mock
 from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase
@@ -136,7 +136,7 @@ class PycadflibraryTests(SimpleTestCase):
         assert(save_flag)
 
 
-class SavedSearchModelTests(SimpleTestCase):
+class SavedSearchModelTests(TestCase):
     """
 
     Test the
@@ -147,16 +147,21 @@ class SavedSearchModelTests(SimpleTestCase):
     4. Fire an independent elastic search query and compare results with 3.
     """
 
+    fixtures = ['initial_data.yaml']
+
+    def setUp(self):
+        setup_flag = True
+        assert(setup_flag)
+
     @classmethod
     def test_loaded_data_from_fixtures(cls):
-        # s = SavedSearch()
-        # table_data = s.objects.all()
         assert(SavedSearch.objects.all())
 
     @classmethod
     def test_execute_query_func(self):
         savedsearch_instance = SavedSearch(name='test_savedsearch')
         rv = savedsearch_instance.execute_query('sys_log_err_type_search_1')
+        assert isinstance(rv, Search)
         assert (rv)
         # TBD : Compare expected vs returned results
         # self.assertIsNotNone(rv,
