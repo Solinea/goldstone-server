@@ -1,30 +1,23 @@
   - model: core.SavedSearch
-    pk: 1
+    pk: 4c010ac2-d437-460a-a6cf-5234eceff5b2
     fields:
-      name: sys_log_err_type_search_1
-      query: "{'prefix': {u'event_type__raw': 'OpenStackSyslogError'}}"
+      name: openstack syslog errors
+      owner: events
+      query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}}'
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: @timestamp
+      target_interval: 120
       protected: true
 
   - model: core.SavedSearch
-    pk: 2
+    pk: 6e940772-7bb3-4587-ac1b-92cdcddd9c61
     fields:
-      name: sys_log_err_type_search_2
-      query: "{'prefix': {u'event_type__raw': 'GenericSyslogError'}}"
-      protected: true
-
-  - model: core.SavedSearch
-    pk: 3
-    fields:
-      name: solinea_defined_search_3
-      query: "{'multi_match': {'query': 'python django',
-                               'fields': ['title', 'body']},
-              }"
-      protected: true
-  - model: core.SavedSearch
-    pk: 4
-    fields:
-      name: solinea_defined_search_4
-      query: "{'multi_match': {'query': 'python django',
-                               'fields': ['title', 'body']},
-              }"
+      name: generic syslog errors
+      owner: events
+      query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}}'
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: @timestamp
+      target_interval: 60
       protected: true

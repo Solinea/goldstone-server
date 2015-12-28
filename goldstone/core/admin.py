@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from django.contrib import admin
-from .models import PolyResource, SavedSearch
+from .models import PolyResource
+from .new_models import SavedSearch
 
 admin.site.register(PolyResource)
 admin.site.register(SavedSearch)

@@ -30,6 +30,42 @@ class DailyIndexDocType(DocType):
         return super(DailyIndexDocType, self).\
             save(using=using, index=index, **kwargs)
 
+    @classmethod
+    def search_time_range(cls, start=None, end=None, key_field='@timestamp'):
+        """ Returns a search with time range."""
+        import arrow
+        from arrow import Arrow
+
+        start = arrow.get(0) if start == '' else start
+        end = arrow.utcnow() if end == '' else end
+
+        if end is not None:
+            assert isinstance(end, Arrow), "end is not an Arrow object"
+
+        if start is not None:
+            assert isinstance(start, Arrow), "start is not an Arrow object"
+
+        search = cls.search()
+
+        if start is not None and end is not None:
+            search = search.query(
+                'range',
+                ** {key_field:
+                    {'lte': end.isoformat(),
+                     'gt': start.isoformat()}})
+
+        elif start is not None and end is None:
+            search = search.query(
+                'range',
+                ** {key_field: {'gt': start.isoformat()}})
+
+        elif start is None and end is not None:
+            search = search.query(
+                'range',
+                ** {key_field: {'lte': end.isoformat()}})
+
+        return search
+
     def _index_today(self):
         import arrow
         today = arrow.utcnow().format(self.INDEX_DATE_FMT)

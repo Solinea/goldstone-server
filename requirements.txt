@@ -29,7 +29,7 @@ djangorestframework==3.1.0
 djoser==0.3.2
 drf-extensions==0.2.7
 elasticsearch-curator==3.1.0
-elasticsearch-dsl==0.0.4
+elasticsearch-dsl==0.0.9
 elasticsearch==1.6.0
 fabric==1.10.2
 functools32==3.2.3-1

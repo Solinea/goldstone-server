@@ -18,6 +18,7 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # limitations under the License.
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase
+import elasticsearch
 from pycadf import event, cadftaxonomy
 from elasticsearch_dsl import Search
 import mock
