@@ -6,8 +6,7 @@
       query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}}'
       index_prefix: logstash-*
       doc_type: syslog
-      timestamp_field: @timestamp
-      target_interval: 120
+      timestamp_field: '@timestamp'
       protected: true
 
   - model: core.SavedSearch
@@ -18,6 +17,5 @@
       query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}}'
       index_prefix: logstash-*
       doc_type: syslog
-      timestamp_field: @timestamp
-      target_interval: 60
+      timestamp_field: '@timestamp'
       protected: true
