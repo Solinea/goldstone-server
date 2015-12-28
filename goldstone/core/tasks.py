@@ -117,9 +117,7 @@ def log_event_search():
     for obj in saved_searches:
         # execute the search, and assuming no error, update the last_ times
         s, start, end = obj.search_recent()
-        print(s.to_dict())
         response = s.execute()
-        print("Processing %d new events" % response.hits.total)
         if response.hits.total > 0:
             met = metric.Metric(metricId=obj.uuid, unit="count", name=obj.name)
             meas = measurement.Measurement(result=response.hits.total,
