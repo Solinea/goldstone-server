@@ -15,11 +15,11 @@
 
 # Goldstone Server Container
 gsappdev:
-  build: ./docker/Dockerfiles/goldstone-app
+  build: ./docker/goldstone-app
   env_file: ./docker/config/goldstone-dev.env
   volumes:
     - .:/home/app
-    - ./docker/config/goldstone-app:/home/app/config
+    - ./docker/goldstone-app/config:/home/app/config
   ports:
     - "8000:8000"
   links:
@@ -33,7 +33,7 @@ gsappdev:
 
 # Database Container
 gsdb:
-  build: ./docker/Dockerfiles/goldstone-db
+  build: ./docker/goldstone-db
   env_file: ./docker/config/goldstone-dev.env
   volumes_from:
     - gsdbdvc
@@ -46,7 +46,8 @@ gsdb:
 
 # Database Data Volume Container
 gsdbdvc:
-  build: ./docker/Dockerfiles/goldstone-db-dvc
+  image: goldstoneserver_gsdb
+  entrypoint: /bin/true
   volumes:
     - /var/lib/postgresql/data
   log_driver: "json-file"
@@ -56,11 +57,10 @@ gsdbdvc:
 
 # Logstash Container
 gslog:
-  build: ./docker/Dockerfiles/goldstone-log
-  command: logstash -f /logstash/conf.d -w 1
+  build: ./docker/goldstone-log
   volumes:
-    - ./docker/config/goldstone-log/conf.d:/logstash/conf.d
-    - ./docker/config/goldstone-log/patterns:/opt/logstash/patterns
+    - ./docker/goldstone-log/conf.d:/logstash/conf.d
+    - ./docker/goldstone-log/patterns:/opt/logstash/patterns
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -74,9 +74,9 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  build: ./docker/Dockerfiles/goldstone-search
+  build: ./docker/goldstone-search
   volumes:
-    - ./docker/config/goldstone-search:/usr/share/elasticsearch/config
+    - ./docker/goldstone-search/config:/usr/share/elasticsearch/config
   ports:
     - "9200:9200"
     - "9300:9300"
@@ -87,7 +87,7 @@ gssearch:
 
 # Celery Task Queue Container
 gstaskq:
-  build: ./docker/Dockerfiles/goldstone-task-queue
+  build: ./docker/goldstone-task-queue
   ports:
     - "6379:6379"
   log_driver: "json-file"

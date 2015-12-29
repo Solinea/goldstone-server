@@ -13,8 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM logstash:1.5
+FROM solinea/postgres:9.4
+
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-RUN /opt/logstash/bin/plugin install logstash-filter-translate
-RUN /opt/logstash/bin/plugin install logstash-input-http
+# GOLDSTONE_PASSWORD=goldstone      password for the 'goldstone' user in postgres
+# POSTGRES_PASSWORD=goldstone       password for the 'postgres' user in postgres
+ENV GOLDSTONE_PASSWORD="goldstone" \
+    POSTGRES_PASSWORD="goldstone"
+
+COPY init-goldstone-db.sh /docker-entrypoint-initdb.d/
+
+COPY startup-goldstone-db.sh /docker-entrypoint-always.d/
+
+EXPOSE 5432

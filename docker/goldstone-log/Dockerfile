@@ -13,6 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/redis:latest
+FROM logstash:1.5
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
+
+COPY conf.d /logstash/conf.d
+COPY patterns /opt/logstash/patterns
+
+RUN /opt/logstash/bin/plugin install logstash-filter-translate
+RUN /opt/logstash/bin/plugin install logstash-input-http
+
+EXPOSE 5514 5515 5516
+
+CMD ["logstash", "-f", "/logstash/conf.d", "-w", "1"]

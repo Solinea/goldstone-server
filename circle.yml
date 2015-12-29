@@ -1,0 +1,110 @@
+---
+## test machine configuration
+machine:
+  python:
+    version: 2.7.10
+
+  services:
+    - docker
+
+  # environment variables
+  environment:
+    # build output dirs
+    LOG_DIR:      $CIRCLE_ARTIFACTS/logs
+    DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
+    # Docker image directories for staging
+    DOCKER_DIR:   $HOME/goldstone-server/docker
+    STAGE_APP:    $DOCKER_DIR/goldstone-app
+    STAGE_DB:     $DOCKER_DIR/goldstone-db
+    STAGE_LOG:    $DOCKER_DIR/goldstone-log
+    STAGE_SEARCH: $DOCKER_DIR/goldstone-search
+    STAGE_TASK:   $DOCKER_DIR/goldstone-task
+    STAGE_TASKQ:  $DOCKER_DIR/goldstone-task-queue
+    STAGE_WEB:    $DOCKER_DIR/goldstone-web
+    # Docker runtime args
+    COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
+    TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash goldstone-app -c"
+
+  # /etc/hosts
+  hosts:
+    gsapp: 127.0.0.1
+    gsdb: 127.0.0.1
+    gsdbdvc: 127.0.0.1
+    gslog: 127.0.0.1
+    gssearch: 127.0.0.1
+    gstask: 127.0.0.1
+    gstaskq: 127.0.0.1
+    gsweb: 127.0.0.1
+
+## custom dependencies
+dependencies:
+  pre:
+    - mkdir -p {$LOG_DIR,$DJANGO_DIR}             # create output directories
+    - sudo service postgresql stop                # stop default postgresql service
+    - sudo service redis-server stop              # stop default redis-server service
+    - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
+    - sudo pip install docker-compose             # circleci env fix, install docker-compose
+    - pip install -r requirements.txt
+    - pip install -r test-requirements.txt
+    - pip freeze
+  override:
+    # build static files
+    - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
+    - cp -r static $STAGE_WEB/static
+    # build goldstone-server distribution
+    - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist && cp dist/goldstone*.gz $CIRCLE_ARTIFACTS
+    - cp -r dist $STAGE_APP/goldstone-server
+    - cp -r dist $STAGE_TASK/goldstone-server
+  post:
+    - docker info && docker-compose version
+    - docker build -t goldstone-app $STAGE_APP
+    - docker build -t goldstone-db $STAGE_DB
+    - docker build -t goldstone-log $STAGE_LOG
+    - docker build -t goldstone-search $STAGE_SEARCH
+    # TODO: uncomment build when goldstone-task is pulled out from goldstone-app
+    #- docker build -t goldstone-task $STAGE_TASK
+    - docker build -t goldstone-task-queue $STAGE_TASKQ
+    - docker build -t goldstone-web $STAGE_WEB
+    - docker images
+
+## test config
+test:
+  pre:
+    - docker-compose -f $COMPOSE_CONF -p gs up:
+        background: true
+    - sleep 10 && docker-compose -f $COMPOSE_CONF -p gs ps
+  override:
+    - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
+    - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
+    - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci"
+  post:
+    - docker-compose -f $COMPOSE_CONF -p gs stop
+    # TODO: uncomment when priv env logon is added to solinea/goldstone-server
+    #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
+
+## deployment config
+deployment:
+  release:
+    # pattern of 1, 1.2, 1.2.3
+    tag: /[0-9]+(\.[0-9]+)*/
+    commands:
+      - echo "stable, $CIRCLE_TAG"
+      # TODO: replace with full tag/push when merged with solinea/goldstone-server
+      #- docker tag goldstone-app gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH
+      #- docker tag goldstone-app gs-docker-oss.bintray.io/app:stable
+      #- docker push gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH
+      #- docker push gs-docker-oss.bintray.io/app:stable
+  latest:
+    branch: master
+    commands:
+      - echo "latest, $CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} ($CIRCLE_SHA1)"
+      # TODO: replace with full tag/push when merged with solinea/goldstone-server
+      #- docker tag goldstone-app gs-docker-oss.bintray.io/app:latest
+      #- docker tag goldstone-app gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+      #- docker push gs-docker-oss.bintray.io/app:latest
+      #- docker push gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+
+general:
+  artifacts:
+    - $CIRCLE_ARTIFACTS
+    - $CIRCLE_TEST_REPORTS
