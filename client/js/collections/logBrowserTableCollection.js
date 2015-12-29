@@ -36,50 +36,46 @@ instantiated in logSearchPageView.js as:
 
 */
 
-var LogBrowserCollection = GoldstoneBaseCollection.extend({
-
-    isZoomed: false,
-    zoomedStart: null,
-    zoomedEnd: null,
+var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
 
     addRange: function() {
-
-        if(this.isZoomed) {
-            return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
-        } else {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        }
-
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    addInterval: function() {
-        var n;
-        var start;
-        var end;
+    addCustom: function() {
 
-        if(this.isZoomed) {
-            start = this.zoomedStart;
-            end = this.zoomedEnd;
-        } else {
-            start = this.gte;
-            end = this.epochNow;
+        var result = '&syslog_severity__terms=[';
+
+        levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toUpperCase(), '",');
+            }
         }
+        result += "]";
 
-        n = ((end - start) / 20000);
-        n = Math.max(0.5, n);
-        n = Math.round(n * 1000) / 1000;
-        return '&interval=' + n + 's';
-    },
-
-    addCustom: function(custom) {
-
-        var result = '&per_host=False';
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
 
         if(this.specificHost) {
             result += '&host=' + this.specificHost;
         }
 
         return result;
+    },
+
+    computeLookbackAndInterval: function() {
+
+        // compute epochNow, globalLookback, globalRefresh
+        // this.getGlobalLookbackRefresh();
+        if (this.linkedCollection.isZoomed) {
+            this.gte = this.linkedCollection.zoomedStart;
+            this.epochNow = this.linkedCollection.zoomedEnd;
+        } else {
+            this.gte = this.linkedCollection.gte;
+            this.epochNow = this.linkedCollection.epochNow;
+        }
+
     },
 
 });

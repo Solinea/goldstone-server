@@ -3469,9 +3469,22 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     },
 
-    addInterval: function(n) {
-        n = n || this.interval;
-        n = (n * 0.2);
+    addInterval: function() {
+        var n;
+        var start;
+        var end;
+
+        if(this.isZoomed) {
+            start = this.zoomedStart;
+            end = this.zoomedEnd;
+        } else {
+            start = this.gte;
+            end = this.epochNow;
+        }
+
+        n = ((end - start) / 20000);
+        n = Math.max(0.5, n);
+        n = Math.round(n * 1000) / 1000;
         return '&interval=' + n + 's';
     },
 
@@ -3488,6 +3501,87 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
 });
 ;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+/*
+instantiated in logSearchPageView.js as:
+
+    this.logAnalysisCollection = new LogAnalysisCollection({});
+
+    ** and the view as:
+
+    this.logAnalysisView = new LogAnalysisView({
+        collection: this.logAnalysisCollection,
+        width: $('.log-analysis-container').width(),
+        height: 300,
+        el: '.log-analysis-container',
+        featureSet: 'logEvents',
+        chartTitle: 'Log Analysis',
+        urlRoot: "/logging/summarize?",
+
+    });
+
+*/
+
+var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addCustom: function() {
+
+        var result = '&syslog_severity__terms=[';
+
+        levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toUpperCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+
+        if(this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
+    },
+
+    computeLookbackAndInterval: function() {
+
+        // compute epochNow, globalLookback, globalRefresh
+        // this.getGlobalLookbackRefresh();
+        if (this.linkedCollection.isZoomed) {
+            this.gte = this.linkedCollection.zoomedStart;
+            this.epochNow = this.linkedCollection.zoomedEnd;
+        } else {
+            this.gte = this.linkedCollection.gte;
+            this.epochNow = this.linkedCollection.epochNow;
+        }
+
+    },
+
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -8269,6 +8363,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
+    processListenersForServerSide: function() {
+        // overwriting so that dataTable only renders as a result of actions
+        // from viz above
+    },
+
+
     update: function() {
         var oTable;
 
@@ -8451,21 +8551,46 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+            this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/',
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize/?",
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    });
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            featureSet: 'logEvents',
+            height: 300,
+            infoText: 'searchLogAnalysis',
+            marginLeft: 60,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });    
+        this.logBrowserTableCollection.urlBase = "/logging/search/";
+        this.logBrowserTableCollection.addRange = function() {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        };
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+
 */
 
-// refactored version in process
 var LogBrowserViz = GoldstoneBaseView.extend({
 
     margin: {
@@ -8506,9 +8631,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     },
 
     constructUrl: function() {
-        var self = this;
         this.collection.urlGenerator();
-        // this.collection.fetchWithReset();
     },
 
     processListeners: function() {
@@ -8675,19 +8798,17 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
         zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
 
-        // self.start = zoomedStart;
-        // self.end = Math.min(+new Date(), zoomedEnd);
 
+        // avoids getting stuck with times greater than now.
         if (zoomedEnd - zoomedStart < 2000) {
-            zoomedStart -= 1000;
-            zoomedEnd += 1000;
+            zoomedStart -= 2000;
         }
 
         this.collection.zoomedStart = zoomedStart;
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
         this.constructUrl();
-        return null;
+        return;
     },
 
     dblclicked: function(coordinates) {
@@ -8708,7 +8829,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // if self.filter isn't defined yet, only do
         // this once
-        if (self.filter === null) {
+        if (!self.filter) {
             self.filter = {};
             _.each(logLevels, function(item) {
                 self.filter[item] = true;
@@ -9118,259 +9239,9 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             self.update();
         });
 
-        // eliminates the immediate re-rendering of search table
-        // upon initial chart instantiation
-        // this.refreshSearchTableAfterOnce();
-
         this.redraw();
 
     },
-
-    // refreshSearchTableAfterOnce: function() {
-    //     var self = this;
-    //     var self = this;
-    //     if (--self.refreshCount < 1) {
-    //         self.refreshSearchTable();
-    //     }
-    // },
-
-    // searchDataErrorMessage: function(message, errorMessage, location) {
-
-    //     // 2nd parameter will be supplied in the case of an
-    //     // 'error' event such as 504 error. Othewise,
-    //     // function will append message supplied such as 'no data'.
-
-    //     if (errorMessage !== undefined) {
-    //         message = errorMessage.responseText;
-    //         message = '' + errorMessage.status + ' error: ' + message;
-    //     }
-
-    //     // calling raiseAlert with the 3rd param will supress auto-hiding
-    //     // goldstone.raiseAlert($(location), message, true);
-    //     goldstone.raiseAlert($(location), message, true);
-
-    // },
-
-    // clearSearchDataErrorMessage: function(location) {
-    //     // if error message already exists on page,
-    //     // remove it in case it has changed
-    //     if ($(location).length) {
-    //         $(location).fadeOut("slow");
-    //     }
-    // },
-
-    // urlGen: function() {
-    //     var self = this;
-
-    //     var uri = '/logging/search/?';
-
-    //     if (self.specificHost) {
-    //         uri += 'host=' + self.specificHost + '&';
-    //     }
-
-    //     uri += '@timestamp__range={"gte":' +
-    //         self.start +
-    //         ',"lte":' +
-    //         self.end +
-    //         '}&syslog_severity__terms=[';
-
-    //     levels = self.filter || {};
-    //     for (var k in levels) {
-    //         if (levels[k]) {
-    //             uri = uri.concat('"', k.toUpperCase(), '",');
-    //         }
-    //     }
-    //     uri += "]";
-
-    //     uri = uri.slice(0, uri.indexOf(',]'));
-    //     uri += "]";
-
-    //     this.url = uri;
-
-    //     /*
-    //     makes a url such as:
-    //     /logging/search/?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
-    //     with "&host=node-01" added in if this is a node report page
-    //     */
-    // },
-
-    // dataPrep: function(data) {
-    //     var self = this;
-
-    //     data = JSON.parse(data);
-    //     _.each(data.results, function(item) {
-
-    //         // if any field is undefined, dataTables throws an alert
-    //         // so set to empty string if otherwise undefined
-    //         item['@timestamp'] = item['@timestamp'] || '';
-    //         item.syslog_severity = item.syslog_severity || '';
-    //         item.component = item.component || '';
-    //         item.log_message = item.log_message || '';
-    //         item.host = item.host || '';
-    //     });
-
-    //     return {
-    //         recordsTotal: data.count,
-    //         recordsFiltered: data.count,
-    //         result: data.results
-    //     };
-    // },
-
-    // refreshSearchTable: function() {
-    //     var self = this;
-    //     var self = this;
-
-    //     var oTable;
-
-    //     if ($.fn.dataTable.isDataTable("#log-search-table")) {
-    //         oTable = $("#log-search-table").DataTable();
-    //         // oTable.ajax.url(uri);
-    //         oTable.ajax.reload();
-    //     }
-    // },
-
-    // drawSearchTable: function(location, start, end) {
-    //     var self = this;
-    //     var self = this;
-
-    //     $("#log-table-loading-indicator").show();
-
-    //     var oTable;
-
-    //     var uri = this.urlGen(start, end);
-
-    //     if ($.fn.dataTable.isDataTable(location)) {
-    //         oTable = $(location).DataTable();
-    //         // oTable.ajax.url(uri);
-    //         // oTable.ajax.reload();
-    //     } else {
-    //         var oTableParams = {
-    //             "info": true,
-    //             "bAutoWidth": false,
-    //             "autoWidth": true,
-    //             "processing": true,
-    //             "lengthChange": true,
-    //             "paging": true,
-    //             "searching": true,
-    //             "ordering": true,
-    //             "order": [
-    //                 [0, 'desc']
-    //             ],
-    //             "serverSide": true,
-    //             "ajax": {
-    //                 beforeSend: function(obj, settings) {
-
-    //                     // the url generated by urlGen will be available
-    //                     // as this.url
-    //                     self.urlGen();
-
-    //                     // the pageSize and searchQuery are jQuery values
-    //                     var pageSize = $('div#intel-search-data-table').find('select.form-control').val();
-    //                     var searchQuery = $('div#intel-search-data-table').find('input.form-control').val();
-
-    //                     // the paginationStart is taken from the dataTables
-    //                     // generated serverSide query string that will be
-    //                     // replaced by this.url after the required
-    //                     // components are parsed out of it
-    //                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-    //                     paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
-    //                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-    //                     var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
-
-    //                     // capture which column was clicked
-    //                     // and which direction the sort is called for
-
-    //                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
-
-    //                     // the url that will be fetched is now about to be
-    //                     // replaced with the urlGen'd url before adding on
-    //                     // the parsed components
-    //                     settings.url = self.url + "&page_size=" + pageSize +
-    //                         "&page=" + computeStartPage;
-
-    //                     // here begins the combiation of additional params
-    //                     // to construct the final url for the dataTable fetch
-    //                     if (searchQuery) {
-    //                         settings.url += "&_all__regexp=.*" +
-    //                             searchQuery + ".*";
-    //                     }
-
-    //                     // if no interesting sort, ignore it
-    //                     if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-    //                         // or, if something has changed, capture the
-    //                         // column to sort by, and the sort direction
-
-    //                         var columnLabelHash = {
-    //                             0: '@timestamp',
-    //                             1: 'syslog_severity',
-    //                             2: 'component',
-    //                             3: 'host',
-    //                             4: 'log_message'
-    //                         };
-
-    //                         var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-    //                         var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-    //                         var ascDec;
-    //                         if (orderByDirection === 'asc') {
-    //                             ascDec = '';
-    //                         } else {
-    //                             ascDec = '-';
-    //                         }
-
-    //                         // TODO: uncomment when ordering is in place.
-    //                         // settings.url = settings.url + "&ordering=" +
-    //                         //     ascDec + columnLabelHash[orderByColumn];
-    //                     }
-    //                 },
-    //                 dataFilter: function(data) {
-
-    //                     /* dataFilter is analagous to the purpose of ajax 'success',
-    //                     but you can't also use 'success' as then dataFilter
-    //                     will not be triggered */
-
-    //                     // clear any error messages when data begins to flow again
-    //                     self.clearSearchDataErrorMessage('.search-popup-message');
-
-    //                     var result = self.dataPrep(data);
-
-    //                     // dataTables expects JSON encoded result
-    //                     // return result;
-    //                     return JSON.stringify(result);
-
-    //                 },
-    //                 error: function(data) {
-    //                     self.searchDataErrorMessage(null, data, '.search-popup-message');
-    //                 },
-    //                 dataSrc: "result"
-    //             },
-    //             "columnDefs": [{
-    //                 "data": "@timestamp",
-    //                 "type": "date",
-    //                 "targets": 0,
-    //                 "render": function(data, type, full, meta) {
-    //                     return moment(data).format();
-    //                 }
-    //             }, {
-    //                 "data": "syslog_severity",
-    //                 "targets": 1
-    //             }, {
-    //                 "data": "component",
-    //                 "targets": 2
-    //             }, {
-    //                 "data": "host",
-    //                 "targets": 3
-    //             }, {
-    //                 "data": "log_message",
-    //                 "targets": 4
-    //             }]
-    //         };
-    //         oTable = $(location).DataTable(oTableParams);
-    //     }
-    //     $("#log-table-loading-indicator").hide();
-    // },
 
     redraw: function() {
 
@@ -9393,6 +9264,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
+        this.trigger('chartUpdate');
     },
 
     template: _.template(
@@ -9479,6 +9351,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
+        var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
             urlBase: '/logging/summarize/',
 
@@ -9500,13 +9373,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
 
-        this.logBrowserTableCollection = new GoldstoneBaseCollection({
-            skipFetch: true
+        this.logBrowserTableCollection = new LogBrowserTableCollection({
+            skipFetch: true,
+            specificHost: this.specificHost,
+            urlBase: '/logging/search/',
+            linkedCollection: this.logBrowserVizCollection
         });    
-        this.logBrowserTableCollection.urlBase = "/logging/search/";
-        this.logBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -9514,6 +9386,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             el: '#log-viewer-table',
             infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
+        });
+
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
         });
 
         // check for compliance addon and render predefined search bar if present
@@ -9525,13 +9402,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 });
 
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-
             }
         }
 
         this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
 
-        // stopListenging to predefinedSearchModule upon close, if present
+        // stopListening to predefinedSearchModule upon close, if present
         if (this.predefinedSearchModule !== undefined) {
             this.viewsToStopListening.push(this.predefinedSearchModule);
         }

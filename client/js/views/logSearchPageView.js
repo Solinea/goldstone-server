@@ -35,6 +35,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
+        var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
             urlBase: '/logging/summarize/',
 
@@ -56,13 +57,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
 
-        this.logBrowserTableCollection = new GoldstoneBaseCollection({
-            skipFetch: true
+        this.logBrowserTableCollection = new LogBrowserTableCollection({
+            skipFetch: true,
+            specificHost: this.specificHost,
+            urlBase: '/logging/search/',
+            linkedCollection: this.logBrowserVizCollection
         });    
-        this.logBrowserTableCollection.urlBase = "/logging/search/";
-        this.logBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -70,6 +70,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             el: '#log-viewer-table',
             infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
+        });
+
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
         });
 
         // check for compliance addon and render predefined search bar if present
@@ -81,13 +86,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 });
 
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-
             }
         }
 
         this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
 
-        // stopListenging to predefinedSearchModule upon close, if present
+        // stopListening to predefinedSearchModule upon close, if present
         if (this.predefinedSearchModule !== undefined) {
             this.viewsToStopListening.push(this.predefinedSearchModule);
         }

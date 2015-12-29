@@ -36,6 +36,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
+    processListenersForServerSide: function() {
+        // overwriting so that dataTable only renders as a result of actions
+        // from viz above
+    },
+
+
     update: function() {
         var oTable;
 
