@@ -14,6 +14,17 @@
 # limitations under the License.
 
 
+def get_client(session=None):
+    """Get a nova v2 client from a keystone session."""
+
+    from goldstone.keystone.utils import get_session
+    from novaclient import client
+
+    if session is None:
+        session = get_session()
+    return client.Client('2', session=session)
+
+
 def update_nodes():
     """Update the Resource graph's Nova nodes and edges from the current
     OpenStack cloud state.

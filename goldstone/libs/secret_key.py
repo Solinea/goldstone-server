@@ -15,12 +15,13 @@
 from __future__ import with_statement  # Python 2.5 compliance
 
 import grp
-import lockfile
 import logging
 import os
 import pwd
 import random
 import string
+
+import lockfile
 
 logger = logging.getLogger(__name__)
 

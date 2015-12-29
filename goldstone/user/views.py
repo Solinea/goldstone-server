@@ -17,9 +17,10 @@ import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from djoser import views as djoser_views
-from goldstone.tenants.models import Tenant
 from rest_framework.serializers import ModelSerializer
 from rest_framework.fields import CharField
+
+from goldstone.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 

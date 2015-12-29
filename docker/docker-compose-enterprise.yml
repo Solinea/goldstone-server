@@ -33,7 +33,7 @@ gsweb:
 # Goldstone Server Container
 gsapp:
   image: gs-docker-ent.bintray.io/goldstone-app-e:0.7.3
-  env_file: ./config/goldstone-test.env
+  env_file: ./config/goldstone-prod.env
   volumes:
     - ./config/goldstone-app:/home/app/config
     - /usr/share/nginx/html/static
@@ -51,11 +51,11 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db:0.7.3
-  env_file: ./config/goldstone-test.env
-  ports:
-    - "5432:5432"
+  env_file: ./config/goldstone-prod.env
   volumes_from:
     - gsdbdvc
+  ports:
+    - "5432:5432"
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"

@@ -19,6 +19,8 @@ gsweb:
   volumes:
     - ./config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
     - ./config/goldstone-web/conf.d:/etc/nginx/conf.d
+  volumes_from:
+    - gsapp
   ports:
     - "8888:8888"
   links:
@@ -34,6 +36,7 @@ gsapp:
   env_file: ./config/goldstone-prod.env
   volumes:
     - ./config/goldstone-app:/home/app/config
+    - /usr/share/nginx/html/static
   ports:
     - "8000:8000"
   links:
