@@ -36,4 +36,37 @@ instantiated in logSearchPageView.js as:
 
 */
 
-var LogBrowserCollection = GoldstoneBaseCollection.extend({});
+var LogBrowserCollection = GoldstoneBaseCollection.extend({
+
+    isZoomed: false,
+    zoomedStart: null,
+    zoomedEnd: null,
+
+    addRange: function() {
+
+        if(this.isZoomed) {
+            return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
+        } else {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        }
+
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        n = (n * 0.2);
+        return '&interval=' + n + 's';
+    },
+
+    addCustom: function(custom) {
+
+        var result = '&per_host=False';
+
+        if(this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
+    },
+
+});
