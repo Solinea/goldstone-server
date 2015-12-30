@@ -1,0 +1,21 @@
+  - model: core.SavedSearch
+    pk: 4c010ac2-d437-460a-a6cf-5234eceff5b2
+    fields:
+      name: openstack syslog errors
+      owner: events
+      query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}}'
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: '@timestamp'
+      protected: true
+
+  - model: core.SavedSearch
+    pk: 6e940772-7bb3-4587-ac1b-92cdcddd9c61
+    fields:
+      name: generic syslog errors
+      owner: events
+      query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}}'
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: '@timestamp'
+      protected: true

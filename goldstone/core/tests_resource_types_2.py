@@ -434,7 +434,7 @@ class ResourceAddonTypes(Setup):
 
         # Test data. The add-on name will fake out import_module so that it
         # imports the desired test models file.
-        DATA = [{"name": "goldstone.core.test_addons_nomodels",
+        DATA = [{"name": "core.test_addons_nomodels",
                  "version": "42",
                  "manufacturer": "Lynbrook Senior High School",
                  "url_root": "lynbrook"},
@@ -458,7 +458,7 @@ class ResourceAddonTypes(Setup):
 
         # Test data. The add-on name will fake out import_module so that it
         # imports the desired test models file.
-        DATA = [{"name": "goldstone.core.test_addons_models",
+        DATA = [{"name": "core.test_addons_models",
                  "version": "42",
                  "manufacturer": "Lynbrook Senior High School",
                  "url_root": "lynbrook"},

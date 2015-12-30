@@ -42,7 +42,7 @@ limitations under the License.
         {% if compliance_installed %}
             <link rel="stylesheet" href="/static/client-css/compliance.css" rel="stylesheet" media="screen">
         {% endif %}
-        <!-- Append addon link tags via fab routine prior to here -->
+        <!-- Append addon link tags prior to here -->
     </head>
     <body class="dashboard">
         <!--Page Wrapper Start-->
@@ -119,11 +119,17 @@ limitations under the License.
                             <span class="btn-txt">Chart Settings</span>
                         </li>
                     </a> -->
+                    <span class="addon-menu-view-container">
+                   <!-- dynamically inserted by addonMenuView -->
+                    </span>
                         <li class="menu-toggle" data-toggle="tooltip" data-placement="right" title="" data-original-title="Expand">
                             <span class="btn-icon-block"><i class="icon expand">&nbsp;</i></span>
                             <span class="btn-txt">Icons Only</span>
                         </li>
                 </ul>
+
+                <!-- beginning of alert menu -->
+
                 <div class="tab-content">
                     <div class="tab alert-tab">
                         <h4 class="header-block">Alerts</h4>
@@ -142,20 +148,10 @@ limitations under the License.
                                             </div>
                                             <i class="remove-btn">&nbsp;</i>
                                         </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li> -->
+                                        
+                                        populate additional alerts as
+                                        additional <li> elements
+                                        -->
                                     </ul>
                                 </div>
                                 <div class="tabs"></div>
@@ -163,157 +159,7 @@ limitations under the License.
                         </div>
                     </div>
 
-                    <!-- beginning of extra alert tabs -->
-
-                    <div class="tab alert-tab">
-                        <h4 class="header-block">Alerts2</h4>
-                        <div class="subtab">
-                            <ul class="tab-links">
-                                <li class="active">Unread</li>
-                                <li>All</li>
-                            </ul>
-                            <div class="sub-tab-content">
-                                <div class="tabs">
-                                    <ul class="list-content">
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab alert-tab">
-                        <h4 class="header-block">Alerts3</h4>
-                        <div class="subtab">
-                            <ul class="tab-links">
-                                <li class="active">Unread</li>
-                                <li>All</li>
-                            </ul>
-                            <div class="sub-tab-content">
-                                <div class="tabs">
-                                    <ul class="list-content">
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="tabs"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab alert-tab">
-                        <h4 class="header-block">Alerts4</h4>
-                        <div class="subtab">
-                            <ul class="tab-links">
-                                <li class="active">Unread</li>
-                                <li>All</li>
-                            </ul>
-                            <div class="sub-tab-content">
-                                <div class="tabs">
-                                    <ul class="list-content">
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="tabs"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab alert-tab">
-                        <h4 class="header-block">Alerts5</h4>
-                        <div class="subtab">
-                            <ul class="tab-links">
-                                <li class="active">Unread</li>
-                                <li>All</li>
-                            </ul>
-                            <div class="sub-tab-content">
-                                <div class="tabs">
-                                    <ul class="list-content">
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                        <li>
-                                            <div class="msg-block">
-                                                <span class="msg">Your cloud topology has been generated</span>
-                                                <span class="time">Just Now (October 2, 2015 at 7:24 PM))</span>
-                                            </div>
-                                            <i class="remove-btn">&nbsp;</i>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="tabs"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!--  end of final alert tab -->
+                    <!-- end of alert menu -->
 
                 </div>
             </div>
@@ -371,7 +217,6 @@ limitations under the License.
         {% if compliance_installed %}
             <script src="{% static 'client-js/compliance.js' %}"></script>
         {% endif %}
-
         <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
         <!-- django is loading router.html which extends this html template and -->
         <!-- fills in block localjs with a number of post-dom-ready function calls -->
@@ -432,16 +277,7 @@ limitations under the License.
 
             // start the backbone router that will handle /# calls
             Backbone.history.start();
-
-            // subscribe the addonMenuView item to the router object
-            // which will emit a trigger when a view is switched out
-
-            // goldstone.addonMenuView.listenTo(goldstone.gsRouter, 'switchingView', function() {
-            // calling refreshAddonsMenu without passing true as an argument
-            // will update the add-ons drop-down menu, but will not again
-            // re-register the url routes with Backbone router.
-            // this.refreshAddonsMenu();
-            // });
+            
             });
             </script>
         {% endblock %}

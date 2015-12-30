@@ -17,15 +17,20 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 import elasticsearch
+from pycadf import event, cadftaxonomy
+from elasticsearch_dsl import Search
 import mock
 from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase
+from goldstone.drfes.models import DailyIndexDocType
 
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
-    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
+    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon, \
+    SavedSearch, EventQueryDef, PycadfEventConverter
+from goldstone.tests import ElasticSearchTests
 
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
@@ -91,6 +96,83 @@ class TaskTests(SimpleTestCase):
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
+
+
+class PycadfEventConverterTests(SimpleTestCase):
+    """
+        Test PycadfEventConverter class for correctness
+    """
+
+    @classmethod
+    def test_event_save(cls):
+        converter = PycadfEventConverter()
+        event_saved_flag = converter.save(converter)
+        print event_saved_flag
+        assert(event_saved_flag)
+
+
+class PycadflibraryTests(SimpleTestCase):
+    """ Test pycadf library for correctness
+
+    """
+    pycadf_event = ''
+
+    @classmethod
+    def test_pycadf_event_create(self):
+
+        new_event = event.Event()
+        print new_event
+        assert(new_event)
+        isinstance(new_event, event.Event)
+        assert(new_event.id)
+        self.pycadf_event = new_event
+
+    @classmethod
+    def test_pycadf_event_save(self):
+        d = DailyIndexDocType()
+        save_flag = True
+        # TBD : To test save() es_dsl connection needs to be established.
+        # save_flag = d.save(index='events_2015-12-18',
+        #                   event_instance=self.pycadf_event)
+        assert(save_flag)
+
+
+class SavedSearchModelTests(TestCase):
+    """
+
+    Test the
+    Test SavedSearch model for :
+    1. Given a query-string, build a correct elastic search query object
+    2. Given this query object, execute the query against the log indices
+    3. Return the rows of results back to caller
+    4. Fire an independent elastic search query and compare results with 3.
+    """
+
+    fixtures = ['initial_data.yaml']
+
+    def setUp(self):
+        setup_flag = True
+        assert(setup_flag)
+
+    @classmethod
+    def test_loaded_data_from_fixtures(cls):
+        assert(SavedSearch.objects.all())
+
+    @classmethod
+    def test_execute_query_func(self):
+        savedsearch_instance = SavedSearch(name='test_savedsearch')
+        rv = savedsearch_instance.execute_query('sys_log_err_type_search_1')
+        assert isinstance(rv, Search)
+        assert (rv)
+        # TBD : Compare expected vs returned results
+        # self.assertIsNotNone(rv,
+        # msg="Elastic Search query returned null result")
+
+    @classmethod
+    def test_search_by_syslog_err_type_func(cls):
+        event_query = EventQueryDef()
+        rv = event_query.search_by_syslog_err_type()
+        assert (rv)
 
 
 class PolyResourceModelTests(SimpleTestCase):

@@ -194,7 +194,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
             var firstTsData = payload[0] !== undefined ? payload[0] : [];
-            var myUuid = goldstone.uuid()();
             var filteredFirstTsData;
             var keys;
             var columns;
@@ -206,7 +205,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // otherwise it will === undefined
             if (firstTsData[0] !== undefined) {
                 firstTsData = _.map(firstTsData, function(e) {
-                    e.datatableRecId = goldstone.uuid()();
+                    e.datatableRecId = goldstone.uuid();
                     return e;
                 });
 
