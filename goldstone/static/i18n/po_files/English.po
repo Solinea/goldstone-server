@@ -65,7 +65,7 @@ msgctxt "apibrowserpage"
 msgid "Api Browser"
 msgstr ""
 
-#: apiBrowserPageView.js
+#: apiBrowserDataTableView.js
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
@@ -687,16 +687,6 @@ msgstr ""
 msgid "List of Leases"
 msgstr ""
 
-
-
-
-#: logAnalysisView.js
-
-#: logAnalysisView.js
-msgctxt "loganalysis"
-msgid "Log Events"
-msgstr ""
-
 #: loginPageView.js
 
 #: loginPageView.js
@@ -737,37 +727,47 @@ msgid "Failed to initialize installed addons"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+
+msgctxt "logbrowserpage"
+msgid "Log Browser"
+msgstr ""
+
+msgctxt "logbrowserpage"
+msgid "Log Events"
+msgstr ""
+
+#: logSearchPageView.js
+msgctxt "logbrowserdata"
 msgid "Timestamp"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserdata"
 msgid "Syslog Severity"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserdata"
 msgid "Component"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserdata"
 msgid "Host"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserdata"
 msgid "Message"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserpage"
 msgid "Logs vs Time"
 msgstr ""
 
 #: logSearchPageView.js
-msgctxt "logsearchpage"
+msgctxt "logbrowserdata"
 msgid "Search Results"
 msgstr ""
 
