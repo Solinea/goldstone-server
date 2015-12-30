@@ -53,7 +53,7 @@ module.exports = {
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
-    jshintAddons: 'goldstone/**/*.js',
+    jshintAddons: 'goldstone/compliance/static/**/*.js',
     testAddons: 'goldstone/**/client-test/*.js',
     testAddonsJavaScript: 'goldstone/compliance/static/client-js/compliance.js',
     e2e: ['test/e2e/*.js'],
