@@ -79,13 +79,13 @@ class SavedSearch(models.Model):
         s = self.search()
         s = s.query('range',
                     ** {self.timestamp_field:
-                            {'gt': start.isoformat(),
-                             'lte': end.isoformat()}})
+                        {'gt': start.isoformat(),
+                            'lte': end.isoformat()}})
         return s, start, end
 
 
-class CADFEvent(DailyIndexDocType):
-    """ES representation of a CADF event. Attempting to write traits that are
+class PyCadfEventMarshal(DailyIndexDocType):
+    """ES representation of a PyCADF event. Attempting to write traits that are
     not present in the Nested definition will result in an exception, though
     reading events from ES that have additional traits should succeed. Subclass
     this class to define custom traits for your own event types.
@@ -93,7 +93,7 @@ class CADFEvent(DailyIndexDocType):
 
     INDEX_DATE_FMT = 'YYYY-MM-DD'
 
-    traits=Nested(
+    traits = Nested(
         properties={
             'action': String(),
             'eventTime': Date(),
@@ -117,7 +117,7 @@ class CADFEvent(DailyIndexDocType):
             kwargs = dict(
                 kwargs.items() + self._get_traits_dict(event).items())
 
-        super(CADFEvent, self).__init__(meta, **kwargs)
+        super(PyCadfEventMarshal, self).__init__(meta, **kwargs)
 
     @staticmethod
     def _get_traits_dict(e):

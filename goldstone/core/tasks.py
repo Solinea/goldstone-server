@@ -19,7 +19,7 @@ from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 
 from goldstone.celery import app as celery_app
-from goldstone.core.new_models import SavedSearch, CADFEvent
+from goldstone.core.new_models import SavedSearch, PyCadfEventMarshal
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +118,7 @@ def log_event_search():
     event_observer = event_initiator
 
     event_target = resource.Resource(typeURI="service/oss/monitoring",
-                                        name="logging_service")
-
+                                     name="logging_service")
 
     # limit our searches to those owned by us, and concerned with logs
     saved_searches = SavedSearch.objects.filter(
@@ -149,5 +148,5 @@ def log_event_search():
         obj.last_end = end
         obj.save()
 
-    cadf = CADFEvent(event=e)
+    cadf = PyCadfEventMarshal(event=e)
     return cadf.save()
