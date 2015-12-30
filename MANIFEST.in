@@ -16,7 +16,6 @@ prune bin
 prune CLA
 prune design_docs
 prune docker
-prune external
 prune rpm_packaging
 prune test
 prune test_data

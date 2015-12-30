@@ -129,12 +129,19 @@ class RouterView(TemplateView):
 
         """
 
+        context = super(RouterView, self).get_context_data(**kwargs)
+
+        # check for existance of compliance module and add to context so
+        # templates can sew in JS and CSS as necessary.
+        if 'goldstone.compliance' in settings.INSTALLED_APPS:
+            context['compliance_installed'] = True
+
         # The i18n JSON file we read, and the template variable we load its
         # contents into.
         I18N_FILE = "goldstone/static/i18n/po_json/i18n_combined.json"
         I18N_VARIABLE = "i18n_po_json_i18n_combined_json"
 
-        context = super(RouterView, self).get_context_data(**kwargs)
+
 
         # Include this file's contents as a template variable.
         try:

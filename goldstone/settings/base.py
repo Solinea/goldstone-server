@@ -26,6 +26,9 @@ from kombu import Exchange, Queue
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
 
+# support testing for installed and available submodule
+COMPLIANCE_INIT_FILE = os.path.join(CURRENT_DIR, '../compliance/__init__.py')
+
 
 def get_env_variable(var_name):
     """Return an environment variable or exception."""
@@ -81,6 +84,10 @@ INSTALLED_APPS = (
     'goldstone.tenants',
     'goldstone.user',
 )
+
+# Handle known submodules
+if os.path.exists(COMPLIANCE_INIT_FILE):
+    INSTALLED_APPS = INSTALLED_APPS + ('goldstone.compliance',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -162,34 +169,22 @@ CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
 )
 
+# Definitions for the prune task. Indices older than this number of this time
+# unit are periodically pruned.
+PRUNE_OLDER_THAN = 7
+PRUNE_TIME_UNITS = "days"
+PRUNE_INDICES = ['logstash-', 'events_', 'goldstone-', 'goldstone_metrics-']
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
-ES_GOLDSTONE_RETENTION = 30
-ES_LOGSTASH_RETENTION = 30
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
+
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
-    'delete_goldstone_indices': {
-        'task': 'goldstone.core.tasks.delete_indices',
+    'prune_es_indices': {
+        'task': 'goldstone.core.tasks.prune_es_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('goldstone-', ES_GOLDSTONE_RETENTION)
-    },
-    'delete_logstash_indices': {
-        'task': 'goldstone.core.tasks.delete_indices',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('logstash-', ES_LOGSTASH_RETENTION)
-    },
-    'delete_goldstone_reports_indices': {
-        'task': 'goldstone.core.tasks.delete_indices',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('goldstone_reports-', ES_LOGSTASH_RETENTION)
-    },
-    'delete_goldstone_metrics_indices': {
-        'task': 'goldstone.core.tasks.delete_indices',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('goldstone_metrics-', ES_LOGSTASH_RETENTION)
     },
     'create_daily_index': {
         'task': 'goldstone.core.tasks.create_daily_index',
@@ -225,8 +220,13 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
-# User-installed add-on tasks are inserted after this line.
 
+# Tasks for compliance are imported from the compliance module settings if
+# the module is present.
+if os.path.exists(COMPLIANCE_INIT_FILE):
+    from goldstone.compliance.settings import \
+        CELERYBEAT_SCHEDULE as COMPLIANCE_CELERYBEAT
+    CELERYBEAT_SCHEDULE.update(COMPLIANCE_CELERYBEAT)
 
 # Database row settings.
 OS_NAME_MAX_LENGTH = 60

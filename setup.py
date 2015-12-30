@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import setuptools
-
-# import sys
-# sys.prefix = "/opt/goldstone"
+from setuptools import setup, find_packages
 
 setuptools.setup(
     setup_requires=['pbr'],
-    pbr=True)
+    pbr=True,
+    packages=find_packages())

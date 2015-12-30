@@ -42,6 +42,27 @@ def delete_indices(prefix,
 
 
 @celery_app.task()
+def prune_es_indices():
+    """Prune old events_* indices."""
+    from subprocess import check_call
+
+    for prefix in settings.PRUNE_INDICES:
+        curator = ["curator",
+                   "delete",
+                   "indices",
+                   "--prefix",
+                   "%s" % prefix,
+                   "--older-than",
+                   "%d" % settings.PRUNE_OLDER_THAN,
+                   "--time-unit",
+                   "%s" % settings.PRUNE_TIME_UNITS,
+                   "--timestring",
+                   "%Y.%m.%d"]
+
+    check_call(curator)
+
+
+@celery_app.task()
 def update_persistent_graph():
     """Update the Resource graph's persistent data from the current OpenStack
     cloud state.

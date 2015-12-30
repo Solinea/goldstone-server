@@ -45,3 +45,5 @@ python-neutronclient==3.1.0
 python-novaclient==2.35.0
 urllib3==1.8
 wsgiref==0.1.2
+beautifulsoup4==4.4.1
+python-swiftclient==2.7.0

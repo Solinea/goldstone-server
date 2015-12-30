@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -55,3 +56,7 @@ urlpatterns += patterns(
 urlpatterns += tenants_urlpatterns
 
 urlpatterns += staticfiles_urlpatterns()
+
+# if the compliance module is here, let's bring it its URLs.
+if 'goldstone.compliance' in settings.INSTALLED_APPS:
+    urlpatterns += url(r'^compliance/', include("goldstone.compliance.urls")),
