@@ -53,11 +53,9 @@ module.exports = {
     ],
     testUnit: 'test/unit/*.js',
     testIntegration: 'test/integration/*.js',
-    jshintAddons: 'goldstone/static/addons/**/*.js',
-    testAddons: 'goldstone/static/addons/**/client-test/*.js',
-    /*  testAddonsJavaScript only works
-        if addons have js contained in main.js */
-    testAddonsJavaScript: 'goldstone/static/addons/**/client-js/main.js',
+    jshintAddons: 'goldstone/**/*.js',
+    testAddons: 'goldstone/**/client-test/*.js',
+    testAddonsJavaScript: 'goldstone/compliance/static/client-js/compliance.js',
     e2e: ['test/e2e/*.js'],
 
     // output locations of concatenated files
@@ -88,12 +86,11 @@ module.exports = {
     // location of source and destination of compliance files
     // files in `/head/` will come first, `/middle/` next, and `/tail/` last
     complianceConcatWildcards: [
-        'goldstone/static/addons/compliance/client-dev/head/*.js',
-        'goldstone/static/addons/compliance/client-dev/middle/*.js',
-        'goldstone/static/addons/compliance/client-dev/tail/*.js',
+        'goldstone/compliance/static/client-dev/head/*.js',
+        'goldstone/compliance/static/client-dev/middle/*.js',
+        'goldstone/compliance/static/client-dev/tail/*.js',
     ],
-    complianceConcatBundle: 'goldstone/static/addons/compliance/client-js/main.js',
-    complianceCopyFolder: 'goldstone/static/addons/compliance/',
-    complianceWatch: 'goldstone/static/addons/compliance/**/*',
-    complianceRepoCopy: '../goldstone-compliance/compliance/static/',
+    complianceConcatBundle: 'goldstone/compliance/static/client-js/compliance.js',
+    complianceCopyFolder: 'goldstone/compliance/static/',
+    complianceWatch: 'goldstone/compliance/static/client-dev/**/*'
 };

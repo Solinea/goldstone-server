@@ -170,7 +170,7 @@ module.exports = function(grunt) {
             },
             compliance: {
                 files: clientIncludeOrder.complianceWatch,
-                tasks: ['concat:compliance', 'clean:compliance', 'copy:compliance', 'lint', 'notify:compliance']
+                tasks: ['concat:compliance', 'notify:compliance']
             }
         },
 
@@ -223,30 +223,6 @@ module.exports = function(grunt) {
                 },
                 src: clientIncludeOrder.complianceConcatWildcards,
                 dest: clientIncludeOrder.complianceConcatBundle
-            }
-        },
-
-        // copy files between folders and/or repos
-        copy: {
-            compliance: {
-                files: [{
-                    cwd: clientIncludeOrder.complianceCopyFolder,
-                    src: ['**'],
-                    dest: clientIncludeOrder.complianceRepoCopy,
-                    flatten: false,
-                    expand: true,
-                    nonull: true
-                }]
-            }
-        },
-
-        // clean out directories, usually used prior to a 'copy' task
-        clean: {
-            compliance: {
-                src: [clientIncludeOrder.complianceRepoCopy],
-                options: {
-                    force: true
-                }
             }
         },
 
