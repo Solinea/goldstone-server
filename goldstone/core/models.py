@@ -126,7 +126,7 @@ class EventData(DailyIndexDocType):
 class ApiPerfData(DailyIndexDocType):
     """API performance record model."""
 
-    INDEX_PREFIX = 'goldstone-'
+    INDEX_PREFIX = 'api_stats-'
     SORT = '-@timestamp'
 
     # Field declarations.

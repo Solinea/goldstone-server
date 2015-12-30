@@ -1,4 +1,3 @@
-# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM logstash:2.1
-MAINTAINER Luke Heidecke <luke@solinea.com>
-
-RUN /opt/logstash/bin/plugin install logstash-filter-translate
-RUN /opt/logstash/bin/plugin install logstash-input-http
+#
+# push processed events to elasticsearch
+# 
+output {
+    if [type] == "api_stats" {
+        # stdout { codec => "rubydebug" }
+        elasticsearch {
+            hosts => ["gssearch:9200"]
+            index => "api_stats-%{+YYYY.MM.dd}"
+            workers => 1
+        }
+    }
+}

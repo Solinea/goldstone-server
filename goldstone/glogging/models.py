@@ -78,7 +78,7 @@ class LogData(DailyIndexDocType):
 
         # add a top-level aggregation for levels
         search.aggs.bucket('per_level', "terms",
-                           field="syslog_severity",
+                           field="syslog_severity.raw",
                            min_doc_count=0)
 
         if per_host:
@@ -96,12 +96,12 @@ class LogData(DailyIndexDocType):
 
             search.aggs['per_interval']['per_host'].bucket(
                 'per_level', 'terms',
-                field='syslog_severity',
+                field='syslog_severity.raw',
                 min_doc_count=0)
         else:
             search.aggs['per_interval'].bucket(
                 'per_level', 'terms',
-                field='syslog_severity',
+                field='syslog_severity.raw',
                 min_doc_count=0)
 
         response = search.execute().aggregations
@@ -156,7 +156,7 @@ class LogEvent(LogData):
 
         # add a top-level aggregation for types
         search.aggs.bucket('per_type', "terms",
-                           field="event_type",
+                           field="event_type.raw",
                            min_doc_count=0)
 
         if per_host:
@@ -174,12 +174,12 @@ class LogEvent(LogData):
 
             search.aggs['per_interval']['per_host'].bucket(
                 'per_type', 'terms',
-                field='event_type',
+                field='event_type.raw',
                 min_doc_count=0)
         else:
             search.aggs['per_interval'].bucket(
                 'per_type', 'terms',
-                field='event_type',
+                field='event_type.raw',
                 min_doc_count=0)
 
         response = search.execute().aggregations

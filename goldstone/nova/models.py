@@ -33,7 +33,7 @@ class SpawnsData(DailyIndexDocType):
         Build term aggregation for success field.
         """
 
-        return A('terms', field='success', size=0, min_doc_count=0,
+        return A('terms', field='success.raw', size=0, min_doc_count=0,
                  shard_min_doc_count=0)
 
     @classmethod
@@ -45,7 +45,7 @@ class SpawnsData(DailyIndexDocType):
         search.aggs. \
             bucket('per_interval',
                    cls._datehist_agg(interval, start, end)). \
-            bucket('per_success', A('terms', field='success', size=0,
+            bucket('per_success', A('terms', field='success.raw', size=0,
                                     min_doc_count=0, shard_min_doc_count=0))
 
         return search

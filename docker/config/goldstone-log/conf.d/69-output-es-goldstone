@@ -16,14 +16,11 @@
 # push processed events to elasticsearch
 # 
 output {
-    if [type] in ["nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
+    if [type] in ["nova_claims", "nova_spawns", "goldstone_nodeinfo"] {
         # stdout { codec => "rubydebug" }
         elasticsearch {
-            host => gssearch
-            port => 9200
-            protocol => http
+            hosts => ["gssearch:9200"]
             index => "goldstone-%{+YYYY.MM.dd}"
-            workers => 4
         }
     }
 }
