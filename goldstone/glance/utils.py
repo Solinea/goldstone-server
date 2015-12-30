@@ -14,6 +14,18 @@
 # limitations under the License.
 
 
+def get_client(session=None):
+    """Get a glance v2 client from a keystone session."""
+
+    from goldstone.keystone.utils import get_session
+    from glanceclient import client
+
+    if session is None:
+        session = get_session()
+
+    return client.Client(version='2', session=session)
+
+
 def update_nodes():
     """Update the Resource graph's Glance nodes and edges from the current
     OpenStack cloud state.

@@ -8,7 +8,7 @@ Before installing Goldstone, your environment must meet the following prerequisi
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 7.x
-* Docker >= 1.8.2 ([Install instructions](https://docs.docker.com/installation/centos/))
+* Docker >= 1.9.1 ([Install instructions](https://docs.docker.com/installation/centos/))
 * Docker running (`systemctl start docker`)
 * Docker configured to start at boot (`systemctl enable docker`)
 

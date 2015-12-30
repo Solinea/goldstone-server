@@ -15,7 +15,8 @@
 from __future__ import absolute_import
 import logging
 from goldstone.celery import app as celery_app
-from goldstone.utils import get_glance_client
+from goldstone.glance.utils import get_client
+from goldstone.keystone.utils import get_region
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def discover_glance_topology():
     """Update Goldstone's glance data."""
 
     # Get the system's sole OpenStack cloud.
-    glance_access = get_glance_client()
+    client = get_client()
+    region = get_region()
 
-    _update_glance_image_records(glance_access['client'],
-                                 glance_access['region'])
+    _update_glance_image_records(client, region)

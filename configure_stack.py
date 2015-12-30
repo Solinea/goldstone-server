@@ -16,7 +16,7 @@ from __future__ import print_function
 
 import os
 
-from fabric.api import task, local, run, settings as fab_settings
+from fabric.api import task, run, settings as fab_settings
 from fabric.colors import green, cyan
 from fabric.operations import prompt
 from fabric.contrib.files import upload_template, exists

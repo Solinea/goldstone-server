@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-from contextlib import contextmanager
 
 import os
-import platform
-
+import django
 from django.core.exceptions import ObjectDoesNotExist
 
 from fabric.colors import green, cyan, red
@@ -290,7 +288,6 @@ def docker_install():
 
 
 if __name__ == "__main__":
-    import django
     django.setup()
     print(green("starting postinstall steps for docker environment"))
     docker_install()

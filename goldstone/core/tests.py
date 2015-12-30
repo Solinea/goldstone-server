@@ -352,6 +352,7 @@ class PolyResourceModelTests(SimpleTestCase):
     def test_logs(self):
         """Test that the logs method returns an appropriate search object."""
 
+        # pylint: disable=R0204
         expectation = {'bool': {
             'must': [{'query_string': {'query': 'polly'}}],
             'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
@@ -643,7 +644,7 @@ class ProcessResourceType(Setup):
     """Test utilities.process_resource_type."""
 
     class EmptyClientObject(object):
-        """A class that simulates one of get_glance_client's return
+        """A class that simulates one of glance client's return
         values."""
 
         images_list = []
@@ -678,8 +679,7 @@ class ProcessResourceType(Setup):
         """
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        ggc.return_value = {"client": self.EmptyClientObject(),
-                            "region": "Siberia"}
+        ggc.return_value = self.EmptyClientObject()
 
         process_resource_type(Image)
 
@@ -705,8 +705,7 @@ class ProcessResourceType(Setup):
         load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        ggc.return_value = {"client": self.EmptyClientObject(),
-                            "region": "Siberia"}
+        ggc.return_value = self.EmptyClientObject()
 
         process_resource_type(Image)
 
@@ -750,8 +749,7 @@ class ProcessResourceType(Setup):
         load_persistent_rg(NODES, EDGES)
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        ggc.return_value = {"client": self.EmptyClientObject(),
-                            "region": "Siberia"}
+        ggc.return_value = self.EmptyClientObject()
 
         process_resource_type(Image)
 

@@ -47,12 +47,11 @@ def discover_cinder_topology():
     the documents into ES.
 
     """
-    from goldstone.utils import get_cinder_client
+    from goldstone.cinder.utils import get_client
+    from goldstone.keystone.utils import get_region
 
-    cinder_access = get_cinder_client()
-
-    cinderclient = cinder_access['client']
-    reg = cinder_access['region']
+    cinderclient = get_client()
+    reg = get_region()
 
     _update_cinder_records("services", reg, ServicesData(),
                            cinderclient.services.list())

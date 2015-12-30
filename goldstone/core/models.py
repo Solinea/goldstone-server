@@ -26,9 +26,12 @@ from polymorphic import PolymorphicModel
 from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 
-# Get_glance_client is defined here for easy unit test mocking.
-from goldstone.utils import get_glance_client, get_nova_client, \
-    get_cinder_client, get_keystone_client, get_cloud
+from goldstone.utils import get_cloud
+from goldstone.keystone.utils import get_client as get_keystone_client
+from goldstone.nova.utils import get_client as get_nova_client
+from goldstone.cinder.utils import get_client as get_cinder_client
+from goldstone.glance.utils import get_client as get_glance_client
+from goldstone.neutron.utils import get_client as get_neutron_client
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX
@@ -477,7 +480,7 @@ class User(PolyResource):
         """Because this is a topological leaf node, the returned list contains
         one entry."""
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         if keystone_client.users.list():
             return [{"name": "users",
@@ -546,7 +549,7 @@ class Domain(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         result = []
 
@@ -601,7 +604,7 @@ class Group(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         result = []
 
@@ -693,7 +696,7 @@ class Role(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         if keystone_client.users.list():
             return [{"name": "roles",
@@ -724,7 +727,7 @@ class Region(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         result = []
 
@@ -792,7 +795,7 @@ class Endpoint(PolyResource):
         """Because this is a topological leaf node, the returned list contains
         one entry per interface."""
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         # Note: Endpoints may have identical service_ids for the public,
         # private, and admin interfaces. The endpoint's dict will contain an
@@ -851,9 +854,11 @@ class Service(PolyResource):
         one entry per Keystone, Cinder, or Nova, if services exist for them."""
 
         # Set up to loop over the clients.
-        keystone_client = get_keystone_client()['client']
-        cinder_client = get_cinder_client()['client']
-        nova_client = get_nova_client()['client']
+        keystone_client = get_keystone_client()
+        cinder_client = get_cinder_client()
+        nova_client = get_nova_client()
+
+        # TODO add glance and neutron
 
         clients = [[keystone_client, "keystone services"],
                    [nova_client, "nova services"],
@@ -897,7 +902,7 @@ class Project(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        keystone_client = get_keystone_client()['client']
+        keystone_client = get_keystone_client()
 
         result = []
 
@@ -1087,8 +1092,7 @@ class AvailabilityZone(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1159,8 +1163,7 @@ class Aggregate(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1207,8 +1210,7 @@ class Flavor(PolyResource):
         """Because this is a topological leaf node, the returned list contains
         one entry. """
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         if nova_client.flavors.list():
             return [{"name": "flavors",
@@ -1267,8 +1269,7 @@ class Keypair(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1344,8 +1345,7 @@ class Host(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
         hosts = [x.to_dict() for x in nova_client.hosts.list()]
 
         # Nova has no problem showing you multiple instance of the same host.
@@ -1440,8 +1440,7 @@ class Hypervisor(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1512,8 +1511,7 @@ class Cloudpipe(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1562,8 +1560,7 @@ class ServerGroup(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1597,8 +1594,7 @@ class Server(PolyResource):
         """Because this is a topological leaf node, the returned list contains
         one entry per availability_zone."""
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
         seen_zones = set()
@@ -1690,8 +1686,7 @@ class Interface(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         # Each server has an interface list. Since we're interested in the
         # Interfaces themselves, we flatten the list, and de-dup it.
@@ -1750,8 +1745,7 @@ class NovaLimits(PolyResource):
     @classmethod
     def clouddata(cls):
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
+        nova_client = get_nova_client()
 
         result = []
 
@@ -1825,7 +1819,7 @@ class Image(PolyResource):
         """Because this is a topological leaf node, the returned list contains
         one entry."""
 
-        glance_client = get_glance_client()["client"]
+        glance_client = get_glance_client()
 
         if glance_client.images.list():
             return [{"name": "images",
@@ -1939,7 +1933,7 @@ class QOSSpec(PolyResource):
 
         result = []
 
-        for entry in get_cinder_client()["client"].qos_specs.list():
+        for entry in get_cinder_client().qos_specs.list():
             # Make a dict for this entry.
             this_entry = entry.to_dict()
 
@@ -1981,7 +1975,7 @@ class Snapshot(PolyResource):
 
         result = []
 
-        for entry in get_cinder_client()["client"].volume_snapshots.list():
+        for entry in get_cinder_client().volume_snapshots.list():
             # Make a dict for this entry.
             this_entry = entry.to_dict()
 
@@ -2027,7 +2021,7 @@ class Transfer(PolyResource):
 
         result = []
 
-        for entry in get_cinder_client()["client"].transfers.list():
+        for entry in get_cinder_client().transfers.list():
             # Make a dict for this entry.
             this_entry = entry.to_dict()
 
@@ -2064,7 +2058,7 @@ class VolumeType(PolyResource):
 
         # N.B.: Unlike most OpenStack client calls, this returns the relevant
         # data in the _info attribute.  Sigh.
-        for entry in get_cinder_client()["client"].volume_types.list():
+        for entry in get_cinder_client().volume_types.list():
             # Add the name of the resource type.
             this_entry = entry._info              # pylint: disable=W0212
             this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
@@ -2112,7 +2106,7 @@ class Volume(PolyResource):
 
         result = []
 
-        for entry in get_cinder_client()["client"].volumes.list():
+        for entry in get_cinder_client().volumes.list():
             # Make a dict for this entry.
             this_entry = entry.to_dict()
 
@@ -2147,7 +2141,7 @@ class Limits(PolyResource):
 
         result = []
 
-        for entry in get_glance_client()["client"].images.list():
+        for entry in get_glance_client().images.list():
             # Make a dict for this entry.
             this_entry = entry.to_dict()
 
@@ -2373,7 +2367,6 @@ class Port(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        from goldstone.neutron.utils import get_neutron_client
 
         # Get the one and only one Cloud row in the system
         row = get_cloud()

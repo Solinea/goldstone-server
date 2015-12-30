@@ -25,9 +25,9 @@ from fabric.colors import green, cyan, red
 from fabric.contrib.console import confirm
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
+from django.conf import settings as simple_settings
 
 # Aliases to make the Resource Graph definitions less verbose.
-from django.conf import settings as simple_settings
 MAX = simple_settings.R_ATTRIBUTE.MAX
 MIN = simple_settings.R_ATTRIBUTE.MIN
 TYPE = simple_settings.R_ATTRIBUTE.TYPE
