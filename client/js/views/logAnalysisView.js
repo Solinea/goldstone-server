@@ -63,14 +63,14 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
 
         filter: {
-            emergency: true,
-            alert: true,
-            critical: true,
-            error: true,
-            warning: true,
-            notice: true,
-            info: true,
-            debug: true
+            EMERGENCY: true,
+            ALERT: true,
+            CRITICAL: true,
+            ERROR: true,
+            WARNING: true,
+            NOTICE: true,
+            INFO: true,
+            DEBUG: true
         },
 
         refreshCount: 2,
@@ -257,7 +257,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
         if (ns.featureSet === 'logEvents') {
 
-            ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            ns.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
@@ -374,7 +374,6 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         // this.collection.toJSON() returns an object
         // with keys: timestamps, levels, data.
         var collectionDataPayload = this.collection.toJSON()[0];
-
         // We will store the levels for the loglevel
         // construction and add it back in before returning
         var logLevels = collectionDataPayload.levels;
@@ -513,7 +512,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'logEvents') {
             ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
-                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         }
 

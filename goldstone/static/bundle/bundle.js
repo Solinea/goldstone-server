@@ -7104,14 +7104,14 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
 
         filter: {
-            emergency: true,
-            alert: true,
-            critical: true,
-            error: true,
-            warning: true,
-            notice: true,
-            info: true,
-            debug: true
+            EMERGENCY: true,
+            ALERT: true,
+            CRITICAL: true,
+            ERROR: true,
+            WARNING: true,
+            NOTICE: true,
+            INFO: true,
+            DEBUG: true
         },
 
         refreshCount: 2,
@@ -7298,7 +7298,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
         if (ns.featureSet === 'logEvents') {
 
-            ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            ns.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
@@ -7415,7 +7415,6 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         // this.collection.toJSON() returns an object
         // with keys: timestamps, levels, data.
         var collectionDataPayload = this.collection.toJSON()[0];
-
         // We will store the levels for the loglevel
         // construction and add it back in before returning
         var logLevels = collectionDataPayload.levels;
@@ -7554,7 +7553,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'logEvents') {
             ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
-                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         }
 
@@ -10364,18 +10363,17 @@ var NodeAvailView = GoldstoneBaseView.extend({
     filter: {
         // none must be set to false in order to not display
         // nodes that have zero associated events.
-        emergency: true,
-        alert: true,
-        critical: true,
-        error: true,
-        warning: true,
-        notice: true,
-        info: true,
-        debug: true,
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: true,
+        WARNING: true,
+        NOTICE: true,
+        INFO: true,
+        DEBUG: true,
         none: false,
         actualZero: true
     },
-
 
     instanceSpecificInit: function() {
         NodeAvailView.__super__.instanceSpecificInit.apply(this, arguments);
@@ -10438,10 +10436,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // maps between input label domain and output color range for circles
         self.loglevel = d3.scale.ordinal()
-            .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug", "actualZero"])
-        // concats darkgrey as a color for nodes
-        // reported at 'actualZero'
-        .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
+            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "actualZero"])
+            // concats darkgrey as a color for nodes
+            // reported at 'actualZero'
+            .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
 
         // for 'disabled' axis
         self.xAxis = d3.svg.axis()
@@ -10451,10 +10449,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         self.xScale = d3.time.scale()
             .range([self.margin.left, self.mw - self.margin.right])
-        // rounding
-        .nice()
-        // values above or below domain will be constrained to range
-        .clamp(true);
+            // rounding
+            .nice()
+            // values above or below domain will be constrained to range
+            .clamp(true);
 
         self.yAxis = d3.svg.axis()
             .ticks(5)
@@ -10956,14 +10954,14 @@ TODO: probably change this to d.timestamp
 
         self.graph.selectAll("circle")
             .transition().duration(500)
-        // this determines the color of the circle
-        .attr("class", function(d) {
-            if (d.swimlane === "unadmin") {
-                return d.swimlane;
-            } else {
-                return "individualNode";
-            }
-        })
+            // this determines the color of the circle
+            .attr("class", function(d) {
+                if (d.swimlane === "unadmin") {
+                    return d.swimlane;
+                } else {
+                    return "individualNode";
+                }
+            })
             .attr("fill", function(d) {
                 return self.loglevel(d.level);
             })
@@ -11120,8 +11118,7 @@ TODO: probably change this to d.timestamp
         '</div>' +
         '</div>'
     )
-});
-;
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
