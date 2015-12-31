@@ -48,7 +48,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
-            featureSet: 'logEvents',
             height: 300,
             infoText: 'searchLogAnalysis',
             marginLeft: 60,

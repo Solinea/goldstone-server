@@ -40,7 +40,6 @@ openstack syslog severity levels:
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
-            featureSet: 'logEvents',
             height: 300,
             infoText: 'searchLogAnalysis',
             marginLeft: 60,
@@ -185,18 +184,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .scale(self.y)
             .orient("left");
 
-        if (self.featureSet === "cpuUsage") {
-            self.yAxis
-                .tickFormat(self.formatPercent);
-        }
-
-        if (self.featureSet === 'logEvents') {
-
-            self.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
-                .range(self.colorArray.distinct.openStackSeverity8);
-        } else {
-            self.color = d3.scale.ordinal().range(self.colorArray.distinct['2R']);
-        }
+        self.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            .range(self.colorArray.distinct.openStackSeverity8);
 
         self.area = d3.svg.area()
             .interpolate("monotone")
@@ -432,14 +421,10 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        self.data = allthelogs;
-
-        if (self.featureSet === 'logEvents') {
-            self.data = allthelogs.finalData;
-            self.loglevel = d3.scale.ordinal()
-                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
-                .range(self.colorArray.distinct.openStackSeverity8);
-        }
+        self.data = allthelogs.finalData;
+        self.loglevel = d3.scale.ordinal()
+            .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            .range(self.colorArray.distinct.openStackSeverity8);
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
@@ -451,53 +436,32 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         self.color.domain(d3.keys(self.data[0]).filter(function(key) {
 
-            if (self.featureSet === 'logEvents') {
-                return (self.filter[key] && key !== "date" && key !== "total" && key !== "time");
-            } else {
-                return key !== "date";
-            }
+            return (self.filter[key] && key !== "date" && key !== "total" && key !== "time");
         }));
 
         var components;
-        if (self.featureSet === 'logEvents') {
+        var curr = false;
+        var anyLiveFilter = _.reduce(self.filter, function(curr, status) {
+            return status || curr;
+        });
 
-            var curr = false;
-            var anyLiveFilter = _.reduce(self.filter, function(curr, status) {
-                return status || curr;
-            });
-
-            if (!anyLiveFilter) {
-                self.chart.selectAll('.component')
-                    .remove();
-                return;
-            }
-
-            components = self.stack(self.color.domain().map(function(name) {
-                return {
-                    name: name,
-                    values: self.data.map(function(d) {
-                        return {
-                            date: d.date,
-                            y: d[name]
-                        };
-                    })
-                };
-            }));
-
-        } else {
-
-            components = self.stack(self.color.domain().map(function(name) {
-                return {
-                    name: name,
-                    values: self.data.map(function(d) {
-                        return {
-                            date: d.date,
-                            y: self.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
-                        };
-                    })
-                };
-            }));
+        if (!anyLiveFilter) {
+            self.chart.selectAll('.component')
+                .remove();
+            return;
         }
+
+        components = self.stack(self.color.domain().map(function(name) {
+            return {
+                name: name,
+                values: self.data.map(function(d) {
+                    return {
+                        date: d.date,
+                        y: d[name]
+                    };
+                })
+            };
+        }));
 
         $(this.el).find('.axis').remove();
 
@@ -505,24 +469,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             return d.date;
         }));
 
-        if (self.featureSet === 'memUsage') {
-            self.y.domain([0, self.memTotal / self.divisor]);
-        }
-
-        if (self.featureSet === 'netUsage') {
-            self.y.domain([0, d3.max(allthelogs, function(d) {
-                return d.rx + d.tx;
-            })]);
-        }
-
-        if (self.featureSet === 'logEvents') {
-            self.y.domain([
-                0,
-                d3.max(self.data.map(function(d) {
-                    return self.sums(d);
-                }))
-            ]);
-        }
+        self.y.domain([
+            0,
+            d3.max(self.data.map(function(d) {
+                return self.sums(d);
+            }))
+        ]);
 
         self.chart.selectAll('.component')
             .remove();
@@ -538,46 +490,16 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 return self.area(d.values);
             })
             .style("stroke", function(d) {
-                if (self.featureSet === "logEvents") {
-                    return self.loglevel(d.name);
-                }
+                return self.loglevel(d.name);
             })
             .style("stroke-width", function(d) {
-                if (self.featureSet === "logEvents") {
-                    return 1.5;
-                }
+                return 1.5;
             })
             .style("stroke-opacity", function(d) {
-                if (self.featureSet === "logEvents") {
-                    return 1;
-                }
+                return 1;
             })
             .style("fill", function(d) {
-
-                if (self.featureSet === "cpuUsage") {
-                    if (d.name.toLowerCase() === "idle") {
-                        return "none";
-                    }
-                    return self.color(d.name);
-                }
-
-                if (self.featureSet === "memUsage") {
-                    if (d.name.toLowerCase() === "free") {
-                        return "none";
-                    }
-                    return self.color(d.name);
-                }
-
-                if (self.featureSet === "netUsage") {
-                    return self.color(d.name);
-                }
-
-                if (self.featureSet === "logEvents") {
-                    return self.loglevel(d.name);
-                }
-
-                console.log('define featureSet in utilizationCpuView.js');
-
+                return self.loglevel(d.name);
             });
 
         component.append("text")
@@ -593,68 +515,9 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .attr("x", 1)
             .attr("y", function(d, i) {
                 // make space between the labels
-
-                if (self.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return -3;
-                    } else {
-                        return 0;
-                    }
-                }
-
-                if (self.featureSet === 'cpuUsage') {
-                    return -i * 3;
-                }
-
-                if (self.featureSet === 'netUsage') {
-                    return -i * 8;
-                }
-
-                if (self.featureSet === 'logEvents') {
-                    return 0;
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return null;
-
+                return 0;
             })
-            .attr("text-anchor", function(d) {
-                if (self.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'end';
-                    }
-                }
-            })
-            .style("font-size", ".8em")
-            .text(function(d) {
-
-                if (self.featureSet === 'cpuUsage') {
-                    return d.name;
-                }
-
-                if (self.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(self.memTotal / self.divisor * 100)) / 100) + 'GB';
-                    }
-                    if (d.name === 'free') {
-                        return '';
-                    } else {
-                        return d.name;
-                    }
-                }
-
-                if (self.featureSet === 'netUsage') {
-                    return d.name + " (kB)";
-                }
-
-                if (self.featureSet === 'logEvents') {
-                    return null;
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return 'feature set undefined';
-
-            });
+            .style("font-size", ".8em");
 
         self.chart.append("g")
             .attr("class", "x axis")
@@ -664,8 +527,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         self.chart.append("g")
             .attr("class", "y axis")
             .call(self.yAxis);
-
-
 
         // IMPORTANT: the order of the entries in the
         // Log Severity Filters modal is set by the order
@@ -788,6 +649,5 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.$el.append(this.modal2());
         return this;
     },
-
 
 });
