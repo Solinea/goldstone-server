@@ -3461,7 +3461,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     addRange: function() {
 
-        if(this.isZoomed) {
+        if (this.isZoomed) {
             return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
         } else {
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3474,7 +3474,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         var start;
         var end;
 
-        if(this.isZoomed) {
+        if (this.isZoomed) {
             start = this.zoomedStart;
             end = this.zoomedEnd;
         } else {
@@ -3482,8 +3482,11 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
             end = this.epochNow;
         }
 
+        // interval ratio of 1/20th the time span in seconds.
         n = ((end - start) / 20000);
+        // ensure a minimum of 0.5second interval
         n = Math.max(0.5, n);
+        // round to 3 decimal places
         n = Math.round(n * 1000) / 1000;
         return '&interval=' + n + 's';
     },
@@ -3492,7 +3495,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
         var result = '&per_host=False';
 
-        if(this.specificHost) {
+        if (this.specificHost) {
             result += '&host=' + this.specificHost;
         }
 
