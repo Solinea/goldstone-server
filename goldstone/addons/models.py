@@ -91,8 +91,7 @@ class Addon(models.Model):
     notes = models.TextField(blank=True,
                              help_text="Instructions, release notes, etc.")
 
-    installed_date = CreationDateTimeField()
-    updated_date = ModificationDateTimeField()
+    updated = ModificationDateTimeField(blank=True, null=True)
 
     objects = ApplicationManager()
 

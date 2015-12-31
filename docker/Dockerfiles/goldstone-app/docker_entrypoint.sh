@@ -40,13 +40,11 @@ if [[ $status == "DOWN" ]] ; then
 fi
 
 python manage.py migrate --noinput  # Apply database migrations
-python manage.py loaddata  initial_data # Apply database fixtures
+python manage.py loaddata $(find . -regex '.*/fixtures/.*' | xargs)
 
 # gather up the static files at container start if this is a dev environment
 if [[ $GS_DEV_ENV == "true" ]] ; then
-    touch addon-requirements.txt
-    mkdir addons > /dev/null 2>&1 || /bin/true
-    pip install --upgrade tox
+    pip install -r test-requirements.txt
     python manage.py collectstatic  --noinput
 fi
 

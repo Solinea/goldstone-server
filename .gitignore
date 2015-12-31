@@ -1,4 +1,5 @@
 *.py[cod]
+.ipython/
 
 # C extensions
 *.so
