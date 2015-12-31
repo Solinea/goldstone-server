@@ -56,7 +56,7 @@ $(document).ready(function() {
 
     if ($('.btn-grp').length) {
         var ind;
-        $('.btn-grp li').click(function() {
+        $('.btn-grp').on('click', 'li', function() {
             ind = $(this).index() - 1;
 
             if ($(window).width() < 767) {

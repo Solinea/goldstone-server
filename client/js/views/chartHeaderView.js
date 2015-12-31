@@ -32,6 +32,14 @@ var ChartHeaderView = GoldstoneBaseView.extend({
 
     populateInfoButton: function() {
         var self = this;
+
+        // instantiate with infoText = 'hide' for option
+        // to hide info button and skip attaching click listener
+        if (this.infoText === undefined) {
+            $(this.el).find('#info-button').hide();
+            return;
+        }
+
         // chart info button popover generator
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
@@ -53,12 +61,6 @@ var ChartHeaderView = GoldstoneBaseView.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
-
-        // instantiate with infoText = 'hide' for
-        // option to hide info button
-        if (this.infoText === "hide") {
-            $(this.el).find('#info-button').hide();
-        }
     },
 
     template: _.template('' +

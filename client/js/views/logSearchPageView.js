@@ -96,6 +96,17 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: ns.specificHost
         });
 
+        // check for compliance addon and render predefined search bar if present
+        if (goldstone.returnAddonPresent('compliance')) {
+            if (goldstone.compliance.PredefinedSearchView) {
+                new goldstone.compliance.PredefinedSearchView({
+                    className: 'compliance-predefined-search nav nav-pills',
+                    hook: '.panel-heading',
+                    tagName: 'ul'
+                });
+            }
+        }
+
         this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 

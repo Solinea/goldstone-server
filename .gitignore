@@ -144,6 +144,9 @@ goldstone/static/addons/
 addon-requirements.txt
 /addons
 /docker/**/addons/
+AUTHORS
+ChangeLog
+goldstone/compliance
 
 # docker static data
 docker/Dockerfiles/goldstone-app/goldstone-server/

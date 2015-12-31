@@ -347,7 +347,7 @@ def resource_types(name):
     from importlib import import_module
     from inspect import getmro, getmembers, isclass
 
-    the_app = import_module("%s.models" % name)
+    the_app = import_module("goldstone.%s.models" % name)
     addon_classes = [x[1] for x in getmembers(the_app, isclass)]
 
     return [x for x in addon_classes

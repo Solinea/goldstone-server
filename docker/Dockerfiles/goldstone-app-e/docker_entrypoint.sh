@@ -46,9 +46,8 @@ if [[ $GS_DEV_ENV == "true" ]] ; then
     python manage.py collectstatic  --noinput
 fi
 
-echo "Applying database migrations"
 python manage.py migrate --noinput # Apply database migrations
-echo "Finished applying database migrations"
+python manage.py loaddata initial_data # Apply database fixtures
 
 declare -a addons=( compliance )
 

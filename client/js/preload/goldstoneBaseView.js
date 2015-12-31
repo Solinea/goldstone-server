@@ -67,8 +67,6 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.infoText = this.options.infoText;
         if (this.options.el) {
             this.el = this.options.el;
-        } else {
-            console.log('no options el ', this.el);
         }
         if (this.options.collectionMixin) {
             this.collectionMixin = this.options.collectionMixin;

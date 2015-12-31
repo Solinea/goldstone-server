@@ -36,7 +36,6 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
-            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 

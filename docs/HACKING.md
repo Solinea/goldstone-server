@@ -252,27 +252,28 @@ The `grunt lintAndTest` command will search for tests in addon modules as well. 
 
 ## Managing Goldstone Server Addons
 
-In the development environment, addons are managed via the `manage_addon.sh` script.  Using the `opentrail` addon as an example, here is the procedure to install the addon:
+In the development environment, addons are managed via the `manage_addon.sh` script.  Using the `compliance` addon as an example, here is how to install an addon:
 
     $ cd ~/devel/goldstone-server
     $ bin/start_dev_env.sh
 
 In another window:
 
-    $ cd ~/devel/django-opentrail
-    $ python ./manage.py sdist
-    $ cp dist/django-opentrail-0.0.tar.gz ~/devel/goldstone-server/addons
-    $ cd ~/devel/goldstone-server
+    $ workon goldstone-compliance
+    $ tar -cvf compliance.tar compliance
+    $ cp compliance.tar.gz ~/devel/goldstone-server/addons
+    $
+    $ workon goldstone-server
     $ eval $(docker-machine env default)
-    $ bin/manage_addon.sh --install --addon-name=opentrail --addon-file=django-opentrail-0.0.tar.gz
+    $ bin/manage_addon.sh --install --addon-name=compliance  --addon-file=compliance.tar
 
 Then restart the dev env by entering `<Ctrl-C>` in the first window and rerunning `bin/start_dev_env.sh`
 
 To uninstall the plugin:
 
-    $ cd ~/devel/goldstone-server
+    $ workon goldstone-server
     $ eval $(docker-machine env default)
-    $ bin/manage_addon.sh --uninstall --addon-name=opentrail --package-name='django-opentrail'
+    $ bin/manage_addon.sh --uninstall --addon-name=compliance
 
 ## Troubleshooting, Rebuilding, and Interacting with Containers
 

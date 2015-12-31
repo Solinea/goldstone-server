@@ -223,6 +223,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
         'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
     },
+    'log_event_search': {
+        'task': 'goldstone.core.tasks.log_event_search',
+        'schedule': crontab(minute='*/1')
+    },
 }
 
 # User-installed add-on tasks are inserted after this line.
