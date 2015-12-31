@@ -67,10 +67,10 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
-#  log_driver: "json-file"
-#  log_opt:
-#    max-size: "100k"
-#    max-file: "10"
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "10"
 
 # Elasticsearch Container
 gssearch:
