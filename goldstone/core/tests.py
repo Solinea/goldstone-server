@@ -31,7 +31,7 @@ from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.core.new_models import SavedSearch, PyCadfEventMarshal
+from goldstone.core.new_models import SavedSearch, CADFEventDocType
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
 
@@ -282,15 +282,15 @@ class DailyIndexDocTypeTests(SimpleTestCase):
         self.assertEqual(len(r2.hits), 0)
 
 
-class PyCadfEventMarshalTests(SimpleTestCase):
+class CADFEventDocTypeTests(SimpleTestCase):
     """
-        Test PyCadfEventMarshal class for correctness
+        Test CADFEventDocType class for correctness
     """
 
     @classmethod
-    def test_event_save(cls):
-        pyobj = PyCadfEventMarshal()
-        isinstance(pyobj, PyCadfEventMarshal)
+    def test_event_save(self):
+        pyobj = CADFEventDocType()
+        isinstance(pyobj, CADFEventDocType)
         new_event = event.Event()
         isinstance(new_event, event.Event)
         trait_dict = pyobj._get_traits_dict(new_event)

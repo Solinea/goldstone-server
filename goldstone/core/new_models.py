@@ -84,7 +84,7 @@ class SavedSearch(models.Model):
         return s, start, end
 
 
-class PyCadfEventMarshal(DailyIndexDocType):
+class CADFEventDocType(DailyIndexDocType):
     """ES representation of a PyCADF event. Attempting to write traits that are
     not present in the Nested definition will result in an exception, though
     reading events from ES that have additional traits should succeed. Subclass
@@ -117,7 +117,7 @@ class PyCadfEventMarshal(DailyIndexDocType):
             kwargs = dict(
                 kwargs.items() + self._get_traits_dict(event).items())
 
-        super(PyCadfEventMarshal, self).__init__(meta, **kwargs)
+        super(CADFEventDocType, self).__init__(meta, **kwargs)
 
     @staticmethod
     def _get_traits_dict(e):
