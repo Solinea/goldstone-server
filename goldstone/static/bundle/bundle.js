@@ -5323,18 +5323,72 @@ var DetailsReportView = GoldstoneBaseView.extend({
 var DiscoverView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged') {
-            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
-        }
 
-        if (change === 'lookbackIntervalReached') {
-            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
+            this.memResourcesChartView.trigger('lookbackSelectorChanged');
+            this.diskResourcesChartView.trigger('lookbackSelectorChanged');
         }
     },
 
     renderCharts: function() {
+
+        /*
+        CPU Resources Chart
+        */
+
+        this.cpuResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
+        });
+
+        this.cpuResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("CPU"),
+            collection: this.cpuResourcesChart,
+            featureSet: 'cpu',
+            height: 350,
+            infoText: 'novaCpuResources',
+            el: '#nova-report-r2-c1',
+            width: $('#nova-report-r2-c1').width(),
+            yAxisLabel: goldstone.translate('Cores')
+        });
+
+        /*
+        Mem Resources Chart
+        */
+
+        this.memResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
+        });
+
+        this.memResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("Memory"),
+            collection: this.memResourcesChart,
+            featureSet: 'mem',
+            height: 350,
+            infoText: 'novaMemResources',
+            el: '#nova-report-r2-c2',
+            width: $('#nova-report-r2-c2').width(),
+            yAxisLabel: goldstone.translate('MB')
+        });
+
+        /*
+        Disk Resources Chart
+        */
+
+        this.diskResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
+        });
+
+        this.diskResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("Storage"),
+            collection: this.diskResourcesChart,
+            featureSet: 'disk',
+            height: 350,
+            infoText: 'novaDiskResources',
+            el: '#nova-report-r2-c3',
+            width: $('#nova-report-r2-c3').width(),
+            yAxisLabel: goldstone.translate('GB')
+        });
 
         //---------------------------
         // instantiate event timeline chart
@@ -5565,26 +5619,32 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</div>' +
         '<div class="row">' +
         '<h4>Resource Usage</h4>' +
-        '<div class="single-block service-status">' +
-        '<h3>CPU<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-CPU.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Memory<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-Memory.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-Disk.jpg" alt="">' +
-        '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>CPU<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-CPU.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>Memory<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-Memory.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-Disk.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+
+        // add nova report cpu/mem/storage
+
+        '<div id="nova-report-r2" class="row">' +
+        '<div id="nova-report-r2-c1" class="col-md-4"></div>' +
+        '<div id="nova-report-r2-c2" class="col-md-4"></div>' +
+        '<div id="nova-report-r2-c3" class="col-md-4"></div>' +
         '</div>'
-
-
     )
 
 });
