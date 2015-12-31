@@ -19,7 +19,7 @@ from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 
 from goldstone.celery import app as celery_app
-from goldstone.core.new_models import SavedSearch, PyCadfEventMarshal
+from goldstone.core.new_models import SavedSearch, CADFEventDocType
 
 logger = logging.getLogger(__name__)
 
@@ -127,5 +127,5 @@ def log_event_search():
         obj.last_end = end
         obj.save()
 
-    cadf = PyCadfEventMarshal(event=e)
+    cadf = CADFEventDocType(event=e)
     return cadf.save()
