@@ -15,16 +15,23 @@
 import logging
 
 from django.conf import settings
+from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+from rest_framework.viewsets import ModelViewSet
+from goldstone.compliance.pagination import Pagination
+from goldstone.core.models import SavedSearch
+from goldstone.core.serializers import SavedSearchSerializer
+from goldstone.drfes.filters import ElasticFilter
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
 
 from goldstone.core import resource
 from .models import MetricData, ReportData, PolyResource, EventData, \
-    ApiPerfData
+    ApiPerfData, SavedSearch
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     NamesAggSerializer, PassthruSerializer, MetricAggSerializer, \
     EventSerializer, ApiPerfSerializer, EventSummarizeSerializer, \
@@ -792,3 +799,86 @@ class EventSearchView(ElasticListAPIView):
 
     class Meta:     # pylint: disable=C1001,W0232,C0111
         model = EventData
+
+##################
+# Defined Search #
+##################
+
+
+class SavedSearchFilter(ElasticFilter):
+
+    @staticmethod
+    def _add_query(param, value, view, queryset, operation='match'):
+        """Return a query, preferring the raw field if available.
+
+        :param param: the field name in ES
+        :param value: the field value
+        :param view: the calling view
+        :param queryset: the base queryset
+        :param operation: the query operation
+        :return: the update Search object
+        :rtype Search
+
+        """
+        return queryset.query(operation, **{param: value})
+
+
+# N.B. Goldstone's swagger-ui API documentation uses the docstrings to populate
+# the application's API page.
+class SavedSearchViewSet(ModelViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    queryset = SavedSearch.objects.all()
+
+    pagination_class = Pagination
+    permission_classes = (IsAuthenticated, )
+    serializer_class = SavedSearchSerializer
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    class Meta:                     # pylint: disable=W0232,C1001
+        """Inform drfes.filters._add_query() about our model."""
+
+        model = SavedSearch
+
+    @detail_route()
+    def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
+        """Return a defined search's results."""
+        from elasticsearch import Elasticsearch
+        from elasticsearch_dsl import Q
+        from goldstone.drfes.filters import ElasticFilter
+        from goldstone.drfes.pagination import ElasticPageNumberPagination
+        from goldstone.drfes.serializers import ReadOnlyElasticSerializer
+
+        # Get the model for the requested uuid
+        # query = ast.literal_eval(SavedSearch.objects.get(uuid=uuid).query)
+        obj = SavedSearch.objects.get(uuid=uuid)
+
+        # To use as much Goldstone code as possible, we now override the class
+        # to create a "drfes environment" for filtering, pagination, and
+        # serialization. We then create an elasticsearch_dsl Search object from
+        # the Elasticsearch query. DailyIndexDocType uses a "logstash-" index
+        # prefix.
+        self.pagination_class = ElasticPageNumberPagination
+        self.serializer_class = ReadOnlyElasticSerializer
+        self.filter_backends = (SavedSearchFilter, )
+
+        # Tell ElasticFilter to not add these query parameters to the
+        # Elasticsearch query.
+        self.reserved_params = []                    # pylint: disable=W0201
+
+        queryset = obj.search()
+        queryset = self.filter_queryset(queryset)
+
+        # Perform the search and paginate the response.
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+

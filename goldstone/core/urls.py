@@ -13,14 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import url, patterns
+from rest_framework.routers import DefaultRouter
 
 from .views import MetricDataListView, ReportDataListView, \
     MetricNamesAggView, ReportNamesAggView, MetricAggView, \
     ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve, \
     EventSearchView, EventSummarizeView, ApiPerfSummarizeView, \
-    ApiPerfSearchView, TopologyView
+    ApiPerfSearchView, TopologyView, SavedSearchViewSet
 
-urlpatterns = patterns(
+router = DefaultRouter()
+router.register(r'saved_search',
+                SavedSearchViewSet,
+                base_name="saved_search")
+
+urlpatterns = router.urls
+urlpatterns += patterns(
     '',
     url(r'^apiperf/search/', ApiPerfSearchView.as_view()),
     url(r'^apiperf/summarize/', ApiPerfSummarizeView.as_view()),

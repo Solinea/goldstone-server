@@ -31,7 +31,7 @@ from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.core.new_models import SavedSearch, CADFEventDocType
+from goldstone.core.models import SavedSearch, CADFEventDocType
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
 

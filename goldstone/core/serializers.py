@@ -14,6 +14,7 @@
 # limitations under the License.
 import logging
 from rest_framework import serializers
+from goldstone.core.models import SavedSearch
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -296,3 +297,13 @@ class ApiPerfSummarizeSerializer(ReadOnlyElasticSerializer):
 
         return [{key: value['doc_count']}
                 for key, value in process_range['buckets'].items()]
+
+
+class SavedSearchSerializer(serializers.ModelSerializer):
+    """The Defined Search serializer."""
+
+    class Meta:                 # pylint: disable=C0111,C1001,W0232
+
+        model = SavedSearch
+
+

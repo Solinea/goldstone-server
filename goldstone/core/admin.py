@@ -15,7 +15,7 @@
 
 from django.contrib import admin
 from .models import PolyResource
-from .new_models import SavedSearch
+from goldstone.core.models import SavedSearch
 
 admin.site.register(PolyResource)
 admin.site.register(SavedSearch)

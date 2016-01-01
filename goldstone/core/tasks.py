@@ -19,7 +19,7 @@ from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 
 from goldstone.celery import app as celery_app
-from goldstone.core.new_models import SavedSearch, CADFEventDocType
+from goldstone.core.models import SavedSearch, CADFEventDocType
 
 logger = logging.getLogger(__name__)
 

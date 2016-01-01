@@ -17,6 +17,8 @@ from django.test import TransactionTestCase
 from rest_framework.status import HTTP_200_OK
 
 # Test URLs.
+from rest_framework.test import APITransactionTestCase
+
 LOGIN_URL = "/accounts/login/"
 USER_URL = "/user/"
 
@@ -45,7 +47,7 @@ BAD_TOKEN = '4' * 40
 BAD_UUID = '4' * 32
 
 
-class Setup(TransactionTestCase):
+class Setup(APITransactionTestCase):
     """A base class to do housekeeping before each test."""
 
     def setUp(self):
