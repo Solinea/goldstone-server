@@ -828,8 +828,6 @@ class SavedSearchFilter(ElasticFilter):
 class SavedSearchViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
-    queryset = SavedSearch.objects.all()
-
     pagination_class = Pagination
     permission_classes = (IsAuthenticated, )
     serializer_class = SavedSearchSerializer
@@ -837,10 +835,16 @@ class SavedSearchViewSet(ModelViewSet):
     # Tell DRF that the lookup field is this string, and not "pk".
     lookup_field = "uuid"
 
-    class Meta:                     # pylint: disable=W0232,C1001
-        """Inform drfes.filters._add_query() about our model."""
+    filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
+    ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
+                       'doc_type', 'last_start', 'last_end', 'created',
+                       'updated', 'target_interval')
 
+    class Meta:                     # pylint: disable=W0232,C1001
         model = SavedSearch
+
+    def get_queryset(self):
+        return SavedSearch.objects.all()
 
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201

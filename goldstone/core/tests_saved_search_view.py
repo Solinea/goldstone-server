@@ -221,7 +221,8 @@ class GetPostTests(SearchSetup):
         response_content = json.loads(response.content)
 
         for key in ['created', 'updated', 'last_start', 'last_end']:
-            self.assertIsInstance(response_content[key], (basestring, NoneType))
+            self.assertIsInstance(response_content[key],
+                                  (basestring, NoneType))
 
         self.assertEqual(row.name, response_content["name"])
         self.assertEqual(row.protected, response_content["protected"])
@@ -230,5 +231,7 @@ class GetPostTests(SearchSetup):
         self.assertEqual(row.owner, response_content["owner"])
         self.assertEqual(row.index_prefix, response_content["index_prefix"])
         self.assertEqual(row.doc_type, response_content["doc_type"])
-        self.assertEqual(row.timestamp_field, response_content["timestamp_field"])
-        self.assertEqual(row.target_interval, response_content["target_interval"])
+        self.assertEqual(row.timestamp_field,
+                         response_content["timestamp_field"])
+        self.assertEqual(row.target_interval,
+                         response_content["target_interval"])

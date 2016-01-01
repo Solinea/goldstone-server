@@ -305,5 +305,3 @@ class SavedSearchSerializer(serializers.ModelSerializer):
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
         model = SavedSearch
-
-

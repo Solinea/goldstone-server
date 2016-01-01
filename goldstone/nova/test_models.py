@@ -53,11 +53,11 @@ class SpawnsDataModelTests(SimpleTestCase):
 
     def test_spawn_finish_query(self):
         """_spawn_finish_query should return a Search with proper values."""
-
+        self.maxDiff = None
         expected_aggs = {'per_interval': self.DATEHIST_AGG}
         expected_aggs['per_interval']['aggs'] = {
             'per_success': {
-                'terms': {'size': 0, 'field': 'success',
+                'terms': {'size': 0, 'field': 'success.raw',
                           'shard_min_doc_count': 0, 'min_doc_count': 0}}
         }
 

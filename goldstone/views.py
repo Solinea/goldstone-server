@@ -141,8 +141,6 @@ class RouterView(TemplateView):
         I18N_FILE = "goldstone/static/i18n/po_json/i18n_combined.json"
         I18N_VARIABLE = "i18n_po_json_i18n_combined_json"
 
-
-
         # Include this file's contents as a template variable.
         try:
             with open(I18N_FILE) as f:
