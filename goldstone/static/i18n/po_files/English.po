@@ -263,6 +263,18 @@ msgstr ""
 msgid "Cloud Topology"
 msgstr ""
 
+#: discoverView.js
+msgid "CPU"
+msgstr ""
+
+#: discoverView.js
+msgid "Memory"
+msgstr ""
+
+#: discoverView.js
+msgid "Storage"
+msgstr ""
+
 #: eventsBrowserPageView.js
 
 #: eventsBrowserPageView.js
