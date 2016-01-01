@@ -880,5 +880,3 @@ class SavedSearchViewSet(ModelViewSet):
         else:
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
-
-

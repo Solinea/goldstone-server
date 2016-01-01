@@ -312,7 +312,7 @@ class SavedSearchModelTests(TestCase):
     4. Fire an independent elastic search query and compare results with 3.
     """
 
-    fixtures = ['initial_data.yaml']
+    fixtures = ['core_initial_data.yaml']
 
     message = String()
     timestamp = Date()

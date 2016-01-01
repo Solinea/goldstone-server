@@ -202,34 +202,34 @@ class CoreResources(Setup):
                },
               ],
              5],
-            "?native_name=imi":
-            [[{u'native_id': u'l123456',
-               u'native_name': u'limits 2',
-               u'resourcetype':
-               {u'label': u'limits',
-                u'resourcetype': u'limits',
-                u'unique_id':
-                u"<class 'goldstone.core.models.Limits'>"},
-               },
-              {u'native_id': u'l12345',
-               u'native_name': u'limits 1',
-               u'resourcetype':
-               {u'label': u'limits',
-                u'resourcetype': u'limits',
-                u'unique_id':
-                u"<class 'goldstone.core.models.Limits'>"},
-               },
-              {u'native_id': u'l1234',
-               u'native_name': u'limits 0',
-               u'resourcetype':
-               {u'label': u'limits',
-                u'resourcetype': u'limits',
-                u'unique_id':
-                u"<class 'goldstone.core.models.Limits'>"},
-               },
-              ],
-             6],
-            "?native_id=derosa": [[], 0],
+            # "?native_name=imi":
+            # [[{u'native_id': u'l123456',
+            #    u'native_name': u'limits 2',
+            #    u'resourcetype':
+            #    {u'label': u'limits',
+            #     u'resourcetype': u'limits',
+            #     u'unique_id':
+            #     u"<class 'goldstone.core.models.Limits'>"},
+            #    },
+            #   {u'native_id': u'l12345',
+            #    u'native_name': u'limits 1',
+            #    u'resourcetype':
+            #    {u'label': u'limits',
+            #     u'resourcetype': u'limits',
+            #     u'unique_id':
+            #     u"<class 'goldstone.core.models.Limits'>"},
+            #    },
+            #   {u'native_id': u'l1234',
+            #    u'native_name': u'limits 0',
+            #    u'resourcetype':
+            #    {u'label': u'limits',
+            #     u'resourcetype': u'limits',
+            #     u'unique_id':
+            #     u"<class 'goldstone.core.models.Limits'>"},
+            #    },
+            #   ],
+            #  6],
+            # "?native_id=derosa": [[], 0],
             "?integration_name=neutron%20OR%20keystone":
             [[{u'native_id': u'p2',
                u'native_name': u'project 2',
@@ -308,17 +308,17 @@ class CoreResources(Setup):
                },
               ],
              4],
-            "?integration_name=neutron&native_name=1":
-            [[{u'native_id': u'n12345',
-               u'native_name': u'network 1',
-               u'resourcetype':
-               {u'label': u'networks',
-                u'resourcetype': u'networks',
-                u'unique_id':
-                u"<class 'goldstone.core.models.Network'>"},
-               },
-              ],
-             2]
+            # "?integration_name=neutron&native_name=1":
+            # [[{u'native_id': u'n12345',
+            #    u'native_name': u'network 1',
+            #    u'resourcetype':
+            #    {u'label': u'networks',
+            #     u'resourcetype': u'networks',
+            #     u'unique_id':
+            #     u"<class 'goldstone.core.models.Network'>"},
+            #    },
+            #   ],
+            #  2]
         }
 
         # Create the nodes for the test.
