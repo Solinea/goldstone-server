@@ -24,7 +24,7 @@ from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
 from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
-from goldstone.drfes.models import DailyIndexDocType
+from goldstone.drfes.models import DailyIndexDocType as OldDailyIndexDocType
 from goldstone.drfes.new_models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 
@@ -81,7 +81,7 @@ def _hash(*args):
 # Goldstone Agent Metrics and Reports
 #
 
-class MetricData(DailyIndexDocType):
+class MetricData(OldDailyIndexDocType):
     """Search interface for an agent generated metric."""
 
     INDEX_PREFIX = 'goldstone_metrics-'
@@ -102,7 +102,7 @@ class MetricData(DailyIndexDocType):
         return A('terms', field='unit')
 
 
-class ReportData(DailyIndexDocType):
+class ReportData(OldDailyIndexDocType):
     """Report data model."""
 
     INDEX_PREFIX = 'goldstone_reports-'
@@ -111,7 +111,7 @@ class ReportData(DailyIndexDocType):
         doc_type = 'core_report'
 
 
-class EventData(DailyIndexDocType):
+class EventData(OldDailyIndexDocType):
     """The model for logstash events data."""
 
     # The indexes we look for start with this string.
@@ -125,7 +125,7 @@ class EventData(DailyIndexDocType):
         doc_type = ''
 
 
-class ApiPerfData(DailyIndexDocType):
+class ApiPerfData(OldDailyIndexDocType):
     """API performance record model."""
 
     INDEX_PREFIX = 'api_stats-'

@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticsearch_dsl import query
-from goldstone.drfes.models import DailyIndexDocType
+from goldstone.drfes.models import DailyIndexDocType as OldDailyIndexDocType
 
 
-class LogData(DailyIndexDocType):
+class LogData(OldDailyIndexDocType):
     """Logstash log entry model (intended to be read-only)."""
 
     class Meta:                  # pylint: disable=C0111,C1001,W0232
