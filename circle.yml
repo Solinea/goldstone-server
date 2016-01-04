@@ -77,8 +77,10 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
     - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci"
+    - coverage run manage.py test goldstone --settings=goldstone.settings.ci
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
+    - pip install codecov && codecov
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
     #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
 
