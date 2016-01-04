@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from .base import *            # pylint: disable=W0614,W0401
+from goldstone.libs import secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -42,7 +44,6 @@ if not SECRET_KEY:
     if not LOCAL_PATH:
         LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 
-    from goldstone.libs import secret_key
     SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH,
                                                        '.secret_key_store'))
 

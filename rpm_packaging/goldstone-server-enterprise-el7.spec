@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-%define version       %{getenv:GOLDSTONE_RPM_VERSION}
-%define release       %{getenv:GOLDSTONE_RPM_RELEASE}
-%define epoch         %{getenv:GOLDSTONE_RPM_EPOCH}
+%define version %{getenv:GOLDSTONE_RPM_VERSION}
+%define release %{getenv:GOLDSTONE_RPM_RELEASE}
+%define epoch   %{getenv:GOLDSTONE_RPM_EPOCH}
 
 Summary:        Solinea Goldstone Server Enterprise
 Name:           goldstone-server-enterprise
@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl, docker-selinux
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, curl
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -120,7 +120,7 @@ install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 755 %{buildroot}/usr/lib/systemd/system/
 install -d -m 755 %{buildroot}/etc/rsyslog.d/
 install -d -m 755 %{buildroot}/var/log/goldstone/
-install -d -m 750 %{buildroot}/opt/goldstone/config
+install -d -m 750 %{buildroot}/opt/goldstone/config/
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log

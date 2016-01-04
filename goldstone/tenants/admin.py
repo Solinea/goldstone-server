@@ -12,8 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import Tenant, Cloud
+
 from django.contrib import admin
+
+from goldstone.tenants.models import Tenant, Cloud
 
 admin.site.register(Cloud)
 admin.site.register(Tenant)
