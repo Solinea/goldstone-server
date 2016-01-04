@@ -45,7 +45,9 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
 
 ENV GS_PROJ_TOP_DIR ${APPDIR}
 
-COPY . ${APPDIR}
+COPY addons /tmp/addons
+
+COPY docker-entrypoint.sh /
 
 RUN . ${ENVDIR}/bin/activate \
   && find addons/* -exec pip install {} \; \
@@ -55,4 +57,4 @@ EXPOSE 8000
 
 USER ${APPUSER}
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

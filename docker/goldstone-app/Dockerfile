@@ -78,6 +78,6 @@ USER ${APPUSER}
 
 EXPOSE 8000
 
-COPY docker-entrypoint.sh ${APPDIR}
+COPY docker-entrypoint.sh /
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
