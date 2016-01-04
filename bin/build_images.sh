@@ -14,21 +14,20 @@
 # limitations under the License.
 
 # builds the software dist of the django project, and extracts it to the
-# goldstone-server docker container context for build. Once copied, it 
-# performs a build of the docker container, and pushes it to the repo.  
+# goldstone-server docker container context for build. Once copied, it
+# performs a build of the docker container, and pushes it to the repo.
 
 DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
 
-GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
-GS_WEB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-web
-GS_SEARCH_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-search
-GS_LOG_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-log
-GS_DB_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db
-GS_DB_DVC_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-db-dvc
-GS_TASK_Q_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-task-queue
-GS_APP_E_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app-e
+GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
+GS_WEB_DIR=${TOP_DIR}/docker/goldstone-web
+GS_SEARCH_DIR=${TOP_DIR}/docker/goldstone-search
+GS_LOG_DIR=${TOP_DIR}/docker/goldstone-log
+GS_DB_DIR=${TOP_DIR}/docker/goldstone-db
+GS_TASK_Q_DIR=${TOP_DIR}/docker/goldstone-task-queue
+GS_APP_E_DIR=${TOP_DIR}/docker/goldstone-app-e
 
 OPEN_REGISTRY_ORG=solinea
 PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
@@ -36,11 +35,11 @@ PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 declare -a need_source=( $GS_APP_DIR )
 
 declare -a open_to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_DB_DVC_DIR $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
+              $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
 
 declare -a priv_to_build=( $GS_APP_E_DIR )
 
-cd $TOP_DIR || exit 1 
+cd $TOP_DIR || exit 1
 
 for arg in "$@" ; do
     case $arg in
@@ -96,7 +95,7 @@ for folder in "${need_source[@]}" ; do
     mv ${DIST_FILE%%.tar.gz} goldstone-server
 done
 
-# 
+#
 # build images
 #
 

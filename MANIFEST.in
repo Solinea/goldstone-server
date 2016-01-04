@@ -1,16 +1,17 @@
+exclude .codeclimate.yml
 exclude .dockerignore
 exclude .gitmodules
+exclude .noserc
 exclude .travis.yml
+exclude circle.yml
 exclude bower.json
 exclude Dockerfile*
+exclude docker-compose*.yml
 exclude Gruntfile.js
 exclude karma.conf.js
-exclude MANIFEST.in 
+exclude MANIFEST.in
 exclude npm-shrinkwrap.json
 exclude package.json
-exclude pylint.cfg
-exclude setup.cfg
-exclude test-requirements.txt
 exclude tox.ini
 prune bin
 prune CLA
@@ -20,4 +21,3 @@ prune rpm_packaging
 prune test
 prune test_data
 prune utils
-

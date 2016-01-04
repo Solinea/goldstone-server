@@ -1,3 +1,4 @@
+# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nginx
+FROM solinea/redis:3.0.4
 
-RUN apt-get update \
-  && apt-get install -y -q curl \
-  && mkdir -p /usr/share/nginx/html/static \
-  && ln -sf /dev/stdout /var/log/nginx/access.log \
-  && ln -sf /dev/stderr /var/log/nginx/error.log
+MAINTAINER Luke Heidecke <luke@solinea.com>
