@@ -13,27 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-app:0.7.3
+FROM solinea/redis:3.0.4
 
-MAINTAINER John Stanford <john@solinea.com>
-
-ENV GS_PROJ_TOP_DIR ${APPDIR}
-
-ADD ./addons /tmp/addons
-ADD ./docker_entrypoint.sh /
-
-WORKDIR ${APPDIR}
-
-USER ${APPUSER}
-
-RUN . ${ENVDIR}/bin/activate \
-  && find /tmp/addons/* -exec pip install {} \;
-
-USER root
-RUN  rm -rf /tmp/addons
-
-EXPOSE 8000
-
-USER ${APPUSER}
-
-ENTRYPOINT ["/docker_entrypoint.sh"]
+MAINTAINER Luke Heidecke <luke@solinea.com>

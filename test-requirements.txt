@@ -23,3 +23,5 @@ mock==1.0.1
 flower==0.8.2
 fake-factory
 mkdocs
+django-nose
+nose-exclude

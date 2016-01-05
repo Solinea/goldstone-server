@@ -1,4 +1,3 @@
-# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,49 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:v2-012f43f-master
+FROM nginx
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-ADD goldstone-server ${APPDIR}
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+  && ln -sf /dev/stderr /var/log/nginx/error.log
 
-WORKDIR ${APPDIR}
-
-USER root
-
-
-RUN buildReqs=' \
-    python2.7-dev \
-    gcc \
-    g++ \
-  ' \
-  && preReqs=' \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
+RUN preReqs=' \
+    curl \
   ' \
   && apt-get update -y -q -q \
-  && apt-get install -y -q $buildReqs \
-  && apt-get install -y -q $preReqs 
-
-USER ${APPUSER}
-
-RUN . ${ENVDIR}/bin/activate \
-  && pip install -r requirements.txt 
-
-USER root
-
-RUN apt-get remove -y $buildReqs \
+  && apt-get install -y -q $preReqs \
+  && apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
-## Have to re-install due to python2.7-dev uninstalling libqp-dev
-##   && apt-get install libpq-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+COPY config/nginx.conf /etc/nginx/nginx.conf
 
-USER ${APPUSER}
+COPY config/conf.d /etc/nginx/conf.d
 
-EXPOSE 8000
+COPY static /usr/share/nginx/html/static
 
-COPY ./docker_entrypoint.sh /
-ENTRYPOINT ["/docker_entrypoint.sh"]
+EXPOSE 8888

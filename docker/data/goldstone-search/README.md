@@ -1,1 +1,0 @@
-Place elasticsearch data in this directory.

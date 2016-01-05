@@ -146,11 +146,11 @@ addon-requirements.txt
 /docker/**/addons/
 
 # docker static data
-docker/Dockerfiles/goldstone-app/goldstone-server/
-docker/Dockerfiles/goldstone-app-e/goldstone-server/
-docker/Dockerfiles/goldstone-task/goldstone-server/
-docker/Dockerfiles/goldstone-web/static/
-docker/Dockerfiles/goldstone-web-e/static/
+docker/goldstone-app/goldstone-server/
+docker/goldstone-app-e/goldstone-server/
+docker/goldstone-task/goldstone-server/
+docker/goldstone-web/static/
+docker/goldstone-web-e/static/
 
 # docker dev environment data
 .cache/
