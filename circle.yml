@@ -77,7 +77,7 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
     - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci"
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/.coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker" || exit 0
+    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/.coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.ci" || exit 0
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - COVERAGE_FILE=$CIRCLE_TEST_REPORTS/django/.coverage coverage report
