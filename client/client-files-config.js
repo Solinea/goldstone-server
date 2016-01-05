@@ -55,7 +55,7 @@ module.exports = {
     testIntegration: 'test/integration/*.js',
     jshintAddons: 'goldstone/compliance/static/**/*.js',
     testAddons: 'goldstone/**/client-test/*.js',
-    testAddonsJavaScript: 'goldstone/compliance/static/client-js/compliance.js',
+    testAddonsJavaScript: 'goldstone/**/static/client-dev/**/*.js',
     e2e: ['test/e2e/*.js'],
 
     // output locations of concatenated files
@@ -68,7 +68,7 @@ module.exports = {
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage'],
-        'goldstone/static/addons/**/client-js/*.js': ['coverage']
+        'goldstone/**/static/client-dev/**/*.js': ['coverage'],
     },
     coverageReportOutput: 'test/results/coverage',
 
