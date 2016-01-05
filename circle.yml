@@ -36,6 +36,12 @@ machine:
     gstaskq: 127.0.0.1
     gsweb: 127.0.0.1
 
+## custom checkout
+checkout:
+  post:
+    - git submodule init
+    - git submodule update
+
 ## custom dependencies
 dependencies:
   pre:
