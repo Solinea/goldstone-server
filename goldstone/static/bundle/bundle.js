@@ -8667,14 +8667,14 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     // of the event types in self.filter
 
     filter: {
-        emergency: true,
-        alert: true,
-        critical: true,
-        error: true,
-        warning: true,
-        notice: true,
-        info: true,
-        debug: true
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: true,
+        WARNING: true,
+        NOTICE: true,
+        INFO: true,
+        DEBUG: true
     },
 
     // will prevent updating when zoom is active
@@ -8770,7 +8770,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .scale(self.y)
             .orient("left");
 
-        self.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+        self.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
 
         self.area = d3.svg.area()
@@ -9009,7 +9009,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var allthelogs = this.collectionPrep();
         self.data = allthelogs.finalData;
         self.loglevel = d3.scale.ordinal()
-            .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
