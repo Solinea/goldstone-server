@@ -1,4 +1,4 @@
-
+# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 
 FROM solinea/goldstone-app:0.7.3
 
-MAINTAINER John Stanford <john@solinea.com>
+MAINTAINER Luke Heidecke <luke@solinea.com>
 
 # DJANGO_ADMIN_EMAIL                email address for admininstrative emails
 # DJANGO_ADMIN_PASSWORD             password for 'admin' user in goldstone client
@@ -42,17 +42,3 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
     GOLDSTONE_INSTALL_DIR=/home/app \
     GOLDSTONE_REDIS_HOST=gstaskq \
     CELERY_LOGLEVEL=info
-
-ENV GS_PROJ_TOP_DIR ${APPDIR}
-
-COPY . ${APPDIR}
-
-RUN . ${ENVDIR}/bin/activate \
-  && find addons/* -exec pip install {} \; \
-  && rm -rf addons
-
-EXPOSE 8000
-
-USER ${APPUSER}
-
-ENTRYPOINT ["docker-entrypoint.sh"]
