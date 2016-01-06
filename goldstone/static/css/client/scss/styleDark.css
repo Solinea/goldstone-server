@@ -351,12 +351,12 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .node:nth-child(9n) { margin-right: 0; }
 
-.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff; /*width:64px;
-transition:all 0.3s ease;
--webkit-transition:all 0.3s ease;
--ms-transition:all 0.3s ease;
--moz-transition:all 0.3s ease;
--o-transition:all 0.3s ease;*/ z-index: 9999; }
+.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff;     /*width:64px;
+	transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;*/ z-index: 9999; }
 
 .sidebar.expand-menu { width: inherit; }
 
@@ -364,11 +364,11 @@ transition:all 0.3s ease;
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
-.dashboard .content { position: relative; left: 0; /*transition:all 0.3s ease;
--webkit-transition:all 0.3s ease;
--ms-transition:all 0.3s ease;
--moz-transition:all 0.3s ease;
--o-transition:all 0.3s ease;*/ }
+.dashboard .content { position: relative; left: 0;     /*transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;*/ }
 
 .sidebar.open { width: inherit !important; }
 

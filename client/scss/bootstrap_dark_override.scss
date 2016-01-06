@@ -1,47 +1,52 @@
 #chart-panel-header {
-  background-color: if($theme==dark, $dark_background, null);
+    background-color: if($theme==dark, $dark_background, null);
 }
 
-#global-lookback-range, #global-refresh-range {
-  background-color: if($theme==dark, $dark_panel_header, null);
+#global-lookback-range,
+#global-refresh-range {
+    background-color: if($theme==dark, $dark_panel_header, null);
 }
 
 .pagination {
-  background-color: if($theme==dark, $dark_background, null);
-  li > a {
-    color: if($theme==dark, $dark_panel_text, null);
-  }
-  .active > a {
-    &:hover {
-      background-color: if($theme==dark, $dark_background, null);
-      border-color: if($theme==dark, $dark_background, null);
-    };
-    background-color: if($theme==dark, $dark_footer, null);
-    border-color: if($theme==dark, $dark_footer, null);
-  }
+    background-color: if($theme==dark, $dark_background, null);
+    li > a {
+        color: if($theme==dark, $dark_panel_text, null);
+    }
+    .active > a {
+        &:hover {
+            background-color: if($theme==dark, $dark_background, null);
+            border-color: if($theme==dark, $dark_background, null);
+        }
+        ;
+        background-color: if($theme==dark, $dark_footer, null);
+        border-color: if($theme==dark, $dark_footer, null);
+    }
 }
 
 .well {
-  background-color: if($theme==dark, $dark_chart_background, null);
-  border: if($theme==dark, $dark_chart_background, null);
+    background-color: if($theme==dark, $dark_chart_background, null);
+    border: if($theme==dark, $dark_chart_background, null);
 }
 
-.navbar, #global-lookback-range, #global-refresh-range {
-  background-color: if($theme==dark, $dark_chart_background, null);
-  #goldstone-text, .form-control {
-    color: if($theme==dark, $dark_chart_text, null);
-  }
-  .fa {
-    color: if($theme==dark, $dark_chart_text, #777);
-  }
+.navbar,
+#global-lookback-range,
+#global-refresh-range {
+    background-color: if($theme==dark, $dark_chart_background, null);
+    #goldstone-text,
+    .form-control {
+        color: if($theme==dark, $dark_chart_text, null);
+    }
+    .fa {
+        color: if($theme==dark, $dark_chart_text, #777);
+    }
 }
 
 #chart-panel-header {
-  background-color: if($theme==dark, $dark_chart_background, null);
+    background-color: if($theme==dark, $dark_chart_background, null);
 }
 
 .panel-title {
-  color: if($theme==dark, $dark_panel_text, null);
+    color: if($theme==dark, $dark_panel_text, null);
 }
 
 .panel-heading .fa {
@@ -66,9 +71,9 @@
 }
 
 .modal-content {
-  color: if($theme==dark, $dark_text_on_light, null);
+    color: if($theme==dark, $dark_text_on_light, null);
 }
 
 .dropdown {
-  color: if($theme==dark, $dark_text_on_light, null);
+    color: if($theme==dark, $dark_text_on_light, null);
 }
