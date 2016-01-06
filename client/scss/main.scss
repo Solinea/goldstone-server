@@ -31,6 +31,21 @@ $dark_datatable_text: #eee;
     display: block;
 }
 
+
+/* every font-awesome icon everywhere unless excluded */
+
+.fa:not(.fa-check):not(.fa-clock-o) {
+    cursor: pointer;
+}
+
+
+/* cursor over logViz to suggest double-clickability*/
+
+#log-viewer-visualization svg {
+    cursor: zoom-in;
+}
+
+
 /* Datatable font sizes */
 
 .table-hover th {
