@@ -45,6 +45,8 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
 
 COPY goldstone-server/ ${APPDIR}/
 
+COPY docker-entrypoint.sh /
+
 WORKDIR ${APPDIR}
 
 USER root
@@ -74,4 +76,4 @@ USER ${APPUSER}
 
 EXPOSE 8000
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -47,6 +47,10 @@ WORKDIR ${APPDIR}
 
 COPY goldstone-server/ ${APPDIR}/
 
+COPY config ${APPDIR}/config
+
+COPY docker-entrypoint.sh /
+
 USER root
 
 RUN buildReqs=' \
@@ -78,4 +82,4 @@ USER ${APPUSER}
 
 EXPOSE 8000
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
