@@ -19,7 +19,8 @@ from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
+    HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
 from goldstone.core.serializers import SavedSearchSerializer
@@ -866,10 +867,22 @@ class SavedSearchViewSet(ModelViewSet):
 
         # Tell ElasticFilter to not add these query parameters to the
         # Elasticsearch query.
-        self.reserved_params = []                    # pylint: disable=W0201
+        self.reserved_params = ['interval']            # pylint: disable=W0201
 
         queryset = obj.search()
         queryset = self.filter_queryset(queryset)
+
+        # if an interval parameter was provided, assume that it is meant to
+        # be a change to the saved search data_histogram aggregation interval
+        # if present.
+        if 'interval' in self.request.query_params:
+            try:
+                queryset.aggs.aggs['per_interval'].interval = \
+                    self.request.query_params['interval']
+            except:
+                return HTTP_400_BAD_REQUEST("interval parameter not supported "
+                                            "for this request")
+
 
         # Perform the search and paginate the response.
         page = self.paginate_queryset(queryset)

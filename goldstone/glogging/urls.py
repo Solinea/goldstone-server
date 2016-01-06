@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from .views import LogDataView, LogAggView
+from goldstone.core.views import SavedSearchViewSet
 
 urlpatterns = patterns(
     '',
-    url(r'^search/', LogDataView.as_view()),
-    url(r'^summarize/', LogAggView.as_view()),
+    url(r'^search/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid':'55b19303-4fd2-4216-95cb-75a4f39b763c'}),
 )
