@@ -29,24 +29,23 @@ describe('infoButtonText.js spec', function() {
     describe('returns text', function() {
         it('when functions are called', function() {
             var test = this.testView.defaults.infoText;
-            assert.isDefined(test.discoverCloudTopology());
+            assert.isDefined(test.cinderTopologyDiscover());
+            assert.isDefined(test.cloudTopologyResourceList());
             assert.isDefined(test.discoverCloudTopology());
             assert.isDefined(test.discoverZoomTopology());
             assert.isDefined(test.eventTimeline());
+            assert.isDefined(test.glanceTopologyDiscover());
+            assert.isDefined(test.hypervisor());
+            assert.isDefined(test.keystoneTopologyDiscover());
+            assert.isDefined(test.logBrowser());
             assert.isDefined(test.nodeAvailability());
+            assert.isDefined(test.novaCpuResources());
+            assert.isDefined(test.novaDiskResources());
+            assert.isDefined(test.novaMemResources());
+            assert.isDefined(test.novaSpawns());
+            assert.isDefined(test.novaTopologyDiscover());
             assert.isDefined(test.serviceStatus());
             assert.isDefined(test.utilization());
-            assert.isDefined(test.hypervisor());
-            assert.isDefined(test.novaTopologyDiscover());
-            assert.isDefined(test.cinderTopologyDiscover());
-            assert.isDefined(test.glanceTopologyDiscover());
-            assert.isDefined(test.keystoneTopologyDiscover());
-            assert.isDefined(test.novaSpawns());
-            assert.isDefined(test.novaCpuResources());
-            assert.isDefined(test.novaMemResources());
-            assert.isDefined(test.novaDiskResources());
-            assert.isDefined(test.searchLogAnalysis());
-            assert.isDefined(test.cloudTopologyResourceList());
         });
     });
 });

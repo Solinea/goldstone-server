@@ -49,7 +49,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
             height: 300,
-            infoText: 'searchLogAnalysis',
+            infoText: 'logBrowser',
             marginLeft: 60,
             urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
