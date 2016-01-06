@@ -19,9 +19,7 @@ output {
     if [type] == "core_report" {
         # stdout { codec => "rubydebug" }
         elasticsearch {
-            host => gssearch
-            port => 9200
-            protocol => http
+            hosts => ["gssearch:9200"]
             index => "goldstone_reports-%{+YYYY.MM.dd}"
         }
     }

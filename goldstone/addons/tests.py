@@ -79,16 +79,14 @@ class Addons(Setup):
         # We delete the date keys from the returned rows, as they are
         # auto-generated.
         for entry in content:
-            del entry["updated_date"]
-            del entry["installed_date"]
+            del entry["updated"]
 
         # Create the expected dicts, which requires removing the auto-generated
         # date and db/django keys.
         app1 = app1.__dict__
         app2 = app2.__dict__
         for entry in [app1, app2]:
-            del entry["updated_date"]
-            del entry["installed_date"]
+            del entry["updated"]
             del entry["_state"]
             del entry["id"]
 

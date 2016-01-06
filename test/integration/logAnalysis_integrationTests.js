@@ -56,30 +56,30 @@ describe('logAnalysis.js spec', function() {
         this.testCollection.reset();
         this.testCollection.add({
             "timestamps": [1427474584000, 1427474585000],
-            "levels": ["info", "warning", "alert", "critical", "error", "notice"],
+            "levels": ["INFO", "WARNING", "ALERT", "CRITICAL", "ERROR", "NOTICE"],
             "data": [{
                     "1427474584000": [{
-                        "info": 100
+                        "INFO": 100
                     }, {
-                        "notice": 50
+                        "NOTICE": 50
                     }, {
-                        "warning": 20
+                        "WARNING": 20
                     }]
                 }, {
                     "1427474585000": [{
-                        "warning": 20
+                        "WARNING": 20
                     }, {
-                        "info": 30
+                        "INFO": 30
                     }, {
-                        "notice": 40
+                        "NOTICE": 40
                     }]
                 }, {
                     "1427474586000": [{
-                        "error": 20
+                        "ERROR": 20
                     }, {
-                        "debug": 30
+                        "DEBUG": 30
                     }, {
-                        "critical": 40
+                        "CRITICAL": 40
                     }]
                 }
 
@@ -136,37 +136,37 @@ describe('logAnalysis.js spec', function() {
             var test1 = this.testView.collectionPrep();
             expect(test1).to.deep.equal({
                 "finalData": [{
-                    "info": 100,
-                    "notice": 50,
-                    "warning": 20,
-                    "emergency": 0,
-                    "alert": 0,
-                    "critical": 0,
-                    "error": 0,
-                    "debug": 0,
+                    "INFO": 100,
+                    "NOTICE": 50,
+                    "WARNING": 20,
+                    "EMERGENCY": 0,
+                    "ALERT": 0,
+                    "CRITICAL": 0,
+                    "ERROR": 0,
+                    "DEBUG": 0,
                     "date": "1427474584000"
                 }, {
-                    "warning": 20,
-                    "info": 30,
-                    "notice": 40,
-                    "emergency": 0,
-                    "alert": 0,
-                    "critical": 0,
-                    "error": 0,
-                    "debug": 0,
+                    "WARNING": 20,
+                    "INFO": 30,
+                    "NOTICE": 40,
+                    "EMERGENCY": 0,
+                    "ALERT": 0,
+                    "CRITICAL": 0,
+                    "ERROR": 0,
+                    "DEBUG": 0,
                     "date": "1427474585000"
                 }, {
-                    "warning": 0,
-                    "info": 0,
-                    "notice": 0,
-                    "emergency": 0,
-                    "alert": 0,
-                    "critical": 40,
-                    "error": 20,
-                    "debug": 30,
+                    "WARNING": 0,
+                    "INFO": 0,
+                    "NOTICE": 0,
+                    "EMERGENCY": 0,
+                    "ALERT": 0,
+                    "CRITICAL": 40,
+                    "ERROR": 20,
+                    "DEBUG": 30,
                     "date": "1427474586000"
                 }],
-                "logLevels": ["info", "warning", "alert", "critical", "error", "notice"]
+                "logLevels": ["INFO", "WARNING", "ALERT", "CRITICAL", "ERROR", "NOTICE"]
             });
         });
     });

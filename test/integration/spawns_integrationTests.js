@@ -17,7 +17,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('apiPerfView.js spec', function() {
+describe('spawnsView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>' +
@@ -79,7 +79,7 @@ describe('apiPerfView.js spec', function() {
             collection: this.testCollection,
             height: 300,
             infoCustom: 'novaSpawns',
-            el: 'body',
+            el: '.testContainer',
             width: $('body').width(),
             yAxisLabel: 'yAxisTest'
         });
@@ -109,12 +109,7 @@ describe('apiPerfView.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('body');
-        });
-        it('info button popover responds to click event', function() {
-            expect($('div.popover').length).to.equal(0);
-            $(this.testView.el).find('#info-button').click();
-            expect($('div.popover').length).to.equal(1);
+            expect(this.testView.el).to.equal('.testContainer');
         });
         it('returns data.per_interval', function() {
             var test1 = this.testCollection.parse(123);

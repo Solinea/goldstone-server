@@ -151,7 +151,7 @@ class CoreResources(Setup):
         # query_string: (the expected node results, the expected number of
         # edges).
         QUERIES = {
-            "?native_name=%5eh":
+            "native_name=%5eh":
             [[{u'native_id': u'12345',
                u'native_name': u'host 1',
                u'resourcetype':
@@ -202,7 +202,7 @@ class CoreResources(Setup):
                },
               ],
              5],
-            "?native_name=imi":
+            "native_name=imi":
             [[{u'native_id': u'l123456',
                u'native_name': u'limits 2',
                u'resourcetype':
@@ -229,8 +229,8 @@ class CoreResources(Setup):
                },
               ],
              6],
-            "?native_id=derosa": [[], 0],
-            "?integration_name=neutron%20OR%20keystone":
+            "native_id=derosa": [[], 0],
+            "integration_name=neutron%20OR%20keystone":
             [[{u'native_id': u'p2',
                u'native_name': u'project 2',
                u'resourcetype':
@@ -273,7 +273,7 @@ class CoreResources(Setup):
                },
               ],
              10],
-            "?integration_name=nova&native_id=45":
+            "integration_name=nova&native_id=45":
             [[{u'native_id': u'12345',
                u'native_name': u'host 1',
                u'resourcetype':
@@ -308,7 +308,7 @@ class CoreResources(Setup):
                },
               ],
              4],
-            "?integration_name=neutron&native_name=1":
+            "integration_name=neutron&native_name=1":
             [[{u'native_id': u'n12345',
                u'native_name': u'network 1',
                u'resourcetype':

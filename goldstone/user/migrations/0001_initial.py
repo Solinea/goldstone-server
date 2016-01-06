@@ -11,7 +11,7 @@ import django_extensions.db.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tenants', '__first__'),
+        ('tenants', '0001_initial'),
         ('auth', '0006_require_contenttypes_0002'),
     ]
 

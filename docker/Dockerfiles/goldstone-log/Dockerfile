@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM logstash:1.5
+FROM logstash:2.1
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
 RUN /opt/logstash/bin/plugin install logstash-filter-translate

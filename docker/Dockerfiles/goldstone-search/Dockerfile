@@ -19,7 +19,8 @@ MAINTAINER Luke Heidecke <luke@solinea.com>
 
 # Install admin plugins
 RUN plugin install mobz/elasticsearch-head \
-  && plugin install lukas-vlcek/bigdesk
+  && plugin install lmenezes/elasticsearch-kopf \
+  && plugin install polyfractal/elasticsearch-inquisitor
 
 # Overlays any files/directories to the ES config dir
 # ADD config /usr/share/elasticsearch/config

@@ -17,18 +17,6 @@
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
 
-goldstone.namespace = function(name) {
-    "use strict";
-    var parts = name.split('.');
-    var current = goldstone;
-    for (var i = 0; i < parts.length; i++) {
-        if (!current[parts[i]]) {
-            current[parts[i]] = {};
-        }
-        current = current[parts[i]];
-    }
-};
-
 // tools for raising alerts
 goldstone.raiseError = function(message) {
     "use strict";
@@ -95,6 +83,17 @@ goldstone.raiseAlert = function(selector, message, persist) {
 
 };
 
+goldstone.returnAddonPresent = function(checkName) {
+    var addonList = JSON.parse(localStorage.getItem('addons'));
+    var result = false;
+    _.each(addonList, function(item) {
+        if(item.name && item.name === checkName) {
+            result = true;
+        }
+    });
+    return result;
+};
+
 goldstone.uuid = function() {
     "use strict";
 
@@ -103,13 +102,12 @@ goldstone.uuid = function() {
             .toString(16)
             .substring(1);
     }
-    return function() {
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
-    };
+
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 };
 
-goldstone.namespace('time');
+goldstone.time = goldstone.time || {};
 
 goldstone.time.fromPyTs = function(t) {
     "use strict";
@@ -165,8 +163,7 @@ Date.prototype.addWeeks = function(d) {
     "use strict";
     this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
     return this;
-};
-;
+};;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -264,8 +261,6 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.infoText = this.options.infoText;
         if (this.options.el) {
             this.el = this.options.el;
-        } else {
-            console.log('no options el ', this.el);
         }
         if (this.options.collectionMixin) {
             this.collectionMixin = this.options.collectionMixin;
@@ -2678,37 +2673,8 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             cloudTopologyResourceList: function() {
                 return goldstone.translate('Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages.');
 
-            },
-
-            eventBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            apiBrowserViz: function() {
-                return goldstone.translate('');
-
-            },
-
-            nodeReportLogTab: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailManager: function() {
-                return goldstone.translate('');
-
-            },
-
-            openTrailLogHistory: function() {
-                return goldstone.translate('');
-
-            },
-
-            leasesManager: function() {
-                return goldstone.translate('');
-            },
-
+            }
+            
         }
     }
 });
@@ -3919,7 +3885,6 @@ goldstone.addonMenuView = new AddonMenuView({
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.el = this.options.el;
         this.processListeners();
 
         // passing true will also dynamically generate new routes in
@@ -3954,10 +3919,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
-            // the individual dropdowns and dropdown submenus are constructed
-            // as a html string, and then appended into the menu drop-down list
-            var extraMenuItems = this.generateDropdownElementsPerAddon(addNewRoute);
-            $(this.el).find('.addon-menu-li-elements').html(extraMenuItems());
+            this.generateDropdownElementsPerAddon(addNewRoute);
 
             // must trigger html template translation in order to display a
             // language other than English upon initial render without
@@ -3994,7 +3956,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // create a sub-menu labelled with the addon's 'name' property
             result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name +'</a>' +
+                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name + '</a>' +
                 '<ul class="dropdown-menu" role="menu">';
 
             // addons will be loaded into localStorage after the redirect
@@ -4034,12 +3996,17 @@ var AddonMenuView = GoldstoneBaseView.extend({
                 result += '</ul></li>';
             } else {
 
-                var refreshMessage = goldstone.translate('Refresh browser and/or log in to complete addon installation process.');
+                var refreshMessage = goldstone.translate('Refresh browser and log out, and back in to complete addon installation process.');
 
                 goldstone.raiseInfo(refreshMessage);
                 result += '<li>' + refreshMessage;
             }
 
+        });
+
+        // initialize tooltip connected to new menu item
+        $('[data-toggle="tooltip"]').tooltip({
+            trigger: 'hover'
         });
 
         // return backbone template of html string that will construct
@@ -4057,7 +4024,9 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // passedValue will be created by routes with /:foo
             // passed value = 'foo'
             if (passedValue) {
-                this.switchView(routeToAdd[2], {'passedValue': passedValue});
+                this.switchView(routeToAdd[2], {
+                    'passedValue': passedValue
+                });
             } else {
                 this.switchView(routeToAdd[2]);
             }
@@ -4065,14 +4034,15 @@ var AddonMenuView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' +
-        '<i class = "fa fa-briefcase"></i> <span class="i18n" data-i18n="Add-ons">Add-ons</span><b class="caret"></b></a>' +
-        '<ul class="dropdown-menu addon-menu-li-elements">' +
-        '</ul>'
+        '<a href="#compliance/opentrail/manager/">' +
+        '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
+        '<span class="btn-txt">Compliance</span>' +
+        '</li>' +
+        '</a>'
     )
 
-});
-;
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -4324,7 +4294,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
-            infoText: 'hide',
             width: $('#api-browser-table').width()
         });
 
@@ -5015,6 +4984,14 @@ var ChartHeaderView = GoldstoneBaseView.extend({
 
     populateInfoButton: function() {
         var self = this;
+
+        // instantiate with infoText = 'hide' for option
+        // to hide info button and skip attaching click listener
+        if (this.infoText === undefined) {
+            $(this.el).find('#info-button').hide();
+            return;
+        }
+
         // chart info button popover generator
         var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
@@ -5036,12 +5013,6 @@ var ChartHeaderView = GoldstoneBaseView.extend({
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('hide');
             });
-
-        // instantiate with infoText = 'hide' for
-        // option to hide info button
-        if (this.infoText === "hide") {
-            $(this.el).find('#info-button').hide();
-        }
     },
 
     template: _.template('' +
@@ -5989,7 +5960,6 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             collection: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
-            infoText: 'hide',
             width: $('#events-browser-table').width()
         });
 
@@ -7134,14 +7104,14 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
 
         filter: {
-            emergency: true,
-            alert: true,
-            critical: true,
-            error: true,
-            warning: true,
-            notice: true,
-            info: true,
-            debug: true
+            EMERGENCY: true,
+            ALERT: true,
+            CRITICAL: true,
+            ERROR: true,
+            WARNING: true,
+            NOTICE: true,
+            INFO: true,
+            DEBUG: true
         },
 
         refreshCount: 2,
@@ -7328,7 +7298,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
         if (ns.featureSet === 'logEvents') {
 
-            ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+            ns.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
@@ -7445,7 +7415,6 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         // this.collection.toJSON() returns an object
         // with keys: timestamps, levels, data.
         var collectionDataPayload = this.collection.toJSON()[0];
-
         // We will store the levels for the loglevel
         // construction and add it back in before returning
         var logLevels = collectionDataPayload.levels;
@@ -7584,7 +7553,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'logEvents') {
             ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
-                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         }
 
@@ -8287,6 +8256,17 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: ns.specificHost
         });
 
+        // check for compliance addon and render predefined search bar if present
+        if (goldstone.returnAddonPresent('compliance')) {
+            if (goldstone.compliance.PredefinedSearchView) {
+                new goldstone.compliance.PredefinedSearchView({
+                    className: 'compliance-predefined-search nav nav-pills',
+                    hook: '.panel-heading',
+                    tagName: 'ul'
+                });
+            }
+        }
+
         this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
     },
 
@@ -8338,8 +8318,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '</div>'
     )
 
-});
-;
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -8382,19 +8361,21 @@ var LoginPageView = GoldstoneBaseView.extend({
     },
 
     checkForInstalledApps: function() {
+        var self = this;
+
+        // this call returns BEFORE redirecting to '/' to avoid async
+        // issue with firefox/safari where the addons dict wasn't
+        // added to localStorage
+
         $.ajax({
             type: 'get',
             url: '/addons/'
         }).done(function(success) {
             localStorage.setItem('addons', JSON.stringify(success));
 
-            // triggers view in addonMenuView.js
-            goldstone.addonMenuView.trigger('installedAppsUpdated');
+            self.redirectPostSuccessfulAuth();    
         }).fail(function(fail) {
-            console.log(goldstone.translate("Failed to initialize installed addons"));
-
-            // triggers view in addonMenuView.js
-            goldstone.addonMenuView.trigger('installedAppsUpdated');
+            self.redirectPostSuccessfulAuth();    
         });
     },
 
@@ -8439,9 +8420,12 @@ var LoginPageView = GoldstoneBaseView.extend({
                 self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
+                // after a successful login, check for installed apps BEFORE 
+                // redirecting to dashboard. Chrome can handle the async
+                // request to /addons/ but firefox/safari fail.
+
                 // must follow storing token otherwise call will fail with 401
                 self.checkForInstalledApps();
-                self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
                 // and add a failure message to the top of the screen
@@ -10379,18 +10363,17 @@ var NodeAvailView = GoldstoneBaseView.extend({
     filter: {
         // none must be set to false in order to not display
         // nodes that have zero associated events.
-        emergency: true,
-        alert: true,
-        critical: true,
-        error: true,
-        warning: true,
-        notice: true,
-        info: true,
-        debug: true,
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: true,
+        WARNING: true,
+        NOTICE: true,
+        INFO: true,
+        DEBUG: true,
         none: false,
         actualZero: true
     },
-
 
     instanceSpecificInit: function() {
         NodeAvailView.__super__.instanceSpecificInit.apply(this, arguments);
@@ -10453,10 +10436,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // maps between input label domain and output color range for circles
         self.loglevel = d3.scale.ordinal()
-            .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug", "actualZero"])
-        // concats darkgrey as a color for nodes
-        // reported at 'actualZero'
-        .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
+            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "actualZero"])
+            // concats darkgrey as a color for nodes
+            // reported at 'actualZero'
+            .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
 
         // for 'disabled' axis
         self.xAxis = d3.svg.axis()
@@ -10466,10 +10449,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         self.xScale = d3.time.scale()
             .range([self.margin.left, self.mw - self.margin.right])
-        // rounding
-        .nice()
-        // values above or below domain will be constrained to range
-        .clamp(true);
+            // rounding
+            .nice()
+            // values above or below domain will be constrained to range
+            .clamp(true);
 
         self.yAxis = d3.svg.axis()
             .ticks(5)
@@ -10971,14 +10954,14 @@ TODO: probably change this to d.timestamp
 
         self.graph.selectAll("circle")
             .transition().duration(500)
-        // this determines the color of the circle
-        .attr("class", function(d) {
-            if (d.swimlane === "unadmin") {
-                return d.swimlane;
-            } else {
-                return "individualNode";
-            }
-        })
+            // this determines the color of the circle
+            .attr("class", function(d) {
+                if (d.swimlane === "unadmin") {
+                    return d.swimlane;
+                } else {
+                    return "individualNode";
+                }
+            })
             .attr("fill", function(d) {
                 return self.loglevel(d.level);
             })
@@ -11135,8 +11118,7 @@ TODO: probably change this to d.timestamp
         '</div>' +
         '</div>'
     )
-});
-;
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -11584,14 +11566,10 @@ var NovaReportView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Nova API Performance"),
             collection: this.novaApiPerfChart,
             height: 350,
-            infoCustom: [{
-                key: goldstone.translate("API Call"),
-                value: goldstone.translate("All")
-            }],
             el: '#nova-report-r1-c1',
-            width: $('#nova-report-r1-c1').width()
+            width: $('#nova-report-r1-c1').width(),
         });
-
+        
         /*
         VM Spawns Chart
         */
@@ -13733,7 +13711,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
             var firstTsData = payload[0] !== undefined ? payload[0] : [];
-            var myUuid = goldstone.uuid()();
             var filteredFirstTsData;
             var keys;
             var columns;
@@ -13745,7 +13722,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             // otherwise it will === undefined
             if (firstTsData[0] !== undefined) {
                 firstTsData = _.map(firstTsData, function(e) {
-                    e.datatableRecId = goldstone.uuid()();
+                    e.datatableRecId = goldstone.uuid();
                     return e;
                 });
 

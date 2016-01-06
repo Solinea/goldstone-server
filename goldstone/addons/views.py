@@ -46,9 +46,7 @@ def addons(_):
     # Delete each row's pk, and convert the datetimes to JSON.
     for entry in result:
         del entry["id"]
-        entry["updated_date"] = DateTimeEncoder().encode(entry["updated_date"])
-        entry["installed_date"] = \
-            DateTimeEncoder().encode(entry["installed_date"])
+        entry["updated"] = DateTimeEncoder().encode(entry["updated"])
 
     return Response(result)
 

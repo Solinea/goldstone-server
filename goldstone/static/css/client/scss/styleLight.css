@@ -686,7 +686,7 @@ transition:all 0.3s ease;
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .logo-large { background: url(../../../images/logo-large@2x.png) no-repeat center top/cover; }
   .logo-header { background-image: url(../../../images/logo@2x.png); background-size: 113px 32px; }
   .username { background-image: url(../../../images/icon-down-arrow@2x.png); background-size: 16px 12px; }
-  .dashboard-icon { background: url(../../../images/icon-dashboard-active@2x.png) no-repeat center center; }
+  .dashboard-icon { background: url(../../../images/icon-dashboard-active@2x.png) no-repeat center center; background-size: 20px 20px; }
   .alerts { background: url(../../../images/icon-notifications@2x.png) no-repeat center center; background-size: 18px 20px; }
   .metrics { background: url(../../../images/icon-metrics@2x.png) no-repeat center center; background-size: 19px 19px; }
   .reports { background: url(../../../images/icon-reports@2x.png) no-repeat center center; background-size: 16px 20px; }

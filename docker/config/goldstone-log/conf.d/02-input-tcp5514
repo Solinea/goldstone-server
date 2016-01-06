@@ -19,5 +19,10 @@ input {
     tcp {
         port => 5514
         type => syslog
+        codec => multiline {
+            patterns_dir => "/opt/logstash/patterns"
+            pattern => "%{OPENSTACK_TRACE}"
+            what => "previous"
+        }
     }
 }

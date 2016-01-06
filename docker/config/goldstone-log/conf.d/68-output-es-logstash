@@ -16,9 +16,7 @@ output {
     # stdout { codec => rubydebug }
     if [type] == "syslog" {
         elasticsearch {
-            host => gssearch
-            port => 9200
-            protocol => http
+            hosts => ["gssearch:9200"]
             workers => 4
         }
     }
