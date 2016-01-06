@@ -196,7 +196,7 @@ css stylesheets supporting redesign
 
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
-.dashboard .footer { position: relative; left: 0; top: 0; top: 18px; }
+.dashboard .footer { left: 9%; width: 90%; bottom: -38px; }
 
 .dashboard .footer .row { width: 100%; }
 
