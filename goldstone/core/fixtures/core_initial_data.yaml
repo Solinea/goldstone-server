@@ -3,7 +3,7 @@
     fields:
       name: openstack syslog errors
       owner: events
-      query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}}'
+      query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}, "aggs": {"per_interval": {"date_histogram": {"field": "@timestamp", "interval": "1m", "min_doc_count": 0}, "aggs": {"per_level": {"terms": {"field": "syslog_severity.raw", "min_doc_count": 0}}}}}}'
       index_prefix: logstash-*
       doc_type: syslog
       timestamp_field: '@timestamp'
@@ -14,7 +14,7 @@
     fields:
       name: generic syslog errors
       owner: events
-      query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}}'
+      query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}, "aggs": {"per_interval": {"date_histogram": {"field": "@timestamp", "interval": "1m", "min_doc_count": 0}, "aggs": {"per_level": {"terms": {"field": "syslog_severity.raw", "min_doc_count": 0}}}}}}'
       index_prefix: logstash-*
       doc_type: syslog
       timestamp_field: '@timestamp'
