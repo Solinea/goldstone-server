@@ -19,3 +19,16 @@
       doc_type: syslog
       timestamp_field: '@timestamp'
       protected: true
+
+  - model: core.SavedSearch
+    pk: 55b19303-4fd2-4216-95cb-75a4f39b763c
+    fields:
+      name: log viewer query
+      owner: logging
+      query: '{"query": {"match_all": {}}, "aggs": {"per_interval": {"date_histogram": {"field": "@timestamp", "interval": "1m", "min_doc_count": 0}, "aggs": {"per_level": {"terms": {"field": "syslog_severity.raw", "min_doc_count": 0}}}}}}'
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: '@timestamp'
+      protected: true
+
+

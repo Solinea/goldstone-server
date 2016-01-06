@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from rest_framework.response import Response
+from goldstone.core.views import SavedSearchViewSet
 
 from goldstone.drfes.views import ElasticListAPIView
 from goldstone.glogging.models import LogData

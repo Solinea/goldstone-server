@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import sys
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -34,6 +35,8 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+
+logger = logging.getLogger(__name__)
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX
@@ -2658,10 +2661,12 @@ class SavedSearch(models.Model):
         """Returns an unbounded search object based on the saved query. Call
         the execute method when ready to retrieve the results."""
         import json
-        s = Search.from_dict(json.loads(self.query))
-        s.using(DailyIndexDocType._doc_type.using)
-        s.index(self.index_prefix)
-        s.doc_type(self.doc_type)
+
+        s = Search.from_dict(json.loads(self.query))\
+            .using(DailyIndexDocType._doc_type.using)\
+            .index(self.index_prefix)\
+            .doc_type(self.doc_type)
+
         return s
 
     def search_recent(self):
@@ -2672,10 +2677,8 @@ class SavedSearch(models.Model):
         """
         import arrow
 
-        s = self.search()
-
         if self.timestamp_field is None:
-            return s
+            return self.search()
 
         if self.last_end is None:
             start = arrow.get(0).datetime
@@ -2684,10 +2687,10 @@ class SavedSearch(models.Model):
 
         end = arrow.utcnow().datetime
 
-        s = self.search()
-        s = s.query('range',
-                    ** {self.timestamp_field:
-                        {'gt': start.isoformat(),
+        s = self.search()\
+            .query('range',
+                   ** {self.timestamp_field:
+                           {'gt': start.isoformat(),
                             'lte': end.isoformat()}})
         return s, start, end
 

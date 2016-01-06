@@ -180,6 +180,8 @@ class GetPostTests(SearchSetup):
         if expected_rows > 10:
             expected_rows = 10
 
+        expected_prev = expected_rows - 1
+
         token = create_and_login()
 
         response = self.client.get(
@@ -192,11 +194,11 @@ class GetPostTests(SearchSetup):
         response_content = json.loads(response.content)
 
         self.assertEqual(expected_rows, response_content["count"])
-
+        self.assertIsNone(response_content["next"])
         self.assertEqual(
             response_content["previous"],
-            'http://testserver/core/saved_search/?page_size=1')
-        self.assertIsNone(response_content["next"])
+            'http://testserver/core/saved_search/'
+            '?page=%d&page_size=1' % expected_prev)
 
         self.assertEqual(1, len(response_content["results"]))
 

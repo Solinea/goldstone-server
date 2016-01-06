@@ -22,9 +22,9 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
-from goldstone.core.models import SavedSearch
 from goldstone.core.serializers import SavedSearchSerializer
 from goldstone.drfes.filters import ElasticFilter
+from goldstone.drfes.serializers import ElasticResponseSerializer
 
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
@@ -849,14 +849,10 @@ class SavedSearchViewSet(ModelViewSet):
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
         """Return a defined search's results."""
-        from elasticsearch import Elasticsearch
-        from elasticsearch_dsl import Q
-        from goldstone.drfes.filters import ElasticFilter
         from goldstone.drfes.pagination import ElasticPageNumberPagination
         from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
         # Get the model for the requested uuid
-        # query = ast.literal_eval(SavedSearch.objects.get(uuid=uuid).query)
         obj = SavedSearch.objects.get(uuid=uuid)
 
         # To use as much Goldstone code as possible, we now override the class
@@ -865,7 +861,7 @@ class SavedSearchViewSet(ModelViewSet):
         # the Elasticsearch query. DailyIndexDocType uses a "logstash-" index
         # prefix.
         self.pagination_class = ElasticPageNumberPagination
-        self.serializer_class = ReadOnlyElasticSerializer
+        self.serializer_class = ElasticResponseSerializer
         self.filter_backends = (SavedSearchFilter, )
 
         # Tell ElasticFilter to not add these query parameters to the
@@ -878,9 +874,5 @@ class SavedSearchViewSet(ModelViewSet):
         # Perform the search and paginate the response.
         page = self.paginate_queryset(queryset)
 
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        else:
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
+        serializer = self.get_serializer(page)
+        return self.get_paginated_response(serializer.data)

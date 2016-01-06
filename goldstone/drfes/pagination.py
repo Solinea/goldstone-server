@@ -12,9 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections import OrderedDict
+import logging
+from django.core.paginator import InvalidPage, \
+            Paginator as DjangoPaginator
 from rest_framework import pagination
 from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
 import six
+
+logger = logging.getLogger(__name__)
 
 
 class ElasticPageNumberPagination(pagination.PageNumberPagination):
@@ -25,8 +32,6 @@ class ElasticPageNumberPagination(pagination.PageNumberPagination):
     def paginate_queryset(self, queryset, request, view=None):
         """Paginate a queryset if required, either returning a page object, or
         `None` if pagination is not configured for this view."""
-        from django.core.paginator import InvalidPage, \
-            Paginator as DjangoPaginator
 
         self._handle_backwards_compat(view)
 
@@ -54,4 +59,22 @@ class ElasticPageNumberPagination(pagination.PageNumberPagination):
             self.display_page_controls = True
 
         self.request = request
-        return list(self.page)
+        return self.page.object_list
+
+    def get_paginated_response(self, data):
+
+        if 'aggregations' in data:
+            return Response(OrderedDict([
+                ('count', self.page.paginator.count),
+                ('next', self.get_next_link()),
+                ('previous', self.get_previous_link()),
+                ('results', data['results']),
+                ('aggregations', data['aggregations'])
+            ]))
+        else:
+            return Response(OrderedDict([
+                ('count', self.page.paginator.count),
+                ('next', self.get_next_link()),
+                ('previous', self.get_previous_link()),
+                ('results', data['results']),
+            ]))
