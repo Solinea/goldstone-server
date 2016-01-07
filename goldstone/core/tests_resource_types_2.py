@@ -18,7 +18,7 @@ from mock import patch
 from .models import ServerGroup, Server, Interface, Volume, QOSSpec, \
     VolumeType, Snapshot
 from .resource import Types, RESOURCE_TYPES
-from .tests_resource_types_1 import do_test, dictassign
+from .tests_resource_types_1 import do_method_test, dictassign
 from goldstone.addons.models import Addon as AddonTable
 from goldstone.test_utils import Setup
 
@@ -108,7 +108,7 @@ class ResourceTypesTests(Setup):
             SERVER["addresses"]["demo-net"][0]["OS-EXT-IPS-MAC:mac_addr"] = \
                 value
 
-        do_test(Server,
+        do_method_test(Server,
                 SERVER,
                 serverassign,
                 Interface,
@@ -193,7 +193,7 @@ class ResourceTypesTests(Setup):
 
             SERVERGROUP["members"].append(value)
 
-        do_test(Server,
+        do_method_test(Server,
                 SERVER,
                 partial(dictassign, SERVER, "hostId"),
                 ServerGroup,
@@ -291,7 +291,7 @@ class ResourceTypesTests(Setup):
 
             VOLUME["links"][0]["href"] = value
 
-        do_test(Server,
+        do_method_test(Server,
                 SERVER,
                 serverassign,
                 Volume,
@@ -321,7 +321,7 @@ class ResourceTypesTests(Setup):
 
             VOLUME_TYPE["extra_specs"]["qos"] = value
 
-        do_test(QOSSpec,
+        do_method_test(QOSSpec,
                 QOSSPEC,
                 partial(dictassign, QOSSPEC, "id"),
                 VolumeType,
@@ -366,7 +366,7 @@ class ResourceTypesTests(Setup):
                   "metadata": {"contents": "not junk"}
                   }
 
-        do_test(VolumeType,
+        do_method_test(VolumeType,
                 VOLUME_TYPE,
                 partial(dictassign, VOLUME_TYPE, "id"),
                 Volume,
@@ -418,7 +418,7 @@ class ResourceTypesTests(Setup):
                   "metadata": {"contents": "not junk"}
                   }
 
-        do_test(Snapshot,
+        do_method_test(Snapshot,
                 SNAPSHOT,
                 partial(dictassign, SNAPSHOT, "id"),
                 Volume,
