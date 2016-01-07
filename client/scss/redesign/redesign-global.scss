@@ -1,167 +1,193 @@
 /*body{
 	background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
+
+
 /*Wrapper*/
-.dashboard .wrapper{
-	overflow: hidden;
+
+.dashboard .wrapper {
+    overflow: hidden;
 }
+
 
 /*Header*/
-.main-header{
-	background:url(../../../images/header-background.jpg) no-repeat left top;
-	background-size:cover;
-	padding: 15px 13px 12px;
-}
-.logo-header{
-	display: inline-block;
-	height:32px;
-	width:113px;
-	background:url(../../../images/logo.png) no-repeat center top/cover;
-	float: left;
-	margin-top: 5px;
-}
-.user-control{
-	float: right;
-	margin-right: 22px;
-	cursor: pointer;
-	position: relative;
-}
-.user{
-	margin-right: 15px;
-	float: left;
-}
-.user img{
-	height:34px;
-	width:34px;
-	display: inline-block;
-	border-radius:50%;
-}
-.username{
-	float: left;
-	font-size:14px;
-	color:#fff;
-	line-height:34px;
-	padding-right: 19px;
-	background:url(../../../images/icon-down-arrow.png) no-repeat right center;
+
+.main-header {
+    background: url(../../../images/header-background.jpg) no-repeat left top;
+    background-size: cover;
+    padding: 15px 13px 12px;
 }
 
-.menu-wrapper{
-	padding-top:17px;
-	position: absolute;
-	top:28px;
-	right:-4px;
-	width:176px;
-	display: none;
-	z-index: 99999;
+.logo-header {
+    display: inline-block;
+    height: 32px;
+    width: 113px;
+    background: url(../../../images/logo.png) no-repeat center top/cover;
+    float: left;
+    margin-top: 5px;
 }
 
-.menu{
-	background:#ffffff;
-	width:100%;
-	border-radius:4px;
-	padding: 28px 26px 15px;
-	text-align: center;
-	overflow: hidden;
-}
-.menu-wrapper:after{
-	border-bottom:6px solid #fff;
-	border-left:5px solid transparent;
-	border-right:5px solid transparent;
-	position: absolute;
-	content:"";
-	top:12px;
-	right:7px;
-}
-.menu a{
-	text-align: center;
-	width:42px;
-	font-size:12px;
-	color:#616161;
-	float: left;
-	margin-bottom: 25px;
-}
-.menu a:nth-child(odd){
-	margin-right: 39px;
-}
-.menu a i.icon{
-	margin-bottom: 15px;
-}
-.icon{
-	display:inline-block;
-	height:40px;
-	width:40px;
-	background-size:40px 40px;
-	background-position:center center;
-	background-repeat:no-repeat;
-}
-.icon.setting-icon{
-	background-image:url(../../../images/icon-setting.png);
-}
-.icon.help-icon{
-	background-image:url(../../../images/icon-help.png);
-}
-.icon.google-group-icon{
-	background-image:url(../../../images/icon-google-groups.png);
-}
-.icon.github-icon{
-	background-image:url(../../../images/icon-github.png);
-}
-.menu .logout-btn{
-	clear:left;
-	width:78px;
-	min-height:34px;
-	font-size:14px;
-	line-height:34px;
-	text-transform: uppercase;
-	margin: 0 auto !important;
-	display:block;
-	color:#1D9CA5;
-	float: none;
-	border-radius:2px;
-	padding: 0 5px;
-	background:#eeeeee;
-}
-.shadow-block{
-	box-shadow:0 0 5px rgba(0,0,0,0.4);
+.user-control {
+    float: right;
+    margin-right: 22px;
+    cursor: pointer;
+    position: relative;
 }
 
+.user {
+    margin-right: 15px;
+    float: left;
+}
+
+.user img {
+    height: 34px;
+    width: 34px;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.username {
+    float: left;
+    font-size: 14px;
+    color: #fff;
+    line-height: 34px;
+    padding-right: 19px;
+    background: url(../../../images/icon-down-arrow.png) no-repeat right center;
+}
+
+.menu-wrapper {
+    padding-top: 17px;
+    position: absolute;
+    top: 28px;
+    right: -4px;
+    width: 176px;
+    display: none;
+    z-index: 99999;
+}
+
+.menu {
+    background: #ffffff;
+    width: 100%;
+    border-radius: 4px;
+    padding: 28px 26px 15px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.menu-wrapper:after {
+    border-bottom: 6px solid #fff;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    position: absolute;
+    content: "";
+    top: 12px;
+    right: 7px;
+}
+
+.menu a {
+    text-align: center;
+    width: 42px;
+    font-size: 12px;
+    color: #616161;
+    float: left;
+    margin-bottom: 25px;
+}
+
+.menu a:nth-child(odd) {
+    margin-right: 39px;
+}
+
+.menu a i.icon {
+    margin-bottom: 15px;
+}
+
+.icon {
+    display: inline-block;
+    height: 40px;
+    width: 40px;
+    background-size: 40px 40px;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.icon.setting-icon {
+    background-image: url(../../../images/icon-setting.png);
+}
+
+.icon.help-icon {
+    background-image: url(../../../images/icon-help.png);
+}
+
+.icon.google-group-icon {
+    background-image: url(../../../images/icon-google-groups.png);
+}
+
+.icon.github-icon {
+    background-image: url(../../../images/icon-github.png);
+}
+
+.menu .logout-btn {
+    clear: left;
+    width: 78px;
+    min-height: 34px;
+    font-size: 14px;
+    line-height: 34px;
+    text-transform: uppercase;
+    margin: 0 auto !important;
+    display: block;
+    color: #1D9CA5;
+    float: none;
+    border-radius: 2px;
+    padding: 0 5px;
+    background: #eeeeee;
+}
+
+.shadow-block {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+}
 
 
 /*footer*/
-.footer{
-	position: absolute;
-	bottom:25px;
-	left:0;
-	width:100%;
+
+.footer {
+    position: absolute;
+    bottom: 25px;
+    left: 0;
+    width: 100%;
 }
 
-.footer .copyright{
-	float:left;
-	font-size:14px;
-	color:#fff;
-	}
-.footer .copyright strong{
-	font-weight:400;
-	color:rgba(255,255,255,0.54);
-}
-.footer .license{
-	float: right;
-	color:#fff;
-	font-size:14px;
-}
-.dashboard .footer{
-	position: relative;
-	left: 0;
-	top:0;
-	top: 18px;
-}
-.dashboard .footer .row{
-	width:100%;
-}
-.dashboard .footer .copyright strong{
-	color:#616161;
-}
-.dashboard .footer .copyright,.dashboard .footer .license{
-	color:#1d9ca5;
+.footer .copyright {
+    float: left;
+    font-size: 14px;
+    color: #fff;
 }
 
+.footer .copyright strong {
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.54);
+}
+
+.footer .license {
+    float: right;
+    color: #fff;
+    font-size: 14px;
+}
+
+.dashboard .footer {
+    left: 9%;
+    width: 90%;
+    bottom: -38px;
+}
+
+.dashboard .footer .row {
+    width: 100%;
+}
+
+.dashboard .footer .copyright strong {
+    color: #616161;
+}
+
+.dashboard .footer .copyright,
+.dashboard .footer .license {
+    color: #1d9ca5;
+}

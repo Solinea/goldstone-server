@@ -4,90 +4,114 @@ $dark_footer: #ccc;
 $dark_panel_header: #bbb;
 $dark_panel_text: #bbb;
 $dark_text_on_light: #222;
-$dark_tip: rgba(200,200,200, 0.8);
+$dark_tip: rgba(200, 200, 200, 0.8);
 $dark_chart_text: #bbb;
 $dark_datatable_text: #eee;
 
-
 /* Custom page CSS
 -------------------------------------------------- */
+
+
 /* Not required for template or sticky footer method. */
 
-#global-lookback-range, #global-refresh-range {
-  margin-top: -12px;
-  top: 12px;
+#global-lookback-range,
+#global-refresh-range {
+    margin-top: -12px;
+    top: 12px;
 }
 
 .ajax-loader {
     position: absolute;
     left: 50%;
     top: 50%;
-    margin-left: -32px; /* -1 * image width / 2 */
-    margin-top: -32px;  /* -1 * image height / 2 */
+    margin-left: -32px;
+    /* -1 * image width / 2 */
+    margin-top: -32px;
+    /* -1 * image height / 2 */
     display: block;
 }
 
+
+/* every font-awesome icon everywhere unless excluded */
+
+.fa:not(.fa-check):not(.fa-clock-o) {
+    cursor: pointer;
+}
+
+
+/* cursor over logViz to suggest double-clickability*/
+
+#log-viewer-visualization svg {
+    cursor: zoom-in;
+}
+
+
 /* Datatable font sizes */
+
 .table-hover th {
     font-size: 10px;
 }
+
 .table-hover td {
     font-size: 10px;
 }
 
 .infoButton {
-  width: 17em;
-  margin-left: 1em;
+    width: 17em;
+    margin-left: 1em;
 }
 
 #multi-rsrc-table_wrapper > .dataTables_scroll {
     min-height: 500px;
 }
 
-.node:not(.data-leaf){
-  cursor: pointer;
-  stroke: #3182bd;
-  stroke-width: 1.5px;
+.node:not(.data-leaf) {
+    cursor: pointer;
+    stroke: #3182bd;
+    stroke-width: 1.5px;
 }
 
 .data-leaf {
-  cursor: context-menu;
+    cursor: context-menu;
 }
 
 .node text {
-  font-size: 12px;
-  stroke-width: 0;
+    font-size: 12px;
+    stroke-width: 0;
 }
 
 .link {
-  fill: none;
-  stroke: #9ecae1;
-  stroke-width: 1.5px;
+    fill: none;
+    stroke: #9ecae1;
+    stroke-width: 1.5px;
 }
 
 .axis {
-  path, line {
-    fill: none;
-    stroke-width: 1.5px;
-    stroke: if($theme==dark, $dark_chart_text, #000);
-    shape-rendering: crispEdges;
-  }
+    path,
+    line {
+        fill: none;
+        stroke-width: 1.5px;
+        stroke: if($theme==dark, $dark_chart_text, #000);
+        shape-rendering: crispEdges;
+    }
 }
 
-text:not(.zoomable), .axis.label {
+text:not(.zoomable),
+.axis.label {
     font: 12px sans-serif;
     fill: if($theme==dark, $dark_chart_text, null);
 }
 
-#goldstone-primary-panel g.text{
-  text{
-    font-size: 10px;
-  }
+#goldstone-primary-panel g.text {
+    text {
+        font-size: 10px;
+    }
 }
 
 .legend rect {
-  opacity: 0.0;
+    opacity: 0.0;
 }
+
 
 /* nodeAvail viz css */
 
@@ -97,6 +121,6 @@ text:not(.zoomable), .axis.label {
 }
 
 .swim.axis.invisible-axis .tick line {
-  fill: none;
-  stroke: none;
+    fill: none;
+    stroke: none;
 }

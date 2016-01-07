@@ -442,7 +442,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
 
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:<%= this.height %>px">' +
+        '<div class="panel-body shadow-block" style="height:<%= this.height %>px">' +
         '</div>' +
         '</div>' +
         '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
@@ -2650,6 +2650,10 @@ var InfoButtonText = GoldstoneBaseModel.extend({
                 return goldstone.translate('This is the OpenStack Keystone topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view.');
             },
 
+            logBrowser: function() {
+                return goldstone.translate('This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings.');
+            },
+
             novaSpawns: function() {
                 return goldstone.translate('This chart displays VM spawn success and failure counts across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
             },
@@ -2664,10 +2668,6 @@ var InfoButtonText = GoldstoneBaseModel.extend({
 
             novaDiskResources: function() {
                 return goldstone.translate('This chart displays aggregate disk allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
-            },
-
-            searchLogAnalysis: function() {
-                return goldstone.translate('This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings.');
             },
 
             cloudTopologyResourceList: function() {
@@ -3379,42 +3379,138 @@ instantiated in logSearchPageView.js as:
 
 */
 
-var LogAnalysisCollection = Backbone.Collection.extend({
+var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
-    defaults: {},
+    isZoomed: false,
+    zoomedStart: null,
+    zoomedEnd: null,
 
-    parse: function(data) {
+    addRange: function() {
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/logging'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
+        if (this.isZoomed) {
+            return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
+        } else {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         }
 
-        return data;
     },
 
-    model: GoldstoneBaseModel,
+    addInterval: function() {
+        var n;
+        var start;
+        var end;
 
-    // will impose an order based on 'time' for
-    // the models as they are put into the collection
-    // comparator: '@timestamp',
+        if (this.isZoomed) {
+            start = this.zoomedStart;
+            end = this.zoomedEnd;
+        } else {
+            start = this.gte;
+            end = this.epochNow;
+        }
 
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
+        // interval ratio of 1/20th the time span in seconds.
+        n = ((end - start) / 20000);
+        // ensure a minimum of 0.5second interval
+        n = Math.max(0.5, n);
+        // round to 3 decimal places
+        n = Math.round(n * 1000) / 1000;
+        return '&interval=' + n + 's';
     },
 
-    fetchWithRemoval: function() {
-        this.fetch({
-            remove: true
-        });
-    }
+    addCustom: function(custom) {
+
+        var result = '&per_host=False';
+
+        if (this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
+    },
+
 });
 ;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+/*
+instantiated in logSearchPageView.js as:
+
+    this.logAnalysisCollection = new LogAnalysisCollection({});
+
+    ** and the view as:
+
+    this.logAnalysisView = new LogAnalysisView({
+        collection: this.logAnalysisCollection,
+        width: $('.log-analysis-container').width(),
+        height: 300,
+        el: '.log-analysis-container',
+        featureSet: 'logEvents',
+        chartTitle: 'Log Analysis',
+        urlRoot: "/logging/summarize?",
+
+    });
+
+*/
+
+var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addCustom: function() {
+
+        var result = '&syslog_severity__terms=[';
+
+        levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toUpperCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+
+        if(this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
+    },
+
+    computeLookbackAndInterval: function() {
+
+        // compute epochNow, globalLookback, globalRefresh
+        // this.getGlobalLookbackRefresh();
+        if (this.linkedCollection.isZoomed) {
+            this.gte = this.linkedCollection.zoomedStart;
+            this.epochNow = this.linkedCollection.zoomedEnd;
+        } else {
+            this.gte = this.linkedCollection.gte;
+            this.epochNow = this.linkedCollection.epochNow;
+        }
+
+    },
+
+});;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -5153,18 +5249,72 @@ var DetailsReportView = GoldstoneBaseView.extend({
 var DiscoverView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged') {
-            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
-        }
 
-        if (change === 'lookbackIntervalReached') {
-            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
+            this.memResourcesChartView.trigger('lookbackSelectorChanged');
+            this.diskResourcesChartView.trigger('lookbackSelectorChanged');
         }
     },
 
     renderCharts: function() {
+
+        /*
+        CPU Resources Chart
+        */
+
+        this.cpuResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
+        });
+
+        this.cpuResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("CPU"),
+            collection: this.cpuResourcesChart,
+            featureSet: 'cpu',
+            height: 350,
+            infoText: 'novaCpuResources',
+            el: '#nova-report-r2-c1',
+            width: $('#nova-report-r2-c1').width(),
+            yAxisLabel: goldstone.translate('Cores')
+        });
+
+        /*
+        Mem Resources Chart
+        */
+
+        this.memResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
+        });
+
+        this.memResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("Memory"),
+            collection: this.memResourcesChart,
+            featureSet: 'mem',
+            height: 350,
+            infoText: 'novaMemResources',
+            el: '#nova-report-r2-c2',
+            width: $('#nova-report-r2-c2').width(),
+            yAxisLabel: goldstone.translate('MB')
+        });
+
+        /*
+        Disk Resources Chart
+        */
+
+        this.diskResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
+        });
+
+        this.diskResourcesChartView = new MultiMetricBarView({
+            chartTitle: goldstone.translate("Storage"),
+            collection: this.diskResourcesChart,
+            featureSet: 'disk',
+            height: 350,
+            infoText: 'novaDiskResources',
+            el: '#nova-report-r2-c3',
+            width: $('#nova-report-r2-c3').width(),
+            yAxisLabel: goldstone.translate('GB')
+        });
 
         //---------------------------
         // instantiate event timeline chart
@@ -5395,26 +5545,32 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</div>' +
         '<div class="row">' +
         '<h4>Resource Usage</h4>' +
-        '<div class="single-block service-status">' +
-        '<h3>CPU<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-CPU.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Memory<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-Memory.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-Disk.jpg" alt="">' +
-        '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>CPU<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-CPU.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>Memory<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-Memory.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+        // '<div class="single-block service-status">' +
+        // '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="full-map shadow-block">' +
+        // '<img src="/static/images/Chart-Disk.jpg" alt="">' +
+        // '</div>' +
+        // '</div>' +
+
+        // add nova report cpu/mem/storage
+
+        '<div id="nova-report-r2" class="row">' +
+        '<div id="nova-report-r2-c1" class="col-md-4"></div>' +
+        '<div id="nova-report-r2-c2" class="col-md-4"></div>' +
+        '<div id="nova-report-r2-c3" class="col-md-4"></div>' +
         '</div>'
-
-
     )
 
 });
@@ -7056,6 +7212,202 @@ var HypervisorVmCpuView = Backbone.View.extend({
  */
 
 /*
+the jQuery dataTables plugin is documented at
+http://datatables.net/reference/api/
+
+instantiated on apiBrowserPageView as:
+
+    this.eventsBrowserTable = new EventsBrowserDataTableView({
+        el: '.events-browser-table',
+        chartTitle: 'Events Browser',
+        infoIcon: 'fa-table',
+        width: $('.events-browser-table').width()
+    });
+
+*/
+
+var LogBrowserDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        LogBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+        this.drawSearchTableServerSide('#reports-result-table');
+    },
+
+    processListenersForServerSide: function() {
+        // overwriting so that dataTable only renders as a result of actions
+        // from viz above
+    },
+
+
+    update: function() {
+        var oTable;
+
+        if ($.fn.dataTable.isDataTable("#reports-result-table")) {
+            oTable = $("#reports-result-table").DataTable();
+            oTable.ajax.reload();
+        }
+    },
+
+    oTableParamGeneratorBase: function() {
+        var self = this;
+        return {
+            "scrollX": "100%",
+            "processing": false,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
+            "columnDefs": [{
+                "data": "@timestamp",
+                "type": "date",
+                "targets": 0,
+                "render": function(data, type, full, meta) {
+                    return moment(data).format();
+                }
+            }, {
+                "data": "syslog_severity",
+                "targets": 1
+            }, {
+                "data": "component",
+                "targets": 2
+            }, {
+                "data": "host",
+                "targets": 3
+            }, {
+                "data": "log_message",
+                "targets": 4
+            }],
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
+                    self.collectionMixin.urlGenerator();
+                    // the pageSize and searchQuery are jQuery values
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
+
+                    // the paginationStart is taken from the dataTables
+                    // generated serverSide query string that will be
+                    // replaced by this.defaults.url after the required
+                    // components are parsed out of it
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
+                        "&page=" + computeStartPage;
+
+                    // here begins the combiation of additional params
+                    // to construct the final url for the dataTable fetch
+                    if (searchQuery) {
+                        settings.url += "&_all__regexp=.*" +
+                            searchQuery + ".*";
+                    }
+
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        // generalize if sorting is implemented server-side
+                        var columnLabelHash = {
+                            0: '@timestamp',
+                            1: 'syslog_severity',
+                            2: 'component',
+                            3: 'host',
+                            4: 'log_message'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        // uncomment when ordering is in place.
+                        // settings.url = settings.url + "&ordering=" +
+                        //     ascDec + columnLabelHash[orderByColumn];
+                    }
+
+
+
+                },
+                dataSrc: "results",
+                dataFilter: function(data) {
+                    data = self.serverSideDataPrep(data);
+                    return data;
+                }
+            }
+        };
+    },
+
+    serverSideDataPrep: function(data) {
+        data = JSON.parse(data);
+
+        _.each(data.results, function(item) {
+
+            // if any field is undefined, dataTables throws an alert
+            // so set to empty string if otherwise undefined
+            item['@timestamp'] = item['@timestamp'] || '';
+            item.syslog_severity = item.syslog_severity || '';
+            item.component = item.component || '';
+            item.log_message = item.log_message || '';
+            item.host = item.host || '';
+        });
+
+        var result = {
+            results: data.results,
+            recordsTotal: data.count,
+            recordsFiltered: data.count
+        };
+        result = JSON.stringify(result);
+        return result;
+    },
+
+    serverSideTableHeadings: _.template('' +
+        '<tr class="header">' +
+        '<th><%=goldstone.contextTranslate(\'Timestamp\', \'logbrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Syslog Severity\', \'logbrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Component\', \'logbrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Host\', \'logbrowserdata\')%></th>' +
+        '<th><%=goldstone.contextTranslate(\'Message\', \'logbrowserdata\')%></th>' +
+        '</tr>'
+    )
+});;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 openstack syslog severity levels:
 0       EMERGENCY: system is unusable
 1       ALERT: action must be taken immediately
@@ -7069,149 +7421,89 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+            this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/',
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize/?",
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    });
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'searchLogAnalysis',
+            marginLeft: 60,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });    
+        this.logBrowserTableCollection.urlBase = "/logging/search/";
+        this.logBrowserTableCollection.addRange = function() {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        };
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+
 */
 
-// extends UtilizationCpuView
-var LogAnalysisView = GoldstoneBaseView.extend({
-    defaults: {
-        margin: {
-            top: 20,
-            right: 40,
-            bottom: 35,
-            left: 63
-        },
+var LogBrowserViz = GoldstoneBaseView.extend({
 
-        // populated dynamically by
-        // returned levels param of data
-        // in this.collectionPrep
-        // and will look something like this:
+    margin: {
+        top: 20,
+        right: 40,
+        bottom: 35,
+        left: 63
+    },
 
-        // IMPORTANT: the order of the entries in the
-        // Log Severity Filters modal is set by the order
-        // of the event types in ns.filter
+    // IMPORTANT: the order of the entries in the
+    // Log Severity Filters modal is set by the order
+    // of the event types in self.filter
 
+    filter: {
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: true,
+        WARNING: true,
+        NOTICE: true,
+        INFO: true,
+        DEBUG: true
+    },
 
-        filter: {
-            EMERGENCY: true,
-            ALERT: true,
-            CRITICAL: true,
-            ERROR: true,
-            WARNING: true,
-            NOTICE: true,
-            INFO: true,
-            DEBUG: true
-        },
+    // will prevent updating when zoom is active
+    isZoomed: false,
 
-        refreshCount: 2,
-
-        // will prevent updating when zoom is active
-        isZoomed: false
-
+    setZoomed: function(bool) {
+        this.isZoomed = bool;
+        this.collection.isZoomed = bool;
     },
 
     instanceSpecificInit: function() {
-        // processes the passed in hash of options when object is instantiated
-        this.processOptions();
-        // sets page-element listeners, and/or event-listeners
-        this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
-        this.render();
-        // basic assignment of variables to be used in chart rendering
+        LogBrowserViz.__super__.instanceSpecificInit.call(this, arguments);
+
         this.standardInit();
-        // appends spinner to el
-        this.showSpinner();
         this.specialInit();
     },
 
-    processOptions: function() {
-
-        var self = this;
-        var ns = this.defaults;
-
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.url = this.collection.url;
-        this.defaults.featureSet = this.options.featureSet || null;
-        if (ns.featureSet === 'memUsage') {
-            ns.divisor = (1 << 30);
-        }
-        ns.formatPercent = d3.format(".0%");
-        ns.height = this.options.height || this.options.width;
-        ns.yAxisLabel = '';
-
-        ns.yAxisLabel = goldstone.contextTranslate('Log Events', 'loganalysis');
-        ns.urlRoot = this.options.urlRoot;
-
-        // specificHost will only be passed in if instantiated on a node
-        // report page. If null, will be ignored in this.constructUrl
-        // and this.urlGen
-        ns.specificHost = this.options.specificHost || null;
-    },
-
-    processMargins: function() {
-        var ns = this.defaults;
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
-    },
-
     constructUrl: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var seconds = (ns.end - ns.start) / 1000;
-        var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
-
-        this.collection.url = ns.urlRoot;
-        if (ns.specificHost) {
-            this.collection.url += 'host=' + ns.specificHost + '&';
-        }
-        this.collection.url += 'per_host=False&@timestamp__range={' +
-            '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
-    },
-
-    startEndToGlobalLookback: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var globalLookback = $('#global-lookback-range').val();
-
-        ns.end = +new Date();
-        ns.start = ns.end - (globalLookback * 60 * 1000);
-    },
-
-    triggerSearchTable: function() {
-
-        this.drawSearchTable('#log-search-table', this.defaults.start, this.defaults.end);
+        this.collection.urlGenerator();
     },
 
     processListeners: function() {
-        var ns = this.defaults;
         var self = this;
 
         this.listenTo(this.collection, 'sync', function() {
@@ -7220,150 +7512,126 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
-        this.on('lookbackIntervalReached', function(params) {
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            self.showSpinner();
+            self.setZoomed(false);
+            self.constructUrl();
+        });
 
-            if (ns.isZoomed === true) {
+        this.listenTo(this, 'refreshSelectorChanged', function() {
+            self.showSpinner();
+            self.setZoomed(false);
+            self.constructUrl();
+        });
+
+        this.listenTo(this, 'lookbackIntervalReached', function() {
+            if (self.isZoomed === true) {
                 return;
             }
-
-            ns.start = params[0];
-            ns.end = params[1];
-
-            $(this.el).find('#spinner').show();
+            this.showSpinner();
             this.constructUrl();
-            this.collection.fetchWithRemoval();
-
         });
 
-        this.on('lookbackSelectorChanged', function(params) {
-            $(this.el).find('#spinner').show();
-            ns.isZoomed = false;
-            ns.start = params[0];
-            ns.end = params[1];
-            this.constructUrl();
-            this.collection.fetchWithRemoval();
-        });
     },
 
     standardInit: function() {
 
-        var ns = this.defaults;
         var self = this;
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        self.mw = self.width - self.margin.left - self.margin.right;
+        self.mh = self.height - self.margin.top - self.margin.bottom;
 
-        ns.chart = ns.svg
+        self.svg = d3.select(this.el).append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
+
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = new GoldstoneColors().get('colorSets');
 
-        // ns.xAxis = d3.svg.axis()
-        //     .scale(ns.x)
-        //     .orient("bottom")
-        //     .ticks(4);
-
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left");
 
-        if (ns.featureSet === "cpuUsage") {
-            ns.yAxis
-                .tickFormat(ns.formatPercent);
-        }
+        self.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
+            .range(self.colorArray.distinct.openStackSeverity8);
 
-        if (ns.featureSet === 'logEvents') {
-
-            ns.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
-                .range(ns.colorArray.distinct.openStackSeverity8);
-        } else {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
-        }
-
-        ns.area = d3.svg.area()
+        self.area = d3.svg.area()
             .interpolate("monotone")
             .x(function(d) {
-                return ns.x(d.date);
+                return self.x(d.date);
             })
             .y0(function(d) {
-                return ns.y(d.y0);
+                return self.y(d.y0);
             })
             .y1(function(d) {
-                return ns.y(d.y0 + d.y);
+                return self.y(d.y0 + d.y);
             });
 
-        ns.stack = d3.layout.stack()
+        self.stack = d3.layout.stack()
             .values(function(d) {
                 return d.values;
             });
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .orient("bottom")
             .ticks(7);
-
-        this.startEndToGlobalLookback();
-        this.triggerSearchTable();
-        this.constructUrl();
-        this.collection.fetchWithRemoval();
-
     },
 
     specialInit: function() {
-        var ns = this.defaults;
         var self = this;
 
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
-            self.paintNewChart([ns.width, 0], 4);
+            self.paintNewChart([self.width, 0], 4);
         });
 
         // ZOOM IN MORE
         this.$el.find('.fa-forward').on('click', function() {
-            self.paintNewChart([ns.width, 0], 12);
+            self.paintNewChart([self.width, 0], 12);
         });
 
         // ZOOM OUT
         this.$el.find('.fa-search-minus').on('click', function() {
-            self.paintNewChart([ns.width * 0.7, 0], 0.45);
+            self.paintNewChart([self.width * 0.7, 0], 0.45);
         });
 
         // ZOOM OUT MORE
         this.$el.find('.fa-backward').on('click', function() {
-            self.paintNewChart([ns.width * 0.7, 0], 0.25);
+            self.paintNewChart([self.width * 0.7, 0], 0.25);
         });
     },
 
     paintNewChart: function(coordinates, mult) {
-        var ns = this.defaults;
         var self = this;
 
         this.showSpinner();
-        ns.isZoomed = true;
+        self.setZoomed(true);
 
         var $gls = $('.global-refresh-selector select');
         if ($gls.length) {
@@ -7376,31 +7644,30 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         var leftMarginX = 64;
         var rightMarginX = 42;
 
-        var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (ns.width - leftMarginX - rightMarginX)));
+        var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (self.width - leftMarginX - rightMarginX)));
 
-        var fullDomain = [+ns.x.domain()[0], +ns.x.domain()[1]];
+        var fullDomain = [+self.x.domain()[0], +self.x.domain()[1]];
 
         var domainDiff = fullDomain[1] - fullDomain[0];
 
-        var clickSpot = +ns.x.invert(adjustedClick);
+        var clickSpot = +self.x.invert(adjustedClick);
 
         var zoomMult = mult || 4;
 
         zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
         zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
 
-        ns.start = zoomedStart;
-        ns.end = Math.min(+new Date(), zoomedEnd);
 
-        if (ns.end - ns.start < 2000) {
-            ns.start -= 1000;
-            ns.end += 1000;
+        // avoids getting stuck with times greater than now.
+        if (zoomedEnd - zoomedStart < 2000) {
+            zoomedStart -= 2000;
         }
 
-        this.constructUrl();
+        this.collection.zoomedStart = zoomedStart;
+        this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
-        this.collection.fetchWithRemoval();
-        return null;
+        this.constructUrl();
+        return;
     },
 
     dblclicked: function(coordinates) {
@@ -7409,22 +7676,22 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
     collectionPrep: function() {
 
-        var ns = this.defaults;
         var self = this;
 
         // this.collection.toJSON() returns an object
         // with keys: timestamps, levels, data.
         var collectionDataPayload = this.collection.toJSON()[0];
+
         // We will store the levels for the loglevel
         // construction and add it back in before returning
         var logLevels = collectionDataPayload.levels;
 
-        // if ns.filter isn't defined yet, only do
+        // if self.filter isn't defined yet, only do
         // this once
-        if (ns.filter === null) {
-            ns.filter = {};
+        if (!self.filter) {
+            self.filter = {};
             _.each(logLevels, function(item) {
-                ns.filter[item] = true;
+                self.filter[item] = true;
             });
         }
 
@@ -7492,7 +7759,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
             // by making sure to add '0' for unreported
             // values, and adding the timestamp
 
-            _.each(ns.filter, function(item, i) {
+            _.each(self.filter, function(item, i) {
                 tempObject[i] = tempObject[i] || 0;
             });
             tempObject.date = _.keys(item)[0];
@@ -7522,12 +7789,12 @@ var LogAnalysisView = GoldstoneBaseView.extend({
     },
 
     sums: function(datum) {
-        var ns = this.defaults;
+        var self = this;
 
         // Return the sums for the filters that are on
-        return d3.sum(ns.color.domain().map(function(k) {
+        return d3.sum(self.color.domain().map(function(k) {
 
-            if (ns.filter[k]) {
+            if (self.filter[k]) {
                 return datum[k];
             } else {
                 return 0;
@@ -7537,7 +7804,6 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this.defaults;
         var self = this;
 
         // sets css for spinner to hidden in case
@@ -7545,17 +7811,13 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         // after chart data callback
         this.hideSpinner();
 
-        // define allthelogs and ns.data even if
+        // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        ns.data = allthelogs;
-
-        if (ns.featureSet === 'logEvents') {
-            ns.data = allthelogs.finalData;
-            ns.loglevel = d3.scale.ordinal()
-                .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
-                .range(ns.colorArray.distinct.openStackSeverity8);
-        }
+        self.data = allthelogs.finalData;
+        self.loglevel = d3.scale.ordinal()
+            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
+            .range(self.colorArray.distinct.openStackSeverity8);
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
@@ -7565,85 +7827,52 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         // remove No Data Returned once data starts flowing again
         this.clearDataErrorMessage();
 
-        ns.color.domain(d3.keys(ns.data[0]).filter(function(key) {
+        self.color.domain(d3.keys(self.data[0]).filter(function(key) {
 
-            if (ns.featureSet === 'logEvents') {
-                return (ns.filter[key] && key !== "date" && key !== "total" && key !== "time");
-            } else {
-                return key !== "date";
-            }
+            return (self.filter[key] && key !== "date" && key !== "total" && key !== "time");
         }));
 
         var components;
-        if (ns.featureSet === 'logEvents') {
+        var curr = false;
+        var anyLiveFilter = _.reduce(self.filter, function(curr, status) {
+            return status || curr;
+        });
 
-            var curr = false;
-            var anyLiveFilter = _.reduce(ns.filter, function(curr, status) {
-                return status || curr;
-            });
-
-            if (!anyLiveFilter) {
-                ns.chart.selectAll('.component')
-                    .remove();
-                return;
-            }
-
-            components = ns.stack(ns.color.domain().map(function(name) {
-                return {
-                    name: name,
-                    values: ns.data.map(function(d) {
-                        return {
-                            date: d.date,
-                            y: d[name]
-                        };
-                    })
-                };
-            }));
-
-        } else {
-
-            components = ns.stack(ns.color.domain().map(function(name) {
-                return {
-                    name: name,
-                    values: ns.data.map(function(d) {
-                        return {
-                            date: d.date,
-                            y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
-                        };
-                    })
-                };
-            }));
+        if (!anyLiveFilter) {
+            self.chart.selectAll('.component')
+                .remove();
+            return;
         }
+
+        components = self.stack(self.color.domain().map(function(name) {
+            return {
+                name: name,
+                values: self.data.map(function(d) {
+                    return {
+                        date: d.date,
+                        y: d[name]
+                    };
+                })
+            };
+        }));
 
         $(this.el).find('.axis').remove();
 
-        ns.x.domain(d3.extent(ns.data, function(d) {
+        self.x.domain(d3.extent(self.data, function(d) {
             return d.date;
         }));
 
-        if (ns.featureSet === 'memUsage') {
-            ns.y.domain([0, ns.memTotal / ns.divisor]);
-        }
+        self.y.domain([
+            0,
+            d3.max(self.data.map(function(d) {
+                return self.sums(d);
+            }))
+        ]);
 
-        if (ns.featureSet === 'netUsage') {
-            ns.y.domain([0, d3.max(allthelogs, function(d) {
-                return d.rx + d.tx;
-            })]);
-        }
-
-        if (ns.featureSet === 'logEvents') {
-            ns.y.domain([
-                0,
-                d3.max(ns.data.map(function(d) {
-                    return self.sums(d);
-                }))
-            ]);
-        }
-
-        ns.chart.selectAll('.component')
+        self.chart.selectAll('.component')
             .remove();
 
-        var component = ns.chart.selectAll(".component")
+        var component = self.chart.selectAll(".component")
             .data(components)
             .enter().append("g")
             .attr("class", "component");
@@ -7651,49 +7880,19 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         component.append("path")
             .attr("class", "area")
             .attr("d", function(d) {
-                return ns.area(d.values);
+                return self.area(d.values);
             })
             .style("stroke", function(d) {
-                if (ns.featureSet === "logEvents") {
-                    return ns.loglevel(d.name);
-                }
+                return self.loglevel(d.name);
             })
             .style("stroke-width", function(d) {
-                if (ns.featureSet === "logEvents") {
-                    return 1.5;
-                }
+                return 1.5;
             })
             .style("stroke-opacity", function(d) {
-                if (ns.featureSet === "logEvents") {
-                    return 1;
-                }
+                return 1;
             })
             .style("fill", function(d) {
-
-                if (ns.featureSet === "cpuUsage") {
-                    if (d.name.toLowerCase() === "idle") {
-                        return "none";
-                    }
-                    return ns.color(d.name);
-                }
-
-                if (ns.featureSet === "memUsage") {
-                    if (d.name.toLowerCase() === "free") {
-                        return "none";
-                    }
-                    return ns.color(d.name);
-                }
-
-                if (ns.featureSet === "netUsage") {
-                    return ns.color(d.name);
-                }
-
-                if (ns.featureSet === "logEvents") {
-                    return ns.loglevel(d.name);
-                }
-
-                console.log('define featureSet in utilizationCpuView.js');
-
+                return self.loglevel(d.name);
             });
 
         component.append("text")
@@ -7704,88 +7903,27 @@ var LogAnalysisView = GoldstoneBaseView.extend({
                 };
             })
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
+                return "translate(" + self.x(d.value.date) + "," + self.y(d.value.y0 + d.value.y / 2) + ")";
             })
             .attr("x", 1)
             .attr("y", function(d, i) {
                 // make space between the labels
-
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return -3;
-                    } else {
-                        return 0;
-                    }
-                }
-
-                if (ns.featureSet === 'cpuUsage') {
-                    return -i * 3;
-                }
-
-                if (ns.featureSet === 'netUsage') {
-                    return -i * 8;
-                }
-
-                if (ns.featureSet === 'logEvents') {
-                    return 0;
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return null;
-
+                return 0;
             })
-            .attr("text-anchor", function(d) {
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'end';
-                    }
-                }
-            })
-            .style("font-size", ".8em")
-            .text(function(d) {
+            .style("font-size", ".8em");
 
-                if (ns.featureSet === 'cpuUsage') {
-                    return d.name;
-                }
-
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(ns.memTotal / ns.divisor * 100)) / 100) + 'GB';
-                    }
-                    if (d.name === 'free') {
-                        return '';
-                    } else {
-                        return d.name;
-                    }
-                }
-
-                if (ns.featureSet === 'netUsage') {
-                    return d.name + " (kB)";
-                }
-
-                if (ns.featureSet === 'logEvents') {
-                    return null;
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return 'feature set undefined';
-
-            });
-
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
 
-        ns.chart.append("g")
+        self.chart.append("g")
             .attr("class", "y axis")
-            .call(ns.yAxis);
-
-
+            .call(self.yAxis);
 
         // IMPORTANT: the order of the entries in the
         // Log Severity Filters modal is set by the order
-        // of the event types in ns.filter
+        // of the event types in self.filter
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
@@ -7793,14 +7931,14 @@ var LogAnalysisView = GoldstoneBaseView.extend({
             $(this.el).find('#populateEventFilters').empty();
         }
 
-        _.each(_.keys(ns.filter), function(item) {
+        _.each(_.keys(self.filter), function(item) {
 
             if (item === 'none') {
                 return null;
             }
 
             var addCheckIfActive = function(item) {
-                if (ns.filter[item]) {
+                if (self.filter[item]) {
                     return 'checked';
                 } else {
                     return '';
@@ -7816,7 +7954,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
                 '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + '">' +
+                'style="opacity: 0.8; background-color:' + self.loglevel([item]) + '">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
@@ -7828,273 +7966,21 @@ var LogAnalysisView = GoldstoneBaseView.extend({
 
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
-            ns.filter[checkboxId] = !ns.filter[checkboxId];
+            self.filter[checkboxId] = !self.filter[checkboxId];
             self.update();
         });
 
-        // eliminates the immediate re-rendering of search table
-        // upon initial chart instantiation
-        this.refreshSearchTableAfterOnce();
         this.redraw();
 
     },
 
-    refreshSearchTableAfterOnce: function() {
-        var ns = this.defaults;
-        var self = this;
-        if (--ns.refreshCount < 1) {
-            self.refreshSearchTable();
-        }
-    },
-
-    searchDataErrorMessage: function(message, errorMessage, location) {
-
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = '' + errorMessage.status + ' error: ' + message;
-        }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        // goldstone.raiseAlert($(location), message, true);
-        goldstone.raiseAlert($(location), message, true);
-
-    },
-
-    clearSearchDataErrorMessage: function(location) {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(location).length) {
-            $(location).fadeOut("slow");
-        }
-    },
-
-    urlGen: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        var uri = '/logging/search/?';
-
-        if (ns.specificHost) {
-            uri += 'host=' + ns.specificHost + '&';
-        }
-
-        uri += '@timestamp__range={"gte":' +
-            ns.start +
-            ',"lte":' +
-            ns.end +
-            '}&syslog_severity__terms=[';
-
-        levels = ns.filter || {};
-        for (var k in levels) {
-            if (levels[k]) {
-                uri = uri.concat('"', k.toUpperCase(), '",');
-            }
-        }
-        uri += "]";
-
-        uri = uri.slice(0, uri.indexOf(',]'));
-        uri += "]";
-
-        this.defaults.url = uri;
-
-        /*
-        makes a url such as:
-        /logging/search/?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
-        with "&host=node-01" added in if this is a node report page
-        */
-    },
-
-    dataPrep: function(data) {
-        var ns = this.defaults;
-        var self = this;
-
-        data = JSON.parse(data);
-        _.each(data.results, function(item) {
-
-            // if any field is undefined, dataTables throws an alert
-            // so set to empty string if otherwise undefined
-            item['@timestamp'] = item['@timestamp'] || '';
-            item.syslog_severity = item.syslog_severity || '';
-            item.component = item.component || '';
-            item.log_message = item.log_message || '';
-            item.host = item.host || '';
-        });
-
-        return {
-            recordsTotal: data.count,
-            recordsFiltered: data.count,
-            result: data.results
-        };
-    },
-
-    refreshSearchTable: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        var oTable;
-
-        if ($.fn.dataTable.isDataTable("#log-search-table")) {
-            oTable = $("#log-search-table").DataTable();
-            // oTable.ajax.url(uri);
-            oTable.ajax.reload();
-        }
-    },
-
-    drawSearchTable: function(location, start, end) {
-        var self = this;
-        var ns = this.defaults;
-
-        $("#log-table-loading-indicator").show();
-
-        var oTable;
-
-        var uri = this.urlGen(start, end);
-
-        if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(location).DataTable();
-            // oTable.ajax.url(uri);
-            // oTable.ajax.reload();
-        } else {
-            var oTableParams = {
-                "info": true,
-                "bAutoWidth": false,
-                "autoWidth": true,
-                "processing": true,
-                "lengthChange": true,
-                "paging": true,
-                "searching": true,
-                "ordering": true,
-                "order": [
-                    [0, 'desc']
-                ],
-                "serverSide": true,
-                "ajax": {
-                    beforeSend: function(obj, settings) {
-
-                        // the url generated by urlGen will be available
-                        // as this.defaults.url
-                        self.urlGen();
-
-                        // the pageSize and searchQuery are jQuery values
-                        var pageSize = $('div#intel-search-data-table').find('select.form-control').val();
-                        var searchQuery = $('div#intel-search-data-table').find('input.form-control').val();
-
-                        // the paginationStart is taken from the dataTables
-                        // generated serverSide query string that will be
-                        // replaced by this.defaults.url after the required
-                        // components are parsed out of it
-                        var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                        paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
-                        var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                        var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
-
-                        // capture which column was clicked
-                        // and which direction the sort is called for
-
-                        var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
-
-                        // the url that will be fetched is now about to be
-                        // replaced with the urlGen'd url before adding on
-                        // the parsed components
-                        settings.url = self.defaults.url + "&page_size=" + pageSize +
-                            "&page=" + computeStartPage;
-
-                        // here begins the combiation of additional params
-                        // to construct the final url for the dataTable fetch
-                        if (searchQuery) {
-                            settings.url += "&_all__regexp=.*" +
-                                searchQuery + ".*";
-                        }
-
-                        // if no interesting sort, ignore it
-                        if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                            // or, if something has changed, capture the
-                            // column to sort by, and the sort direction
-
-                            var columnLabelHash = {
-                                0: '@timestamp',
-                                1: 'syslog_severity',
-                                2: 'component',
-                                3: 'host',
-                                4: 'log_message'
-                            };
-
-                            var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                            var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                            var ascDec;
-                            if (orderByDirection === 'asc') {
-                                ascDec = '';
-                            } else {
-                                ascDec = '-';
-                            }
-
-                            // TODO: uncomment when ordering is in place.
-                            // settings.url = settings.url + "&ordering=" +
-                            //     ascDec + columnLabelHash[orderByColumn];
-                        }
-                    },
-                    dataFilter: function(data) {
-
-                        /* dataFilter is analagous to the purpose of ajax 'success',
-                        but you can't also use 'success' as then dataFilter
-                        will not be triggered */
-
-                        // clear any error messages when data begins to flow again
-                        self.clearSearchDataErrorMessage('.search-popup-message');
-
-                        var result = self.dataPrep(data);
-
-                        // dataTables expects JSON encoded result
-                        // return result;
-                        return JSON.stringify(result);
-
-                    },
-                    error: function(data) {
-                        self.searchDataErrorMessage(null, data, '.search-popup-message');
-                    },
-                    dataSrc: "result"
-                },
-                "columnDefs": [{
-                    "data": "@timestamp",
-                    "type": "date",
-                    "targets": 0,
-                    "render": function(data, type, full, meta) {
-                        return moment(data).format();
-                    }
-                }, {
-                    "data": "syslog_severity",
-                    "targets": 1
-                }, {
-                    "data": "component",
-                    "targets": 2
-                }, {
-                    "data": "host",
-                    "targets": 3
-                }, {
-                    "data": "log_message",
-                    "targets": 4
-                }]
-            };
-            oTable = $(location).DataTable(oTableParams);
-        }
-        $("#log-table-loading-indicator").hide();
-    },
-
     redraw: function() {
 
-        var ns = this.defaults;
         var self = this;
 
-        ns.y.domain([
+        self.y.domain([
             0,
-            d3.max(ns.data.map(function(d) {
+            d3.max(self.data.map(function(d) {
                 return self.sums(d);
             }))
         ]);
@@ -8102,17 +7988,19 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         d3.select(this.el).select('.x.axis')
             .transition()
             .duration(500)
-            .call(ns.xAxis.scale(ns.x));
+            .call(self.xAxis.scale(self.x));
 
         d3.select(this.el).select('.y.axis')
             .transition()
             .duration(500)
-            .call(ns.yAxis.scale(ns.y));
+            .call(self.yAxis.scale(self.y));
 
+        this.trigger('chartUpdate');
     },
 
     template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="compliance-predefined-search-container"></div>'),
 
     modal2: _.template(
         // event filter modal
@@ -8144,8 +8032,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         '</div>'
     ),
 
-    render: function() {
-        this.$el.append(this.template());
+    addModalAndHeadingIcons: function() {
         $(this.el).find('.special-icon-pre').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
             'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 15px;"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-forward pull-right" style="margin: 0 4px 0 0"></i>');
@@ -8154,7 +8041,7 @@ var LogAnalysisView = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
         this.$el.append(this.modal2());
         return this;
-    }
+    },
 
 });
 ;
@@ -8175,99 +8062,86 @@ var LogAnalysisView = GoldstoneBaseView.extend({
  */
 
 /*
-The intelligence/search page is composed of a LogAnalysisView on top, contained
-within this LogSearchPageView. The global lookback/refresh listeners are listenTo()'d
-from this view, and with the triggerChange function, kick off responding
-processes in the LogAnalysisView that is instantiated from within this view.
-
-instantiated in goldstoneRouter as
-    new LogSearchPageView({
-        el: ".launcher-container"
-    });
+The intelligence/search page is composed of a LogBrowserViz on top,
+and a LogBrowserDataTableView on the bottom. The global lookback/refresh
+listeners are listenTo()'d by each view. Changes to what is rendered
+in the top also affect the table on the bottom via a 'trigger'.
 */
 
 var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        this.computeLookback();
-        var ns = this.defaults;
-
-        // Pass the start/end params. Must be an array.
-        this.logAnalysisView.trigger(change, [ns.start, ns.end]);
-    },
-
-    setGlobalLookbackRefreshTriggers: function() {
-        var self = this;
-        // wire up listenTo on global selectors
-        // important: use obj.listenTo(obj, change, callback);
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
-            self.getGlobalLookbackRefresh();
-            self.triggerChange('lookbackSelectorChanged');
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
-        this.listenTo(goldstone.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
-            self.getGlobalLookbackRefresh();
-
-            // also triggers 'lookbackSelectorChanged' in order to reset
-            // chart view after changing refresh interval
-            self.triggerChange('lookbackSelectorChanged');
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
+        this.logBrowserViz.trigger(change);
+        this.logBrowserTable.trigger(change);
     },
 
     render: function() {
         this.$el.html(this.template());
-
-        $('.log-analysis-container').append(new ChartHeaderView({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logsearchpage'),
-            infoText: 'searchLogAnalysis',
-            infoIcon: 'fa-dashboard'
-        }).el);
-
         return this;
     },
 
-    computeLookback: function() {
-        var ns = this.defaults;
-        ns.end = +new Date();
-        ns.start = ns.end - (this.globalLookback * 60 * 1000);
-    },
-
     renderCharts: function() {
+
         var self = this;
-        this.computeLookback();
-        var ns = this.defaults;
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/',
 
-        // specificHost applies to this chart when instantiated
-        // on a node report page to scope it to that node
-        this.defaults.specificHost = this.options.specificHost || '';
-        this.logAnalysisCollection = new LogAnalysisCollection({});
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-        this.logAnalysisView = new LogAnalysisView({
-            collection: this.logAnalysisCollection,
-            width: $('.log-analysis-container').width(),
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
             height: 300,
-            el: '.log-analysis-container',
-            featureSet: 'logEvents',
-            chartTitle: 'Log Analysis',
+            infoText: 'logBrowser',
+            marginLeft: 60,
             urlRoot: "/logging/summarize/?",
-            specificHost: ns.specificHost
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new LogBrowserTableCollection({
+            skipFetch: true,
+            specificHost: this.specificHost,
+            urlBase: '/logging/search/',
+            linkedCollection: this.logBrowserVizCollection
+        });    
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
         });
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
             if (goldstone.compliance.PredefinedSearchView) {
-                new goldstone.compliance.PredefinedSearchView({
+                this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
                     className: 'compliance-predefined-search nav nav-pills',
-                    hook: '.panel-heading',
                     tagName: 'ul'
                 });
+
+                $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
             }
         }
 
-        this.viewsToStopListening = [this.logAnalysisCollection, this.logAnalysisView];
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+
+        // stopListening to predefinedSearchModule upon close, if present
+        if (this.predefinedSearchModule !== undefined) {
+            this.viewsToStopListening.push(this.predefinedSearchModule);
+        }
+
     },
 
     template: _.template('' +
@@ -8279,46 +8153,17 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
         '</div><br><br>' +
 
-        // container for new prototype d3 log chart
-        '<div class="log-analysis-container"></div>' +
-
-        // dataTable searchResults table
-        '<div class="search-results-container"></div>' +
-
+        // divs for log viewer viz on top and dataTable below
         '<div class="row">' +
-        '<div id="table-col" class="col-md-12">' +
-        '<div class="panel panel-primary log_table_panel">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
-        ' <%=goldstone.contextTranslate(\'Search Results\', \'logsearchpage\')%>' +
-        '</h3>' +
+        '<div id="log-viewer-visualization" class="col-md-12"></div>' +
         '</div>' +
-
-        '<div class="alert alert-danger search-popup-message" hidden="true"></div>' +
-        '<div id="intel-search-data-table" class="panel-body">' +
-        '<table id="log-search-table" class="table table-hover">' +
-
-        '<!-- table rows filled by draw_search_table -->' +
-
-        '<thead>' +
-        '<tr class="header">' +
-        '<th><%=goldstone.contextTranslate(\'Timestamp\', \'logsearchpage\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'Syslog Severity\', \'logsearchpage\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'Component\', \'logsearchpage\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'Host\', \'logsearchpage\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'Message\', \'logsearchpage\')%></th>' +
-        '</tr>' +
-        '</thead>' +
-        '</table>' +
-        '<img src="<%=blueSpinnerGif%>" ' +
-        'id="log-table-loading-indicator" class="ajax-loader"/>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
+        '<div class="row">' +
+        '<div id="log-viewer-table" class="col-md-12"></div>' +
         '</div>'
     )
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -11173,8 +11018,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
         }
 
         if (this.visiblePanel.Logs) {
-            this.computeLookback();
-            this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
+            this.logBrowserViz.trigger('lookbackSelectorChanged');
+            this.logBrowserTable.trigger('lookbackSelectorChanged');
+
+            // this.computeLookback();
+            // this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
         }
     },
 
@@ -11426,20 +11274,62 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Logs tab
 
-        this.logsReportCollection = new LogAnalysisCollection({});
+        // this.logAnalysisView = new LogSearchPageView({
+        //     collection: this.logAnalysisCollection,
+        //     width: $('#logsReport').width(),
+        //     height: 300,
+        //     el: '#logsReport',
+        //     featureSet: 'logEvents',
+        //     chartTitle: 'Log Analysis',
+        //     specificHost: this.node_uuid,
+        //     urlRoot: "/logging/summarize/?"
+        // });
 
-        this.logAnalysisView = new LogSearchPageView({
-            collection: this.logAnalysisCollection,
-            width: $('#logsReport').width(),
-            height: 300,
-            el: '#logsReport',
-            featureSet: 'logEvents',
-            chartTitle: 'Log Analysis',
-            specificHost: this.node_uuid,
-            urlRoot: "/logging/summarize/?"
+        var self = this;
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/',
+
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
         });
 
-        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logsReportCollection, this.logAnalysisView];
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'searchLogAnalysis',
+            marginLeft: 60,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new LogBrowserTableCollection({
+            skipFetch: true,
+            specificHost: this.specificHost,
+            urlBase: '/logging/search/',
+            linkedCollection: this.logBrowserVizCollection
+        });
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
+        });
+
+        // end of logs tab
+        //----------------------------------
+
+        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
     },
 
     template: _.template('' +
@@ -11515,7 +11405,20 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="detailsReport">&nbsp;</div>' +
-        '<div class="col-md-12" id="logsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="logsReport">' +
+
+        // LOGS REPORT TAB
+        // divs for log viewer viz on top and dataTable below
+        '<div class="row">' +
+        '<div id="log-viewer-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="log-viewer-table" class="col-md-12"></div>' +
+        '</div>' +
+        // end log viewer
+        '</div>' +
+
+
         '</div>' +
         '</div>' +
         '</div>'
@@ -12637,17 +12540,17 @@ and extended into Nova CPU/Memory/Disk Resource Charts
 instantiated on novaReportView similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlPrefix: '/nova/hypervisor/spawns/'
+    urlBase: '/nova/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
-    chartTitle: "VM Spawns",
+    chartTitle: goldstone.translate("VM Spawns"),
     collection: this.vmSpawnChart,
-    height: 300,
-    infoCustom: 'novaSpawns',
+    height: 350,
+    infoText: 'novaSpawns',
     el: '#nova-report-r1-c2',
     width: $('#nova-report-r1-c2').width(),
-    yAxisLabel: 'Spawn Events'
+    yAxisLabel: goldstone.translate('Spawn Events')
 });
 */
 
@@ -12677,56 +12580,55 @@ var SpawnsView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this;
         var self = this;
 
         this.mw = this.width - this.margin.left - this.margin.right;
         this.mh = this.height - this.margin.top - this.margin.bottom;
 
-        ns.svg = d3.select(this.el).select('.panel-body').append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
 
-        ns.chart = ns.svg
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .ticks(5)
             .orient("bottom");
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = new GoldstoneColors().get('colorSets');
 
-        ns.color = d3.scale.ordinal()
-            .range(ns.colorArray.distinct['2R']);
+        self.color = d3.scale.ordinal()
+            .range(self.colorArray.distinct['2R']);
     },
 
     dataPrep: function(data) {
@@ -12745,7 +12647,6 @@ var SpawnsView = GoldstoneBaseView.extend({
         from the x-axis of the graph going upward.
         */
 
-        var ns = this;
         var uniqTimestamps;
         var result = [];
 
@@ -12778,7 +12679,7 @@ var SpawnsView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this;
+
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -12808,7 +12709,6 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this;
         var self = this;
 
         var data = this.collection.toJSON();
@@ -12840,7 +12740,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
+        this.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
         }));
 
@@ -12877,7 +12777,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
             // calculates heights of each stacked bar by adding
             // to the heights of the previous bars
-            d.stackedBarPrep = ns.color.domain().map(function(name) {
+            d.stackedBarPrep = self.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
@@ -12907,26 +12807,26 @@ var SpawnsView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        ns.x.domain(d3.extent(data, function(d) {
+        this.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
         }));
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
-        ns.y.domain([0, d3.max(data, function(d) {
+        this.y.domain([0, d3.max(data, function(d) {
             return d.total;
         })]);
 
         // add x axis
-        ns.chart.append("g")
+        this.chart.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
 
         // add y axis
-        ns.chart.append("g")
+        this.chart.append("g")
             .attr("class", "y axis")
-            .call(ns.yAxis)
+            .call(self.yAxis)
             .append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
@@ -12934,17 +12834,17 @@ var SpawnsView = GoldstoneBaseView.extend({
             .style("text-anchor", "end");
 
         // add primary svg g layer
-        ns.event = ns.chart.selectAll(".event")
+        this.event = this.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g")
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.eventTime) + ",0)";
+                return "translate(" + self.x(d.eventTime) + ",0)";
             });
 
         // add svg g layer for solid lines
-        ns.solidLineCanvas = ns.chart.selectAll(".event")
+        this.solidLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -12952,7 +12852,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr("class", "solid-line-canvas");
 
         // add svg g layer for dashed lines
-        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+        this.dashedLineCanvas = this.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -12960,7 +12860,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr("class", "dashed-line-canvas");
 
         // add svg g layer for hidden rects
-        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+        this.hiddenBarsCanvas = this.chart.selectAll(".hidden")
             .data(data)
             .enter()
             .append("g")
@@ -12975,7 +12875,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             });
 
         // Invoke the tip in the context of your visualization
-        ns.chart.call(tip);
+        this.chart.call(tip);
 
         // used below to determing whether to render as
         // a "rect" or "line" by affecting fill and stroke opacity below
@@ -12989,27 +12889,27 @@ var SpawnsView = GoldstoneBaseView.extend({
         };
 
         // append rectangles
-        ns.event.selectAll("rect")
+        this.event.selectAll("rect")
             .data(function(d) {
                 return d.stackedBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                var segmentWidth = (ns.mw / data.length);
+                var segmentWidth = (self.mw / data.length);
 
                 // spacing corrected for proportional
                 // gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
-                return ns.y(d.y1);
+                return self.y(d.y1);
             })
             .attr("height", function(d) {
-                return ns.y(d.y0) - ns.y(d.y1);
+                return self.y(d.y0) - self.y(d.y1);
             })
             .attr("rx", 0.8)
             .attr("stroke", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             })
             .attr("stroke-opacity", function(d) {
                 if (!showOrHide[d.name]) {
@@ -13027,28 +12927,28 @@ var SpawnsView = GoldstoneBaseView.extend({
             })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             });
 
         // append hidden bars
-        ns.hiddenBarsCanvas.selectAll("rect")
+        this.hiddenBarsCanvas.selectAll("rect")
             .data(data)
             .enter().append("rect")
             .attr("width", function(d) {
-                var hiddenBarWidth = (ns.mw / data.length);
+                var hiddenBarWidth = (self.mw / data.length);
                 return hiddenBarWidth - hiddenBarWidth * 0.07;
             })
             .attr("opacity", "0")
             .attr("x", function(d) {
-                return ns.x(d.eventTime);
+                return self.x(d.eventTime);
             })
             .attr("y", 0)
             .attr("height", function(d) {
-                return ns.mh;
+                return self.mh;
             }).on('mouseenter', function(d) {
 
                 // coax the pointer to line up with the bar center
-                var nudge = (ns.mw / data.length) * 0.5;
+                var nudge = (self.mw / data.length) * 0.5;
                 var targ = d3.select(self.el).select('rect');
                 tip.offset([20, -nudge]).show(d, targ);
             }).on('mouseleave', function() {
@@ -13061,20 +12961,20 @@ var SpawnsView = GoldstoneBaseView.extend({
             return d3.svg.line()
                 .interpolate("linear")
                 .x(function(d) {
-                    return ns.x(d.eventTime);
+                    return self.x(d.eventTime);
                 })
                 .y(function(d) {
-                    return ns.y(d[param]);
+                    return self.y(d[param]);
                 });
         };
 
         // abstracts the path generator to accept a data param
         // and creates a solid line with the appropriate color
         var solidPathGenerator = function(param) {
-            return ns.solidLineCanvas.append("path")
+            return self.solidLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
@@ -13083,10 +12983,10 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the path generator to accept a data param
         // and creates a dashed line with the appropriate color
         var dashedPathGenerator = function(param) {
-            return ns.dashedLineCanvas.append("path")
+            return self.dashedLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none")
@@ -13113,17 +13013,17 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this;
+        var self = this;
 
         _.each(legendSpecs, function(item) {
-            ns.chart.append('path')
+            self.chart.append('path')
                 .attr('class', 'line')
                 .attr('id', item[0])
                 .attr('data-legend', item[0])
-                .attr('data-legend-color', ns.color.range()[item[1]]);
+                .attr('data-legend-color', self.color.range()[item[1]]);
         });
 
-        var legend = ns.chart.append('g')
+        var legend = self.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)

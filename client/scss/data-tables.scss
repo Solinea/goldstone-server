@@ -1,44 +1,55 @@
 $green: #6BA757;
 $red: rgb(187, 32, 28);
 $paused_grey: rgba(220, 220, 220, 0.5);
-
-#tenants-single-rsrc-table, #log-search-table, #events-report-table, #multi-rsrc-table, #single-rsrc-table, #reports-result-table {
-  td {
-    font-size: 12px;
-    color: if($theme==dark, $dark_datatable_text, null);
-    th{
-    font-size: 10px;
+#tenants-single-rsrc-table,
+#log-search-table,
+#events-report-table,
+#multi-rsrc-table,
+#single-rsrc-table,
+#reports-result-table {
+    td {
+        font-size: 12px;
+        color: if($theme==dark, $dark_datatable_text, null);
+        th {
+            font-size: 10px;
+        }
     }
-  }
-
-  tr:hover td {
-    background-color: if($theme==dark, $dark_background, #fff);
-  }
+    tr:hover td {
+        background-color: if($theme==dark, $dark_background, #fff);
+    }
 }
 
-#tenants-single-rsrc-table, #log-search-table, #events-report-table, #multi-rsrc-table, #single-rsrc-table, #reports-result-table {
-  tr:nth-child(even) {
-    background-color: if($theme==dark, $dark_background, null);
-  }
+#tenants-single-rsrc-table,
+#log-search-table,
+#events-report-table,
+#multi-rsrc-table,
+#single-rsrc-table,
+#reports-result-table {
+    tr:nth-child(even) {
+        background-color: if($theme==dark, $dark_background, null);
+    }
 }
 
 .dataTables_info {
-  color: if($theme==dark, $dark_datatable_text, null);
+    color: if($theme==dark, $dark_datatable_text, null);
 }
 
-#tenants-single-rsrc-table_length, #log-search-table_length, #events-report-table_length, #multi-rsrc-table_length {
-  > label{
-    color: if($theme==dark, $dark_datatable_text, null);
-
-  }
+#tenants-single-rsrc-table_length,
+#log-search-table_length,
+#events-report-table_length,
+#multi-rsrc-table_length {
+    > label {
+        color: if($theme==dark, $dark_datatable_text, null);
+    }
 }
 
 .table tbody tr.paused {
-  td,th {
-    color: #aaa !important;
-    border-top: 1px solid;
-    background-color: $paused_grey;
-  }
+    td,
+    th {
+        color: #aaa !important;
+        border-top: 1px solid;
+        background-color: $paused_grey;
+    }
 }
 
 .table tbody tr.paused:hover td,
