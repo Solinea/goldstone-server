@@ -1,0 +1,74 @@
+# Goldstone Docker Compose Configuration
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Goldstone Proxy & Static
+#gsweb:
+#image: goldstone-web
+#ports:
+#- "8888:8888"
+#links:
+#- gsapp:gsapp
+
+# Goldstone Server Container
+#gsapp:
+#image: goldstone-app
+#env_file: ./config/goldstone-test.env
+#ports:
+#- "8000:8000"
+#extra_hosts:
+#- "openstack-keystone:172.24.4.100"
+#links:
+#- gsdb
+#- gssearch
+#- gstaskq
+
+# Database Container
+gsdb:
+  image: goldstone-db
+  env_file: ./config/goldstone-test.env
+  volumes_from:
+    - gsdbdvc
+  ports:
+    - "5432:5432"
+
+# Database Data Volume Container
+gsdbdvc:
+  image: goldstone-db
+  entrypoint: /bin/true
+  volumes:
+    - /var/lib/postgresql/data
+
+# Logstash Container
+gslog:
+  image: goldstone-log
+  ports:
+    - "5514:5514"
+    - "5515:5515"
+    - "5516:5516"
+  links:
+    - gssearch
+
+# Elasticsearch Container
+gssearch:
+  image: goldstone-search
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
+# Celery Task Queue Container
+gstaskq:
+  image: goldstone-task-queue
+  ports:
+    - "6379:6379"

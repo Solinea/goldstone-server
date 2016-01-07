@@ -20,7 +20,7 @@ STARTUP_WAIT=60
 APP_CONTAINER=goldstoneserver_gsappdev_1
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-~/devel/goldstone-server}
-CONFIG_DIR=/home/app/docker/config/goldstone-app
+CONFIG_DIR=/home/app/docker/goldstone-app/config
 
 function usage() {
     echo "Usage: $0 [--docker-vm=name] [--stack-vm=name] [--app-container=name]"

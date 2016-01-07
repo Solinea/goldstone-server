@@ -16,9 +16,6 @@
 # Goldstone Proxy & Static
 gsweb:
   image: solinea/goldstone-web:0.7.3
-  volumes:
-    - ./docker/config/goldstone-web/nginx.conf:/etc/nginx/nginx.conf
-    - ./docker/config/goldstone-web/conf.d:/etc/nginx/conf.d
   volumes_from:
     - gsapp
   ports:
@@ -34,9 +31,6 @@ gsweb:
 gsapp:
   image: gs-docker-ent.bintray.io/goldstone-app-e:0.7.3
   env_file: ./docker/config/goldstone-test.env
-  volumes:
-    - ./docker/config/goldstone-app:/home/app/config
-    - /usr/share/nginx/html/static
   ports:
     - "8000:8000"
   links:
@@ -74,10 +68,6 @@ gsdbdvc:
 # Logstash Container
 gslog:
   image: solinea/goldstone-log:0.7.3
-  command: logstash -f /logstash/conf.d -w 1
-  volumes:
-    - ./docker/config/goldstone-log/conf.d:/logstash/conf.d
-    - ./docker/config/goldstone-log/patterns:/opt/logstash/patterns
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -92,8 +82,6 @@ gslog:
 # Elasticsearch Container
 gssearch:
   image: solinea/goldstone-search:0.7.3
-  volumes:
-    - ./docker/config/goldstone-search:/usr/share/elasticsearch/config
   ports:
     - "9200:9200"
     - "9300:9300"

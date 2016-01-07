@@ -16,6 +16,7 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 import elasticsearch
@@ -321,29 +322,26 @@ class SavedSearchModelTests(TestCase):
         doc_type = 'syslog'
         index = 'logstash-*'
 
-    @classmethod
-    def test_loaded_data_from_fixtures(cls):
-        assert(SavedSearch.objects.all())
+    def test_loaded_data_from_fixtures(self):
+        self.assertEqual(2, SavedSearch.objects.all().count())
 
-    @classmethod
     def test_predefined_search_func(self):
         owner = 'events'
         indices = 'logstash-*'
         sys_defined_searches = SavedSearch.objects.filter(owner=owner,
                                                           index_prefix=indices)
-        assert(sys_defined_searches)
-        isinstance(sys_defined_searches, SavedSearch)
+
+        self.assertEqual(2, SavedSearch.objects.all().count())
+
         for entry in sys_defined_searches:
             search_obj = entry.search()
-            isinstance(search_obj, elasticsearch_dsl.search.Search)
-            search_res = search_obj.execute()
-            assert(search_res.hits.total)
+            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
 
         for entry in sys_defined_searches:
             search_obj, start, end = entry.search_recent()
-            isinstance(search_obj, elasticsearch_dsl.search.Search)
-            search_res = search_obj.execute()
-            assert(search_res.hits.total)
+            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
+            self.assertIsInstance(start, datetime.datetime)
+            self.assertIsInstance(end, datetime.datetime)
 
 
 class PolyResourceModelTests(SimpleTestCase):
