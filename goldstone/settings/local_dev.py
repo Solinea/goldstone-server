@@ -49,7 +49,7 @@ if not SECRET_KEY:
 
 # STATIC_ROOT = '/app/goldstone/static/'
 STATIC_ROOT = os.path.join(os.getcwd(),
-                           'docker/Dockerfiles/goldstone-web/static')
+                           'docker/goldstone-web/static')
 STATIC_URL = '/static/'
 
 LOGGING = {

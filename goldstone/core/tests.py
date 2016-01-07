@@ -16,6 +16,7 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 import elasticsearch
@@ -328,6 +329,8 @@ class SavedSearchModelTests(TestCase):
         for entry in sys_defined_searches:
             search_obj, start, end = entry.search_recent()
             self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
+            self.assertIsInstance(start, datetime.datetime)
+            self.assertIsInstance(end, datetime.datetime)
 
 
 class PolyResourceModelTests(APITestCase):

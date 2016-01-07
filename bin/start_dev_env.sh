@@ -20,7 +20,7 @@ DOCKER_VM="default"
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
 
-GS_APP_DIR=${TOP_DIR}/docker/Dockerfiles/goldstone-app
+GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
 
 declare -a need_source=( $GS_APP_DIR )
 
