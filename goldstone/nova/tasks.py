@@ -27,7 +27,7 @@ from goldstone.nova.models import AgentsData, AggregatesData, \
     AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
-from goldstone.core.models import Host, MetricData
+from goldstone.core.models import Host
 from goldstone.celery import app as celery_app
 from goldstone.keystone.utils import get_region
 from goldstone.nova.utils import get_client
@@ -35,6 +35,8 @@ from goldstone.nova.utils import get_client
 
 logger = logging.getLogger(__name__)
 
+METRIC_INDEX_PREFIX = 'goldstone_metrics-'
+METRIC_DOCTYPE = 'core_metric'
 
 @celery_app.task()
 def nova_hypervisors_stats():
@@ -47,8 +49,8 @@ def nova_hypervisors_stats():
     metric_prefix = 'nova.hypervisor.'
     now = arrow.utcnow()
     conn = es_conn()
-    es_index = daily_index(MetricData.INDEX_PREFIX)
-    es_doc_type = MetricData._doc_type.name      # pylint: disable=W0212
+    es_index = daily_index(METRIC_INDEX_PREFIX)
+    es_doc_type = METRIC_DOCTYPE
 
     for key, value in response.items():
         doc = {

@@ -25,9 +25,7 @@ from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
 from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
-from goldstone.drfes.models import DailyIndexDocType as OldDailyIndexDocType
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.glogging.models import LogData, LogEvent
 
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
@@ -78,90 +76,6 @@ def _hash(*args):
         result.update(str(arg))
 
     return result.hexdigest()
-
-
-#
-# Goldstone Agent Metrics and Reports
-#
-
-class MetricData(OldDailyIndexDocType):
-    """Search interface for an agent generated metric."""
-
-    INDEX_PREFIX = 'goldstone_metrics-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_metric'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='value')
-
-    @classmethod
-    def units_agg(cls):
-        """Return term units."""
-
-        return A('terms', field='unit')
-
-
-class ReportData(OldDailyIndexDocType):
-    """Report data model."""
-
-    INDEX_PREFIX = 'goldstone_reports-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_report'
-
-
-class EventData(OldDailyIndexDocType):
-    """The model for logstash events data."""
-
-    # The indexes we look for start with this string.
-    INDEX_PREFIX = 'events'
-
-    # Time sorting is on this key in the log.
-    SORT = '-timestamp'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        # Return all document types.
-        doc_type = ''
-
-
-class ApiPerfData(OldDailyIndexDocType):
-    """API performance record model."""
-
-    INDEX_PREFIX = 'api_stats-'
-    SORT = '-@timestamp'
-
-    # Field declarations.
-    response_status = Integer()
-    creation_time = Date()
-    component = String()
-    uri = String()
-    response_length = Integer()
-    response_time = Integer()
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'api_stats'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='response_time')
-
-    @classmethod
-    def range_agg(cls):
-        """Return range information."""
-
-        return A('range',
-                 field='response_status',
-                 keyed=True,
-                 ranges=[{"from": 200, "to": 299},
-                         {"from": 300, "to": 399},
-                         {"from": 400, "to": 499},
-                         {"from": 500, "to": 599}])
 
 
 ######################################
@@ -385,7 +299,8 @@ class PolyResource(PolymorphicModel):
         """
 
         query = Q(QueryString(query=self.native_name))
-        return LogData.search().query(query)
+        ss = SavedSearch.objects.get(name="log query")
+        return ss.search().query(query)
 
     def events(self):
         """Return a search object for events related to this resource.
@@ -396,10 +311,9 @@ class PolyResource(PolymorphicModel):
         """
 
         # this protects our hostname from being tokenized
-        escaped_name = r'"' + self.native_name + r'"'
-
-        name_query = Q(QueryString(query=escaped_name, default_field="_all"))
-        return LogEvent.search().query(name_query)
+        query = Q(QueryString(query=self.native_name))
+        ss = SavedSearch.objects.get(name="event query")
+        return ss.search().query(query)
 
 
 ############################################

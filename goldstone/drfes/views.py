@@ -58,45 +58,6 @@ class ElasticListAPIView(ListAPIView):
         return Response(serializer.data)
 
 
-class SimpleAggView(ElasticListAPIView):
-    """A view that handles requests for terms aggregations.
-
-    Currently it support a top-level report name aggregation only.  The
-    scope can be limited to a specific host, time range, etc. by using
-    query params such has host=xyz or @timestamp__range={'gt': 0}"""
-
-    serializer_class = SimpleAggSerializer
-    AGG_FIELD = None
-    AGG_NAME = None
-
-    class Meta:              # pylint: disable=C0111,C1001,W0232
-        model = None
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-
-        assert self.AGG_FIELD is not None, (
-            "'%s' should set the `AGG_FIELD` attribute."
-            % self.__class__.__name__
-        )
-        assert self.AGG_NAME is not None, (
-            "'%s' should set the `AGG_NAME` attribute."
-            % self.__class__.__name__
-        )
-
-        base_queryset = self.filter_queryset(self.get_queryset())
-
-        # add a top-level aggregation for the field
-        search = base_queryset.params(search_type="count")
-        search.aggs.bucket(self.AGG_NAME, "terms",
-                           field=self.AGG_FIELD,
-                           min_doc_count=1,
-                           size=0)
-
-        serializer = self.serializer_class(search.execute().aggregations)
-        return Response(serializer.data)
-
-
 class DateHistogramAggView(ElasticListAPIView):
 
     interval = None

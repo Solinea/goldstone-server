@@ -20,7 +20,7 @@ from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 import elasticsearch
 import elasticsearch_dsl
-from elasticsearch_dsl import Search, String, Date, Nested
+from elasticsearch_dsl import String, Date, Nested
 from elasticsearch_dsl.result import Response
 import mock
 from mock import patch, MagicMock
@@ -314,64 +314,44 @@ class SavedSearchModelTests(TestCase):
 
     fixtures = ['core_initial_data.yaml']
 
-    message = String()
-    timestamp = Date()
+    def test_loaded_data_from_fixtures(self):
+        self.assertGreater(SavedSearch.objects.all(), 0)
 
-    class Meta:
-        doc_type = 'syslog'
-        index = 'logstash-*'
-
-    @classmethod
-    def test_loaded_data_from_fixtures(cls):
-        assert(SavedSearch.objects.all())
-
-    @classmethod
     def test_predefined_search_func(self):
-        owner = 'events'
-        indices = 'logstash-*'
-        sys_defined_searches = SavedSearch.objects.filter(owner=owner,
-                                                          index_prefix=indices)
-        assert(sys_defined_searches)
-        isinstance(sys_defined_searches, SavedSearch)
+        owner = 'core'
+        sys_defined_searches = SavedSearch.objects.filter(owner=owner)
+
         for entry in sys_defined_searches:
             search_obj = entry.search()
-            isinstance(search_obj, elasticsearch_dsl.search.Search)
-            search_res = search_obj.execute()
-            assert(search_res.hits.total)
+            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
 
         for entry in sys_defined_searches:
             search_obj, start, end = entry.search_recent()
-            isinstance(search_obj, elasticsearch_dsl.search.Search)
-            search_res = search_obj.execute()
-            assert(search_res.hits.total)
+            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
 
 
-class PolyResourceModelTests(SimpleTestCase):
+class PolyResourceModelTests(APITestCase):
     """Test the PolyResourceModel."""
+
+    fixtures = ["core_initial_data.yaml"]
 
     def test_logs(self):
         """Test that the logs method returns an appropriate search object."""
 
         # pylint: disable=R0204
-        expectation = {'bool': {
-            'must': [{'query_string': {'query': 'polly'}}],
-            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+        expectation = {'query_string': {'query': 'polly'}}
 
         polyresource = PolyResource(native_name='polly')
         result = polyresource.logs().to_dict()
         self.assertDictEqual(expectation, result['query'])
 
-        expectation = [{'@timestamp': {'order': 'desc'}}]
-        self.assertListEqual(expectation, result['sort'])
-
     def test_events(self):
         """test that the events method returns an appropriate search object."""
 
-        expectation = {"query_string":
-                       {"query": "\"polly\"", "default_field": "_all"}}
+        expectation = {"query_string": {"query": "polly"}}
         polyresource = PolyResource(native_name='polly')
         result = polyresource.events().to_dict()
-        self.assertTrue(expectation in result['query']['bool']['must'])
+        self.assertDictEqual(expectation, result['query'])
 
 
 class CustomExceptionHandlerTests(APISimpleTestCase):
