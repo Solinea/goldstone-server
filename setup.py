@@ -18,4 +18,7 @@ from setuptools import setup, find_packages
 setuptools.setup(
     setup_requires=['pbr'],
     pbr=True,
+    package_data={
+        # If any package contains *.txt or *.rst files, include them:
+        '': ['*.yaml'],
     packages=find_packages())
