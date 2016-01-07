@@ -248,7 +248,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
 
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:<%= this.height %>px">' +
+        '<div class="panel-body shadow-block" style="height:<%= this.height %>px">' +
         '</div>' +
         '</div>' +
         '<div id="modal-container-<%= this.el.slice(1) %>"></div>'

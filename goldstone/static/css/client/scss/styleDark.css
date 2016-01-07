@@ -16,6 +16,12 @@ css stylesheets prior to redesign
 
 .ajax-loader { position: absolute; left: 50%; top: 50%; margin-left: -32px; /* -1 * image width / 2 */ margin-top: -32px; /* -1 * image height / 2 */ display: block; }
 
+/* every font-awesome icon everywhere unless excluded */
+.fa:not(.fa-check):not(.fa-clock-o) { cursor: pointer; }
+
+/* cursor over logViz to suggest double-clickability*/
+#log-viewer-visualization svg { cursor: zoom-in; }
+
 /* Datatable font sizes */
 .table-hover th { font-size: 10px; }
 
@@ -219,7 +225,7 @@ css stylesheets supporting redesign
 
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
-.dashboard .footer { position: relative; left: 0; top: 0; top: 18px; }
+.dashboard .footer { left: 9%; width: 90%; bottom: -38px; }
 
 .dashboard .footer .row { width: 100%; }
 
@@ -351,12 +357,12 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .node:nth-child(9n) { margin-right: 0; }
 
-.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff; /*width:64px;
-transition:all 0.3s ease;
--webkit-transition:all 0.3s ease;
--ms-transition:all 0.3s ease;
--moz-transition:all 0.3s ease;
--o-transition:all 0.3s ease;*/ z-index: 9999; }
+.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff;     /*width:64px;
+	transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;*/ z-index: 9999; }
 
 .sidebar.expand-menu { width: inherit; }
 
@@ -364,11 +370,11 @@ transition:all 0.3s ease;
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
-.dashboard .content { position: relative; left: 0; /*transition:all 0.3s ease;
--webkit-transition:all 0.3s ease;
--ms-transition:all 0.3s ease;
--moz-transition:all 0.3s ease;
--o-transition:all 0.3s ease;*/ }
+.dashboard .content { position: relative; left: 0;     /*transition:all 0.3s ease;
+	-webkit-transition:all 0.3s ease;
+	-ms-transition:all 0.3s ease;
+	-moz-transition:all 0.3s ease;
+	-o-transition:all 0.3s ease;*/ }
 
 .sidebar.open { width: inherit !important; }
 

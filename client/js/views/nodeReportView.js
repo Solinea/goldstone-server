@@ -52,8 +52,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
         }
 
         if (this.visiblePanel.Logs) {
-            this.computeLookback();
-            this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
+            this.logBrowserViz.trigger('lookbackSelectorChanged');
+            this.logBrowserTable.trigger('lookbackSelectorChanged');
+
+            // this.computeLookback();
+            // this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
         }
     },
 
@@ -305,20 +308,62 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Logs tab
 
-        this.logsReportCollection = new LogAnalysisCollection({});
+        // this.logAnalysisView = new LogSearchPageView({
+        //     collection: this.logAnalysisCollection,
+        //     width: $('#logsReport').width(),
+        //     height: 300,
+        //     el: '#logsReport',
+        //     featureSet: 'logEvents',
+        //     chartTitle: 'Log Analysis',
+        //     specificHost: this.node_uuid,
+        //     urlRoot: "/logging/summarize/?"
+        // });
 
-        this.logAnalysisView = new LogSearchPageView({
-            collection: this.logAnalysisCollection,
-            width: $('#logsReport').width(),
-            height: 300,
-            el: '#logsReport',
-            featureSet: 'logEvents',
-            chartTitle: 'Log Analysis',
-            specificHost: this.node_uuid,
-            urlRoot: "/logging/summarize/?"
+        var self = this;
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/',
+
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
         });
 
-        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logsReportCollection, this.logAnalysisView];
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'searchLogAnalysis',
+            marginLeft: 60,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
+
+        this.logBrowserTableCollection = new LogBrowserTableCollection({
+            skipFetch: true,
+            specificHost: this.specificHost,
+            urlBase: '/logging/search/',
+            linkedCollection: this.logBrowserVizCollection
+        });
+
+        this.logBrowserTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.logBrowserTableCollection,
+            el: '#log-viewer-table',
+            infoIcon: 'fa-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
+        });
+
+        // end of logs tab
+        //----------------------------------
+
+        this.viewsToStopListening = [this.serviceStatusChart, this.serviceStatusChartView, this.cpuUsageChart, this.cpuUsageView, this.memoryUsageChart, this.memoryUsageView, this.networkUsageChart, this.networkUsageView, this.reportsReportCollection, this.reportsReport, this.eventsReport, this.detailsReport, this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
     },
 
     template: _.template('' +
@@ -394,7 +439,20 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="detailsReport">&nbsp;</div>' +
-        '<div class="col-md-12" id="logsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="logsReport">' +
+
+        // LOGS REPORT TAB
+        // divs for log viewer viz on top and dataTable below
+        '<div class="row">' +
+        '<div id="log-viewer-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="log-viewer-table" class="col-md-12"></div>' +
+        '</div>' +
+        // end log viewer
+        '</div>' +
+
+
         '</div>' +
         '</div>' +
         '</div>'
