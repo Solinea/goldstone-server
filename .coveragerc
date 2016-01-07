@@ -5,5 +5,5 @@ omit =
   goldstone/settings/*
 
 [report]
-fail_under = 33
+fail_under = 50
 precision = 2
