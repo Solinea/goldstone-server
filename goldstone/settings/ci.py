@@ -26,11 +26,10 @@ INSTALLED_APPS += (
 )
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = (
-    '--config=setup.cfg',
     '--verbosity=2',
     '--detailed-errors',
     '--with-xunit',
     '--xunit-file=/reports/nosetests.xml',
-    '--with-noseexclude',
-    '--exclude-test-file=.excludetests',
+    '--with-coverage',
+    '--cover-package=goldstone',
 )

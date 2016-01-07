@@ -1,0 +1,9 @@
+[run]
+source =
+  goldstone
+omit =
+  goldstone/settings/*
+
+[report]
+fail_under = 33
+precision = 2
