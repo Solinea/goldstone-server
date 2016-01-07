@@ -1,7 +1,3 @@
 goldstone.core.tests_resource_types_1
 goldstone.core.tests_resource_types_2
-goldstone.cinder.tests
-goldstone.nova.test_views
-goldstone.keystone.tests
-goldstone.glance.tests
 goldstone.glogging.tests.LogAggViewTests

@@ -25,16 +25,8 @@ class DataViewTests(SimpleTestCase):
 
         self.assertIsInstance(response, HttpResponse)
         self.assertIsNotNone(response.content)
-
-        try:
-            result = json.loads(response.content)
-        except Exception:        # pylint: disable=W0703
-            self.fail("Could not convert content to JSON, content was %s" %
-                      response.content)
-        else:
-            self.assertIsInstance(result, list)
-            self.assertGreaterEqual(len(result), 1)
-            self.assertIsInstance(result[0], list)
+        j = json.loads(response.content)
+        self.assertIsInstance(j, list)
 
     def test_get_images(self):
         """GET to /images."""
