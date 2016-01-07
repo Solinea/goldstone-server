@@ -1,0 +1,34 @@
+engines:
+  csslint:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - javascript
+      - python
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+  pep8:
+    enabled: true
+  radon:
+    enabled: true
+    config:
+      threshold: "B"
+ratings:
+  paths:
+  - "goldstone/**/*"
+  - "**.py"
+  - "**.js"
+  - "**.css"
+exclude_paths:
+  - 'CLA/*'
+  - 'design_docs/*'
+  - 'dist/*'
+  - 'docs/*'
+  - 'rpm_packaging/*'
+  - 'utils/*'
+  - 'tests/*'
+  - 'test_data/*'

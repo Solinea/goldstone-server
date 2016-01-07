@@ -33,16 +33,8 @@ class DataViewTests(SimpleTestCase):
 
         self.assertIsInstance(response, HttpResponse)
         self.assertNotEqual(response.content, None)
-
-        try:
-            results = json.loads(response.content)
-        except Exception:          # pylint: disable=W0703
-            self.fail("Could not convert content to JSON, content was %s" %
-                      response.content)
-        else:
-            self.assertIsInstance(results, list)
-            self.assertGreaterEqual(len(results), 1)
-            self.assertIsInstance(results[0], list)
+        j = json.loads(response.content)
+        self.assertIsInstance(j, list)
 
     # Disabling pylint's docstring check, because the remaining methods are
     # cookie-cutter.

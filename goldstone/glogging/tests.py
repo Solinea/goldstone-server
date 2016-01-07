@@ -127,29 +127,3 @@ class LogEventModelTests(SimpleTestCase):
 
         result = LogEvent.search().to_dict()
         self.assertDictEqual(expectation, result['query'])
-
-
-class LogAggViewTests(APITestCase):
-    """Test log aggregation views."""
-    # pylint: disable=C0103
-
-    def setUp(self):
-        """set up for each test."""
-        self.token = create_and_login()
-
-    def test_agg_view_with_params(self):
-        """Test parameter handling for an aggregation view."""
-
-        start = arrow.get(0).timestamp * 1000
-        end = arrow.utcnow().timestamp * 1000
-        timestamp_range = \
-            '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
-            str(end) + '"}'
-        interval = "interval=1d"
-        url = '/logging/summarize/?' + timestamp_range + '&' + interval
-
-        response = self.client.get(
-            url,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101
