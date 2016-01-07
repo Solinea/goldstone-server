@@ -40,7 +40,7 @@ def dictassign(thedict, key, value):
     thedict[key] = value
 
 
-def do_method_test(type_from, data_from, match_from_key_fn, type_to, data_to,
+def do_tezt(type_from, data_from, match_from_key_fn, type_to, data_to,
             match_to_key_fn):
     """Test the methods of two resource type nodes.
 
@@ -190,7 +190,7 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        do_method_test(Image,
+        do_tezt(Image,
                 IMAGE,
                 partial(dictassign, IMAGE, "id"),
                 Server,
@@ -235,7 +235,7 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        do_method_test(AvailabilityZone,
+        do_tezt(AvailabilityZone,
                 AVAILABILITY_ZONE,
                 partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Aggregate,
@@ -272,7 +272,7 @@ class ResourceTypesTests(SimpleTestCase):
 
         HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
 
-        do_method_test(AvailabilityZone,
+        do_tezt(AvailabilityZone,
                 AVAILABILITY_ZONE,
                 partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Host,
@@ -375,7 +375,7 @@ class ResourceTypesTests(SimpleTestCase):
 
             SERVER["flavor"]["id"] = value
 
-        do_method_test(Flavor,
+        do_tezt(Flavor,
                 FLAVOR,
                 partial(dictassign, FLAVOR, "id"),
                 Server,
@@ -404,7 +404,7 @@ class ResourceTypesTests(SimpleTestCase):
 
             AGGREGATE["hosts"] = ["bob", "marley", value]
 
-        do_method_test(Host,
+        do_tezt(Host,
                 HOST,
                 partial(dictassign, HOST, "host_name"),
                 Aggregate,
@@ -446,7 +446,7 @@ class ResourceTypesTests(SimpleTestCase):
                       u'vcpus': 8,
                       u'vcpus_used': 4}
 
-        do_method_test(Host,
+        do_tezt(Host,
                 HOST,
                 partial(dictassign, HOST, "host_name"),
                 Hypervisor,
@@ -548,7 +548,7 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        do_method_test(Hypervisor,
+        do_tezt(Hypervisor,
                 HYPERVISOR,
                 partial(dictassign, HYPERVISOR, "id"),
                 Server,
@@ -592,7 +592,7 @@ class ResourceTypesTests(SimpleTestCase):
                 u'status': u'ACTIVE',
                 u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14'}
 
-        do_method_test(Interface,
+        do_tezt(Interface,
                 INTERFACE,
                 partial(dictassign, INTERFACE, "mac_addr"),
                 Port,
@@ -677,7 +677,7 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        # I think any public keypair can be used on any server. So, do_method_test()
+        # I think any public keypair can be used on any server. So, do_tezt()
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
@@ -724,7 +724,7 @@ class ResourceTypesTests(SimpleTestCase):
                       "user_id": u'0751ad1dcb054ddea7d4be13aa63dec0',
                       }
 
-        do_method_test(User,
+        do_tezt(User,
                 USER,
                 partial(dictassign, USER, "id"),
                 Credential,
@@ -753,7 +753,7 @@ class ResourceTypesTests(SimpleTestCase):
                  "name": "Developers"
                  }
 
-        do_method_test(User,
+        do_tezt(User,
                 USER,
                 partial(dictassign, USER, "domain_id"),
                 Group,
@@ -784,7 +784,7 @@ class ResourceTypesTests(SimpleTestCase):
                    "name": "Test Group",
                    'description': u'Tenant for the openstack services'}
 
-        do_method_test(User,
+        do_tezt(User,
                 USER,
                 partial(dictassign, USER, "default_project_id"),
                 Project,
@@ -830,7 +830,7 @@ class ResourceTypesTests(SimpleTestCase):
                  u'updated_at': u'2015-01-20T22:41:12Z',
                  u'visibility': u'public'}
 
-        do_method_test(Project,
+        do_tezt(Project,
                 PROJECT,
                 partial(dictassign, PROJECT, "id"),
                 Image,
