@@ -83,7 +83,8 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
     - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci"
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker"
+    # TODO: coverage breaking for a couple reasons including an import problem, and the need to reset the DB
+    # - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker"
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - pip install codecov && codecov -f $DJANGO_DIR/coverage
