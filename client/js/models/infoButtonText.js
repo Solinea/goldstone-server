@@ -79,6 +79,10 @@ var InfoButtonText = GoldstoneBaseModel.extend({
                 return goldstone.translate('This is the OpenStack Keystone topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view.');
             },
 
+            logBrowser: function() {
+                return goldstone.translate('This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings.');
+            },
+
             novaSpawns: function() {
                 return goldstone.translate('This chart displays VM spawn success and failure counts across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
             },
@@ -93,10 +97,6 @@ var InfoButtonText = GoldstoneBaseModel.extend({
 
             novaDiskResources: function() {
                 return goldstone.translate('This chart displays aggregate disk allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data.');
-            },
-
-            searchLogAnalysis: function() {
-                return goldstone.translate('This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings.');
             },
 
             cloudTopologyResourceList: function() {

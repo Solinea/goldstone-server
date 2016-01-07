@@ -21,17 +21,17 @@ and extended into Nova CPU/Memory/Disk Resource Charts
 instantiated on novaReportView similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlPrefix: '/nova/hypervisor/spawns/'
+    urlBase: '/nova/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
-    chartTitle: "VM Spawns",
+    chartTitle: goldstone.translate("VM Spawns"),
     collection: this.vmSpawnChart,
-    height: 300,
-    infoCustom: 'novaSpawns',
+    height: 350,
+    infoText: 'novaSpawns',
     el: '#nova-report-r1-c2',
     width: $('#nova-report-r1-c2').width(),
-    yAxisLabel: 'Spawn Events'
+    yAxisLabel: goldstone.translate('Spawn Events')
 });
 */
 
@@ -61,56 +61,55 @@ var SpawnsView = GoldstoneBaseView.extend({
         and the x and y scales, the axis details, and the chart colors.
         */
 
-        var ns = this;
         var self = this;
 
         this.mw = this.width - this.margin.left - this.margin.right;
         this.mh = this.height - this.margin.top - this.margin.bottom;
 
-        ns.svg = d3.select(this.el).select('.panel-body').append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
+            .attr("width", self.width)
+            .attr("height", self.height);
 
-        ns.chart = ns.svg
+        self.chart = self.svg
             .append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
         // initialized the axes
-        ns.svg.append("text")
+        self.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
+            .attr("x", 0 - (self.height / 2))
             .attr("y", -5)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(self.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function() {
+        self.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+        self.x = d3.time.scale()
+            .rangeRound([0, self.mw]);
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+        self.y = d3.scale.linear()
+            .range([self.mh, 0]);
 
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
+        self.xAxis = d3.svg.axis()
+            .scale(self.x)
             .ticks(5)
             .orient("bottom");
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
+        self.yAxis = d3.svg.axis()
+            .scale(self.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = new GoldstoneColors().get('colorSets');
 
-        ns.color = d3.scale.ordinal()
-            .range(ns.colorArray.distinct['2R']);
+        self.color = d3.scale.ordinal()
+            .range(self.colorArray.distinct['2R']);
     },
 
     dataPrep: function(data) {
@@ -129,7 +128,6 @@ var SpawnsView = GoldstoneBaseView.extend({
         from the x-axis of the graph going upward.
         */
 
-        var ns = this;
         var uniqTimestamps;
         var result = [];
 
@@ -162,7 +160,7 @@ var SpawnsView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-        var ns = this;
+
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -192,7 +190,6 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     update: function() {
 
-        var ns = this;
         var self = this;
 
         var data = this.collection.toJSON();
@@ -224,7 +221,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
+        this.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
         }));
 
@@ -261,7 +258,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
             // calculates heights of each stacked bar by adding
             // to the heights of the previous bars
-            d.stackedBarPrep = ns.color.domain().map(function(name) {
+            d.stackedBarPrep = self.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
@@ -291,26 +288,26 @@ var SpawnsView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        ns.x.domain(d3.extent(data, function(d) {
+        this.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
         }));
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
-        ns.y.domain([0, d3.max(data, function(d) {
+        this.y.domain([0, d3.max(data, function(d) {
             return d.total;
         })]);
 
         // add x axis
-        ns.chart.append("g")
+        this.chart.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
 
         // add y axis
-        ns.chart.append("g")
+        this.chart.append("g")
             .attr("class", "y axis")
-            .call(ns.yAxis)
+            .call(self.yAxis)
             .append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
@@ -318,17 +315,17 @@ var SpawnsView = GoldstoneBaseView.extend({
             .style("text-anchor", "end");
 
         // add primary svg g layer
-        ns.event = ns.chart.selectAll(".event")
+        this.event = this.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g")
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.eventTime) + ",0)";
+                return "translate(" + self.x(d.eventTime) + ",0)";
             });
 
         // add svg g layer for solid lines
-        ns.solidLineCanvas = ns.chart.selectAll(".event")
+        this.solidLineCanvas = self.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -336,7 +333,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr("class", "solid-line-canvas");
 
         // add svg g layer for dashed lines
-        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+        this.dashedLineCanvas = this.chart.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
@@ -344,7 +341,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             .attr("class", "dashed-line-canvas");
 
         // add svg g layer for hidden rects
-        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+        this.hiddenBarsCanvas = this.chart.selectAll(".hidden")
             .data(data)
             .enter()
             .append("g")
@@ -359,7 +356,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             });
 
         // Invoke the tip in the context of your visualization
-        ns.chart.call(tip);
+        this.chart.call(tip);
 
         // used below to determing whether to render as
         // a "rect" or "line" by affecting fill and stroke opacity below
@@ -373,27 +370,27 @@ var SpawnsView = GoldstoneBaseView.extend({
         };
 
         // append rectangles
-        ns.event.selectAll("rect")
+        this.event.selectAll("rect")
             .data(function(d) {
                 return d.stackedBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                var segmentWidth = (ns.mw / data.length);
+                var segmentWidth = (self.mw / data.length);
 
                 // spacing corrected for proportional
                 // gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
-                return ns.y(d.y1);
+                return self.y(d.y1);
             })
             .attr("height", function(d) {
-                return ns.y(d.y0) - ns.y(d.y1);
+                return self.y(d.y0) - self.y(d.y1);
             })
             .attr("rx", 0.8)
             .attr("stroke", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             })
             .attr("stroke-opacity", function(d) {
                 if (!showOrHide[d.name]) {
@@ -411,28 +408,28 @@ var SpawnsView = GoldstoneBaseView.extend({
             })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
-                return ns.color(d.name);
+                return self.color(d.name);
             });
 
         // append hidden bars
-        ns.hiddenBarsCanvas.selectAll("rect")
+        this.hiddenBarsCanvas.selectAll("rect")
             .data(data)
             .enter().append("rect")
             .attr("width", function(d) {
-                var hiddenBarWidth = (ns.mw / data.length);
+                var hiddenBarWidth = (self.mw / data.length);
                 return hiddenBarWidth - hiddenBarWidth * 0.07;
             })
             .attr("opacity", "0")
             .attr("x", function(d) {
-                return ns.x(d.eventTime);
+                return self.x(d.eventTime);
             })
             .attr("y", 0)
             .attr("height", function(d) {
-                return ns.mh;
+                return self.mh;
             }).on('mouseenter', function(d) {
 
                 // coax the pointer to line up with the bar center
-                var nudge = (ns.mw / data.length) * 0.5;
+                var nudge = (self.mw / data.length) * 0.5;
                 var targ = d3.select(self.el).select('rect');
                 tip.offset([20, -nudge]).show(d, targ);
             }).on('mouseleave', function() {
@@ -445,20 +442,20 @@ var SpawnsView = GoldstoneBaseView.extend({
             return d3.svg.line()
                 .interpolate("linear")
                 .x(function(d) {
-                    return ns.x(d.eventTime);
+                    return self.x(d.eventTime);
                 })
                 .y(function(d) {
-                    return ns.y(d[param]);
+                    return self.y(d[param]);
                 });
         };
 
         // abstracts the path generator to accept a data param
         // and creates a solid line with the appropriate color
         var solidPathGenerator = function(param) {
-            return ns.solidLineCanvas.append("path")
+            return self.solidLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
@@ -467,10 +464,10 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the path generator to accept a data param
         // and creates a dashed line with the appropriate color
         var dashedPathGenerator = function(param) {
-            return ns.dashedLineCanvas.append("path")
+            return self.dashedLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return ns.color(param);
+                    return self.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none")
@@ -497,17 +494,17 @@ var SpawnsView = GoldstoneBaseView.extend({
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
 
-        var ns = this;
+        var self = this;
 
         _.each(legendSpecs, function(item) {
-            ns.chart.append('path')
+            self.chart.append('path')
                 .attr('class', 'line')
                 .attr('id', item[0])
                 .attr('data-legend', item[0])
-                .attr('data-legend-color', ns.color.range()[item[1]]);
+                .attr('data-legend-color', self.color.range()[item[1]]);
         });
 
-        var legend = ns.chart.append('g')
+        var legend = self.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
             .attr('opacity', 1.0)

@@ -20,7 +20,9 @@
 describe('logAnalysis.js spec', function() {
     beforeEach(function() {
 
-        $('body').html('<div class="testContainer"></div>');
+        $('body').html('<div id="log-viewer-visualization"></div>' +
+            '<div id="log-viewer-table"></div>'
+        );
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -33,24 +35,28 @@ describe('logAnalysis.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(LogAnalysisCollection.prototype, "fetch");
+        this.protoFetchSpy = sinon.spy(LogBrowserCollection.prototype, "fetch");
 
         var testEnd = (+new Date());
         var testStart = (testEnd - (15 * 60 * 1000));
 
 
-        this.testCollection = new LogAnalysisCollection({});
+        this.testCollection = new LogBrowserCollection({
+            urlBase: '/logging/summarize/'
+        });
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new LogAnalysisView({
+        this.testView = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.testCollection,
-            width: 600,
+            el: '#log-viewer-visualization',
             height: 300,
-            el: '.testContainer',
-            featureSet: 'logEvents',
-            chartTitle: 'Log Analysis Test',
-            urlRoot: "/intelligence/log/cockpit/data?"
+            infoText: 'logBrowser',
+            marginLeft: 60,
+            urlRoot: "/logging/summarize/?",
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.testCollection.reset();
@@ -82,8 +88,6 @@ describe('logAnalysis.js spec', function() {
                         "CRITICAL": 40
                     }]
                 }
-
-
             ]
         });
 
@@ -175,8 +179,7 @@ describe('logAnalysis.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.testContainer');
-
+            expect(this.testView.el).to.equal('#log-viewer-visualization');
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
             this.testView.trigger('lookbackSelectorChanged', [1, 2]);
@@ -239,16 +242,16 @@ describe('logAnalysis.js spec', function() {
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
             // should construct url
-            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":NaN,"lte"');
+            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
             this.testView.trigger('lookbackIntervalReached', [1000, 2000]);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1000,"lte":2000}&interval=1s');
+            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
             this.testView.trigger('lookbackIntervalReached', [1421428385868, 1421438385868]);
-            expect(this.testCollection.url).to.contain('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":');
-            expect(this.testCollection.url).to.contain('&interval=');
+            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('&interval=');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             // should not construct url
-            this.testView.defaults.isZoomed = true;
-            this.testView.trigger('lookbackIntervalReached', [1, 2]);
+            this.testView.isZoomed = true;
+            this.testView.trigger('lookbackIntervalReached');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             this.constructUrl_spy.restore();
         });
@@ -268,16 +271,14 @@ describe('logAnalysis.js spec', function() {
             this.testView.update();
             // no mult
             this.testView.paintNewChart([time1, time2]);
-            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":142747458');
-            expect(this.testCollection.url).to.include('}&interval=1s');
+            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('}&interval=0.5s');
             // mult >= 1
             this.testView.paintNewChart([time1, time2], 10);
-            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584');
-            expect(this.testCollection.url).to.include('}&interval=1s');
+            expect(this.testCollection.url).to.equal('/logging/summarize/?@timestamp__range={"gte":1427474583793,"lte":1427474586193}&interval=0.5s&per_host=False');
             // mult < 1
             this.testView.paintNewChart([time1, time2], 0.5);
-            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":142747458');
-            expect(this.testCollection.url).to.include('}&interval=1s');
+            expect(this.testCollection.url).to.equal('/logging/summarize/?@timestamp__range={"gte":1427474581993,"lte":1427474589993}&interval=0.5s&per_host=False');
         });
     });
 });

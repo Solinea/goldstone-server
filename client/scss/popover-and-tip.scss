@@ -8,8 +8,8 @@
 }
 
 #multi-rsrc-panel > div.popover.fade.left.in > h3 {
-    background-color: rgba(0,0,0,.4);
-    border-bottom-color: rgba(0,0,0,.4);
+    background-color: rgba(0, 0, 0, .4);
+    border-bottom-color: rgba(0, 0, 0, .4);
 }
 
 .popover {
@@ -20,29 +20,29 @@
 }
 
 .popover.bottom .arrow:after {
-  border-bottom-color:rgba(0,0,0,.4);
+    border-bottom-color: rgba(0, 0, 0, .4);
 }
 
 .popover.left .arrow {
-    border-left-color: rgba(0,0,0,.4);
+    border-left-color: rgba(0, 0, 0, .4);
 }
 
 .popover-content ul {
-   list-style-type:none;
-   list-style-position:inside;
+    list-style-type: none;
+    list-style-position: inside;
 }
 
 .popover-content {
-  line-height: 1;
-  padding: 10px;
-  color: if($theme==dark, #fff, null);
-  width: 100%;
-  font-size: 14px;
+    line-height: 1;
+    padding: 10px;
+    color: if($theme==dark, #fff, null);
+    width: 100%;
+    font-size: 14px;
 }
 
 .line {
-  fill: none;
-  stroke-width: 1.5px;
+    fill: none;
+    stroke-width: 1.5px;
 }
 
 .verticalGuideLine {
@@ -51,76 +51,88 @@
 }
 
 .d3-tip {
-  line-height: 1;
-  padding: 12px;
-  background: if($theme==dark, $dark_tip, rgba(0, 0, 0, 0.4));
-  color: if($theme==dark, $dark_background, #fff);
-  border-radius: 10px;
-  pointer-events: none;
-  max-width: 500px;
+    line-height: 1;
+    padding: 12px;
+    background: if($theme==dark, $dark_tip, rgba(0, 0, 0, 0.4));
+    color: if($theme==dark, $dark_background, #fff);
+    border-radius: 10px;
+    pointer-events: none;
+    max-width: 500px;
 }
 
 .d3-tip pre {
-  background: rgba(0, 0, 0, 0.0);
-  color: #fff;
-  border: 0px;
+    background: rgba(0, 0, 0, 0.0);
+    color: #fff;
+    border: 0px;
 }
+
 
 /* Creates a small triangle extender for the tooltip */
+
 .d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  position: absolute;
-  pointer-events: none;
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    position: absolute;
+    pointer-events: none;
 }
 
-svg.n, svg.s {
+svg.n,
+svg.s {
     margin-left: 50px;
     margin-right: 50px;
 }
 
 svg.e {
-margin-left: 50px;
+    margin-left: 50px;
 }
 
-.partialHiddenBar, .hiddenBar {
+.partialHiddenBar,
+.hiddenBar {
     opacity: 0
 }
 
+
 /* Northward tooltips */
+
 .d3-tip.n:after {
-  content: "\25BC";
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
-  text-align: center;
+    content: "\25BC";
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+    text-align: center;
 }
+
 
 /* Eastward tooltips */
+
 .d3-tip.e:after {
-  content: "\25C0";
-  margin: -4px 0 0 0;
-  top: 50%;
-  left: -8px;
+    content: "\25C0";
+    margin: -4px 0 0 0;
+    top: 50%;
+    left: -8px;
 }
+
 
 /* Southward tooltips */
+
 .d3-tip.s:after {
-  content: "\25B2";
-  margin: 0 0 1px 0;
-  top: -8px;
-  left: 0;
-  text-align: center;
+    content: "\25B2";
+    margin: 0 0 1px 0;
+    top: -8px;
+    left: 0;
+    text-align: center;
 }
 
+
 /* Westward tooltips */
+
 .d3-tip.w:after {
-  content: "\25B6";
-  margin: -4px 0 0 -1px;
-  top: 50%;
-  left: 100%;
+    content: "\25B6";
+    margin: -4px 0 0 -1px;
+    top: 50%;
+    left: 100%;
 }
