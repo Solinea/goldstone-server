@@ -285,78 +285,69 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         var self = this;
 
-        // this.collection.toJSON() returns an object
-        // with keys: timestamps, levels, data.
+        // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
 
-        // We will store the levels for the loglevel
-        // construction and add it back in before returning
-        var logLevels = collectionDataPayload.levels;
-
-        // if self.filter isn't defined yet, only do
-        // this once
-        if (!self.filter) {
-            self.filter = {};
-            _.each(logLevels, function(item) {
-                self.filter[item] = true;
-            });
-        }
-
         // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.data;
+        var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
         finalData = [];
 
-        // 3 layers of nested _.each calls
+        // layers of nested _.each calls
         // the first one iterates through each object
         // in the 'data' array as 'item':
+
         // {
-        //     "1426640040000": [
-        //         {
-        //             "audit": 7
-        //         },
-        //         {
-        //             "info": 0
-        //         },
-        //         {
-        //             "warning": 0
-        //         }
-        //     ]
-        // }
+        //     "per_level": {
+        //         "buckets": [{
+        //             "key": "INFO",
+        //             "doc_count": 112
+        //         }, {
+        //             "key": "NOTICE",
+        //             "doc_count": 17
+        //         }, {
+        //             "key": "ERROR",
+        //             "doc_count": 5
+        //         }, {
+        //             "key": "WARNING",
+        //             "doc_count": 2
+        //         }],
+        //         "sum_other_doc_count": 0,
+        //         "doc_count_error_upper_bound": 0
+        //     },
+        //     "key_as_string": "2016-01-07T22:24:45.000Z",
+        //     "key": 1452205485000,
+        //     "doc_count": 190
+        // },
 
         // the next _.each iterates through the array of
         // nested objects that are keyed to the timestamp
         // as 'subItem'
-        // [
-        //     {
-        //         "audit": 7
-        //     },
-        //     {
-        //         "info": 0
-        //     },
-        //     {
-        //         "warning": 0
-        //     }
-        // ]
-
-        // and finally, the last _.each iterates through
-        // the most deeply nested objects as 'subSubItem'
-        // such as:
-        //  {
-        //      "audit": 7
-        //  }
+        // [{
+        //     "key": "INFO",
+        //     "doc_count": 112
+        // }, {
+        //     "key": "NOTICE",
+        //     "doc_count": 17
+        // }, {
+        //     "key": "ERROR",
+        //     "doc_count": 5
+        // }, {
+        //     "key": "WARNING",
+        //     "doc_count": 2
+        // }],
 
         _.each(data, function(item) {
 
             var tempObject = {};
 
-            _.each(item, function(subItem) {
-                _.each(subItem, function(subSubItem) {
+            _.each(item.per_level.buckets, function(subItem) {
+                _.each(subItem, function() {
 
                     // each key/value pair of the subSubItems is added to tempObject
-                    var key = _.keys(subSubItem)[0];
-                    var value = _.values(subSubItem)[0];
+                    var key = subItem.key;
+                    var value = subItem.doc_count;
                     tempObject[key] = value;
                 });
             });
@@ -369,8 +360,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             _.each(self.filter, function(item, i) {
                 tempObject[i] = tempObject[i] || 0;
             });
-            tempObject.date = _.keys(item)[0];
-
+            tempObject.date = item.key;
             // which is the equivalent of doing this:
 
             // tempObject.debug = tempObject.debug || 0;
@@ -388,10 +378,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // and finally return the massaged data and the
         // levels to the superclass 'update' function
-        return {
-            finalData: finalData,
-            logLevels: logLevels
-        };
+        return finalData;
 
     },
 
@@ -421,7 +408,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        self.data = allthelogs.finalData;
+        self.data = allthelogs;
         self.loglevel = d3.scale.ordinal()
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);

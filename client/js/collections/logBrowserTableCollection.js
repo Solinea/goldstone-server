@@ -17,21 +17,21 @@
 // define collection and link to model
 
 /*
-instantiated in logSearchPageView.js as:
+instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+    this.logBrowserTableCollection = new LogBrowserTableCollection({
+        skipFetch: true,
+        specificHost: this.specificHost,
+        urlBase: '/core/logs/',
+        linkedCollection: this.logBrowserVizCollection
+    });    
 
-    ** and the view as:
-
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
+    this.logBrowserTable = new LogBrowserDataTableView({
+        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+        collectionMixin: this.logBrowserTableCollection,
+        el: '#log-viewer-table',
+        infoIcon: 'fa-table',
+        width: $('#log-viewer-table').width()
     });
 
 */
@@ -43,13 +43,12 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function() {
-
         var result = '&syslog_severity__terms=[';
 
         levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
-                result = result.concat('"', k.toUpperCase(), '",');
+                result = result.concat('"', k.toLowerCase(), '",');
             }
         }
         result += "]";

@@ -3362,21 +3362,24 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 /*
 instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/core/logs/',
 
-    ** and the view as:
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
-    });
-
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'logBrowser',
+            marginLeft: 60,
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
 */
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
@@ -3393,6 +3396,13 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         }
 
+    },
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
     },
 
     addInterval: function() {
@@ -3418,14 +3428,10 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function(custom) {
-
-        var result = '&per_host=False';
-
-        if (this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
+        
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        return this.specificHost ? '&host=' + this.specificHost : '';
     },
 
 });
@@ -3449,21 +3455,21 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 // define collection and link to model
 
 /*
-instantiated in logSearchPageView.js as:
+instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+    this.logBrowserTableCollection = new LogBrowserTableCollection({
+        skipFetch: true,
+        specificHost: this.specificHost,
+        urlBase: '/core/logs/',
+        linkedCollection: this.logBrowserVizCollection
+    });    
 
-    ** and the view as:
-
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
+    this.logBrowserTable = new LogBrowserDataTableView({
+        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+        collectionMixin: this.logBrowserTableCollection,
+        el: '#log-viewer-table',
+        infoIcon: 'fa-table',
+        width: $('#log-viewer-table').width()
     });
 
 */
@@ -3475,13 +3481,12 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function() {
-
         var result = '&syslog_severity__terms=[';
 
         levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
-                result = result.concat('"', k.toUpperCase(), '",');
+                result = result.concat('"', k.toLowerCase(), '",');
             }
         }
         result += "]";
@@ -3510,7 +3515,8 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
 
     },
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7365,11 +7371,11 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
             // if any field is undefined, dataTables throws an alert
             // so set to empty string if otherwise undefined
-            item['@timestamp'] = item['@timestamp'] || '';
-            item.syslog_severity = item.syslog_severity || '';
-            item.component = item.component || '';
-            item.log_message = item.log_message || '';
-            item.host = item.host || '';
+            item['@timestamp'] = item._source['@timestamp'] || '';
+            item.syslog_severity = item._source.syslog_severity || '';
+            item.component = item._source.component || '';
+            item.log_message = item._source.log_message || '';
+            item.host = item._source.host || '';
         });
 
         var result = {
@@ -7390,7 +7396,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'Message\', \'logbrowserdata\')%></th>' +
         '</tr>'
     )
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7678,78 +7685,69 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         var self = this;
 
-        // this.collection.toJSON() returns an object
-        // with keys: timestamps, levels, data.
+        // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
 
-        // We will store the levels for the loglevel
-        // construction and add it back in before returning
-        var logLevels = collectionDataPayload.levels;
-
-        // if self.filter isn't defined yet, only do
-        // this once
-        if (!self.filter) {
-            self.filter = {};
-            _.each(logLevels, function(item) {
-                self.filter[item] = true;
-            });
-        }
-
         // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.data;
+        var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
         finalData = [];
 
-        // 3 layers of nested _.each calls
+        // layers of nested _.each calls
         // the first one iterates through each object
         // in the 'data' array as 'item':
+
         // {
-        //     "1426640040000": [
-        //         {
-        //             "audit": 7
-        //         },
-        //         {
-        //             "info": 0
-        //         },
-        //         {
-        //             "warning": 0
-        //         }
-        //     ]
-        // }
+        //     "per_level": {
+        //         "buckets": [{
+        //             "key": "INFO",
+        //             "doc_count": 112
+        //         }, {
+        //             "key": "NOTICE",
+        //             "doc_count": 17
+        //         }, {
+        //             "key": "ERROR",
+        //             "doc_count": 5
+        //         }, {
+        //             "key": "WARNING",
+        //             "doc_count": 2
+        //         }],
+        //         "sum_other_doc_count": 0,
+        //         "doc_count_error_upper_bound": 0
+        //     },
+        //     "key_as_string": "2016-01-07T22:24:45.000Z",
+        //     "key": 1452205485000,
+        //     "doc_count": 190
+        // },
 
         // the next _.each iterates through the array of
         // nested objects that are keyed to the timestamp
         // as 'subItem'
-        // [
-        //     {
-        //         "audit": 7
-        //     },
-        //     {
-        //         "info": 0
-        //     },
-        //     {
-        //         "warning": 0
-        //     }
-        // ]
-
-        // and finally, the last _.each iterates through
-        // the most deeply nested objects as 'subSubItem'
-        // such as:
-        //  {
-        //      "audit": 7
-        //  }
+        // [{
+        //     "key": "INFO",
+        //     "doc_count": 112
+        // }, {
+        //     "key": "NOTICE",
+        //     "doc_count": 17
+        // }, {
+        //     "key": "ERROR",
+        //     "doc_count": 5
+        // }, {
+        //     "key": "WARNING",
+        //     "doc_count": 2
+        // }],
 
         _.each(data, function(item) {
 
             var tempObject = {};
 
-            _.each(item, function(subItem) {
-                _.each(subItem, function(subSubItem) {
+            _.each(item.per_level.buckets, function(subItem) {
+                _.each(subItem, function() {
 
                     // each key/value pair of the subSubItems is added to tempObject
-                    var key = _.keys(subSubItem)[0];
-                    var value = _.values(subSubItem)[0];
+                    var key = subItem.key;
+                    var value = subItem.doc_count;
                     tempObject[key] = value;
                 });
             });
@@ -7762,8 +7760,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             _.each(self.filter, function(item, i) {
                 tempObject[i] = tempObject[i] || 0;
             });
-            tempObject.date = _.keys(item)[0];
-
+            tempObject.date = item.key;
             // which is the equivalent of doing this:
 
             // tempObject.debug = tempObject.debug || 0;
@@ -7781,10 +7778,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // and finally return the massaged data and the
         // levels to the superclass 'update' function
-        return {
-            finalData: finalData,
-            logLevels: logLevels
-        };
+        return finalData;
 
     },
 
@@ -7814,7 +7808,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        self.data = allthelogs.finalData;
+        self.data = allthelogs;
         self.loglevel = d3.scale.ordinal()
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
@@ -8084,7 +8078,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
+            urlBase: '/core/logs/',
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -8098,7 +8092,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -8106,7 +8099,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logBrowserTableCollection = new LogBrowserTableCollection({
             skipFetch: true,
             specificHost: this.specificHost,
-            urlBase: '/logging/search/',
+            urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
         });    
 
