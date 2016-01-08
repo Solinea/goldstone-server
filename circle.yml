@@ -24,6 +24,7 @@ machine:
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
     TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash goldstone-app -c"
+    COVERAGE_FILE: /reports/coverage
 
   # /etc/hosts
   hosts:
@@ -87,7 +88,8 @@ test:
     # - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker"
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
-    - pip install codecov && codecov -f $DJANGO_DIR/coverage
+    - coverage xml
+    - pip install codecov && codecov
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
     #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
 
