@@ -30,5 +30,5 @@ exclude_paths:
   - 'docs/*'
   - 'rpm_packaging/*'
   - 'utils/*'
-  - 'tests/*'
+  - 'test/*'
   - 'test_data/*'
