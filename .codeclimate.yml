@@ -1,3 +1,4 @@
+---
 engines:
   csslint:
     enabled: true
@@ -17,18 +18,20 @@ engines:
     enabled: true
     config:
       threshold: "B"
+  sccs-lint:
+    enabled: true
+
 ratings:
   paths:
   - "goldstone/**/*"
-  - "**.py"
-  - "**.js"
   - "**.css"
+  - "**.js"
+  - "**.py"
+  - "**.scss"
+
 exclude_paths:
-  - 'CLA/*'
-  - 'design_docs/*'
-  - 'dist/*'
-  - 'docs/*'
-  - 'rpm_packaging/*'
-  - 'utils/*'
-  - 'test/*'
-  - 'test_data/*'
+- CLA/**/*
+- bin/**/*
+- config/**/*
+- dist/**/*
+- test/**/*
