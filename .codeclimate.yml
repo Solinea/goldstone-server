@@ -14,18 +14,17 @@ engines:
     enabled: true
   pep8:
     enabled: true
-  radon:
-    enabled: true
-    config:
-      threshold: "B"
+#  radon:
+#    enabled: true
+#    config:
+#      threshold: "B"
 
 ratings:
   paths:
-  - "goldstone/**/*"
+# - "goldstone/**/*"
   - "**.css"
   - "**.js"
   - "**.py"
-  - "**.scss"
 
 exclude_paths:
 - CLA/**/*
