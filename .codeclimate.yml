@@ -18,8 +18,6 @@ engines:
     enabled: true
     config:
       threshold: "B"
-  sccs-lint:
-    enabled: true
 
 ratings:
   paths:
