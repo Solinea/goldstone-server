@@ -88,8 +88,8 @@ test:
     # - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker"
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
-    - coverage xml
-    - pip install codecov && codecov
+    - COVERAGE_FILE=$DJANGODIR/coverage coverage xml -o $DJANGODIR/coverage.xml
+    - pip install codecov && codecov -f $DJANGODIR/coverage.xml
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
     #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
 
