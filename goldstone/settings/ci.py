@@ -32,4 +32,5 @@ NOSE_ARGS = (
     '--xunit-file=/reports/nosetests.xml',
     '--with-coverage',
     '--cover-package=goldstone',
+    '--processes=4',
 )
