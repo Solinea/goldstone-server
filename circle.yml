@@ -24,7 +24,6 @@ machine:
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
     TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash goldstone-app -c"
-    COVERAGE_FILE: /reports/coverage
 
   # /etc/hosts
   hosts:
@@ -83,12 +82,12 @@ test:
   override:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
-    - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci --cover-xml-file ${COVERAGE_FILE}"
+    - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci --cover-xml-file /reports/coverage.xml"
     # TODO: coverage breaking for a couple reasons including an import problem, and the need to reset the DB
     # - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run ./manage.py test goldstone --settings=goldstone.settings.docker"
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
-    - pip install codecov && codecov -f ${COVERAGE_FILE}
+    - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
     #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
 
