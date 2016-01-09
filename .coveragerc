@@ -3,7 +3,6 @@ source =
   goldstone
 omit =
   goldstone/settings/*
-data_file = /reports/coverage
 
 [report]
 fail_under = 50
