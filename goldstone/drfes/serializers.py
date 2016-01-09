@@ -34,7 +34,6 @@ class ElasticResponseSerializer(Serializer):
         """
 
         assert(isinstance(instance, Response))
-        logger.info("hits = %s" % instance.hits.hits)
         rv = {
             'results': instance.hits.hits
         }

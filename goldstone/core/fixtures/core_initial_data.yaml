@@ -115,7 +115,7 @@
       owner: core
       index_prefix: events_*
       doc_type: ''  # all doc types
-      timestamp_field: 'traits.eventTime'
+      timestamp_field: 'timestamp'
       protected: true
       query: '{
    "query": {
@@ -129,9 +129,15 @@
             "size": 0
          }
       },
+      "field_names": {
+         "terms": {
+            "field": "_field_names",
+            "size": 0
+         }
+      },
       "per_interval": {
          "date_histogram": {
-            "field": "traits.eventTime",
+            "field": "timestamp",
             "interval": "1d",
             "min_doc_count": 0
          }
@@ -145,7 +151,7 @@
       name: api call query
       owner: core
       index_prefix: api_stats-*
-      doc_type: syslog
+      doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
       query: '{

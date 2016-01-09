@@ -456,7 +456,7 @@ class SavedSearchViewSet(ModelViewSet):
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
         """Return a defined search's results."""
         from goldstone.drfes.pagination import ElasticPageNumberPagination
-        from goldstone.drfes.serializers import ReadOnlyElasticSerializer
+        from ast import literal_eval
 
         # Get the model for the requested uuid
         obj = SavedSearch.objects.get(uuid=uuid)
@@ -488,8 +488,26 @@ class SavedSearchViewSet(ModelViewSet):
                 return HTTP_400_BAD_REQUEST("interval parameter not supported "
                                             "for this request")
 
+        # if there is a timestamp range parameter supplied, we'll construct
+        # an extended_bounds.min parameter from the gt/gte parameter and add
+        # it to the date_histogram aggregation. this will ensure that the
+        # buckets go back to the start time.
+        time_range_param = obj.timestamp_field + "__range"
+        if time_range_param in request.query_params:
+            logger.info('query params[tr] = %s' % request.query_params[time_range_param])
+            json = literal_eval(request.query_params[time_range_param])
+            if 'gt' in json:
+                queryset.aggs.aggs['per_interval'].extended_bounds = {
+                    'min': json['gt']
+                }
+            elif 'gte' in json:
+                queryset.aggs.aggs['per_interval'].extended_bounds = {
+                    'min': json['gte']
+                }
+
         # Perform the search and paginate the response.
         page = self.paginate_queryset(queryset)
 
         serializer = self.get_serializer(page)
         return self.get_paginated_response(serializer.data)
+
