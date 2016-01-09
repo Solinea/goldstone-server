@@ -2984,7 +2984,7 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/search/',
+    urlBase: '/core/events/',
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3040,7 +3040,14 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/summarize/',
+    urlBase: '/core/events/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3051,42 +3058,22 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
 
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.data, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the
-            // object keyed by timestamp
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-
-            // iterate through each item in the array
-            _.each(item[tempObj.time], function(obj){
-                var key = _.keys(obj);
-                var value = _.values(obj)[0];
-
-                // copy key/value pairs to tempObj
-                tempObj[key] = value;
-            });
-
-            // initialize counter
-            var count = 0;
-            _.each(tempObj, function(val, key) {
-                // add up the values of each nested object
-                if(key !== 'time') {
-                    count += val;
-                }
-            });
-
-            // set 'count' equal to the counter
-            tempObj.count = count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -6021,11 +6008,6 @@ instantiated on eventsBrowserPageView as:
 
 var EventsBrowserDataTableView = DataTableBaseView.extend({
 
-    instanceSpecificInit: function() {
-        EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
-        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
-    },
-
     update: function() {
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
@@ -6033,28 +6015,24 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     preprocess: function(data) {
 
         /*
-        strip object down to _id, _type, timestamp, and things in 'traits'
+        strip object down to things in 'traits'
         and then flatten object before returning it to the dataPrep function
         */
 
         var self = this;
         var result = [];
 
-        // strip away all but _id, _type, timestamp, and things in traits
+        // strip away all but things in traits
         _.each(data, function(item) {
             var tempObj = {};
-            tempObj.id = item.id;
-            tempObj.type = item.doc_type;
-            tempObj.timestamp = item.timestamp;
-            tempObj.traits = item.traits;
-            tempObj.user_name = item.user_name;
-            tempObj.user_type = item.user_type;
-            tempObj.tenant_name = item.tenant_name;
-            tempObj.tenant_type = item.tenant_type;
-            tempObj.instance_name = item.instance_name;
-            tempObj.instance_type = item.instance_type;
 
+            // traits contains differing keys per event record
+            tempObj.traits = item._source.traits;
+
+            // additional keys outside of traits can be added to tempObj
+            // before pushing to result and it will all be flattened below
             result.push(tempObj);
+
         });
 
         // replace original data with stripped down dataset
@@ -6074,15 +6052,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'timestamp': 0,
-        'type': 1,
+        'eventTime': 0,
+        'eventType': 1,
         'id': 2,
-        'user_name': 3,
-        'user_type': 4,
-        'tenant_name': 5,
-        'tenant_type': 6,
-        'instance_name': 7,
-        'instance_type': 8
+        'action': 3,
+        'outcome': 4,
     }
 });
 ;

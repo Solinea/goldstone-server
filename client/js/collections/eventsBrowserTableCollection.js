@@ -36,7 +36,7 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/search/',
+    urlBase: '/core/events/',
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';

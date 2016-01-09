@@ -31,11 +31,6 @@ instantiated on eventsBrowserPageView as:
 
 var EventsBrowserDataTableView = DataTableBaseView.extend({
 
-    instanceSpecificInit: function() {
-        EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
-        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
-    },
-
     update: function() {
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
@@ -43,28 +38,24 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     preprocess: function(data) {
 
         /*
-        strip object down to _id, _type, timestamp, and things in 'traits'
+        strip object down to things in 'traits'
         and then flatten object before returning it to the dataPrep function
         */
 
         var self = this;
         var result = [];
 
-        // strip away all but _id, _type, timestamp, and things in traits
+        // strip away all but things in traits
         _.each(data, function(item) {
             var tempObj = {};
-            tempObj.id = item.id;
-            tempObj.type = item.doc_type;
-            tempObj.timestamp = item.timestamp;
-            tempObj.traits = item.traits;
-            tempObj.user_name = item.user_name;
-            tempObj.user_type = item.user_type;
-            tempObj.tenant_name = item.tenant_name;
-            tempObj.tenant_type = item.tenant_type;
-            tempObj.instance_name = item.instance_name;
-            tempObj.instance_type = item.instance_type;
 
+            // traits contains differing keys per event record
+            tempObj.traits = item._source.traits;
+
+            // additional keys outside of traits can be added to tempObj
+            // before pushing to result and it will all be flattened below
             result.push(tempObj);
+
         });
 
         // replace original data with stripped down dataset
@@ -84,14 +75,10 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'timestamp': 0,
-        'type': 1,
+        'eventTime': 0,
+        'eventType': 1,
         'id': 2,
-        'user_name': 3,
-        'user_type': 4,
-        'tenant_name': 5,
-        'tenant_type': 6,
-        'instance_name': 7,
-        'instance_type': 8
+        'action': 3,
+        'outcome': 4,
     }
 });
