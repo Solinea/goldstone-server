@@ -34,7 +34,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserTableCollection = new GoldstoneBaseCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+        this.apiBrowserTableCollection.urlBase = "/core/api-calls/";
         this.apiBrowserTableCollection.addRange = function() {
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         };

@@ -2775,7 +2775,14 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/summarize/',
+    urlBase: '/core/api-calls/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -2786,21 +2793,22 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
+
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.per_interval, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the object keyed by timestamp
-            // and the 200-500 statuses
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-            tempObj.count = item[tempObj.time].count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -4375,7 +4383,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserTableCollection = new GoldstoneBaseCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
+        this.apiBrowserTableCollection.urlBase = "/core/api-calls/";
         this.apiBrowserTableCollection.addRange = function() {
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         };
