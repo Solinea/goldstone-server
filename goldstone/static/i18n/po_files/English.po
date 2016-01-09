@@ -1,4 +1,4 @@
-# goldstone English.po file
+# Goldstone English.po file
 # This file is distributed under the same license as goldstone-server
 # https://www.apache.org/licenses/LICENSE-2.0
 # Alex Jacobs github.com/lexjacobs, 2015
@@ -13,7 +13,7 @@ msgstr ""
 "PO-Creation-Date: 2015-09-11 14:47-0700\n"
 "PO-Revision-Date: 2015-09-18 14:47-0700\n"
 "Last-Translator: Alex Jacobs github.com/lexjacobs\n"
-"Language-Team:\n"
+"Language-Team: Solinea Inc.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
