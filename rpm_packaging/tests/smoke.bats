@@ -4,10 +4,12 @@
 # bats [this file name] [GSA_RPMNAME] [GSA_BINARY] [GSA_CONF_FILE]
 export GS_BINARY=${3-/opt/goldstone/bin/docker-compose}
 export GS_CONF_FILE=${4-/etc/rsyslog.d/goldstone.conf}
-export STARTUP_SCRIPT="/usr/lib/systemd/system/goldstone-server.service"
+export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
 
 @test "rpmname env exists" {
   run echo $GSA_RPMNAME
+  [ "$status" -eq 0 ]
+  run echo $PKGNAME
   [ "$status" -eq 0 ]
 }
 
@@ -18,7 +20,7 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/goldstone-server.service"
 
 @test "pkg installs" {
   run yum localinstall -y $GSA_RPMNAME
-  run rpm -qil goldstone-server
+  run rpm -qil $PKGNAME
   [[ ${lines[0]} = *"Name"*  ]]
 }
 
@@ -54,6 +56,6 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/goldstone-server.service"
 }
 
 @test "server rpm removes" {
-  run yum remove -y `basename $GS_BINARY`
+  run yum remove -y $PKGNAME
   [ "$status" -eq 0 ]
 }

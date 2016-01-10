@@ -2,17 +2,12 @@ USE_CONTAINER ?= true
 DOCKER_IMAGE_NAME=goldstone-server-build-image
 DOCKER_CONTAINER_NAME=goldstone-server-build-container
 RUNNING=`bin/check_for_containers.sh $(DOCKER_CONTAINER_NAME)`
-PKGNAME=goldstone-server
-PKGSUMMARY=Solinea Goldstone server
 PKGCAT=Applications/System
-PKGLIC=Solinea Software License Agreement (version 1)
 PKGURL=http://www.solinea.com/goldstone
 PKGOS=linux
 PKGPREFIX=/
 RPMPREREQ=-d python -d curl
 DEBPREREQ=-d python -d curl
-PKGVENDOR=Solinea
-PKGUSER=goldstone
 PKGVENDOR=Solinea
 PKGUSER=goldstone
 PKGCONF=
@@ -28,23 +23,42 @@ PKGFILES=README.md docs/INSTALL.md docs/CHANGELOG.md LICENSE docker/docker-compo
 PKGEPOCH=`bin/semver.sh epoch`
 PKGVER=`bin/semver.sh version`
 PKGREL=`bin/semver.sh release`
-RPMFILENAME?=`bin/semver.sh rpmname`
-DEBFILENAME?=`bin/semver.sh debname`
+RPMFILENAME=`bin/semver.sh rpmname $(PKGNAME)`
+DEBFILENAME=`bin/semver.sh debname`
 
-.PHONY:
+.PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse
 
 default: clean rpm
 
 clean:
 	rm -rf rpm_packaging/pkg/*
 
+gse: PKGNAME=goldstone-server-enterprise
+gse: JOB=gse_native
+gse: rpm_container rpm_collect
+
+rpm: JOB=rpm_native
 rpm: rpm_container rpm_collect
 
+gse_native: PKGNAME=goldstone-server-enterprise
+gse_native: PKGSUMMARY=Solinea Goldstone Server Enterprise
+gse_native: PKGLIC=Core Server: Apache 2.0, Addons: Solinea 1.0
+gse_native: DCFILE=docker/docker-compose-enterprise.yml=/opt/goldstone/docker-compose.yml
+gse_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server-enterprise.service=/usr/lib/systemd/system/goldstone-server-enterprise.service
+gse_native: GSE_START=rpm_packaging/goldstone-server-enterprise=/usr/bin/goldstone-server-enterprise
+gse_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server-enterprise
+gse_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server-enterprise.service
+gse_native: rpm_build rpm_test
+
+rpm_native: PKGNAME=goldstone-server
+rpm_native: PKGSUMMARY=Solinea Goldstone server
+rpm_native: PKGLIC=Apache 2.0
+rpm_native: DCFILE=docker/docker-compose.yml=/opt/goldstone/docker-compose.yml
+rpm_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service
+rpm_native: GSE_START=rpm_packaging/goldstone-server=/usr/bin/goldstone-server
+rpm_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server
+rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service
 rpm_native: rpm_build rpm_test
-
-deb: deb_container deb_collect
-
-deb_native: deb_build deb_test
 
 rpm_container:
 	mkdir -p $(PKGBUILDDIR)
@@ -52,17 +66,15 @@ rpm_container:
 	if [ $(USE_CONTAINER) ]; then \
 		if [ $(RUNNING) -gt 0 ] ; then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
 		docker build --force-rm=true -t $(DOCKER_IMAGE_NAME) -f rpm_packaging/Dockerfile.rpm . ; \
-		docker run --name $(DOCKER_CONTAINER_NAME) $(DOCKER_IMAGE_NAME) make rpm_native; \
-	fi
-
-deb_container:
-	if [ $(USE_CONTAINER) ]; then \
-		if [ $(RUNNING) -gt 0 ] ; then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
-		docker build -t $(DOCKER_IMAGE_NAME) -f rpm_packaging/Dockerfile.deb .; \
-		docker run --name $(DOCKER_CONTAINER_NAME) $(DOCKER_IMAGE_NAME) make deb_native; \
+		docker run --name $(DOCKER_CONTAINER_NAME) $(DOCKER_IMAGE_NAME) make $(JOB); \
 	fi
 
 rpm_build:
+	@echo "***********************************************************************"
+	@echo " RPM BUILD"
+	@echo " package name: $(PKGNAME)"
+	@echo " rpm name    : $(RPMFILENAME)"
+	@echo "***********************************************************************"
 	# this target assumes fpm (https://github.com/jordansissel/fpm) is installed
 	# --iteration is RPM release
 	fpm -s dir -t rpm -n $(PKGNAME) $(RPMPREREQ) --license "$(PKGLIC)" \
@@ -74,12 +86,14 @@ rpm_build:
 	--after-install rpm_packaging/after-install.sh \
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
-	--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
-	-p `bin/semver.sh rpmname` \
+	$(GSE_START_ATTR) \
+	$(GSE_SYSTEMD_ATTR) \
+	-p $(RPMFILENAME) \
+	$(DCFILE) \
+	$(GSE_SYSTEMD) \
+	$(GSE_START) \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
-	rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service \
-	docker/docker-compose.yml=/opt/goldstone/docker-compose.yml \
 	docs/CHANGELOG.md=/opt/goldstone/CHANGELOG.md \
 	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
 	LICENSE=/opt/goldstone/LICENSE \
@@ -89,29 +103,20 @@ rpm_build:
 	docker/config/goldstone-test.env=/opt/goldstone/goldstone-test.env \
 	docker/config/goldstone-search/templates/api_stats_template.json=/opt/goldstone/api_stats_template.json
 
-deb_build:
-	# still need work on ubuntu packages -- just copied from goldstone-agent
-	fpm -s dir -t deb -n $(RPMNAME) -v $(RPMVER) --description $(RPMDES) \
-	--verbose --epoch $(RPMEPOCH) --vendor $(RPMVENDOR) --category $(RPMCAT) \
-	--deb-user $(RPMUSER) --deb-group $(RPMUSER) --url $(RPMURL) -m $(RPMEMAIL) \
-	--license "$(RPMLIC)" --iteration $(RPMREL) $(DEBPREREQ) \
-	--before-install scripts/rpm-pre.sh --before-remove scripts/rpm-preun.sh \
-	./goldstone-agent=/opt/goldstone/bin/goldstone-agent \
-	./goldstone-agent.example.conf=/etc/goldstone-agent.conf \
-	./goldstone-agent.init=/etc/init.d/goldstone-agent
-
 rpm_test:
-	env GSA_RPMNAME=$(RPMFILENAME) bats rpm_packaging/tests/smoke.bats
-
-deb_test:
-	env GSA_RPMNAME=$(DEBFILENAME) bats rpm_packaging/tests/smoke.bats
+	@echo "***********************************************************************"
+	@echo " RPM TEST"
+	@echo " package name: $(PKGNAME)"
+	@echo " rpm name    : $(RPMFILENAME)"
+	@echo "***********************************************************************"
+	env GSA_RPMNAME=$(RPMFILENAME) PKGNAME=$(PKGNAME) bats rpm_packaging/tests/smoke.bats
 
 rpm_collect:
+	@echo "***********************************************************************"
+	@echo " RPM COLLECT"
+	@echo " package name: $(PKGNAME)"
+	@echo " rpm name    : $(RPMFILENAME)"
+	@echo "***********************************************************************"
 	mkdir -p $(RHBINDIR)
-	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(RPMFILENAME) $(RHBINDIR)
+	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone-server/$(RPMFILENAME) $(RHBINDIR)
 	file $(RHBINDIR)/*
-
-deb_collect:
-	mkdir -p $(UBUBINDIR)
-	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(DEBFILENAME) $(UBUBINDIR)
-	file $(UBUBINDIR)/*
