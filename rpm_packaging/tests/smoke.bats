@@ -6,12 +6,23 @@ export GS_BINARY=${3-/opt/goldstone/bin/docker-compose}
 export GS_CONF_FILE=${4-/etc/rsyslog.d/goldstone.conf}
 export STARTUP_SCRIPT="/usr/lib/systemd/system/goldstone-server.service"
 
-@test "server pkg installs" {
-  run yum localinstall -y $GSA_RPMNAME
+@test "rpmname env exists" {
+  run echo $GSA_RPMNAME
   [ "$status" -eq 0 ]
 }
 
-@test "docker-compse is installed" {
+@test "pkg exists" {
+  run stat $GSA_RPMNAME
+  [ "$status" -eq 0 ]
+}
+
+@test "pkg installs" {
+  run yum localinstall -y $GSA_RPMNAME
+  run rpm -qil goldstone-server
+  [[ ${lines[0]} = *"Name"*  ]]
+}
+
+@test "docker-compose is installed" {
   run stat $GS_BINARY
   [ "$status" -eq 0 ]
 }

@@ -22,7 +22,7 @@ else
   COMMIT_DETAIL=$(git describe --long --tags --always | cut -f2- -d'-' | sed -e 's/-/./g')
   RELEASE="SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}"
 fi
-BINARY_NAME=${2:-goldstone-agent}
+BINARY_NAME=${2:-goldstone-server}
 
 case $1 in
   full)

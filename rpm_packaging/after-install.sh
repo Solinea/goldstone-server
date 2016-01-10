@@ -1,6 +1,3 @@
-# restart the syslog daemon (assumes systemd)
-systemctl restart rsyslog
-
 export GS_PATH="/opt"
 export DC_URL="https://github.com/docker/compose/releases/download/1.4.0/docker-compose-"
 
@@ -12,8 +9,9 @@ if [[ $# == 1 && $1 == 1 ]] ; then
         && chmod +x $GS_PATH/goldstone/bin/docker-compose
 
 fi
-echo "Pulling goldstone containers"
-$GS_PATH/goldstone/bin/docker-compose -f $GS_PATH/goldstone/docker-compose.yml pull
+
+# echo "Pulling goldstone containers"
+# $GS_PATH/goldstone/bin/docker-compose -f $GS_PATH/goldstone/docker-compose.yml pull
 
 echo "*****************************************************************************"
 echo ""
@@ -27,3 +25,6 @@ echo "     systemctl enable goldstone-server"
 echo "     systemctl start goldstone-server"
 echo ""
 echo "*****************************************************************************"
+
+# restart the syslog daemon (assumes systemd)
+systemctl restart rsyslog

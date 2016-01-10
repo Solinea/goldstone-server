@@ -9,7 +9,7 @@ PKGCAT=Applications/System
 PKGLIC=Solinea Software License Agreement (version 1)
 PKGURL=http://www.solinea.com/goldstone
 PKGOS=linux
-PKGPREFIX=/opt/goldstone
+PKGPREFIX=/
 RPMPREREQ=-d python -d curl
 DEBPREREQ=-d python -d curl
 PKGVENDOR=Solinea
@@ -41,11 +41,11 @@ clean:
 	rm -rf PKG_packaging/pkgs/*
 	rm -rf rpm_packaging/temp/*
 
-rpm: rpm_container
+rpm: rpm_container rpm_collect
 
-rpm_native: rpm_build rpm_test rpm_collect
+rpm_native: rpm_build rpm_test
 
-deb: deb_container deb_build deb_test deb_collect
+deb: deb_container deb_build deb_test
 
 rpm_container:
 	mkdir -p $(PKGBUILDDIR)
@@ -77,12 +77,15 @@ rpm_build:
 	--after-remove rpm_packaging/after-remove.sh \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
 	rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service \
-	docker/docker-compose.yml \
-	docs/CHANGELOG.md \
-	docs/INSTALL.md \
-	LICENSE \
-	README.md \
-	docker/config/
+	docker/docker-compose.yml=/opt/goldstone/docker-compose.yml \
+	docs/CHANGELOG.md=/opt/goldstone/CHANGELOG.md \
+	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
+	LICENSE=/opt/goldstone/LICENSE \
+	README.md=/opt/goldstone/README.md \
+	docker/config/goldstone-dev.env=/opt/goldstone/goldstone-dev.env \
+	docker/config/goldstone-prod.env=/opt/goldstone/goldstone-prod.env \
+	docker/config/goldstone-test.env=/opt/goldstone/goldstone-test.env \
+	docker/config/goldstone-search/templates/api_stats_template.json=/opt/goldstone/api_stats_template.json
 
 deb_build:
 	fpm -s dir -t deb -n $(RPMNAME) -v $(RPMVER) --description $(RPMDES) \
@@ -102,8 +105,8 @@ deb_test:
 
 rpm_collect:
 	mkdir -p $(RHBINDIR)
-	docker cp $(DOCKER_CONTAINER_NAME):/$(RPMFILENAME) $(RHBINDIR)
+	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(RPMFILENAME) $(RHBINDIR)
 
 deb_collect:
 	mkdir -p $(RHBINDIR)
-	docker cp $(DOCKER_CONTAINER_NAME):/$(DEBFILENAME) $(UBUBINDIR)
+	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(DEBFILENAME) $(UBUBINDIR)
