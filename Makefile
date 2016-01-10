@@ -25,7 +25,7 @@ RHBINDIR=rpm_packaging/pkg/redhat
 PKGARCH=x86_64
 RPMDIST=el7
 PKGBUILDDIR=rpm_packaging/temp/
-PKGFILES=README.md  docs/INSTALL.md docs/CHANGELOG.md LICENSE docker/docker-compose.yml rpm_packaging/systemd/system/goldstone-server.service rpm_packaging/rsyslog/goldstone.conf
+PKGFILES=README.md docs/INSTALL.md docs/CHANGELOG.md LICENSE docker/docker-compose.yml rpm_packaging/systemd/system/goldstone-server.service rpm_packaging/rsyslog/goldstone.conf
 # version management variables
 PKGEPOCH=`bin/semver.sh epoch`
 PKGVER=`bin/semver.sh version`
@@ -35,7 +35,7 @@ DEBFILENAME?=`bin/semver.sh debname`
 
 .PHONY:
 
-default: rpm
+default: clean rpm
 
 clean:
 	rm -rf PKG_packaging/pkgs/*
@@ -45,7 +45,9 @@ rpm: rpm_container rpm_collect
 
 rpm_native: rpm_build rpm_test
 
-deb: deb_container deb_build deb_test
+deb: deb_container deb_collect
+
+deb_native: deb_build deb_test
 
 rpm_container:
 	mkdir -p $(PKGBUILDDIR)
@@ -60,13 +62,13 @@ deb_container:
 	if [ $(USE_CONTAINER) ]; then \
 		if [ $(RUNNING) -gt 0 ] ; then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
 		docker build -t $(DOCKER_IMAGE_NAME) -f rpm_packaging/Dockerfile.deb .; \
-		docker run --name $(DOCKER_CONTAINER_NAME) $(DOCKER_IMAGE_NAME) make $(JOB); \
+		docker run --name $(DOCKER_CONTAINER_NAME) $(DOCKER_IMAGE_NAME) make deb_native; \
 	fi
 
 rpm_build:
 	# this target assumes fpm (https://github.com/jordansissel/fpm) is installed
 	# --iteration is RPM release
-	fpm -s dir -t rpm -n $(PKGNAME) $(RPMPREREQ)  \
+	fpm -s dir -t rpm -n $(PKGNAME) $(RPMPREREQ) --license "$(PKGLIC)" \
 	--verbose --epoch $(PKGEPOCH) --vendor $(PKGVENDOR) --category $(PKGCAT) \
 	--rpm-os $(PKGOS) --rpm-user $(PKGUSER) --rpm-group $(PKGUSER) --description $(PKGDES) \
 	--url $(PKGURL) $(PKGCONF) -m $(PKGEMAIL) --iteration $(PKGREL) \
@@ -75,6 +77,8 @@ rpm_build:
 	--after-install rpm_packaging/after-install.sh \
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
+	--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service \
+	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
 	rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service \
 	docker/docker-compose.yml=/opt/goldstone/docker-compose.yml \
@@ -109,5 +113,6 @@ rpm_collect:
 	file $(RHBINDIR)/*
 
 deb_collect:
-	mkdir -p $(RHBINDIR)
+	mkdir -p $(UBUBINDIR)
 	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(DEBFILENAME) $(UBUBINDIR)
+	file $(UBUBINDIR)/*
