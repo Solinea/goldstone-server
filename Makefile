@@ -1,7 +1,6 @@
 USE_CONTAINER ?= true
 DOCKER_IMAGE_NAME=goldstone-server-build-image
 DOCKER_CONTAINER_NAME=goldstone-server-build-container
-JOB ?= native
 RUNNING=`bin/check_for_containers.sh $(DOCKER_CONTAINER_NAME)`
 PKGNAME=goldstone-server
 PKGSUMMARY=Solinea Goldstone server
@@ -14,7 +13,6 @@ RPMPREREQ=-d python -d curl
 DEBPREREQ=-d python -d curl
 PKGVENDOR=Solinea
 PKGUSER=goldstone
-PKGCONF=--config-files /etc/goldstone-agent.conf --config-files /etc/init.d/goldstone-agent
 PKGVENDOR=Solinea
 PKGUSER=goldstone
 PKGCONF=
@@ -91,6 +89,7 @@ rpm_build:
 	docker/config/goldstone-search/templates/api_stats_template.json=/opt/goldstone/api_stats_template.json
 
 deb_build:
+	# still need work on ubuntu packages -- just copied from goldstone-agent
 	fpm -s dir -t deb -n $(RPMNAME) -v $(RPMVER) --description $(RPMDES) \
 	--verbose --epoch $(RPMEPOCH) --vendor $(RPMVENDOR) --category $(RPMCAT) \
 	--deb-user $(RPMUSER) --deb-group $(RPMUSER) --url $(RPMURL) -m $(RPMEMAIL) \
