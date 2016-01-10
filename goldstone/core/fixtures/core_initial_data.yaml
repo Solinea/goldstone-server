@@ -259,3 +259,45 @@
    }
 }'
 
+
+  - model: core.SavedSearch
+    pk: c7fa5f00-e851-4a71-9be0-7dbf8415426c
+    fields:
+      name: service status
+      owner: core
+      index_prefix: api_stats-*
+      doc_type: api_stats
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+    "size": 0,
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "range": {
+                  "@timestamp": {
+                     "gte": "now-5m"
+                  }
+               }
+            },
+            {
+               "range": {
+                  "response_status": {
+                     "lt": "400"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   "aggs": {
+      "per_component": {
+         "terms": {
+            "field": "component",
+            "min_doc_count": 0,
+            "exclude": ["unknown"]
+         }
+      }
+   }
+}'
