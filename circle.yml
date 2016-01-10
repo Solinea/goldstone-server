@@ -93,7 +93,9 @@ test:
   post:
     # build goldstone RPM package
     - docker run --name gss-rpm gss.rpm make rpm_native
-    - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname` $CIRCLE_ARTIFACTS/redhat/
+    - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
+    - docker run --name gsse-rpm gss.rpm make gse_native
+    - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server-enterprise` $CIRCLE_ARTIFACTS/redhat/
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
