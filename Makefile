@@ -106,6 +106,7 @@ deb_test:
 rpm_collect:
 	mkdir -p $(RHBINDIR)
 	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone/$(RPMFILENAME) $(RHBINDIR)
+	file $(RHBINDIR)/*
 
 deb_collect:
 	mkdir -p $(RHBINDIR)
