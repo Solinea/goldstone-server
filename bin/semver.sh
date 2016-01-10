@@ -38,7 +38,7 @@ case $1 in
     echo $EPOCH
     ;;
   rpmname)
-    echo ${BINARY_NAME}-${VERSION}-${RELEASE}.x86_64.rpm
+    echo ${BINARY_NAME}-${VERSION}-${RELEASE}.el7.x86_64.rpm
     ;;
   debname)
     echo ${BINARY_NAME}_${VERSION}-${RELEASE}_amd64.deb
