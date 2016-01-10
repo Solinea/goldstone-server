@@ -63,6 +63,10 @@ dependencies:
     - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
     - cp -r dist $STAGE_APP/goldstone-server
     - cp -r dist $STAGE_TASK/goldstone-server
+    # packaging
+    - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
+    - docker info
+    - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
   post:
     - docker info && docker-compose version
     - docker build -t goldstone-app $STAGE_APP
@@ -74,10 +78,6 @@ dependencies:
     - docker build -t goldstone-task-queue $STAGE_TASKQ
     - docker build -t goldstone-web $STAGE_WEB
     - docker images
-    # packaging
-    - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
-    - docker info
-    - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
 
 ## test config
 test:
