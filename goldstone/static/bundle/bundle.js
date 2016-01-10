@@ -3587,6 +3587,10 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
     parse: function(data) {
         var self = this;
 
+        // before adding data to the collection, tag it with the metricName
+        // that produced the data
+        data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
+
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
@@ -3597,17 +3601,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
         } else {
             this.urlCollectionCount--;
         }
-
-        // before returning the collection, tag it with the metricName
-        // that produced the data
-        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
-
         return data;
     },
 
     // will impose an order based on 'timestamp' for
     // the models as they are put into the collection
-    comparator: '@timestamp',
+    // comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -3615,7 +3614,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
     fetchMultipleUrls: function() {
         var self = this;
-
 
         if (this.fetchInProgress) {
             return null;
@@ -3639,7 +3637,7 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         _.each(this.metricNames, function(prefix) {
 
-            var urlString = '/core/metrics/summarize/?name=' + prefix;
+            var urlString = '/core/metrics/?name=' + prefix;
 
             if (self.nodeName) {
                 urlString += '&node=' + self.nodeName;
@@ -3651,14 +3649,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
             self.urlsToFetch.push(urlString);
         });
-
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
             url: self.urlsToFetch[0],
             success: function() {
-
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
                 _.each(self.urlsToFetch.slice(1), function(item) {
@@ -9315,29 +9311,35 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var finalData = [];
 
         if (self.featureSet === 'cpu') {
+        // data morphed through collectionPrep into:
+        // {
+        //     "eventTime": "1424586240000",
+        //     "Used": 6,
+        //     "Physical": 16,
+        //     "Virtual": 256
+        // });
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
+                    // _.each(dataPoint, function(item) {
+                    //     item['@timestamp'] = item.key;
+                    //     item.name = collection.metricSource;
+                    //     item.value = item.statistics.max;
+                    // });
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9350,11 +9352,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9375,27 +9375,21 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         } else if (self.featureSet === 'disk') {
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9408,11 +9402,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9435,25 +9427,20 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             _.each(data, function(collection) {
 
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9466,10 +9453,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
 
             });
 
@@ -9532,7 +9518,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-
         var self = this;
 
         // data originally returned from collection as:
@@ -11448,6 +11433,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             height: 350,
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width(),
+            yAxisLabel: goldstone.translate('Response Time (s)')
         });
         
         /*

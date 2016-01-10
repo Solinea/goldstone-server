@@ -40,6 +40,10 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
     parse: function(data) {
         var self = this;
 
+        // before adding data to the collection, tag it with the metricName
+        // that produced the data
+        data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
+
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
@@ -50,17 +54,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
         } else {
             this.urlCollectionCount--;
         }
-
-        // before returning the collection, tag it with the metricName
-        // that produced the data
-        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
-
         return data;
     },
 
     // will impose an order based on 'timestamp' for
     // the models as they are put into the collection
-    comparator: '@timestamp',
+    // comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -68,7 +67,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
     fetchMultipleUrls: function() {
         var self = this;
-
 
         if (this.fetchInProgress) {
             return null;
@@ -92,7 +90,7 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         _.each(this.metricNames, function(prefix) {
 
-            var urlString = '/core/metrics/summarize/?name=' + prefix;
+            var urlString = '/core/metrics/?name=' + prefix;
 
             if (self.nodeName) {
                 urlString += '&node=' + self.nodeName;
@@ -104,14 +102,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
             self.urlsToFetch.push(urlString);
         });
-
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
             url: self.urlsToFetch[0],
             success: function() {
-
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
                 _.each(self.urlsToFetch.slice(1), function(item) {
