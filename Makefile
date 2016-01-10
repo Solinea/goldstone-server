@@ -38,7 +38,6 @@ DEBFILENAME?=`bin/semver.sh debname`
 default: clean rpm
 
 clean:
-	rm -rf PKG_packaging/pkgs/*
 	rm -rf rpm_packaging/pkg/*
 
 rpm: rpm_container rpm_collect
