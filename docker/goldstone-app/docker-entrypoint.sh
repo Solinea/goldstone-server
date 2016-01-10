@@ -56,7 +56,7 @@ python post_install.py
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \
-    --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} \
+    --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
     --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
 
 if [[ $GS_DEV_ENV == "true" ]] ; then
