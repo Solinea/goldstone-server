@@ -1,0 +1,25 @@
+#!/bin/bash
+
+case $1 in
+  start)
+    { [ -z "$GOLDSTONE_REPO_USER" ] || [ -z "$GOLDSTONE_REPO_PASS" ] || [ -z "$GOLDSTONE_REPO_USER" ] ; }  \
+        && { echo "GOLDSTONE_REPO_USER, GOLDSTONE_REPO_PASS, and GOLDSTONE_REPO_EMAIL environment var must be set" \
+        && exit 1 ; }
+    echo "Logging in to Goldstone enterprise docker repo"
+    docker login -u "${GOLDSTONE_REPO_USER}" -p "${GOLDSTONE_REPO_PASS}" -e "${GOLDSTONE_REPO_EMAIL}" gs-docker-ent.bintray.io
+    echo "Starting Goldstone Server Enterprise ..."
+    /opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml up
+    echo "DONE"
+    ;;
+  stop)
+    echo "Stopping Goldstone Server Enterprise ..."
+    /opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml stop
+    echo "DONE"
+    ;;
+  version)
+    rpm -qil goldstone-server-enterprise | grep -E "Version|Release"
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|version}"
+    exit 1
+esac
