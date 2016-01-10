@@ -76,6 +76,7 @@ rpm_build:
 	--after-remove rpm_packaging/after-remove.sh \
 	--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
+	-p `bin/semver.sh rpmname` \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
 	rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service \
 	docker/docker-compose.yml=/opt/goldstone/docker-compose.yml \
