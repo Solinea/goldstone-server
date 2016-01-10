@@ -10,5 +10,5 @@ RUN git clone https://github.com/sstephenson/bats.git && cd bats && ./install.sh
 # install fpm for packaging
 RUN gem install --no-ri --no-rdoc fpm
 
-WORKDIR /tmp/goldstone
-ADD . /tmp/goldstone
+WORKDIR /tmp/goldstone-server
+ADD . /tmp/goldstone-server
