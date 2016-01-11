@@ -6,7 +6,7 @@ PKGCAT=Applications/System
 PKGURL=http://www.solinea.com/goldstone
 PKGOS=linux
 PKGPREFIX=/
-RPMPREREQ=-d python -d curl
+RPMPREREQ=-d "python >= 2.7.5" -d curl
 DEBPREREQ=-d python -d curl
 PKGVENDOR=Solinea
 PKGUSER=goldstone
@@ -17,8 +17,6 @@ UBUBINDIR=rpm_packaging/pkg/ubuntu
 RHBINDIR=rpm_packaging/pkg/redhat
 PKGARCH=x86_64
 RPMDIST=el7
-PKGBUILDDIR=rpm_packaging/temp/
-PKGFILES=README.md docs/INSTALL.md docs/CHANGELOG.md LICENSE docker/docker-compose.yml rpm_packaging/systemd/system/goldstone-server.service rpm_packaging/rsyslog/goldstone.conf
 # version management variables
 PKGEPOCH=`bin/semver.sh epoch`
 PKGVER=`bin/semver.sh version`
@@ -37,11 +35,11 @@ DEBFILENAME=`bin/semver.sh debname`
 # Other targets include:
 #     * rpm_native (same as rpm but executed locally without a container)
 #     * gse_native (same as gse but executed locally without a container)
-#	    * clean (removes already made RPM packages)
+#     * clean (removes already made RPM packages)
 #     * rpm_container (creates container for RPM build)
-#			* rpm_build (creates the RPM)
-#			* rpm_test (runs integration tests on RPM)
-#			* rpm_collect (copies the RPMs from the container to local FS)
+#     * rpm_build (creates the RPM)
+#     * rpm_test (runs integration tests on RPM)
+#     * rpm_collect (copies the RPMs from the container to local FS)
 ###########################################################################
 
 .PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse
@@ -79,8 +77,6 @@ rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/g
 rpm_native: rpm_build rpm_test
 
 rpm_container:
-	mkdir -p $(PKGBUILDDIR)
-	cp $(PKGFILES) $(PKGBUILDDIR)
 	if [ $(USE_CONTAINER) ]; then \
 		if [ $(RUNNING) -gt 0 ] ; then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
 		docker build --force-rm=true -t $(DOCKER_IMAGE_NAME) -f rpm_packaging/Dockerfile.rpm . ; \
