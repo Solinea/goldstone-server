@@ -115,7 +115,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         json = this.dataPrep(json);
         var mw = self.mw;
         var mh = self.mh;
-
         this.hideSpinner();
 
         if (this.checkReturnedDataSet(json) === false) {
@@ -126,22 +125,14 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el + '.d3-tip').detach();
 
         self.y.domain([0, d3.max(json, function(d) {
-            var key = _.keys(d).toString();
-            return d[key].stats.max;
+            return d.statistics.max;
         })]);
 
         json.forEach(function(d) {
-            // careful as using _.keys after this
-            // will return [timestamp, 'time']
-            d.time = moment(+_.keys(d)[0]);
-
-            // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item) {
-                return item !== "time";
-            }).toString();
-            d.min = d[key].stats.min || 0;
-            d.max = d[key].stats.max || 0;
-            d.avg = d[key].stats.avg || 0;
+            d.time = moment(d.key);
+            d.min = d.statistics.min || 0;
+            d.max = d.statistics.max || 0;
+            d.avg = d.statistics.avg || 0;
         });
 
         self.x.domain(d3.extent(json, function(d) {

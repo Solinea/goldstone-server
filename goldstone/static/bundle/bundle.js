@@ -2845,11 +2845,15 @@ this.novaApiPerfChart = new ApiPerfCollection({
 var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
     preProcessData: function(data) {
-        if (data && data.per_interval) {
-            return data.per_interval;
+        if (data && data.aggregations.per_interval.buckets) {
+            return data.aggregations.per_interval.buckets;
         } else {
             return [];
         }
+    },
+
+    checkForAdditionalPages: function() {
+
     },
 
     addRange: function() {
@@ -4482,7 +4486,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -4500,7 +4504,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.neutronApiPerfChart = new ApiPerfCollection({
             componentParam: 'neutron',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -4517,7 +4521,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
             componentParam: 'keystone',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -4525,7 +4529,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.keystoneApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c1',
-            width: $('#api-perf-report-r2-c1').width()
+            width: $('#api-perf-report-r2-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4533,7 +4538,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.glanceApiPerfChart = new ApiPerfCollection({
             componentParam: 'glance',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -4541,7 +4546,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.glanceApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c2',
-            width: $('#api-perf-report-r2-c2').width()
+            width: $('#api-perf-report-r2-c2').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4549,7 +4555,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.cinderApiPerfChart = new ApiPerfCollection({
             componentParam: 'cinder',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -4557,7 +4563,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.cinderApiPerfChart,
             height: 350,
             el: '#api-perf-report-r3-c1',
-            width: $('#api-perf-report-r3-c1').width()
+            width: $('#api-perf-report-r3-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
@@ -4706,7 +4713,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         json = this.dataPrep(json);
         var mw = self.mw;
         var mh = self.mh;
-
         this.hideSpinner();
 
         if (this.checkReturnedDataSet(json) === false) {
@@ -4717,22 +4723,14 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el + '.d3-tip').detach();
 
         self.y.domain([0, d3.max(json, function(d) {
-            var key = _.keys(d).toString();
-            return d[key].stats.max;
+            return d.statistics.max;
         })]);
 
         json.forEach(function(d) {
-            // careful as using _.keys after this
-            // will return [timestamp, 'time']
-            d.time = moment(+_.keys(d)[0]);
-
-            // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item) {
-                return item !== "time";
-            }).toString();
-            d.min = d[key].stats.min || 0;
-            d.max = d[key].stats.max || 0;
-            d.avg = d[key].stats.avg || 0;
+            d.time = moment(d.key);
+            d.min = d.statistics.min || 0;
+            d.max = d.statistics.max || 0;
+            d.avg = d.statistics.avg || 0;
         });
 
         self.x.domain(d3.extent(json, function(d) {
@@ -11424,7 +11422,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -11435,7 +11433,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             width: $('#nova-report-r1-c1').width(),
             yAxisLabel: goldstone.translate('Response Time (s)')
         });
-        
+
         /*
         VM Spawns Chart
         */
