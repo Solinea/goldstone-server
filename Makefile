@@ -42,7 +42,7 @@ DEBFILENAME=`bin/semver.sh debname`
 #     * rpm_collect (copies the RPMs from the container to local FS)
 ###########################################################################
 
-.PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse
+.PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse gse_native rpm_native version
 
 default: clean rpm
 
@@ -64,7 +64,7 @@ gse_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server-enterprise
 gse_native: GSE_START=rpm_packaging/goldstone-server-enterprise=/usr/bin/goldstone-server-enterprise
 gse_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server-enterprise
 gse_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server-enterprise.service
-gse_native: rpm_build rpm_test
+gse_native: version rpm_build rpm_test
 
 rpm_native: PKGNAME=goldstone-server
 rpm_native: PKGSUMMARY=Solinea Goldstone server
@@ -74,7 +74,13 @@ rpm_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server.service=/u
 rpm_native: GSE_START=rpm_packaging/goldstone-server=/usr/bin/goldstone-server
 rpm_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server
 rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service
-rpm_native: rpm_build rpm_test
+rpm_native: version rpm_build rpm_test
+
+version:
+	@echo "***********************************************************************"
+	@echo " version: $(PKGVER)"
+	@echo " release: $(PKGREL)"
+	@echo "***********************************************************************"
 
 rpm_container:
 	if [ $(USE_CONTAINER) ]; then \
