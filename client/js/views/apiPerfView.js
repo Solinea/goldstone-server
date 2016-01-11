@@ -191,8 +191,11 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
             .html(function(d) {
-                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
-                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
+                return "<p>" + d.time.format() +
+                 "<br>Max: " +d.max.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Avg: " + d.avg.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Min: " + d.min.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<p>";
             });
 
         // Invoke the tip in the context of your visualization
