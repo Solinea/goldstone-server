@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import sys
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -24,9 +25,7 @@ from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
 from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
-from goldstone.drfes.models import DailyIndexDocType as OldDailyIndexDocType
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.glogging.models import LogData, LogEvent
 
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
@@ -34,6 +33,8 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+
+logger = logging.getLogger(__name__)
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX
@@ -75,90 +76,6 @@ def _hash(*args):
         result.update(str(arg))
 
     return result.hexdigest()
-
-
-#
-# Goldstone Agent Metrics and Reports
-#
-
-class MetricData(OldDailyIndexDocType):
-    """Search interface for an agent generated metric."""
-
-    INDEX_PREFIX = 'goldstone_metrics-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_metric'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='value')
-
-    @classmethod
-    def units_agg(cls):
-        """Return term units."""
-
-        return A('terms', field='unit')
-
-
-class ReportData(OldDailyIndexDocType):
-    """Report data model."""
-
-    INDEX_PREFIX = 'goldstone_reports-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_report'
-
-
-class EventData(OldDailyIndexDocType):
-    """The model for logstash events data."""
-
-    # The indexes we look for start with this string.
-    INDEX_PREFIX = 'events'
-
-    # Time sorting is on this key in the log.
-    SORT = '-timestamp'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        # Return all document types.
-        doc_type = ''
-
-
-class ApiPerfData(OldDailyIndexDocType):
-    """API performance record model."""
-
-    INDEX_PREFIX = 'api_stats-'
-    SORT = '-@timestamp'
-
-    # Field declarations.
-    response_status = Integer()
-    creation_time = Date()
-    component = String()
-    uri = String()
-    response_length = Integer()
-    response_time = Integer()
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'api_stats'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='response_time')
-
-    @classmethod
-    def range_agg(cls):
-        """Return range information."""
-
-        return A('range',
-                 field='response_status',
-                 keyed=True,
-                 ranges=[{"from": 200, "to": 299},
-                         {"from": 300, "to": 399},
-                         {"from": 400, "to": 499},
-                         {"from": 500, "to": 599}])
 
 
 ######################################
@@ -382,7 +299,8 @@ class PolyResource(PolymorphicModel):
         """
 
         query = Q(QueryString(query=self.native_name))
-        return LogData.search().query(query)
+        ss = SavedSearch.objects.get(name="log query")
+        return ss.search().query(query)
 
     def events(self):
         """Return a search object for events related to this resource.
@@ -393,10 +311,9 @@ class PolyResource(PolymorphicModel):
         """
 
         # this protects our hostname from being tokenized
-        escaped_name = r'"' + self.native_name + r'"'
-
-        name_query = Q(QueryString(query=escaped_name, default_field="_all"))
-        return LogEvent.search().query(name_query)
+        query = Q(QueryString(query=self.native_name))
+        ss = SavedSearch.objects.get(name="event query")
+        return ss.search().query(query)
 
 
 ############################################
@@ -2658,10 +2575,12 @@ class SavedSearch(models.Model):
         """Returns an unbounded search object based on the saved query. Call
         the execute method when ready to retrieve the results."""
         import json
-        s = Search.from_dict(json.loads(self.query))
-        s.using(DailyIndexDocType._doc_type.using)
-        s.index(self.index_prefix)
-        s.doc_type(self.doc_type)
+
+        s = Search.from_dict(json.loads(self.query))\
+            .using(DailyIndexDocType._doc_type.using)\
+            .index(self.index_prefix)\
+            .doc_type(self.doc_type)
+
         return s
 
     def search_recent(self):
@@ -2672,10 +2591,8 @@ class SavedSearch(models.Model):
         """
         import arrow
 
-        s = self.search()
-
         if self.timestamp_field is None:
-            return s
+            return self.search()
 
         if self.last_end is None:
             start = arrow.get(0).datetime
@@ -2684,10 +2601,10 @@ class SavedSearch(models.Model):
 
         end = arrow.utcnow().datetime
 
-        s = self.search()
-        s = s.query('range',
-                    ** {self.timestamp_field:
-                        {'gt': start.isoformat(),
+        s = self.search()\
+            .query('range',
+                   ** {self.timestamp_field:
+                           {'gt': start.isoformat(),
                             'lte': end.isoformat()}})
         return s, start, end
 

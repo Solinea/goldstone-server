@@ -47,7 +47,14 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload();
+            oTable.ajax.reload(function() {
+                setTimeout(function() {
+
+                    // manually retrigger column auto adjust which was not firing
+                    oTable.columns.adjust().draw();
+                }, 10);
+
+            });
         }
     },
 
@@ -168,11 +175,11 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
             // if any field is undefined, dataTables throws an alert
             // so set to empty string if otherwise undefined
-            item['@timestamp'] = item['@timestamp'] || '';
-            item.syslog_severity = item.syslog_severity || '';
-            item.component = item.component || '';
-            item.log_message = item.log_message || '';
-            item.host = item.host || '';
+            item['@timestamp'] = item._source['@timestamp'] || '';
+            item.syslog_severity = item._source.syslog_severity || '';
+            item.component = item._source.component || '';
+            item.log_message = item._source.log_message || '';
+            item.host = item._source.host || '';
         });
 
         var result = {

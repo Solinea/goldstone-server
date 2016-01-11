@@ -34,7 +34,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -43,8 +43,9 @@ var NovaReportView = GoldstoneBasePageView.extend({
             height: 350,
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width(),
+            yAxisLabel: goldstone.translate('Response Time (s)')
         });
-        
+
         /*
         VM Spawns Chart
         */

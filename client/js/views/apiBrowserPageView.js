@@ -31,13 +31,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),

@@ -37,7 +37,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
+            urlBase: '/core/logs/',
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -51,7 +51,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -59,7 +58,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logBrowserTableCollection = new LogBrowserTableCollection({
             skipFetch: true,
             specificHost: this.specificHost,
-            urlBase: '/logging/search/',
+            urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
         });    
 

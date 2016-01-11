@@ -328,7 +328,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 'position': 'relative',
                 'margin-left': (self.width / 2),
                 'margin-top': -(self.height / 2),
-                'display': self.spinnerDisplay
+                'display': self.spinnerDisplay,
+                'left': '-1.4em',
+                'top': '-3.6em'
             });
         });
     },
@@ -2717,20 +2719,15 @@ var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/search/',
+    urlBase: "/core/api-calls/",
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    addPageSize: function(n) {
-        n = n || 1000;
-        return '&page_size=' + n;
-    },
-
     preProcessData: function(data) {
-        if(data && data.results) {
-            return data.results;
+        if(data) {
+            return data;
         }
     }
 });
@@ -2773,7 +2770,14 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/summarize/',
+    urlBase: '/core/api-calls/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -2784,21 +2788,22 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
+
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.per_interval, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the object keyed by timestamp
-            // and the 200-500 statuses
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-            tempObj.count = item[tempObj.time].count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -2835,11 +2840,15 @@ this.novaApiPerfChart = new ApiPerfCollection({
 var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
     preProcessData: function(data) {
-        if (data && data.per_interval) {
-            return data.per_interval;
+        if (data && data.aggregations.per_interval.buckets) {
+            return data.aggregations.per_interval.buckets;
         } else {
             return [];
         }
+    },
+
+    checkForAdditionalPages: function() {
+
     },
 
     addRange: function() {
@@ -2982,7 +2991,7 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/search/',
+    urlBase: '/core/events/',
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3038,7 +3047,14 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/summarize/',
+    urlBase: '/core/events/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3049,42 +3065,22 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
 
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.data, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the
-            // object keyed by timestamp
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-
-            // iterate through each item in the array
-            _.each(item[tempObj.time], function(obj){
-                var key = _.keys(obj);
-                var value = _.values(obj)[0];
-
-                // copy key/value pairs to tempObj
-                tempObj[key] = value;
-            });
-
-            // initialize counter
-            var count = 0;
-            _.each(tempObj, function(val, key) {
-                // add up the values of each nested object
-                if(key !== 'time') {
-                    count += val;
-                }
-            });
-
-            // set 'count' equal to the counter
-            tempObj.count = count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -3362,21 +3358,24 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 /*
 instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/core/logs/',
 
-    ** and the view as:
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
-    });
-
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'logBrowser',
+            marginLeft: 60,
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
 */
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
@@ -3393,6 +3392,13 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         }
 
+    },
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
     },
 
     addInterval: function() {
@@ -3418,14 +3424,10 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function(custom) {
-
-        var result = '&per_host=False';
-
-        if (this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
+        
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        return this.specificHost ? '&host=' + this.specificHost : '';
     },
 
 });
@@ -3449,21 +3451,21 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 // define collection and link to model
 
 /*
-instantiated in logSearchPageView.js as:
+instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+    this.logBrowserTableCollection = new LogBrowserTableCollection({
+        skipFetch: true,
+        specificHost: this.specificHost,
+        urlBase: '/core/logs/',
+        linkedCollection: this.logBrowserVizCollection
+    });    
 
-    ** and the view as:
-
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
+    this.logBrowserTable = new LogBrowserDataTableView({
+        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+        collectionMixin: this.logBrowserTableCollection,
+        el: '#log-viewer-table',
+        infoIcon: 'fa-table',
+        width: $('#log-viewer-table').width()
     });
 
 */
@@ -3475,13 +3477,12 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function() {
-
         var result = '&syslog_severity__terms=[';
 
         levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
-                result = result.concat('"', k.toUpperCase(), '",');
+                result = result.concat('"', k.toLowerCase(), '",');
             }
         }
         result += "]";
@@ -3510,7 +3511,8 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
 
     },
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -3584,27 +3586,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
     parse: function(data) {
         var self = this;
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
-        } else {
-            this.urlCollectionCount--;
-        }
-
-        // before returning the collection, tag it with the metricName
+        // before adding data to the collection, tag it with the metricName
         // that produced the data
-        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
-
+        data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
+        this.urlCollectionCount--;
         return data;
     },
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -3612,7 +3599,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
     fetchMultipleUrls: function() {
         var self = this;
-
 
         if (this.fetchInProgress) {
             return null;
@@ -3623,12 +3609,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         this.computeLookbackAndInterval();
 
-        // grabs minutes from global selector option value
-        // this.globalLookback = $('#global-lookback-range').val();
-
-        // this.epochNow = +new Date();
-        // this.gte = (+new Date() - (this.globalLookback * 1000 * 60));
-
         // set a lower limit to the interval of '2m'
         // in order to avoid the sawtooth effect
         this.interval = '' + Math.max(2, (this.globalLookback / 24)) + 'm';
@@ -3636,7 +3616,7 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         _.each(this.metricNames, function(prefix) {
 
-            var urlString = '/core/metrics/summarize/?name=' + prefix;
+            var urlString = '/core/metrics/?name=' + prefix;
 
             if (self.nodeName) {
                 urlString += '&node=' + self.nodeName;
@@ -3648,14 +3628,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
             self.urlsToFetch.push(urlString);
         });
-
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
             url: self.urlsToFetch[0],
             success: function() {
-
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
                 _.each(self.urlsToFetch.slice(1), function(item) {
@@ -4199,44 +4177,36 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 [0, 'desc']
             ],
             "columnDefs": [{
-                    "data": "@timestamp",
+                    "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
-                    "data": "host",
+                    "data": "_source.host",
                     "targets": 1
                 }, {
-                    "data": "client_ip",
+                    "data": "_source.client_ip",
                     "targets": 2
                 }, {
-                    "data": "uri",
+                    "data": "_source.uri",
                     "targets": 3
                 }, {
-                    "data": "response_status",
+                    "data": "_source.response_status",
                     "targets": 4
                 }, {
-                    "data": "response_time",
+                    "data": "_source.response_time",
                     "targets": 5
                 }, {
-                    "data": "response_length",
+                    "data": "_source.response_length",
                     "targets": 6
                 }, {
-                    "data": "component",
+                    "data": "_source.component",
                     "targets": 7
                 }, {
-                    "data": "type",
+                    "data": "_source.type",
                     "targets": 8
-                }, {
-                    "data": "doc_type",
-                    "visible": false,
-                    "searchable": true
-                }, {
-                    "data": "id",
-                    "visible": false,
-                    "searchable": true
                 }
 
             ],
@@ -4377,13 +4347,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
@@ -4483,7 +4449,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -4501,7 +4467,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.neutronApiPerfChart = new ApiPerfCollection({
             componentParam: 'neutron',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -4518,7 +4484,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
             componentParam: 'keystone',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -4526,7 +4492,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.keystoneApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c1',
-            width: $('#api-perf-report-r2-c1').width()
+            width: $('#api-perf-report-r2-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4534,7 +4501,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.glanceApiPerfChart = new ApiPerfCollection({
             componentParam: 'glance',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -4542,7 +4509,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.glanceApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c2',
-            width: $('#api-perf-report-r2-c2').width()
+            width: $('#api-perf-report-r2-c2').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4550,7 +4518,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.cinderApiPerfChart = new ApiPerfCollection({
             componentParam: 'cinder',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -4558,7 +4526,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.cinderApiPerfChart,
             height: 350,
             el: '#api-perf-report-r3-c1',
-            width: $('#api-perf-report-r3-c1').width()
+            width: $('#api-perf-report-r3-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
@@ -4707,7 +4676,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         json = this.dataPrep(json);
         var mw = self.mw;
         var mh = self.mh;
-
         this.hideSpinner();
 
         if (this.checkReturnedDataSet(json) === false) {
@@ -4718,22 +4686,14 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el + '.d3-tip').detach();
 
         self.y.domain([0, d3.max(json, function(d) {
-            var key = _.keys(d).toString();
-            return d[key].stats.max;
+            return d.statistics.max;
         })]);
 
         json.forEach(function(d) {
-            // careful as using _.keys after this
-            // will return [timestamp, 'time']
-            d.time = moment(+_.keys(d)[0]);
-
-            // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item) {
-                return item !== "time";
-            }).toString();
-            d.min = d[key].stats.min || 0;
-            d.max = d[key].stats.max || 0;
-            d.avg = d[key].stats.avg || 0;
+            d.time = moment(d.key);
+            d.min = d.statistics.min || 0;
+            d.max = d.statistics.max || 0;
+            d.avg = d.statistics.avg || 0;
         });
 
         self.x.domain(d3.extent(json, function(d) {
@@ -4792,8 +4752,11 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
             .html(function(d) {
-                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
-                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
+                return "<p>" + d.time.format() +
+                 "<br>Max: " +d.max.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Avg: " + d.avg.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Min: " + d.min.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<p>";
             });
 
         // Invoke the tip in the context of your visualization
@@ -6013,11 +5976,6 @@ instantiated on eventsBrowserPageView as:
 
 var EventsBrowserDataTableView = DataTableBaseView.extend({
 
-    instanceSpecificInit: function() {
-        EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
-        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
-    },
-
     update: function() {
         this.drawSearchTable('#reports-result-table', this.collection.toJSON());
     },
@@ -6025,28 +5983,24 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     preprocess: function(data) {
 
         /*
-        strip object down to _id, _type, timestamp, and things in 'traits'
+        strip object down to things in 'traits'
         and then flatten object before returning it to the dataPrep function
         */
 
         var self = this;
         var result = [];
 
-        // strip away all but _id, _type, timestamp, and things in traits
+        // strip away all but things in traits
         _.each(data, function(item) {
             var tempObj = {};
-            tempObj.id = item.id;
-            tempObj.type = item.doc_type;
-            tempObj.timestamp = item.timestamp;
-            tempObj.traits = item.traits;
-            tempObj.user_name = item.user_name;
-            tempObj.user_type = item.user_type;
-            tempObj.tenant_name = item.tenant_name;
-            tempObj.tenant_type = item.tenant_type;
-            tempObj.instance_name = item.instance_name;
-            tempObj.instance_type = item.instance_type;
 
+            // traits contains differing keys per event record
+            tempObj.traits = item._source.traits;
+
+            // additional keys outside of traits can be added to tempObj
+            // before pushing to result and it will all be flattened below
             result.push(tempObj);
+
         });
 
         // replace original data with stripped down dataset
@@ -6066,15 +6020,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'timestamp': 0,
-        'type': 1,
+        'eventTime': 0,
+        'eventType': 1,
         'id': 2,
-        'user_name': 3,
-        'user_type': 4,
-        'tenant_name': 5,
-        'tenant_type': 6,
-        'instance_name': 7,
-        'instance_type': 8
+        'action': 3,
+        'outcome': 4,
     }
 });
 ;
@@ -7244,7 +7194,14 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload();
+            oTable.ajax.reload(function() {
+                setTimeout(function() {
+
+                    // manually retrigger column auto adjust which was not firing
+                    oTable.columns.adjust().draw();
+                }, 10);
+
+            });
         }
     },
 
@@ -7365,11 +7322,11 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
             // if any field is undefined, dataTables throws an alert
             // so set to empty string if otherwise undefined
-            item['@timestamp'] = item['@timestamp'] || '';
-            item.syslog_severity = item.syslog_severity || '';
-            item.component = item.component || '';
-            item.log_message = item.log_message || '';
-            item.host = item.host || '';
+            item['@timestamp'] = item._source['@timestamp'] || '';
+            item.syslog_severity = item._source.syslog_severity || '';
+            item.component = item._source.component || '';
+            item.log_message = item._source.log_message || '';
+            item.host = item._source.host || '';
         });
 
         var result = {
@@ -7390,7 +7347,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'Message\', \'logbrowserdata\')%></th>' +
         '</tr>'
     )
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7678,78 +7636,69 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         var self = this;
 
-        // this.collection.toJSON() returns an object
-        // with keys: timestamps, levels, data.
+        // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
 
-        // We will store the levels for the loglevel
-        // construction and add it back in before returning
-        var logLevels = collectionDataPayload.levels;
-
-        // if self.filter isn't defined yet, only do
-        // this once
-        if (!self.filter) {
-            self.filter = {};
-            _.each(logLevels, function(item) {
-                self.filter[item] = true;
-            });
-        }
-
         // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.data;
+        var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
         finalData = [];
 
-        // 3 layers of nested _.each calls
+        // layers of nested _.each calls
         // the first one iterates through each object
         // in the 'data' array as 'item':
+
         // {
-        //     "1426640040000": [
-        //         {
-        //             "audit": 7
-        //         },
-        //         {
-        //             "info": 0
-        //         },
-        //         {
-        //             "warning": 0
-        //         }
-        //     ]
-        // }
+        //     "per_level": {
+        //         "buckets": [{
+        //             "key": "INFO",
+        //             "doc_count": 112
+        //         }, {
+        //             "key": "NOTICE",
+        //             "doc_count": 17
+        //         }, {
+        //             "key": "ERROR",
+        //             "doc_count": 5
+        //         }, {
+        //             "key": "WARNING",
+        //             "doc_count": 2
+        //         }],
+        //         "sum_other_doc_count": 0,
+        //         "doc_count_error_upper_bound": 0
+        //     },
+        //     "key_as_string": "2016-01-07T22:24:45.000Z",
+        //     "key": 1452205485000,
+        //     "doc_count": 190
+        // },
 
         // the next _.each iterates through the array of
         // nested objects that are keyed to the timestamp
         // as 'subItem'
-        // [
-        //     {
-        //         "audit": 7
-        //     },
-        //     {
-        //         "info": 0
-        //     },
-        //     {
-        //         "warning": 0
-        //     }
-        // ]
-
-        // and finally, the last _.each iterates through
-        // the most deeply nested objects as 'subSubItem'
-        // such as:
-        //  {
-        //      "audit": 7
-        //  }
+        // [{
+        //     "key": "INFO",
+        //     "doc_count": 112
+        // }, {
+        //     "key": "NOTICE",
+        //     "doc_count": 17
+        // }, {
+        //     "key": "ERROR",
+        //     "doc_count": 5
+        // }, {
+        //     "key": "WARNING",
+        //     "doc_count": 2
+        // }],
 
         _.each(data, function(item) {
 
             var tempObject = {};
 
-            _.each(item, function(subItem) {
-                _.each(subItem, function(subSubItem) {
+            _.each(item.per_level.buckets, function(subItem) {
+                _.each(subItem, function() {
 
                     // each key/value pair of the subSubItems is added to tempObject
-                    var key = _.keys(subSubItem)[0];
-                    var value = _.values(subSubItem)[0];
+                    var key = subItem.key;
+                    var value = subItem.doc_count;
                     tempObject[key] = value;
                 });
             });
@@ -7762,8 +7711,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             _.each(self.filter, function(item, i) {
                 tempObject[i] = tempObject[i] || 0;
             });
-            tempObject.date = _.keys(item)[0];
-
+            tempObject.date = item.key;
             // which is the equivalent of doing this:
 
             // tempObject.debug = tempObject.debug || 0;
@@ -7781,10 +7729,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // and finally return the massaged data and the
         // levels to the superclass 'update' function
-        return {
-            finalData: finalData,
-            logLevels: logLevels
-        };
+        return finalData;
 
     },
 
@@ -7814,7 +7759,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        self.data = allthelogs.finalData;
+        self.data = allthelogs;
         self.loglevel = d3.scale.ordinal()
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
@@ -8084,7 +8029,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
+            urlBase: '/core/logs/',
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -8098,7 +8043,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -8106,7 +8050,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logBrowserTableCollection = new LogBrowserTableCollection({
             skipFetch: true,
             specificHost: this.specificHost,
-            urlBase: '/logging/search/',
+            urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
         });    
 
@@ -8889,7 +8833,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
-                    self.resourceNames = data[0];
+                    self.resourceNames = _.flatten(data);
                     self.populateResources();
                 }
             })
@@ -8901,9 +8845,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
     getMetricNames: function() {
         var self = this;
 
-        $.get("/core/metric_names/", function() {})
+        $.get("/core/metrics/", function() {})
             .done(function(data) {
-                data = data.per_name;
+                data = data.aggregations.all_metrics.buckets;
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
@@ -8939,9 +8883,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
             self.setChartOptions('#gear-modal-content' + self.options.instance);
 
             // and append the metric name and resource to the chart header
+            var metricName = self.chartOptions.get('metric');
+
             $('span.metric-viewer-title' + self.options.instance).text(goldstone.contextTranslate('Metric', 'metricviewer') + ': ' +
-                self.chartOptions.get('metric') +
-                '.' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
+                metricName.slice(metricName.lastIndexOf('.') + 1) +
+                '. ' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
                 self.chartOptions.get('resource'));
         });
 
@@ -8979,7 +8925,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // append the options within the dropdown
         _.each(self.metricNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + item.key + "</option>");
         });
     },
 
@@ -9014,7 +8960,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             options.intervalValue = Math.max(2, options.intervalValue);
         }
 
-        var url = '/core/metrics/summarize/?name=' +
+        var url = '/core/metrics/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
             '}&interval=' +
@@ -9027,7 +8973,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         /*
             constructs a url similar to:
-            /core/metrics/summarize/?name=os.cpu.user
+            /core/metrics/?name=os.cpu.user
             &@timestamp__range={'gte':1429649259172}&interval=1m
         */
 
@@ -9036,6 +8982,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
     appendChart: function() {
 
         var url = this.constructUrlFromParams();
+        console.log('url', url);
         // if there is already a chart populating this div:
         if (this.metricChart) {
             this.metricChart.url = url;
@@ -9338,29 +9285,30 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var finalData = [];
 
         if (self.featureSet === 'cpu') {
+        // data morphed through collectionPrep into:
+        // {
+        //     "eventTime": "1424586240000",
+        //     "Used": 6,
+        //     "Physical": 16,
+        //     "Virtual": 256
+        // });
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9373,11 +9321,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9398,27 +9344,21 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         } else if (self.featureSet === 'disk') {
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9431,11 +9371,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9458,25 +9396,20 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             _.each(data, function(collection) {
 
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9489,10 +9422,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
 
             });
 
@@ -9555,7 +9487,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-
         var self = this;
 
         // data originally returned from collection as:
@@ -11462,7 +11393,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -11471,8 +11402,9 @@ var NovaReportView = GoldstoneBasePageView.extend({
             height: 350,
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width(),
+            yAxisLabel: goldstone.translate('Response Time (s)')
         });
-        
+
         /*
         VM Spawns Chart
         */

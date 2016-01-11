@@ -2,20 +2,260 @@
     pk: 4c010ac2-d437-460a-a6cf-5234eceff5b2
     fields:
       name: openstack syslog errors
-      owner: events
-      query: '{"query": {"prefix": {"event_type__raw": "OpenStackSyslogError"}}}'
+      owner: core
       index_prefix: logstash-*
       doc_type: syslog
       timestamp_field: '@timestamp'
       protected: true
+      query: '{
+   "query": {
+      "prefix": {
+         "event_type__raw": "OpenStackSyslogError"
+      }
+   },
+   "aggs": {
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_level": {
+               "terms": {
+                  "field": "syslog_severity.raw",
+                  "min_doc_count": 0,
+                  "size": 0
+               }
+            }
+         }
+      }
+   }
+}'
 
   - model: core.SavedSearch
     pk: 6e940772-7bb3-4587-ac1b-92cdcddd9c61
     fields:
       name: generic syslog errors
-      owner: events
-      query: '{"query": {"prefix": {"event_type__raw": "GenericSyslogError"}}}'
+      owner: core
       index_prefix: logstash-*
       doc_type: syslog
       timestamp_field: '@timestamp'
       protected: true
+      query: '{
+   "query": {
+      "prefix": {
+         "event_type__raw": "GenericSyslogError"
+      }
+   },
+   "aggs": {
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_level": {
+               "terms": {
+                  "field": "syslog_severity.raw",
+                  "min_doc_count": 0,
+                  "size": 0
+               }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 55b19303-4fd2-4216-95cb-75a4f39b763c
+    fields:
+      name: log query
+      owner: core
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+      "all_levels": {
+         "terms": {
+            "field": "syslog_severity.raw",
+            "min_doc_count": 0,
+            "size": 0
+         }
+      },
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_level": {
+               "terms": {
+                  "field": "syslog_severity.raw",
+                  "min_doc_count": 0,
+                  "size": 0
+               }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 7906893c-16dc-4ab3-96e0-8f0054bd4cc1
+    fields:
+      name: event query
+      owner: core
+      index_prefix: events_*
+      doc_type: ''  # all doc types
+      timestamp_field: 'timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+      "all_types": {
+         "terms": {
+            "field": "_type",
+            "min_doc_count": 0,
+            "size": 0
+         }
+      },
+      "field_names": {
+         "terms": {
+            "field": "_field_names",
+            "size": 0
+         }
+      },
+      "per_interval": {
+         "date_histogram": {
+            "field": "timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 18936ecd-11f5-413c-9e70-fc9a7dd037e3
+    fields:
+      name: api call query
+      owner: core
+      index_prefix: api_stats-*
+      doc_type: api_stats
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+      "all_status": {
+         "terms": {
+            "field": "response_status",
+            "min_doc_count": 0,
+            "size": 0
+         }
+      },
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "response_ranges": {
+                "range": {
+                    "ranges": [
+                        {"to": 299, "from": 200},
+                        {"to": 399, "from": 300},
+                        {"to": 499, "from": 400},
+                        {"to": 599, "from": 500}],
+                    "field": "response_status",
+                    "keyed": true
+                }
+            },
+            "statistics": {
+                "stats": {
+                    "field": "response_time"
+                }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: a3f34f00-967b-40a2-913e-ba10afdd611b
+    fields:
+      name: metric query
+      owner: core
+      index_prefix: goldstone_metrics-*
+      doc_type: core_metric
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+      "all_metrics": {
+          "terms": {
+              "field": "name",
+              "size": 0
+          }
+       },
+       "units": {
+          "terms": {
+              "field": "unit"
+          }
+       },
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "statistics": {
+               "stats": {
+                  "field": "value"
+               }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 47b0a892-40b0-45e6-81d3-3d645e1c18bd
+    fields:
+      name: report query
+      owner: core
+      index_prefix: goldstone_reports-*
+      doc_type: core_reports
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+      "all_reports": {
+          "terms": {
+              "field": "name",
+              "size": 0
+          }
+       }
+   }
+}'
+

@@ -134,7 +134,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 'position': 'relative',
                 'margin-left': (self.width / 2),
                 'margin-top': -(self.height / 2),
-                'display': self.spinnerDisplay
+                'display': self.spinnerDisplay,
+                'left': '-1.4em',
+                'top': '-3.6em'
             });
         });
     },

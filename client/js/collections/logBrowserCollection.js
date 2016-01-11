@@ -19,21 +19,24 @@
 /*
 instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/core/logs/',
 
-    ** and the view as:
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
-    });
-
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'logBrowser',
+            marginLeft: 60,
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
 */
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
@@ -50,6 +53,13 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
             return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
         }
 
+    },
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
     },
 
     addInterval: function() {
@@ -75,14 +85,10 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function(custom) {
-
-        var result = '&per_host=False';
-
-        if (this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
+        
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        return this.specificHost ? '&host=' + this.specificHost : '';
     },
 
 });

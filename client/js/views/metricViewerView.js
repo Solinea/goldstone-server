@@ -48,7 +48,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
                 } else {
-                    self.resourceNames = data[0];
+                    self.resourceNames = _.flatten(data);
                     self.populateResources();
                 }
             })
@@ -60,9 +60,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
     getMetricNames: function() {
         var self = this;
 
-        $.get("/core/metric_names/", function() {})
+        $.get("/core/metrics/", function() {})
             .done(function(data) {
-                data = data.per_name;
+                data = data.aggregations.all_metrics.buckets;
                 if (data === undefined || data.length === 0) {
                     $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
                 } else {
@@ -98,9 +98,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
             self.setChartOptions('#gear-modal-content' + self.options.instance);
 
             // and append the metric name and resource to the chart header
+            var metricName = self.chartOptions.get('metric');
+
             $('span.metric-viewer-title' + self.options.instance).text(goldstone.contextTranslate('Metric', 'metricviewer') + ': ' +
-                self.chartOptions.get('metric') +
-                '.' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
+                metricName.slice(metricName.lastIndexOf('.') + 1) +
+                '. ' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
                 self.chartOptions.get('resource'));
         });
 
@@ -138,7 +140,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // append the options within the dropdown
         _.each(self.metricNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + item.key + "</option>");
         });
     },
 
@@ -173,7 +175,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             options.intervalValue = Math.max(2, options.intervalValue);
         }
 
-        var url = '/core/metrics/summarize/?name=' +
+        var url = '/core/metrics/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
             '}&interval=' +
@@ -186,7 +188,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         /*
             constructs a url similar to:
-            /core/metrics/summarize/?name=os.cpu.user
+            /core/metrics/?name=os.cpu.user
             &@timestamp__range={'gte':1429649259172}&interval=1m
         */
 
@@ -195,6 +197,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
     appendChart: function() {
 
         var url = this.constructUrlFromParams();
+        console.log('url', url);
         // if there is already a chart populating this div:
         if (this.metricChart) {
             this.metricChart.url = url;

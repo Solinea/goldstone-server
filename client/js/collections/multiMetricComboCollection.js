@@ -40,27 +40,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
     parse: function(data) {
         var self = this;
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
-        } else {
-            this.urlCollectionCount--;
-        }
-
-        // before returning the collection, tag it with the metricName
+        // before adding data to the collection, tag it with the metricName
         // that produced the data
-        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
-
+        data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
+        this.urlCollectionCount--;
         return data;
     },
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -68,7 +53,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
     fetchMultipleUrls: function() {
         var self = this;
-
 
         if (this.fetchInProgress) {
             return null;
@@ -79,12 +63,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         this.computeLookbackAndInterval();
 
-        // grabs minutes from global selector option value
-        // this.globalLookback = $('#global-lookback-range').val();
-
-        // this.epochNow = +new Date();
-        // this.gte = (+new Date() - (this.globalLookback * 1000 * 60));
-
         // set a lower limit to the interval of '2m'
         // in order to avoid the sawtooth effect
         this.interval = '' + Math.max(2, (this.globalLookback / 24)) + 'm';
@@ -92,7 +70,7 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         _.each(this.metricNames, function(prefix) {
 
-            var urlString = '/core/metrics/summarize/?name=' + prefix;
+            var urlString = '/core/metrics/?name=' + prefix;
 
             if (self.nodeName) {
                 urlString += '&node=' + self.nodeName;
@@ -104,14 +82,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
             self.urlsToFetch.push(urlString);
         });
-
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
             url: self.urlsToFetch[0],
             success: function() {
-
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
                 _.each(self.urlsToFetch.slice(1), function(item) {
