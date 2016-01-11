@@ -26,6 +26,24 @@ PKGREL=`bin/semver.sh release`
 RPMFILENAME=`bin/semver.sh rpmname $(PKGNAME)`
 DEBFILENAME=`bin/semver.sh debname`
 
+###########################################################################
+# Targets
+#
+# Two major targets inside Docker containers: rpm and gse
+#     * `make rpm` builds an open source Goldstone Server RPM
+#     * `make gse` builds an Goldstone Server Enterprise RPM
+# Both targets assume that Docker and docker-machine are installed
+#
+# Other targets include:
+#     * rpm_native (same as rpm but executed locally without a container)
+#     * gse_native (same as gse but executed locally without a container)
+#	    * clean (removes already made RPM packages)
+#     * rpm_container (creates container for RPM build)
+#			* rpm_build (creates the RPM)
+#			* rpm_test (runs integration tests on RPM)
+#			* rpm_collect (copies the RPMs from the container to local FS)
+###########################################################################
+
 .PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse
 
 default: clean rpm
