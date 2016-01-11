@@ -1,7 +1,7 @@
-# Goldstone English.po file
+# Goldstone Japanese.po file
 # This file is distributed under the same license as goldstone-server
 # https://www.apache.org/licenses/LICENSE-2.0
-# Alex Jacobs github.com/lexjacobs, 2015
+# Takahiro Higashi github.com/takahigashi, 2016
 # additional authors, year
 #: add context comments like this
 #. add notes to traslators like this
@@ -11,23 +11,23 @@ msgstr ""
 "Project-Id-Version: goldstone-server\n"
 "Report-Msgid-Bugs-To: https://github.com/Solinea/goldstone-server/issues\n"
 "PO-Creation-Date: 2015-09-11 14:47-0700\n"
-"PO-Revision-Date: 2015-09-18 14:47-0700\n"
-"Last-Translator: Alex Jacobs github.com/lexjacobs\n"
+"PO-Revision-Date: 2016-01-09 11:21-0700\n"
+"Last-Translator: Takahiro Higashi github.com/takahigashi\n"
 "Language-Team: Solinea Inc.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: addonMenuView.js
 
 #: addonMenuView.js
 msgid "Add-ons"
-msgstr ""
+msgstr "アドオン"
 
 #: addonMenuView.js
 msgid "compliance"
-msgstr ""
+msgstr "コンプライアンス"
 
 #: addonMenuView.js
 #. do not translate
@@ -46,183 +46,183 @@ msgstr ""
 
 #: addonMenuView.js
 msgid "Refresh browser and/or log in to complete addon installation process."
-msgstr ""
+msgstr "ブラウザをリロードするかログインしなおしてアドオンインストールを完了してください"
 
 #: apiBrowserPageView.js
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
 msgid "Api Calls vs Time"
-msgstr ""
+msgstr "時間あたりAPI呼出し"
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
 msgid "Api Calls by Range"
-msgstr ""
+msgstr "範囲あたりAPI呼出し"
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
 msgid "Api Browser"
-msgstr ""
+msgstr "APIブラウザ"
 
 #: apiBrowserDataTableView.js
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "timestamp"
-msgstr ""
+msgstr "時刻"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "host"
-msgstr ""
+msgstr "ホスト"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "client ip"
-msgstr ""
+msgstr "IPアドレス"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "uri"
-msgstr ""
+msgstr "URI"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "status"
-msgstr ""
+msgstr "状態"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "response time"
-msgstr ""
+msgstr "反応時間"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "length"
-msgstr ""
+msgstr "長さ"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "component"
-msgstr ""
+msgstr "コンポーネント"
 
 #: apiBrowserDataTableView.js
 msgctxt "apibrowserdata"
 msgid "type"
-msgstr ""
+msgstr "タイプ"
 
 #: apiPerfReportPageView.js
 
 #: apiPerfReportPageView.js
 msgid "Nova API Performance"
-msgstr ""
+msgstr "Nova API性能"
 
 #: apiPerfReportPageView.js
 msgid "Neutron API Performance"
-msgstr ""
+msgstr "Neutron API性能"
 
 #: apiPerfReportPageView.js
 msgid "Keystone API Performance"
-msgstr ""
+msgstr "Keystone API性能"
 
 #: apiPerfReportPageView.js
 msgid "Glance API Performance"
-msgstr ""
+msgstr "Glance API性能"
 
 #: apiPerfReportPageView.js
 msgid "Cinder API Performance"
-msgstr ""
+msgstr "Cinder API性能"
 
 #: apiPerfReportPageView.js
 msgid "API Call"
-msgstr ""
+msgstr "API呼出し"
 
 #: apiPerfReportPageView.js
 msgid "All"
-msgstr ""
+msgstr "全て"
 
 #: apiPerfReportPageView.js
 msgid "Start"
-msgstr ""
+msgstr "開始"
 
 #: apiPerfReportPageView.js
 msgid "End"
-msgstr ""
+msgstr "終了"
 
 #: apiPerfReportPageView.js
 msgid "Interval"
-msgstr ""
+msgstr "間隔"
 
 #: base.html
 
 #: base.html
 msgid "goldstone"
-msgstr ""
+msgstr "goldstone"
 
 #: base.html
 msgid "Metrics"
-msgstr ""
+msgstr "指標"
 
 #: base.html
 msgid "API Performance"
-msgstr ""
+msgstr "API性能"
 
 #: base.html
 msgid "Compute"
-msgstr ""
+msgstr "コンピュート"
 
 #: base.html
 msgid "Network"
-msgstr ""
+msgstr "ネットワーク"
 
 #: base.html
 msgid "Block Storage"
-msgstr ""
+msgstr "ブロック領域"
 
 #: base.html
 msgid "Image"
-msgstr ""
+msgstr "イメージ"
 
 #: base.html
 msgid "Identity"
-msgstr ""
+msgstr "アイデンティティ"
 
 #: base.html
 msgid "Metric Report"
-msgstr ""
+msgstr "指標レポート"
 
 #: base.html
 msgid "Reports"
-msgstr ""
+msgstr "レポート"
 
 #: base.html
 msgid "Log Browser"
-msgstr ""
+msgstr "ログブラウザ"
 
 #: base.html
 msgid "Event Browser"
-msgstr ""
+msgstr "イベントブラウザ"
 
 #: base.html
 msgid "Api Browser"
-msgstr ""
+msgstr "APIブラウザ"
 
 #: base.html
 msgid "Copyright"
-msgstr ""
+msgstr "コピーライト"
 
 #: base.html
 msgid "License"
-msgstr ""
+msgstr "ライセンス"
 
 #: chartHeaderView.js
 msgid "Set Chart Title"
-msgstr ""
+msgstr "表名を設定"
 
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
-msgstr ""
+msgstr "InfoButtonText.jsに設定"
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -230,574 +230,562 @@ msgstr ""
 #: dataTable plugin
 msgctxt "datatable"
 msgid "Search: "
-msgstr ""
+msgstr "検索: "
 
 #: dataTable plugin
 msgctxt "datatable"
 msgid "No data available in table"
-msgstr ""
+msgstr "表に利用可能なデータがありません"
 
 #: detailsReportView.js
 
 #: detailsReportView.js
 msgctxt "detailsreport"
 msgid "Resource Details"
-msgstr ""
+msgstr "リソース詳細"
 
 #: detailsReportView.js
 msgctxt "detailsreport"
 msgid "No additional details available."
-msgstr ""
+msgstr "詳細は利用できません"
 
 #: discoverView.js
 
 #: discoverView.js
 msgid "Event Timeline"
-msgstr ""
+msgstr "イベント時系列"
 
 #: discoverView.js
 msgid "Node Availability"
-msgstr ""
+msgstr "利用可能ノード"
 
 #: discoverView.js
 msgid "Cloud Topology"
-msgstr ""
+msgstr "クラウドトポロジー"
 
 #: discoverView.js
 msgid "CPU"
-msgstr ""
+msgstr "CPU"
 
 #: discoverView.js
 msgid "Memory"
-msgstr ""
+msgstr "メモリ"
 
 #: discoverView.js
 msgid "Storage"
-msgstr ""
+msgstr "ストレージ"
 
 #: eventsBrowserPageView.js
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
 msgid "Number of Events"
-msgstr ""
+msgstr "イベント数"
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
 msgid "Events vs Time"
-msgstr ""
+msgstr "時間あたりイベント"
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
 msgid "Events Browser"
-msgstr ""
+msgstr "イベントブラウザ"
 
 #: eventsReportView.js
 
 #: eventsReportView.js
 msgctxt "eventsreport"
 msgid "Events Report"
-msgstr ""
+msgstr "イベントレポート"
 
 #: eventTimelineView.js
 
 #: eventTimelineView.js
 msgid "Event Type Filters"
-msgstr ""
+msgstr "イベントタイプフィルタ"
 
 #: eventTimelineView.js
 msgid "Uncheck event-type to hide from display"
-msgstr ""
+msgstr "イベントタイプを解除して非表示にします"
 
 #: eventTimelineView.js
 msgctxt "eventtimeline"
 msgid "Exit"
-msgstr ""
+msgstr "終了"
 
 #: goldstoneBaseView.js
 
 #: goldstoneBaseView.js
 msgid "Response Time (s)"
-msgstr ""
+msgstr "反応時間(秒)"
 
 #: goldstoneBaseView.js
 msgid "No Data Returned"
-msgstr ""
+msgstr "データが見つかりません"
 
 #: globalLookbackRefreshButtonsView.js
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 15 minutes
 msgid "lookback 15m"
-msgstr ""
+msgstr "15分"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 hour
 msgid "lookback 1h"
-msgstr ""
+msgstr "1時間"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 6 hours
 msgid "lookback 6h"
-msgstr ""
+msgstr "6時間"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 day
 msgid "lookback 1d"
-msgstr ""
+msgstr "1日"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 3 days
 msgid "lookback 3d"
-msgstr ""
+msgstr "3日"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 7 days
 msgid "lookback 7d"
-msgstr ""
+msgstr "7日"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 30 seconds
 msgid "refresh 30s"
-msgstr ""
+msgstr "30秒更新"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 minute
 msgid "refresh 1m"
-msgstr ""
+msgstr "1分更新"
 
 #: globalLookbackRefreshButtonsView.js
 msgid "refresh 5m"
-msgstr ""
+msgstr "5分更新"
 
 #: globalLookbackRefreshButtonsView.js
 msgid "refresh off"
-msgstr ""
+msgstr "更新なし"
 
 #: helpView.js
 
 #: helpView.js
 msgid "Getting Help"
-msgstr ""
+msgstr "ヘルプアクセス"
 
 #: helpView.js
 msgid "If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>."
-msgstr ""
+msgstr "問題の報告、機能リクエストその他Goldstone関連のフィードバックでソリニア社に連絡される場合は、<a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstoneユーザフォーラム</a>または<a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'>Githubで問題を報告</a>を確認ください。その他一般的な質問や弊社コンサルテイングチームへの連絡は、<a href=\'mailto:info@solinea.com\'>info@solinea.com</a>までメールしてください。"
 
 #: helpView.js
 msgid "Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>."
-msgstr ""
+msgstr "Goldstoneのライセンス情報は <b>/opt/goldstone/LICENSE</b>ファイル、または<a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>Webサイトをご確認ください。"
 
 #: helpView.js
 msgid "License"
-msgstr ""
+msgstr "ライセンス"
 
 #: infoButtonText.js
 
 #: infoButtonText.js
 msgid "This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources."
-msgstr ""
+msgstr "OpenStackトポロジーマップです。特定のリソースを確認するには末端ノードをクリックしてください。"
 
 #: infoButtonText.js
 msgid "This is the OpenStack topology map.  Clicking branches will zoom in, clicking on leaf nodes will bring up information about resources.  Click on the far left section to zoom out."
-msgstr ""
+msgstr "OpenStackトポロジーマップです。枝のクリックでズームイン、左の元ノードをクリックでズームアウト、末端ノードのクリックで詳細を確認できます。"
 
 #: infoButtonText.js
 msgid "The event timeline displays key events that have occurred in your cloud.  You can adjust the displayed data with the filter and time settings in the menu bar.  Hovering on an event brings up the event detail."
-msgstr ""
+msgstr "イベント時系列スクリーンはあなたのクラウドに発生したキーイベントを表示します。表示データはメニューバーのフィルタと時間設定で調整できます。イベントの上にマウスポインタを置くとイベント詳細を確認できます。"
 
 #: infoButtonText.js
 msgid "The node presence chart keeps track of the last time each node in the cloud was seen.  Nodes on the right have been seen more recently than nodes on the left.  The center lane shows nodes that have been detected in the log stream.  The top lane shows nodes that are not logging, but can be pinged."
-msgstr ""
+msgstr "ノード表はクラウドにノードが識別された最終時刻を維持します。ノード左側から古い順に表示されます。中央線はログに検出されたノードです。最上部の線はログに検出されていないがピング可能なノードです。"
 
 #: infoButtonText.js
 msgid "The service status panel shows the last known state of all OS services on the node."
-msgstr ""
+msgstr "サービス状況パネルはノードの全てのOSサービスの最終状況を表示します。"
 
 #: infoButtonText.js
 msgid "The utilization charts show the OS level utilization of the node."
-msgstr ""
+msgstr "使用状況パネルはノードのOSレベルの使用状況を表示します。"
 
 #: infoButtonText.js
 msgid "The hypervisor charts show the last known allocation and usage of resources across all of the VMs on the node."
-msgstr ""
+msgstr "ハイパーバイザ表はノードの全ての仮想マシンの割当と使用状況を表示します。"
 
 #: infoButtonText.js
 msgid "This is the OpenStack Nova topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, such as hypervisors, clicking a resource in the table will navigate you to a resource specific view."
-msgstr ""
+msgstr "OpenStack Novaトポロジーマップです。末端ノードでリソースの一覧を表示します。ハイパーバイザなどの一部のリソースをクリックするとリソース特有の表示がされます。"
 
 #: infoButtonText.js
 msgid "This is the OpenStack Cinder topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
-msgstr ""
+msgstr "OpenStack Cinderトポロジーマップです。末端ノードでリソースの一覧を表示します。一部のリソースではクリックするとリソース特有の表示がされます。"
 
 #: infoButtonText.js
 msgid "This is the OpenStack Glance topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
-msgstr ""
+msgstr "OpenStack Glanceトポロジーマップです。末端ノードでリソースの一覧を表示します。一部のリソースではクリックするとリソース特有の表示がされます。"
 
 #: infoButtonText.js
 msgid "This is the OpenStack Keystone topology map.  You can use leaf nodes to populate the resource list on the right.  In some cases, clicking a resource in the table will navigate you to a resource specific view."
-msgstr ""
+msgstr "OpenStack Keystoneトポロジーマップです。末端ノードでリソースの一覧を表示します。一部のリソースではクリックするとリソース特有の表示がされます。"
 
 #: infoButtonText.js
 msgid "This chart displays VM spawn success and failure counts across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
-msgstr ""
+msgstr "この表はクラウドでのVM作成の成功回数、失敗回数を表示します。表示データはメニューバーの時間設定で調整できます。ログデータから表示されますので、指定時間内にログが存在しない場合は空白が表示されます。"
 
 #: infoButtonText.js
 msgid "This chart displays aggregate CPU core allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
-msgstr ""
+msgstr "この表はクラウドでの仮想CPU割当てを表示します。表示データはメニューバーの時間設定で調整できます。ログデータから表示されますので、指定時間内にログが存在しない場合は空白が表示されます。"
 
 #: infoButtonText.js
 msgid "This chart displays aggregate memory allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
-msgstr ""
+msgstr "この表はクラウドでのメモリ割当てを表示します。表示データはメニューバーの時間設定で調整できます。ログデータから表示されますので、指定時間内にログが存在しない場合は空白が表示されます。"
 
 #: infoButtonText.js
 msgid "This chart displays aggregate disk allocation across your cloud.  You can adjust the displayed data with the time settings in the menu bar.  This data is derived from the log stream, so if no logging occurs for a period of time, gaps may appear in the data."
-msgstr ""
+msgstr "この表はクラウドでのディスク割当てを表示します。表示データはメニューバーの時間設定で調整できます。ログデータから表示されますので、指定時間内にログが存在しない場合は空白が表示されます。"
 
 #: infoButtonText.js
 msgid "This chart displays log stream data across your cloud.  You can adjust the displayed data with the time settings in the menu bar, and with the filter settings that double as a legend.  The table below contains the individual log entries for the time range and filter settings."
-msgstr ""
+msgstr "この表はクラウドでのログ収集について表示します。表示データはメニューバーの時間設定とフィルタで調整できます。表の下には指定時間、フィルタ設定に一致した個別のログレコードを含みます"
 
 #: infoButtonText.js
 msgid "Click row for additional resource info.<br><br>Clicking on hypervisor or hosts reports will navigate to additional report pages."
-msgstr ""
+msgstr "リソース情報の詳細は行をクリックしてください。<br><br>ハイパーバイザまたはホストをクリックすると詳細のレポートページが表示されます。"
 
 #: leaseDataTableView.js
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Creation of %s successful"
-msgstr ""
+msgstr "%sの作成に成功しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Failure to create %s"
-msgstr ""
+msgstr "%sの作成に失敗しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Update of %s successful"
-msgstr ""
+msgstr "%sの更新に成功しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Failure to update %s"
-msgstr ""
+msgstr "%sの更新に失敗しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Deletion of %s complete"
-msgstr ""
+msgstr "%sの削除に成功しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Failure to delete %s"
-msgstr ""
+msgstr "%sの削除に失敗しました。"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "%s will be permanently deleted. Are you sure?"
-msgstr ""
+msgstr "%sは完全に消去されます。本当に削除しますか?"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Expiration"
-msgstr ""
+msgstr "終了"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Status"
-msgstr ""
+msgstr "状況"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Controls"
-msgstr ""
+msgstr "コントロール"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "View Lease Details"
-msgstr ""
+msgstr "リース詳細を表示"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Name"
-msgstr ""
+msgstr "リース名"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Scope"
-msgstr ""
+msgstr "スコープ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Resource Type"
-msgstr ""
+msgstr "リソースタイプ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Leasee Id"
-msgstr ""
+msgstr "リースID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Start"
-msgstr ""
+msgstr "リース開始"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Expiration"
-msgstr ""
+msgstr "リース終了"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Notes"
-msgstr ""
+msgstr "ノート"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Project ID"
-msgstr ""
+msgstr "プロジェクトID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Resource ID"
-msgstr ""
+msgstr "リソースID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Target ID"
-msgstr ""
+msgstr "リースターゲットID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease UUID"
-msgstr ""
+msgstr "リースUUID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Close"
-msgstr ""
+msgstr "クローズ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Create New Lease"
-msgstr ""
+msgstr "新規リース作成"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Name"
-msgstr ""
+msgstr "リース名"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Name (required)"
-msgstr ""
+msgstr "リース名(必須)"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Scope"
-msgstr ""
+msgstr "リーススコープ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Resource"
-msgstr ""
+msgstr "リソース"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Project"
-msgstr ""
+msgstr "プロジェクト"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Resource Type"
-msgstr ""
+msgstr "リソースタイプ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Compute Instance"
-msgstr ""
+msgstr "コンピュートサーバ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Block Storage Volume"
-msgstr ""
+msgstr "ブロックストレージボリューム"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Target ID"
-msgstr ""
+msgstr "ターゲットID"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Target ID (required)"
-msgstr ""
+msgstr "ターゲットID(必須)"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Expiration Date/Time"
-msgstr ""
+msgstr "リース終了日時"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Create Lease"
-msgstr ""
+msgstr "リース作成"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Close"
-msgstr ""
+msgstr "クローズ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Delete Lease Confirmation"
-msgstr ""
+msgstr "リース削除確認"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Confirm"
-msgstr ""
+msgstr "確認"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Cancel"
-msgstr ""
+msgstr "キャンセル"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Submit Changes"
-msgstr ""
+msgstr "変更を実行"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Update Lease Details"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leasesManagerPageView.js
+msgstr "リース詳細の更新"
 
 #: leasesManagerPageView.js
 msgid "Leases Manager"
-msgstr ""
+msgstr "リースマネージャー"
 
 #: leasesManagerPageView.js
 msgid "List of Leases"
-msgstr ""
+msgstr "リース一覧"
 
 #: loginPageView.js
 
 #: loginPageView.js
 msgid "Please Sign In"
-msgstr ""
+msgstr "ログインしてください"
 
 #: loginPageView.js
 msgid "Forgot Username or Password?"
-msgstr ""
+msgstr "ユーザ名、パスワードをお忘れですか?"
 
 #: loginPageView.js
 msgctxt "loginpage"
 msgid "Username"
-msgstr ""
+msgstr "ユーザ名"
 
 #: loginPageView.js
 msgctxt "loginpage"
 msgid "Enter Username"
-msgstr ""
+msgstr "ユーザ名を入力してください。"
 
 #: loginPageView.js
 msgctxt "loginpage"
 msgid "Password"
-msgstr ""
+msgstr "パスワード"
 
 #: loginPageView.js
 msgctxt "loginpage"
 msgid "Enter Password"
-msgstr ""
+msgstr "パスワードを入力してください。"
 
 #: loginPageView.js
 msgctxt "loginpage"
 msgid "Sign in"
-msgstr ""
+msgstr "ログイン"
 
 #: loginPageView.js
 msgid "Failed to initialize installed addons"
-msgstr ""
+msgstr "アドオンの初期化に失敗しました。"
 
 #: logSearchPageView.js
 
 msgctxt "logbrowserpage"
 msgid "Log Browser"
-msgstr ""
+msgstr "ログブラウザ"
 
 msgctxt "logbrowserpage"
 msgid "Log Events"
-msgstr ""
+msgstr "ログイベント"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Timestamp"
-msgstr ""
+msgstr "時間"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Syslog Severity"
-msgstr ""
+msgstr "Syslog重要度"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Component"
-msgstr ""
+msgstr "コンポーネント"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Host"
-msgstr ""
+msgstr "ホスト"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Message"
-msgstr ""
+msgstr "メッセージ"
 
 #: logSearchPageView.js
 msgctxt "logbrowserpage"
 msgid "Logs vs Time"
-msgstr ""
+msgstr "時間あたりのログ"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
 msgid "Search Results"
-msgstr ""
+msgstr "検索結果"
 
 #: nodeAvailView.js
 
 #: nodeAvailView.js
 msgid "Log Severity Filters"
-msgstr ""
+msgstr "ログ重要度フィルタ"
 
 #: nodeAvailView.js
 msgctxt "nodeavail"
 msgid "Uncheck log-type to hide from display"
-msgstr ""
+msgstr "ログタイプを解除して非表示にする"
 
 #: eventTimelineView.js
 msgctxt "nodeavail"
 msgid "Exit"
-msgstr ""
+msgstr "終了"
 
 #: metricViewerView.js
 
@@ -805,913 +793,866 @@ msgstr ""
 #. config = configuration.
 msgctxt "metricviewer"
 msgid "Click gear for config"
-msgstr ""
+msgstr "歯車をクリックして設定する"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "No resources returned"
-msgstr ""
+msgstr "リソースが見つかりません"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "No metric reports available"
-msgstr ""
+msgstr "指標レポートが見つかりません"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Metric report list fetch failed"
-msgstr ""
+msgstr "指標レポートの一覧の取得に失敗しました"
 
 #: metricViewerView.js
 #. refers to 'all resources' for a chart selector
 msgctxt "metricviewer"
 msgid "all"
-msgstr ""
+msgstr "全て"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "min"
-msgstr ""
+msgstr "最小"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "max"
-msgstr ""
+msgstr "最大"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "avg"
-msgstr ""
+msgstr "平均"
 
 #: metricViewerView.js
 #. refers to showing min,max, and avg as a graphical band
 msgctxt "metricviewer"
 msgid "band"
-msgstr ""
+msgstr "範囲"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Resource"
-msgstr ""
+msgstr "リソース"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Statistic"
-msgstr ""
+msgstr "統計"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Metric"
-msgstr ""
+msgstr "指標"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Resource"
-msgstr ""
+msgstr "リソース"
 
 #: metricViewerView.js
 msgid "Standard Deviation Bands"
-msgstr ""
+msgstr "標準分散範囲"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
-msgid "Lookback"
+msgid "振り返り"
 msgstr ""
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Charting Interval (minimum 2 minutes)"
-msgstr ""
+msgstr "チャート間隔(最小2分)"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "default=1"
-msgstr ""
+msgstr "デフォルト=1"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "minutes"
-msgstr ""
+msgstr "分"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "hours"
-msgstr ""
+msgstr "時間"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "days"
-msgstr ""
+msgstr "日"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Submit"
-msgstr ""
+msgstr "決定"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Cancel"
-msgstr ""
+msgstr "キャンセル"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
 msgid "Select chart parameters"
-msgstr ""
+msgstr "チャートパラメターの選択"
 
 #: newPasswordView.js
 msgid "You have successfully changed your password."
-msgstr ""
+msgstr "パスワードの変更に成功しました"
 
 #: newPasswordView.js
 msgid "Password reset failed."
-msgstr ""
+msgstr "パスワードのリセットに失敗しました"
 
 #: newPasswordView.js
 msgid "Passwords don't match."
-msgstr ""
+msgstr "パスワードが一致しません"
 
 #: newPasswordView.js
 msgid "Enter new password"
-msgstr ""
+msgstr "新しいパスワードを入力"
 
 #: newPasswordView.js
 msgctxt "newpassword"
 msgid "New password"
-msgstr ""
+msgstr "新しいパスワード"
 
 #: newPasswordView.js
 msgctxt "newpassword"
 msgid "Enter new password"
-msgstr ""
+msgstr "新しいパスワードを入力"
 
 #: newPasswordView.js
 msgctxt "newpassword"
 msgid "Confirm password"
-msgstr ""
+msgstr "パスワード確認"
 
 #: newPasswordView.js
 msgctxt "newpassword"
 msgid "Reset password"
-msgstr ""
+msgstr "パスワードリセット"
 
 #: newPasswordView.js
 msgid "Password again for confirmation"
-msgstr ""
+msgstr "確認のためもう一度パスワードを入力してください"
 
 #: nodeReportView.js
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Services"
-msgstr ""
+msgstr "サービス"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Reports"
-msgstr ""
+msgstr "レポート"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Events"
-msgstr ""
+msgstr "イベント"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Details"
-msgstr ""
+msgstr "詳細"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Logs"
-msgstr ""
+msgstr "ログ"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Service Status Report"
-msgstr ""
+msgstr "サービス状態レポート"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Utilization"
-msgstr ""
+msgstr "稼働状況"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "CPU Usage"
-msgstr ""
+msgstr "CPU使用状況"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Memory Usage"
-msgstr ""
+msgstr "メモリ使用状況"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid "Network Usage"
-msgstr ""
+msgstr "ネットワーク使用状況"
 
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid ""
 msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: novaReportView.js
 
 #: novaReportView.js
 msgid "Nova API Performance"
-msgstr ""
+msgstr "Nova API性能"
 
 #: novaReportView.js
 msgid "VM Spawns"
-msgstr ""
+msgstr "VM作成"
 
 #: novaReportView.js
 msgid "CPU Resources"
-msgstr ""
+msgstr "CPUリソース"
 
 #: novaReportView.js
 msgid "Memory Resources"
-msgstr ""
+msgstr "メモリリソース"
 
 #: novaReportView.js
 msgid "Disk Resources"
-msgstr ""
+msgstr "ディスクリソース"
 
 #: novaReportView.js
 msgid "Cores"
-msgstr ""
+msgstr "コア"
 
 #: novaReportView.js
 msgid "Spawn Events"
-msgstr ""
+msgstr "イベント生成"
 
 #: novaReportView.js
 #. Megabytes
 msgid "MB"
-msgstr ""
+msgstr "メガバイト"
 
 #: novaReportView.js
 #. Gigabytes
 msgid "GB"
-msgstr ""
+msgstr "ギガバイト"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Create New Trail"
-msgstr ""
+msgstr "新規追跡作成"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Container Name"
-msgstr ""
+msgstr "コンテナ名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Type"
-msgstr ""
+msgstr "タイプ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Status"
-msgstr ""
+msgstr "状態"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Controls"
-msgstr ""
+msgstr "コントロール"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Trail Name"
-msgstr ""
+msgstr "追跡名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project Name (audit filter)"
-msgstr ""
+msgstr "プロジェクト名(監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project Name (optional audit filter)"
-msgstr ""
+msgstr "プロジェクト名(オプショナル監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project ID (audit filter)"
-msgstr ""
+msgstr "プロジェクトID(監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project ID (optional audit filter)"
-msgstr ""
+msgstr "プロジェクトID(オプショナル関西フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Logging Status"
-msgstr ""
+msgstr "ログ状況"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Logging"
-msgstr ""
+msgstr "ログ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Paused"
-msgstr ""
+msgstr "一時停止"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Change Swift Password"
-msgstr ""
+msgstr "Swiftパスワードの変更"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Audit Filters (for reference only)"
-msgstr ""
+msgstr "監査フィルター(読み込み専用)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project ID - (can not be changed)"
-msgstr ""
+msgstr "プロジェクトID(変更不可)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Project Name - (can not be changed)"
-msgstr ""
+msgstr "プロジェクト名(変更不可)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID - (can not be changed)"
-msgstr ""
+msgstr "ユーザID(変更不可)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID"
-msgstr ""
+msgstr "ユーザID"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID (optional audit filter)"
-msgstr ""
+msgstr "ユーザID(オプショナル監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID (audit filter)"
-msgstr ""
+msgstr "ユーザID(監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Also log the results of unfiltered queries?"
-msgstr ""
+msgstr "フィルターされていない問い合わせもログに残しますか?"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "True"
-msgstr ""
+msgstr "はい"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "False"
-msgstr ""
+msgstr "いいえ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Destination Type"
-msgstr ""
+msgstr "格納先"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift"
-msgstr ""
+msgstr "Swift"
 
 #: openTrailDataTableView.js
 #. Refers to Amazon S3
 msgctxt "opentrail"
 msgid "S3"
-msgstr ""
+msgstr "Amazon S3"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Destination Region"
-msgstr ""
+msgstr "Swiftリージョン"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift URL"
-msgstr ""
+msgstr "Swift URL"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Username"
-msgstr ""
+msgstr "Swiftユーザ名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Password"
-msgstr ""
+msgstr "Swiftパスワード"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Tenant Name"
-msgstr ""
+msgstr "Swiftテナント名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Container Name"
-msgstr ""
+msgstr "Swiftコンテナ名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Swift Key Prefix"
-msgstr ""
+msgstr "Swiftキー接頭辞"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Submit Swift Trail Credentials"
-msgstr ""
+msgstr "Swiftアクセス情報を送信"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "S3 Region"
-msgstr ""
+msgstr "S3リージョン"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "S3 Username"
-msgstr ""
+msgstr "S3ユーザ名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "S3 Password"
-msgstr ""
+msgstr "S3パスワード"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "S3 Bucket Name"
-msgstr ""
+msgstr "S3バケット名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "S3 Key Prefix"
-msgstr ""
+msgstr "S3キー接頭辞"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Submit S3 Trail Credentials"
-msgstr ""
+msgstr "S3アクセス情報を送信"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Cancel"
-msgstr ""
+msgstr "キャンセル"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Confirm"
-msgstr ""
+msgstr "確認"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Submit"
-msgstr ""
+msgstr "決定"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Creation of %s successful"
-msgstr ""
+msgstr "%sの作成に成功しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Failure to create %s"
-msgstr ""
+msgstr "%sの作成に失敗しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Update of %s successful"
-msgstr ""
+msgstr "%sの変更に成功しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Failure to update %s"
-msgstr ""
+msgstr "%sの変更に失敗しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Deletion of %s complete"
-msgstr ""
+msgstr "%sの削除に成功しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "Failure to delete %s"
-msgstr ""
+msgstr "%sの削除に失敗しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
 msgctxt "opentrail"
 msgid "%s will be permanently deleted. Are you sure?"
-msgstr ""
+msgstr "%sは完全に消去されます。本当に削除しますか?"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Update Trail Details"
-msgstr ""
+msgstr "追跡の詳細を更新"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Delete Trail Confirmation"
-msgstr ""
+msgstr "追跡の削除の確認"
 
 #: openTrailManagerPageView.js
 msgid "List of Trails"
-msgstr ""
+msgstr "追跡の一覧"
 
 #: openTrailManagerPageView.js
 msgid "OpenTrail Manager"
-msgstr ""
+msgstr "Open追跡マネージャ"
 
 #: openTrailLogListPageView.js
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Log History"
-msgstr ""
+msgstr "ログ履歴"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Trail Log History"
-msgstr ""
+msgstr "ログ追跡履歴"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Start"
-msgstr ""
+msgstr "開始"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "End"
-msgstr ""
+msgstr "終了"
 
 #: passwordResetView.js
 
 #: passwordResetView.js
 msgctxt "passwordreset"
 msgid "Reset Password"
-msgstr ""
+msgstr "パスワードリセット"
 
 #: passwordResetView.js
 msgctxt "passwordreset"
 msgid "Email Address"
-msgstr ""
+msgstr "メールアドレス"
 
 #: passwordResetView.js
 msgctxt "passwordreset"
 msgid "Enter email associated with your account"
-msgstr ""
+msgstr "アカウントに関連付いたメールアドレスを入力してください"
 
 #: passwordResetView.js
 msgctxt "passwordreset"
 msgid "Send Reset Email"
-msgstr ""
+msgstr "リセットメールを送る"
 
 #: passwordResetView.js
 msgid "Cancel and Return to Login"
-msgstr ""
+msgstr "キャンセルしてログイン画面に戻る"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "Reports list loading or not available."
-msgstr ""
+msgstr "レポート一覧は読込中か利用できません"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "Report Data"
-msgstr ""
+msgstr "レポートデータ"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "Selecting a report from the dropdown above will populate this area with the report results."
-msgstr ""
+msgstr "上のドロップダウンからレポートを選択するとこのエリアに結果が表示されます"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "Reports Available"
-msgstr ""
+msgstr "利用可能レポート"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "No results within selected time range."
-msgstr ""
+msgstr "選択された期間に結果が見つかりません"
 
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "No reports available."
-msgstr ""
+msgstr "使用可能なレポートはありません"
 
 #: settingsPageView.js
 
 #: settingsPageView.js
 msgid "User Settings"
-msgstr ""
+msgstr "ユーザ設定"
 
 #: settingsPageView.js
 msgid "Theme Settings"
-msgstr ""
+msgstr "テーマ設定"
 
 #: settingsPageView.js
 msgid "Update Personal Settings"
-msgstr ""
+msgstr "個人設定の更新"
 
 #: settingsPageView.js
 msgid "Additional Actions"
-msgstr ""
+msgstr "追加アクション"
 
 #: settingsPageView.js
 msgid "Change Password"
-msgstr ""
+msgstr "パスワード変更"
 
 #: settingsPageView.js
 msgid "Modify Tenant Settings"
-msgstr ""
+msgstr "テナント設定の変更"
 
 #: settingsPageView.js
 msgid "Update"
-msgstr ""
+msgstr "更新"
 
 #: settingsPageView.js
 msgid "Topology Tree Style"
-msgstr ""
+msgstr "トポロジースタイル"
 
 #: settingsPageView.js
 msgid "Language"
-msgstr ""
+msgstr "言語"
 
 #: settingsPageView.js
 msgid "Username"
-msgstr ""
+msgstr "ユーザ名"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Light"
-msgstr ""
+msgstr "明るい"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Dark"
-msgstr ""
+msgstr "暗い"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Collapse"
-msgstr ""
+msgstr "畳む"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Zoom"
-msgstr ""
+msgstr "ズーム"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "First Name"
-msgstr ""
+msgstr "名"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Last Name"
-msgstr ""
+msgstr "姓"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Email"
-msgstr ""
+msgstr "メール"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Current Password"
-msgstr ""
+msgstr "現在のパスワード"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "New Password"
-msgstr ""
+msgstr "新しいパスワード"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Settings update successful"
-msgstr ""
+msgstr "設定の更新に成功しました"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Password update successful"
-msgstr ""
+msgstr "パスワードの更新に成功しました"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Username"
-msgstr ""
+msgstr "ユーザ名"
 
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Could not load user settings."
-msgstr ""
+msgstr "ユーザ設定の読み込みに失敗しました"
 
 #: spawnsView.js
 msgid "Success"
-msgstr ""
+msgstr "成功"
 
 #: tenantSettingsPageView.js
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Tenant"
-msgstr ""
+msgstr "テナント"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Owner Username"
-msgstr ""
+msgstr "所有者ユーザ名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Owner Contact"
-msgstr ""
+msgstr "所有者連絡先"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Tenant ID"
-msgstr ""
+msgstr "テナントID"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Goldstone Tenant Settings"
-msgstr ""
+msgstr "Goldstoneテナント名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Tenant Name"
-msgstr ""
+msgstr "テナント名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Owner Name"
-msgstr ""
+msgstr "所有者名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Owner Email"
-msgstr ""
+msgstr "所有者メール"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "select from above"
-msgstr ""
+msgstr "上記から選択"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OpenStack Settings"
-msgstr ""
+msgstr "OpenStack設定"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OpenStack Tenant Name"
-msgstr ""
+msgstr "OpenStackテナント名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OpenStack Username"
-msgstr ""
+msgstr "OpenStackユーザ名"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OpenStack Password"
-msgstr ""
+msgstr "OpenStackパスワード"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OpenStack Auth URL"
-msgstr ""
+msgstr "OpenStack認証URL"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Update"
-msgstr ""
+msgstr "更新"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Tenants"
-msgstr ""
+msgstr "テナント"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Click row above to edit"
-msgstr ""
+msgstr "編集する行をクリックしてください"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Could not load OpenStack settings"
-msgstr ""
+msgstr "OpenStack設定の読み込みに失敗しました"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Could not load tenant settings"
-msgstr ""
+msgstr "テナント設定の読み込みに失敗しました"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "OS Settings update successful"
-msgstr ""
+msgstr "OS設定の更新に成功しました"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Tenant Settings update successful"
-msgstr ""
+msgstr "テナント設定の更新に成功しました"
 
 #: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Must select tenant from list above"
-msgstr ""
+msgstr "上記リストからテナントを選択してください"
 
 #: topologyTreeView.js
 msgid "Resource List"
-msgstr ""
+msgstr "リソースリスト"
 
 #: topologyTreeView.js
 msgid "No data"
-msgstr ""
+msgstr "データがありません"
 
 #: addons
 #: opentrail
 
 #: server-generated data for addon name
 msgid "opentrail"
-msgstr ""
+msgstr "オープン追跡"
 
 #: opentrail main.js
 msgid "OpenTrail Manager"
-msgstr ""
+msgstr "Open追跡マネージャ"
