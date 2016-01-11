@@ -14,12 +14,14 @@
 # limitations under the License.
 import logging
 from subprocess import check_call
-
+import datetime
 from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
-
+from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.celery import app as celery_app
-from goldstone.core.models import SavedSearch, CADFEventDocType
+from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
+    AlertObj, EmailProducer
+
 
 logger = logging.getLogger(__name__)
 
@@ -150,3 +152,48 @@ def log_event_search():
 
     cadf = CADFEventDocType(event=e)
     return cadf.save()
+
+
+@celery_app.task()
+def check_for_pending_alerts():
+    """
+     Run an AlertSearch query to check for any pending alerts to be fired.
+    """
+
+    # limit our searches to those owned by us, and concerned with logs
+    owner = 'events'
+    indices = 'logstash-*'
+    saved_alerts = AlertSearch.objects.filter(owner=owner,
+                                              index_prefix=indices)
+
+    for obj in saved_alerts:
+        # execute the search, and assuming no error, update the last_ times
+        s, start, end = obj.search_recent()
+        response = s.execute()
+        if response.hits.total > 0:
+            # We have a non-zero match for pending alerts
+            # Go ahead and generate an insance of the alert object here ?
+            # We can directly call the producer class to send an email
+            # AlertObj seems to be redundant : To be discussed
+
+            now = datetime.datetime.now()
+
+            # TBD : For now lets email to keystone client [0]
+            # Do we always have a keystone client configured ?
+            # Is it ever null ?
+
+            keystone_client = get_keystone_client()['client']
+            users = keystone_client.users.list()
+            user = users[0]
+
+            producer_obj = EmailProducer(subject='Celery Alert : ' + str(now),
+                             message='AlertSearch : message notification',
+                             to_address=str(user.email))
+
+            email_rv = producer_obj.send_email()
+
+            # Update timestamps on the object for future searches to work.
+            obj.last_start = start
+            obj.last_end = end
+            obj.save()
+            return email_rv

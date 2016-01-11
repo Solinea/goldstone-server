@@ -26,7 +26,8 @@ from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
-
+from goldstone.glogging.models import LogData, LogEvent
+from django.core.mail import send_mail
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.nova.utils import get_client as get_nova_client
@@ -2652,3 +2653,65 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
+
+
+class AlertSearch(SavedSearch):
+    """
+        Model for AlertSearches, a subclass of SavedSearch that has an alert
+        notification configured to be sent out to one or more recipients.
+
+    """
+
+    # TBD : Any fields unique to AlertSearch ?
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+        verbose_name_plural = "saved searches with alerts"
+
+
+class AlertObj(models.Model):
+    """
+        Create an alert instance object. This contains the fleshed-out
+        alert message which will be passed down to the producer interface
+        to be sent out.
+    """
+
+    trigger = models.ForeignKey(AlertSearch)
+    owner = models.CharField(max_length=64, default='goldstone')
+    description = models.CharField(max_length=1024,
+                                   default='Alert object instance')
+    sender = models.CharField(max_length=64, default='goldstone')
+    receiver = models.CharField(max_length=64, default='goldstone')
+    subject = models.CharField(max_length=64, default='Alert notification')
+    message = models.CharField(max_length=1024,
+                               default='This is an alert notification')
+    created = CreationDateTimeField(editable=False, blank=False, null=False)
+    protected = models.BooleanField(default=False,
+                                    help_text='True if this is system-defined')
+    ack_needed = models.BooleanField(default=False,
+                                     help_text='True if alert needs ack')
+
+
+class EmailProducer(models.Model):
+    """
+        Interface class to prepare and send an email
+    """
+
+    # alert = models.ForeignKey(AlertObj)
+    subject = models.CharField(max_length=64, default='Alert notification')
+    message = models.CharField(max_length=1024,
+                               default='This is an alert notification')
+    to_address = models.EmailField(max_length=70, blank=False)
+    from_address = models.EmailField(max_length=70, blank=True)
+    default_from_address = \
+                        settings.ADMINS[0][1] if settings.ADMINS \
+                        else "root@localhost"
+
+    @classmethod
+    def send_email(cls):
+
+        if not cls.from_address:
+            cls.from_address = cls.default_from_address
+
+        email_rv = send_mail(cls.subject, cls.message, cls.from_address,
+                             [cls.to_address])
+        return email_rv
