@@ -7228,7 +7228,14 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload();
+            oTable.ajax.reload(function() {
+                setTimeout(function() {
+
+                    // manually retrigger column auto adjust which was not firing
+                    oTable.columns.adjust().draw();
+                }, 10);
+
+            });
         }
     },
 
