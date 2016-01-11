@@ -2719,20 +2719,15 @@ var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/search/',
+    urlBase: "/core/api-calls/",
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    addPageSize: function(n) {
-        n = n || 1000;
-        return '&page_size=' + n;
-    },
-
     preProcessData: function(data) {
-        if(data && data.results) {
-            return data.results;
+        if(data) {
+            return data;
         }
     }
 });
@@ -4202,44 +4197,36 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 [0, 'desc']
             ],
             "columnDefs": [{
-                    "data": "@timestamp",
+                    "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
-                    "data": "host",
+                    "data": "_source.host",
                     "targets": 1
                 }, {
-                    "data": "client_ip",
+                    "data": "_source.client_ip",
                     "targets": 2
                 }, {
-                    "data": "uri",
+                    "data": "_source.uri",
                     "targets": 3
                 }, {
-                    "data": "response_status",
+                    "data": "_source.response_status",
                     "targets": 4
                 }, {
-                    "data": "response_time",
+                    "data": "_source.response_time",
                     "targets": 5
                 }, {
-                    "data": "response_length",
+                    "data": "_source.response_length",
                     "targets": 6
                 }, {
-                    "data": "component",
+                    "data": "_source.component",
                     "targets": 7
                 }, {
-                    "data": "type",
+                    "data": "_source.type",
                     "targets": 8
-                }, {
-                    "data": "doc_type",
-                    "visible": false,
-                    "searchable": true
-                }, {
-                    "data": "id",
-                    "visible": false,
-                    "searchable": true
                 }
 
             ],
@@ -4380,13 +4367,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         });
 
         // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/api-calls/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),

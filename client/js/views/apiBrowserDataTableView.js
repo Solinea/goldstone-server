@@ -58,44 +58,36 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 [0, 'desc']
             ],
             "columnDefs": [{
-                    "data": "@timestamp",
+                    "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
-                    "data": "host",
+                    "data": "_source.host",
                     "targets": 1
                 }, {
-                    "data": "client_ip",
+                    "data": "_source.client_ip",
                     "targets": 2
                 }, {
-                    "data": "uri",
+                    "data": "_source.uri",
                     "targets": 3
                 }, {
-                    "data": "response_status",
+                    "data": "_source.response_status",
                     "targets": 4
                 }, {
-                    "data": "response_time",
+                    "data": "_source.response_time",
                     "targets": 5
                 }, {
-                    "data": "response_length",
+                    "data": "_source.response_length",
                     "targets": 6
                 }, {
-                    "data": "component",
+                    "data": "_source.component",
                     "targets": 7
                 }, {
-                    "data": "type",
+                    "data": "_source.type",
                     "targets": 8
-                }, {
-                    "data": "doc_type",
-                    "visible": false,
-                    "searchable": true
-                }, {
-                    "data": "id",
-                    "visible": false,
-                    "searchable": true
                 }
 
             ],
