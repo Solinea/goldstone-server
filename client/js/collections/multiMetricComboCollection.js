@@ -43,23 +43,9 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
         // before adding data to the collection, tag it with the metricName
         // that produced the data
         data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
-        } else {
-            this.urlCollectionCount--;
-        }
+        this.urlCollectionCount--;
         return data;
     },
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    // comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -76,12 +62,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
         this.urlsToFetch = [];
 
         this.computeLookbackAndInterval();
-
-        // grabs minutes from global selector option value
-        // this.globalLookback = $('#global-lookback-range').val();
-
-        // this.epochNow = +new Date();
-        // this.gte = (+new Date() - (this.globalLookback * 1000 * 60));
 
         // set a lower limit to the interval of '2m'
         // in order to avoid the sawtooth effect

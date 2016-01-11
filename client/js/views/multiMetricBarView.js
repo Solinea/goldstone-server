@@ -192,11 +192,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                     dataPoint['@timestamp'] = dataPoint.key;
                     dataPoint.name = collection.metricSource;
                     dataPoint.value = dataPoint.statistics.max;
-                    // _.each(dataPoint, function(item) {
-                    //     item['@timestamp'] = item.key;
-                    //     item.name = collection.metricSource;
-                    //     item.value = item.statistics.max;
-                    // });
                 });
             });
 
