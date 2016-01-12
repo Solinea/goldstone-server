@@ -118,9 +118,9 @@ rpm_build:
 	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
 	LICENSE=/opt/goldstone/LICENSE \
 	README.md=/opt/goldstone/README.md \
-	docker/config/goldstone-dev.env=/opt/goldstone/goldstone-dev.env \
-	docker/config/goldstone-prod.env=/opt/goldstone/goldstone-prod.env \
-	docker/config/goldstone-test.env=/opt/goldstone/goldstone-test.env \
+	docker/config/goldstone-dev.env=/opt/goldstone/config/goldstone-dev.env \
+	docker/config/goldstone-prod.env=/opt/goldstone/config/goldstone-prod.env \
+	docker/config/goldstone-test.env=/opt/goldstone/config/goldstone-test.env \
 	docker/config/goldstone-search/templates/api_stats_template.json=/opt/goldstone/api_stats_template.json
 
 rpm_test:
