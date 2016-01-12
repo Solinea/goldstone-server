@@ -60,7 +60,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: this.specificHost,
             urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
-        });    
+        });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -76,12 +76,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             this.setZoomed(trueFalse);
         });
 
-        // set up a chain of events between viz and table to uddate
-        // table when updating viz.
-        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
-            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
-            self.logBrowserTable.update();
-        });
+
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
@@ -94,19 +91,25 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
             }
 
-            // subscribe tableCollection to click events on predefined
+            // stopListening to predefinedSearchModule upon close, if present
+            if (this.predefinedSearchModule !== undefined) {
+                this.viewsToStopListening.push(this.predefinedSearchModule);
+            }
+
+            // subscribe logBrowserViz to click events on predefined
             // search dropdown to fetch results.
-            this.logBrowserTable.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid){
-                this.predefinedSearch(uuid);
+            this.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid) {
+                self.logBrowserTable.predefinedSearch(uuid[1]);
+                self.logBrowserViz.predefinedSearch(uuid[0]);
             });
         }
 
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
-
-        // stopListening to predefinedSearchModule upon close, if present
-        if (this.predefinedSearchModule !== undefined) {
-            this.viewsToStopListening.push(this.predefinedSearchModule);
-        }
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
+        });
 
     },
 

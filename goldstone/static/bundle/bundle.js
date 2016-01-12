@@ -3294,7 +3294,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addInterval: function() {
-        var n;
+        var computedInterval;
         var start;
         var end;
 
@@ -3307,12 +3307,12 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         }
 
         // interval ratio of 1/20th the time span in seconds.
-        n = ((end - start) / 20000);
+        computedInterval = ((end - start) / 20000);
         // ensure a minimum of 0.5second interval
-        n = Math.max(0.5, n);
+        computedInterval = Math.max(0.5, computedInterval);
         // round to 3 decimal places
-        n = Math.round(n * 1000) / 1000;
-        return '&interval=' + n + 's';
+        computedInterval = Math.round(computedInterval * 1000) / 1000;
+        return '&interval=' + computedInterval + 's';
     },
 
     addCustom: function(custom) {
@@ -6387,9 +6387,16 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
         // the presence of a predefinedSearchUrl will take precidence
         // when creating a fetch url in the ajax.beforeSend routine.
-        this.predefinedSearchUrl = '/compliance/defined_search/' + uuid[0] + '/results/';
+        this.predefinedSearchUrl = uuid;
         oTable = $("#reports-result-table").DataTable();
-        oTable.ajax.reload();
+        oTable.ajax.reload(function() {
+            setTimeout(function() {
+
+                // manually retrigger column auto adjust which was not firing
+                oTable.columns.adjust().draw();
+            }, 10);
+
+        });
     },
 
     update: function() {
@@ -6649,6 +6656,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     // will prevent updating when zoom is active
     isZoomed: false,
 
+    predefinedSearch: function(payload) {
+        this.collection.reset();
+        this.collection.add(payload);
+        this.update();
+    },
+
     setZoomed: function(bool) {
         this.isZoomed = bool;
         this.collection.isZoomed = bool;
@@ -6678,12 +6691,14 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
@@ -6692,6 +6707,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             }
             this.showSpinner();
             this.constructUrl();
+            this.trigger('chartUpdate');
         });
 
     },
@@ -6829,6 +6845,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
         this.constructUrl();
+        this.trigger('chartUpdate');
         return;
     },
 
@@ -6842,7 +6859,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-
         // we use only the 'data' for the construction of the chart
         var data = collectionDataPayload.aggregations.per_interval.buckets;
 
@@ -6968,6 +6984,10 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
 
+        // clear viz
+        self.chart.selectAll('.component')
+            .remove();
+
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
             return;
@@ -7017,9 +7037,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 return self.sums(d);
             }))
         ]);
-
-        self.chart.selectAll('.component')
-            .remove();
 
         var component = self.chart.selectAll(".component")
             .data(components)
@@ -7144,7 +7161,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
-        this.trigger('chartUpdate');
+        // this.trigger('chartUpdate');
     },
 
     template: _.template(
@@ -7256,7 +7273,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: this.specificHost,
             urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
-        });    
+        });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -7266,10 +7283,15 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
-        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
-            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
-            self.logBrowserTable.update();
+        // set up listener between viz and table to setZoomed to 'true'
+        // when user triggers a saved search
+        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
+            this.setZoomed(trueFalse);
         });
+
+
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
@@ -7282,19 +7304,25 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
             }
 
-            // subscribe tableCollection to click events on predefined
+            // stopListening to predefinedSearchModule upon close, if present
+            if (this.predefinedSearchModule !== undefined) {
+                this.viewsToStopListening.push(this.predefinedSearchModule);
+            }
+
+            // subscribe logBrowserViz to click events on predefined
             // search dropdown to fetch results.
-            this.logBrowserTable.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid){
-                this.predefinedSearch(uuid);
+            this.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid) {
+                self.logBrowserTable.predefinedSearch(uuid[1]);
+                self.logBrowserViz.predefinedSearch(uuid[0]);
             });
         }
 
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
-
-        // stopListening to predefinedSearchModule upon close, if present
-        if (this.predefinedSearchModule !== undefined) {
-            this.viewsToStopListening.push(this.predefinedSearchModule);
-        }
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
+        });
 
     },
 
@@ -8792,14 +8820,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
-        // set up listener between viz and table to setZoomed to 'true'
-        // when user triggers a saved search
-        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
-            this.setZoomed(trueFalse);
-        });
-
-        // set up a chain of events between viz and table to uddate
-        // table when updating viz.
         this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
             self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
             self.logBrowserTable.update();

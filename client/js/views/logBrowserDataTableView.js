@@ -54,9 +54,16 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
         // the presence of a predefinedSearchUrl will take precidence
         // when creating a fetch url in the ajax.beforeSend routine.
-        this.predefinedSearchUrl = '/compliance/defined_search/' + uuid[0] + '/results/';
+        this.predefinedSearchUrl = uuid;
         oTable = $("#reports-result-table").DataTable();
-        oTable.ajax.reload();
+        oTable.ajax.reload(function() {
+            setTimeout(function() {
+
+                // manually retrigger column auto adjust which was not firing
+                oTable.columns.adjust().draw();
+            }, 10);
+
+        });
     },
 
     update: function() {
