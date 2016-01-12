@@ -592,3 +592,84 @@ class AlertSearchViewSet(ModelViewSet):
         else:
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
+
+
+class AlertSearchFilter(ElasticFilter):
+
+    @staticmethod
+    def _add_query(param, value, view, queryset, operation='match'):
+        """Return a query, preferring the raw field if available.
+
+        :param param: the field name in ES
+        :param value: the field value
+        :param view: the calling view
+        :param queryset: the base queryset
+        :param operation: the query operation
+        :return: the update Search object
+        :rtype Search
+
+        """
+        return queryset.query(operation, **{param: value})
+
+
+class AlertSearchViewSet(ModelViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    pagination_class = Pagination
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AlertSearchSerializer
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
+    ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
+                       'doc_type', 'last_start', 'last_end', 'created',
+                       'updated', 'target_interval')
+
+    class Meta:                     # pylint: disable=W0232,C1001
+        model = AlertSearch
+
+    def get_queryset(self):
+        return AlertSearch.objects.all()
+
+    @detail_route()
+    def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
+        """Return a defined search's results."""
+        from elasticsearch import Elasticsearch
+        from elasticsearch_dsl import Q
+        from goldstone.drfes.filters import ElasticFilter
+        from goldstone.drfes.pagination import ElasticPageNumberPagination
+        from goldstone.drfes.serializers import ReadOnlyElasticSerializer
+
+        # Get the model for the requested uuid
+        # query = ast.literal_eval(SavedSearch.objects.get(uuid=uuid).query)
+        obj = AlertSearch.objects.get(uuid=uuid)
+
+        # To use as much Goldstone code as possible, we now override the class
+        # to create a "drfes environment" for filtering, pagination, and
+        # serialization. We then create an elasticsearch_dsl Search object from
+        # the Elasticsearch query. DailyIndexDocType uses a "logstash-" index
+        # prefix.
+        self.pagination_class = ElasticPageNumberPagination
+        self.serializer_class = ReadOnlyElasticSerializer
+        # Do we need a separate one ? Can we reuse SavedSearchFilter ?
+        self.filter_backends = (AlertSearchFilter, )
+
+        # Tell ElasticFilter to not add these query parameters to the
+        # Elasticsearch query.
+        self.reserved_params = []                    # pylint: disable=W0201
+
+        queryset = obj.search()
+        queryset = self.filter_queryset(queryset)
+
+        # Perform the search and paginate the response.
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+

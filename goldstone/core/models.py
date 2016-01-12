@@ -2665,6 +2665,7 @@ class AlertSearch(SavedSearch):
     # TBD : Any fields unique to AlertSearch ?
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
+
         verbose_name_plural = "saved searches with alerts"
 
 
@@ -2679,6 +2680,7 @@ class AlertObj(models.Model):
     owner = models.CharField(max_length=64, default='goldstone')
     description = models.CharField(max_length=1024,
                                    default='Alert object instance')
+    description = models.CharField(max_length=1024, default='Alert object instance')
     sender = models.CharField(max_length=64, default='goldstone')
     receiver = models.CharField(max_length=64, default='goldstone')
     subject = models.CharField(max_length=64, default='Alert notification')

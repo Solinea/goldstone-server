@@ -87,7 +87,6 @@ def update_persistent_graph():
     update_keystone_nodes()
     update_nova_nodes()
 
-
 @celery_app.task()
 def expire_auth_tokens():
     """Expire authorization tokens.
