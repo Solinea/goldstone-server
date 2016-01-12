@@ -26,7 +26,7 @@ msgid "Add-ons"
 msgstr "アドオン"
 
 #: addonMenuView.js
-msgid "compliance"
+msgid "Compliance"
 msgstr "コンプライアンス"
 
 #: addonMenuView.js
@@ -154,6 +154,10 @@ msgstr "終了"
 msgid "Interval"
 msgstr "間隔"
 
+#: apiPerfView.js
+msgid "seconds"
+msgstr "秒"
+
 #: base.html
 
 #: base.html
@@ -216,6 +220,57 @@ msgstr "コピーライト"
 msgid "License"
 msgstr "ライセンス"
 
+#: base.html
+#. refers to site-wide settings
+msgid "Settings"
+msgstr ""
+
+#: base.html
+#. refers to a link to customer support
+msgid "Help"
+msgstr ""
+
+#: base.html
+#. link to external site
+msgid "Google Groups"
+msgstr ""
+
+#: base.html
+#. link to github repo
+msgid "Github"
+msgstr ""
+
+#: base.html
+#. logout of site
+msgid "Logout"
+msgstr ""
+
+#: base.html
+#. side-menu icon
+msgid "Dashboard"
+msgstr ""
+
+#: base.html
+#. click to open alert menu, and heading for column of alerts
+msgid "Alerts"
+msgstr ""
+
+#: base.html
+#. side-menu icon to view cloud topology graph
+msgid "Topology"
+msgstr ""
+
+#: base.html
+#. side-menu icon to collapse expanded menu
+msgid "Icons Only"
+msgstr ""
+
+#: base.html
+#. alerts menu column header for unread alerts
+msgid "Unread"
+msgstr ""
+
+
 #: chartHeaderView.js
 msgid "Set Chart Title"
 msgstr "表名を設定"
@@ -223,6 +278,57 @@ msgstr "表名を設定"
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr "InfoButtonText.jsに設定"
+
+#: addons
+
+#: compliance addon
+msgid ""
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "Predefined Searches"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "failed authorization"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "stack traces"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance creation failed"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "cinder volume created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "database problems"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "image uploaded"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "queue failures"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova usage audits"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova claim request"
+msgstr ""
+
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
