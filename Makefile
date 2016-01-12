@@ -42,7 +42,7 @@ DEBFILENAME=`bin/semver.sh debname`
 #     * rpm_collect (copies the RPMs from the container to local FS)
 ###########################################################################
 
-.PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse gse_native rpm_native version
+.PHONY: clean rpm rpm_container rpm_collect rpm_build rpm_test gse gse_native rpm_native version test
 
 default: clean rpm
 
@@ -140,3 +140,16 @@ rpm_collect:
 	mkdir -p $(RHBINDIR)
 	docker cp $(DOCKER_CONTAINER_NAME):/tmp/goldstone-server/$(RPMFILENAME) $(RHBINDIR)
 	file $(RHBINDIR)/*
+
+test:
+	if [ $(USE_CONTAINER) ]; then \
+		if [ `bin/check_for_containers.sh goldstoneserver_gsappdev_1` -gt 0 ] ; \
+			then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
+		docker exec goldstoneserver_gsappdev_1 python manage.py test \
+	else \
+		python manage.py test; \
+	fi
+
+cover:
+	coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' \
+		manage.py test goldstone --settings=goldstone.settings.docker_dev

@@ -17,9 +17,9 @@ EPOCH=$(date +%s)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION=$(git describe --tags | cut -f1 -d'-')
 if [[ $GIT_BRANCH == 'master' ]] ; then
-  RELEASE=$(git describe --tags | cut -f2 -d'-')
+  RELEASE=$(git describe --match [0-9].[0-9].[0-9] --tags | cut -f2 -d'-')
 else
-  COMMIT_DETAIL=$(git describe --long --tags --always | cut -f2- -d'-' | sed -e 's/-/./g')
+  COMMIT_DETAIL=$(git describe --long --tags --always --match [0-9].[0-9].[0-9] | cut -f2- -d'-' | sed -e 's/-/./g')
   RELEASE="SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}"
 fi
 BINARY_NAME=${2:-goldstone-server}
