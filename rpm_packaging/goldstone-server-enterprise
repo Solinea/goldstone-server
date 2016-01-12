@@ -3,10 +3,10 @@
 case $1 in
   start)
     if [ -z "$GOLDSTONE_REPO_USER" ] || [ -z "$GOLDSTONE_REPO_PASS" ] || [ -z "$GOLDSTONE_REPO_USER" ]; then
-	echo "GOLDSTONE_REPO_USER, GOLDSTONE_REPO_PASS, and GOLDSTONE_REPO_EMAIL environment variables must be set:"
-	echo "  $ export GOLDSTONE_REPO_USER=myusername"
-	echo "  $ export GOLDSTONE_REPO_PASS=myrepopassword"
-	echo "  $ export GOLDSTONE_REPO_EMAIL=me@myemaildomain.com"
+    	echo "GOLDSTONE_REPO_USER, GOLDSTONE_REPO_PASS, and GOLDSTONE_REPO_EMAIL environment variables must be set:"
+    	echo "  $ export GOLDSTONE_REPO_USER=myusername"
+    	echo "  $ export GOLDSTONE_REPO_PASS=myrepopassword"
+    	echo "  $ export GOLDSTONE_REPO_EMAIL=me@myemaildomain.com"
   	exit 1
     fi
     echo "Logging in to Goldstone enterprise docker repo"
