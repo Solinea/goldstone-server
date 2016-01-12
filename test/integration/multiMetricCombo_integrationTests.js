@@ -235,12 +235,12 @@ describe('stackedAreaCollection.js spec', function() {
                 results: [1, 2, 3]
             };
             var test1 = this.testCollection.parse(test);
-            expect(this.testCollection.urlCollectionCount).to.equal(1);
+            expect(this.testCollection.urlCollectionCount).to.equal(0);
             expect(test1).to.deep.equal({
                 monkeys: 'bananas',
                 next: 'rotten/core/apples/llamas.html',
                 results: [1, 2, 3],
-                metricSource: 'os.mem.lippy'
+                metricSource: 'os.mem.zippy'
             });
             test = {
                 monkeys: 'bananas',
@@ -248,12 +248,12 @@ describe('stackedAreaCollection.js spec', function() {
                 results: [1, 2, 3]
             };
             var test2 = this.testCollection.parse(test);
-            expect(this.testCollection.urlCollectionCount).to.equal(0);
+            expect(this.testCollection.urlCollectionCount).to.equal(-1);
             expect(test2).to.deep.equal({
                 monkeys: 'bananas',
                 next: null,
                 results: [1, 2, 3],
-                metricSource: 'os.mem.zippy'
+                metricSource: undefined
             });
         });
     });

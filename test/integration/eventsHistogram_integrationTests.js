@@ -48,85 +48,27 @@ describe('eventsHistogramCollection.js spec', function() {
             $('body').append('<option id="global-lookback-range" value=60>');
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.testCollection.url).to.equal('/core/events/summarize/?timestamp__range={"gte":0,"lte":3600000}&interval=150s');
+            expect(this.testCollection.url).to.equal('/core/events/?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page_size=1');
 
             this.clock.restore();
 
         });
         it('returns preProcessData', function() {
             var test1 = this.testCollection.preProcessData({
-                data: [{
-                    14344732500: [{
-                        "blah.dee.da": 12
-                    }]
-                }]
+                aggregations: {
+                    per_interval: {
+                        buckets: [{
+                            key: 14344732500,
+                            doc_count: 1234
+                        }]
+                    }
+                }
+
             });
             expect(test1).to.deep.equal([{
-                "blah.dee.da": 12,
                 "time": 14344732500,
-                "count": 12
+                "count": 1234
             }]);
-
-            test1 = this.testCollection.preProcessData({
-                data: [{
-                    14344732500: [{
-                        "blah.dee.da": 12
-                    }, {
-                        "blah.dee.da": 14
-                    }]
-                }]
-            });
-
-            // overwrites key if duplicated in bucket
-            expect(test1).to.deep.equal([{
-                "blah.dee.da": 14,
-                "time": 14344732500,
-                "count": 14
-            }]);
-
-            test1 = this.testCollection.preProcessData({
-                data: [{
-                    14344732500: [{
-                        "blah.dee.da": 12
-                    }, {
-                        "blah.dee.daa": 14
-                    }]
-                }]
-            });
-            expect(test1).to.deep.equal([{
-                "blah.dee.da": 12,
-                "blah.dee.daa": 14,
-                "time": 14344732500,
-                "count": 26
-            }]);
-
-            test1 = this.testCollection.preProcessData({
-                data: [{
-                    14344732500: [{
-                        "blah.dee.da": 12
-                    }, {
-                        "blah.dee.daa": 14
-                    }]
-                }, {
-                    14344732600: [{
-                        "blah.dee.da": 0
-                    }, {
-                        "blah.dee.daa": 1
-                    }]
-                }]
-            });
-            expect(test1).to.deep.equal([{
-                "blah.dee.da": 12,
-                "blah.dee.daa": 14,
-                "time": 14344732500,
-                "count": 26
-            }, {
-                "blah.dee.da": 0,
-                "blah.dee.daa": 1,
-                "time": 14344732600,
-                "count": 1
-            }]);
-
         });
     });
 

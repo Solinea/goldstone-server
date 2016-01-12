@@ -53,67 +53,79 @@ describe('eventsBrowserTableCollection.js spec', function() {
     describe('test view methods', function() {
         it('should properly preprocess data', function() {
             var testData = [{
-                'id': 'hello',
-                'doc_type': 'hi',
-                'timestamp': 'timestamp',
-                'user_name': 'Unknown',
+                "_score": 1.0,
+                "_type": "identity.authenticate",
+                "_id": "e5934937-f3c8-49e0-b8cf-4a579b03f9a3",
+                "_source": {
+                    "traits": {
+                        "typeURI": "http://schemas.dmtf.org/cloud/audit/1.0/event",
+                        "eventTime": "2016-01-12T00:12:00.532551 0000",
+                        "initiator_typeURI": "service/security/account/user",
+                        "service": "identity.base.pepple.info",
+                        "eventType": "activity",
+                        "target_id": "openstack:cf9173d0-5e00-4db8-b4b9-2376159ac40a",
+                        "observer_id": "openstack:e4a2b8e3-cbae-44e7-a799-02b93b450b63",
+                        "initiator_id": "e70fcebd828349ca8f1393e62ac87756",
+                        "target_typeURI": "service/security/account/user",
+                        "observer_typeURI": "service/security",
+                        "action": "authenticate",
+                        "initiator_host_addr": "172.24.4.1",
+                        "initiator_host_agent": "python-keystoneclient",
+                        "outcome": "success",
+                        "id": "openstack:656a9962-27f7-43ed-a7df-9ce3060e5193"
+                    },
+                    "raw": {},
+                    "timestamp": "2016-01-12T00:12:00.532743"
+                },
+                "_index": "events_2016-01-12"
             }];
             var test1 = this.testView.preprocess(testData);
             expect(test1).to.deep.equal([{
-                id: 'hello',
-                type: 'hi',
-                timestamp: 'timestamp',
-                traits: undefined,
-                user_name: 'Unknown',
-                user_type: undefined,
-                tenant_name: undefined,
-                tenant_type: undefined,
-                instance_name: undefined,
-                instance_type: undefined
+                "typeURI": "http://schemas.dmtf.org/cloud/audit/1.0/event",
+                "eventTime": "2016-01-12T00:12:00.532551 0000",
+                "initiator_typeURI": "service/security/account/user",
+                "service": "identity.base.pepple.info",
+                "eventType": "activity",
+                "target_id": "openstack:cf9173d0-5e00-4db8-b4b9-2376159ac40a",
+                "observer_id": "openstack:e4a2b8e3-cbae-44e7-a799-02b93b450b63",
+                "initiator_id": "e70fcebd828349ca8f1393e62ac87756",
+                "target_typeURI": "service/security/account/user",
+                "observer_typeURI": "service/security",
+                "action": "authenticate",
+                "initiator_host_addr": "172.24.4.1",
+                "initiator_host_agent": "python-keystoneclient",
+                "outcome": "success",
+                "id": "openstack:656a9962-27f7-43ed-a7df-9ce3060e5193"
             }]);
 
-            testData = [{}];
-
-            test1 = this.testView.preprocess(testData);
-            expect(test1).to.deep.equal([{
-                id: undefined,
-                type: undefined,
-                timestamp: undefined,
-                traits: undefined,
-                user_name: undefined,
-                user_type: undefined,
-                tenant_name: undefined,
-                tenant_type: undefined,
-                instance_name: undefined,
-                instance_type: undefined,
-            }]);
-
-            testData = [{
-                id: 'a',
-                doc_type: 'b',
-                timestamp: 'c',
-                traits: 'd',
-                user_name: 'e',
-                user_type: 'f',
-                tenant_name: 'g',
-                tenant_type: 'h',
-                instance_name: 'i',
-                instance_type: 'j',
-            }];
-
-            test1 = this.testView.preprocess(testData);
-            expect(test1).to.deep.equal([{
-                id: 'a',
-                type: 'b',
-                timestamp: 'c',
-                traits: 'd',
-                user_name: 'e',
-                user_type: 'f',
-                tenant_name: 'g',
-                tenant_type: 'h',
-                instance_name: 'i',
-                instance_type: 'j',
-            }]);
+            this.testCollection.reset();
+            this.testCollection.add({
+                "_score": 1.0,
+                "_type": "identity.authenticate",
+                "_id": "e5934937-f3c8-49e0-b8cf-4a579b03f9a3",
+                "_source": {
+                    "traits": {
+                        "typeURI": "http://schemas.dmtf.org/cloud/audit/1.0/event",
+                        "eventTime": "2016-01-12T00:12:00.532551 0000",
+                        "initiator_typeURI": "service/security/account/user",
+                        "service": "identity.base.pepple.info",
+                        "eventType": "activity",
+                        "target_id": "openstack:cf9173d0-5e00-4db8-b4b9-2376159ac40a",
+                        "observer_id": "openstack:e4a2b8e3-cbae-44e7-a799-02b93b450b63",
+                        "initiator_id": "e70fcebd828349ca8f1393e62ac87756",
+                        "target_typeURI": "service/security/account/user",
+                        "observer_typeURI": "service/security",
+                        "action": "authenticate",
+                        "initiator_host_addr": "172.24.4.1",
+                        "initiator_host_agent": "python-keystoneclient",
+                        "outcome": "success",
+                        "id": "openstack:656a9962-27f7-43ed-a7df-9ce3060e5193"
+                    },
+                    "raw": {},
+                    "timestamp": "2016-01-12T00:12:00.532743"
+                },
+                "_index": "events_2016-01-12"
+            });
 
             this.testView.update();
         });
@@ -128,7 +140,7 @@ describe('eventsBrowserTableCollection.js spec', function() {
             $('body').append('<option id="global-lookback-range" value=60>');
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.testCollection.url).to.equal('/core/events/search/?timestamp__range={"gte":0,"lte":3600000}&page_size=1000');
+            expect(this.testCollection.url).to.equal('/core/events/?timestamp__range={"gte":0,"lte":3600000}&page_size=1000');
 
             this.clock.restore();
 

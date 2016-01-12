@@ -39,10 +39,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         "discover": "discover",
         "help": "help",
         "metrics/api_perf": "apiPerfReport",
-        "metrics/metric_report": "metricViewer",
-        "metrics/metric_report/": "metricViewer",
-        "metrics/metric_report/:numCharts": "metricViewer",
-        "metrics/nova_report": "novaReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
@@ -159,18 +155,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    metricViewer: function(numCharts) {
-        if (numCharts === null || numCharts === undefined) {
-            numCharts = 6;
-        }
-        numCharts = parseInt(numCharts, 10);
-        if (numCharts > 6 || numCharts < 1) {
-            numCharts = 6;
-        }
-        this.switchView(MetricViewerPageView, {
-            numCharts: numCharts
-        });
-    },
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
@@ -178,9 +162,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(NodeReportView, {
             node_uuid: nodeId
         });
-    },
-    novaReport: function() {
-        this.switchView(NovaReportView);
     },
     redirect: function() {
         location.href = "#metrics/topology";
