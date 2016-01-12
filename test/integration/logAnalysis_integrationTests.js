@@ -42,7 +42,7 @@ describe('logAnalysis.js spec', function() {
 
 
         this.testCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/'
+            urlBase: '/core/logs/'
         });
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
@@ -54,41 +54,120 @@ describe('logAnalysis.js spec', function() {
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.testCollection.reset();
         this.testCollection.add({
-            "timestamps": [1427474584000, 1427474585000],
-            "levels": ["INFO", "WARNING", "ALERT", "CRITICAL", "ERROR", "NOTICE"],
-            "data": [{
-                    "1427474584000": [{
-                        "INFO": 100
+            "count": 7322,
+            "next": "http://localhost:8000/core/logs/?%40timestamp__range=%7B%22gte%22%3A1452554745165%2C%22lte%22%3A1452555645165%7D&page=2&page_size=10&syslog_severity__terms=%5B%22emergency%22%2C%22alert%22%2C%22critical%22%2C%22error%22%2C%22warning%22%2C%22notice%22%2C%22info%22%2C%22debug%22%5D",
+            "previous": null,
+            "results": [{
+                "_score": 0.17027496,
+                "_type": "syslog",
+                "_id": "AVIzCDIE63t9WoN3hcin",
+                "_source": {
+                    "event_type": "OpenStackSyslogError",
+                    "@timestamp": "2016-01-11T23:32:00.979Z",
+                    "pid": 2861,
+                    "syslog_facility": "local2",
+                    "syslog_ts": "2016-01-11T23:32:00.979158+00:00",
+                    "received_at": "2016-01-11T23:32:00.990Z",
+                    "message": "<147>2016-01-11T23:32:00.979158+00:00 base.pepple.info journal: 2016-01-11 23:32:00.970 2861 ERROR neutron.agent.l3.agent [-] Failed to process compatible router '840c806e-c2e8-4c1e-b566-e7d985689b46'\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Traceback (most recent call last):\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 465, in _process_router_update\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     self._process_router_if_compatible(router)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 401, in _process_router_if_compatible\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     target_ex_net_id = self._fetch_external_net_id()\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 281, in _fetch_external_net_id\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     raise Exception(msg)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Exception: The 'gateway_external_network_id' option must be configured for this agent as Neutron has more than one external network.",
+                    "syslog5424_host": "base.pepple.info",
+                    "port": 36576,
+                    "syslog_facility_code": 18,
+                    "syslog_severity_code": 3,
+                    "program": "neutron.agent.l3.agent",
+                    "syslog5424_pri": "147",
+                    "type": "syslog",
+                    "openstack_message": "Failed to process compatible router '840c806e-c2e8-4c1e-b566-e7d985689b46'\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Traceback (most recent call last):\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 465, in _process_router_update\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     self._process_router_if_compatible(router)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 401, in _process_router_if_compatible\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     target_ex_net_id = self._fetch_external_net_id()\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 281, in _fetch_external_net_id\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     raise Exception(msg)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Exception: The 'gateway_external_network_id' option must be configured for this agent as Neutron has more than one external network.",
+                    "tags": ["multiline", "filter_16_fail", "filter_20_pass", "openstack_syslog", "filter_34_pass"],
+                    "timestamp": "2016-01-11 23:32:00.970",
+                    "component": "neutron",
+                    "host": "base.pepple.info",
+                    "log_message": "journal: 2016-01-11 23:32:00.970 2861 ERROR neutron.agent.l3.agent [-] Failed to process compatible router '840c806e-c2e8-4c1e-b566-e7d985689b46'\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Traceback (most recent call last):\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 465, in _process_router_update\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     self._process_router_if_compatible(router)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 401, in _process_router_if_compatible\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     target_ex_net_id = self._fetch_external_net_id()\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent   File \"/usr/lib/python2.7/site-packages/neutron/agent/l3/agent.py\", line 281, in _fetch_external_net_id\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent     raise Exception(msg)\n2016-01-11 23:32:00.970 2861 TRACE neutron.agent.l3.agent Exception: The 'gateway_external_network_id' option must be configured for this agent as Neutron has more than one external network.",
+                    "syslog_severity": "ERROR",
+                    "request_id_list": "[-]",
+                    "loglevel": "ERROR",
+                    "@version": "1"
+                },
+                "_index": "logstash-2016.01.11"
+            }, {
+                "_score": 0.17027496,
+                "_type": "syslog",
+                "_id": "AVIzCKuK63t9WoN3hcms",
+                "_source": {
+                    "syslog_severity_code": 3,
+                    "syslog5424_host": "base.pepple.info",
+                    "event_type": "GenericSyslogError",
+                    "tags": ["filter_16_fail", "filter_20_pass", "filter_34_fail"],
+                    "@version": "1",
+                    "@timestamp": "2016-01-11T23:32:32.222Z",
+                    "syslog5424_pri": "155",
+                    "syslog_facility": "local3",
+                    "syslog_severity": "ERROR",
+                    "host": "base.pepple.info",
+                    "syslog_ts": "2016-01-11T23:32:32.222309+00:00",
+                    "received_at": "2016-01-11T23:32:32.226Z",
+                    "log_message": "journal: Couldn't obtain IP address of instance f92fde66-5232-44b0-bd7d-25f6263b2dcc",
+                    "message": "<155>2016-01-11T23:32:32.222309+00:00 base.pepple.info journal: Couldn't obtain IP address of instance f92fde66-5232-44b0-bd7d-25f6263b2dcc",
+                    "type": "syslog",
+                    "port": 36576,
+                    "syslog_facility_code": 19
+                },
+                "_index": "logstash-2016.01.11"
+            }],
+            "aggregations": {
+                "all_levels": {
+                    "buckets": [{
+                        "key": "INFO",
+                        "doc_count": 100
                     }, {
-                        "NOTICE": 50
+                        "key": "WARNING",
+                        "doc_count": 20
                     }, {
-                        "WARNING": 20
-                    }]
-                }, {
-                    "1427474585000": [{
-                        "WARNING": 20
+                        "key": "NOTICE",
+                        "doc_count": 50
                     }, {
-                        "INFO": 30
+                        "key": "ERROR",
+                        "doc_count": 0
                     }, {
-                        "NOTICE": 40
-                    }]
-                }, {
-                    "1427474586000": [{
-                        "ERROR": 20
-                    }, {
-                        "DEBUG": 30
-                    }, {
-                        "CRITICAL": 40
+                        "key": "DEBUG",
+                        "doc_count": 0
+                    }],
+                    "sum_other_doc_count": 0,
+                    "doc_count_error_upper_bound": 0
+                },
+                "per_interval": {
+                    "buckets": [{
+                        "per_level": {
+                            "buckets": [{
+                                "key": "INFO",
+                                "doc_count": 100
+                            }, {
+                                "key": "WARNING",
+                                "doc_count": 20
+                            }, {
+                                "key": "NOTICE",
+                                "doc_count": 50
+                            }, {
+                                "key": "ERROR",
+                                "doc_count": 0
+                            }, {
+                                "key": "DEBUG",
+                                "doc_count": 0
+                            }],
+                            "sum_other_doc_count": 0,
+                            "doc_count_error_upper_bound": 0
+                        },
+                        "key_as_string": "2016-01-11T00:00:00.000Z",
+                        "key": 1427474584000,
+                        "doc_count": 7322
                     }]
                 }
-            ]
+            }
         });
 
     });
@@ -138,40 +217,17 @@ describe('logAnalysis.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
             var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal({
-                "finalData": [{
-                    "INFO": 100,
-                    "NOTICE": 50,
-                    "WARNING": 20,
-                    "EMERGENCY": 0,
-                    "ALERT": 0,
-                    "CRITICAL": 0,
-                    "ERROR": 0,
-                    "DEBUG": 0,
-                    "date": "1427474584000"
-                }, {
-                    "WARNING": 20,
-                    "INFO": 30,
-                    "NOTICE": 40,
-                    "EMERGENCY": 0,
-                    "ALERT": 0,
-                    "CRITICAL": 0,
-                    "ERROR": 0,
-                    "DEBUG": 0,
-                    "date": "1427474585000"
-                }, {
-                    "WARNING": 0,
-                    "INFO": 0,
-                    "NOTICE": 0,
-                    "EMERGENCY": 0,
-                    "ALERT": 0,
-                    "CRITICAL": 40,
-                    "ERROR": 20,
-                    "DEBUG": 30,
-                    "date": "1427474586000"
-                }],
-                "logLevels": ["INFO", "WARNING", "ALERT", "CRITICAL", "ERROR", "NOTICE"]
-            });
+            expect(test1).to.deep.equal([{
+                INFO: 100,
+                WARNING: 20,
+                NOTICE: 50,
+                ERROR: 0,
+                DEBUG: 0,
+                EMERGENCY: 0,
+                ALERT: 0,
+                CRITICAL: 0,
+                date: 1427474584000
+            }]);
         });
     });
 
@@ -242,11 +298,11 @@ describe('logAnalysis.js spec', function() {
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
             // should construct url
-            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
             this.testView.trigger('lookbackIntervalReached', [1000, 2000]);
-            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
             this.testView.trigger('lookbackIntervalReached', [1421428385868, 1421438385868]);
-            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
             expect(this.testCollection.url).to.include('&interval=');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             // should not construct url
@@ -271,14 +327,14 @@ describe('logAnalysis.js spec', function() {
             this.testView.update();
             // no mult
             this.testView.paintNewChart([time1, time2]);
-            expect(this.testCollection.url).to.include('/logging/summarize/?@timestamp__range={"gte":');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
             expect(this.testCollection.url).to.include('}&interval=0.5s');
             // mult >= 1
             this.testView.paintNewChart([time1, time2], 10);
-            expect(this.testCollection.url).to.equal('/logging/summarize/?@timestamp__range={"gte":1427474583793,"lte":1427474586193}&interval=0.5s&per_host=False');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
             // mult < 1
             this.testView.paintNewChart([time1, time2], 0.5);
-            expect(this.testCollection.url).to.equal('/logging/summarize/?@timestamp__range={"gte":1427474581993,"lte":1427474589993}&interval=0.5s&per_host=False');
+            expect(this.testCollection.url).to.include('/core/logs/?@timestamp__range={"gte":');
         });
     });
 });

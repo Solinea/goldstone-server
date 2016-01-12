@@ -25,7 +25,7 @@ this.novaApiPerfChart = new ApiPerfCollection({
 var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
     preProcessData: function(data) {
-        if (data && data.aggregations.per_interval.buckets) {
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
             return data.aggregations.per_interval.buckets;
         } else {
             return [];
