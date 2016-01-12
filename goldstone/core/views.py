@@ -494,7 +494,6 @@ class SavedSearchViewSet(ModelViewSet):
         # buckets go back to the start time.
         time_range_param = obj.timestamp_field + "__range"
         if time_range_param in request.query_params:
-            logger.info('query params[tr] = %s' % request.query_params[time_range_param])
             json = literal_eval(request.query_params[time_range_param])
             if 'gt' in json:
                 queryset.aggs.aggs['per_interval'].extended_bounds = {
