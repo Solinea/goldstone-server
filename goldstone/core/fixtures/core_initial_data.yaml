@@ -259,3 +259,37 @@
    }
 }'
 
+  - model: core.AlertSearch
+    pk: 4c010ac2-d437-460a-a6cf-5234eceff5b2
+    fields:
+      name: openstack syslog errors
+      owner: core
+      index_prefix: logstash-*
+      doc_type: syslog
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "prefix": {
+         "event_type__raw": "OpenStackSyslogError"
+      }
+   },
+   "aggs": {
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_level": {
+               "terms": {
+                  "field": "syslog_severity.raw",
+                  "min_doc_count": 0,
+                  "size": 0
+               }
+            }
+         }
+      }
+   }
+}'
