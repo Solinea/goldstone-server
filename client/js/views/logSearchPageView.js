@@ -70,6 +70,14 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
+        // set up listener between viz and table to setZoomed to 'true'
+        // when user triggers a saved search
+        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
+            this.setZoomed(trueFalse);
+        });
+
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
         this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
             self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
             self.logBrowserTable.update();
@@ -85,6 +93,12 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
             }
+
+            // subscribe tableCollection to click events on predefined
+            // search dropdown to fetch results.
+            this.logBrowserTable.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid){
+                this.predefinedSearch(uuid);
+            });
         }
 
         this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
