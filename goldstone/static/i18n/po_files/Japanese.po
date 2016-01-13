@@ -32,17 +32,17 @@ msgstr "コンプライアンス"
 #: addonMenuView.js
 #. do not translate
 msgid "yourapp"
-msgstr “アプリ”
+msgstr "アプリ"
 
 #: addonMenuView.js
 #. do not translate
 msgid "myroute 1"
-msgstr “経路1”
+msgstr "経路1"
 
 #: addonMenuView.js
 #. do not translate
 msgid "myroute 2"
-msgstr “経路2”
+msgstr "経路2"
 
 #: addonMenuView.js
 msgid "Refresh browser and/or log in to complete addon installation process."
@@ -223,17 +223,17 @@ msgstr "ライセンス"
 #: base.html
 #. refers to site-wide settings
 msgid "Settings"
-msgstr “設定”
+msgstr "設定"
 
 #: base.html
 #. refers to a link to customer support
 msgid "Help"
-msgstr “ヘルプ”
+msgstr "ヘルプ"
 
 #: base.html
 #. link to external site
 msgid "Google Groups"
-msgstr “Googleグループ”
+msgstr "Googleグループ"
 
 #: base.html
 #. link to github repo
@@ -243,32 +243,32 @@ msgstr "Github"
 #: base.html
 #. logout of site
 msgid "Logout"
-msgstr “ログアウト”
+msgstr "ログアウト"
 
 #: base.html
 #. side-menu icon
 msgid "Dashboard"
-msgstr “ダッシュボード”
+msgstr "ダッシュボード"
 
 #: base.html
 #. click to open alert menu, and heading for column of alerts
 msgid "Alerts"
-msgstr “アラート”
+msgstr "アラート"
 
 #: base.html
 #. side-menu icon to view cloud topology graph
 msgid "Topology"
-msgstr “トポロジー”
+msgstr "トポロジー"
 
 #: base.html
 #. side-menu icon to collapse expanded menu
 msgid "Icons Only"
-msgstr “アイコンのみ”
+msgstr "アイコンのみ"
 
 #: base.html
 #. alerts menu column header for unread alerts
 msgid "Unread"
-msgstr “未読”
+msgstr "未読"
 
 
 #: chartHeaderView.js
@@ -283,47 +283,47 @@ msgstr "InfoButtonText.jsに設定"
 
 #: predefinedSearchView.js
 msgid "Predefined Searches"
-msgstr “事前設定検索”
+msgstr "事前設定検索"
 
 #: predefinedSearchView.js
 msgid "failed authorization"
-msgstr “認証に失敗しました”
+msgstr "認証に失敗しました"
 
 #: predefinedSearchView.js
 msgid "stack traces"
-msgstr “スタックトレース”
+msgstr "スタックトレース"
 
 #: predefinedSearchView.js
 msgid "nova instance created"
-msgstr “Novaサーバが作成されました”
+msgstr "Novaサーバが作成されました"
 
 #: predefinedSearchView.js
 msgid "nova instance creation failed"
-msgstr “Novaサーバの作成に失敗しました”
+msgstr "Novaサーバの作成に失敗しました"
 
 #: predefinedSearchView.js
 msgid "cinder volume created"
-msgstr “Cinderボリュームが作成されました”
+msgstr "Cinderボリュームが作成されました"
 
 #: predefinedSearchView.js
 msgid "database problems"
-msgstr “データベースで問題が発生しました”
+msgstr "データベースで問題が発生しました"
 
 #: predefinedSearchView.js
 msgid "image uploaded"
-msgstr “イメージアップロード”
+msgstr "イメージアップロード"
 
 #: predefinedSearchView.js
 msgid "queue failures"
-msgstr “キューの処理に失敗しました”
+msgstr "キューの処理に失敗しました"
 
 #: predefinedSearchView.js
 msgid "nova usage audits"
-msgstr “Nova使用量監査”
+msgstr "Nova使用量監査"
 
 #: predefinedSearchView.js
 msgid "nova claim request"
-msgstr “Novaリクエスト”
+msgstr "Novaリクエスト"
 
 
 #: dataTable plugin
@@ -1572,7 +1572,7 @@ msgstr "暗い"
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Collapse"
-msgstr “折りたたむ"
+msgstr "折りたたむ"
 
 #: settingsPageView.js
 msgctxt "settingspage"
