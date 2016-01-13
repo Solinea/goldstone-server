@@ -85,7 +85,17 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             if (goldstone.compliance.PredefinedSearchView) {
                 this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
                     className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul'
+                    tagName: 'ul',
+                    collection: new GoldstoneBaseCollection({
+                        skipFetch: true,
+                        urlBase: '',
+                        addRange: function() {
+                            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                        },
+                        addInterval: function(interval) {
+                            return '&interval=' + interval + 's';
+                        },
+                    })
                 });
 
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
@@ -98,9 +108,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
             // subscribe logBrowserViz to click events on predefined
             // search dropdown to fetch results.
-            this.listenTo(this.predefinedSearchModule, 'clickedUuid', function(uuid) {
-                self.logBrowserTable.predefinedSearch(uuid[1]);
+            this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+                // self.logBrowserTable.predefinedSearch(uuid[1]);
                 self.logBrowserViz.predefinedSearch(uuid[0]);
+            });
+            this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+                self.logBrowserTable.predefinedSearch(uuid[1]);
+                // self.logBrowserViz.predefinedSearch(uuid[0]);
             });
         }
 
