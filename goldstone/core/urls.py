@@ -33,13 +33,13 @@ urlpatterns += patterns(
     url(r'^resources/$', ResourcesList.as_view()),
     url(r'^resources/(?P<uuid>.+)/$', ResourcesRetrieve.as_view()),
     url(r'^logs/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid':'55b19303-4fd2-4216-95cb-75a4f39b763c'}),
+        {'get': 'results'}), {'uuid': '55b19303-4fd2-4216-95cb-75a4f39b763c'}),
     url(r'^api-calls/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid':'18936ecd-11f5-413c-9e70-fc9a7dd037e3'}),
+        {'get': 'results'}), {'uuid': '18936ecd-11f5-413c-9e70-fc9a7dd037e3'}),
     url(r'^events/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid':'7906893c-16dc-4ab3-96e0-8f0054bd4cc1'}),
+        {'get': 'results'}), {'uuid': '7906893c-16dc-4ab3-96e0-8f0054bd4cc1'}),
     url(r'^metrics/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid':'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+        {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
     url(r'^agent/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid':'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+        {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
 )
