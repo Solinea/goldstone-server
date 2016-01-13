@@ -19,6 +19,9 @@ from .docker import *            # pylint: disable=W0614,W0401
 DEBUG = bool(os.environ.get('GS_DEBUG', True))
 TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
 
+# tell nose to destroy the DB after test runs
+os.environ['REUSE_DB'] = "0"
+
 STATIC_ROOT = os.path.join(os.getcwd(), 'static')
 
 INSTALLED_APPS += (
@@ -30,7 +33,4 @@ NOSE_ARGS = (
     '--detailed-errors',
     '--with-xunit',
     '--xunit-file=/reports/nosetests.xml',
-    '--with-coverage',
-    '--cover-package=goldstone',
-    '--cover-xml',
 )
