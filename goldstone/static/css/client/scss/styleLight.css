@@ -254,7 +254,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard .content.open { margin-left: 206px; }
 
-.dashboard h3 { font-size: 24px; color: #424242; margin: 0 0 5px; border-radius: 8px 8px 0 0; }
+.dashboard h3 { font-size: 24px; color: #424242; margin: 0 -0.5em 5px; border-radius: 8px 8px 0 0; }
 
 .setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin-left: 3px; }
 
@@ -268,9 +268,9 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table .table-header { font-size: 16px; color: #ffffff; background: #424242; }
 
-.service-status-table .service { width: 59%; float: left; }
+.service-status-table .service { width: 60%; float: left; }
 
-.service-status-table .sf, .service-status-table .nm { width: 15%; float: left; text-transform: uppercase; min-width: 25px; }
+.service-status-table .sf, .service-status-table .nm { width: 15%; float: left; min-width: 25px; }
 
 .service-status-table .sf { margin-right: 9%; }
 

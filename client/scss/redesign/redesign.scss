@@ -185,7 +185,7 @@ body {
 .dashboard h3 {
     font-size: 24px;
     color: #424242;
-    margin: 0 0 5px;
+    margin: 0 -0.5em 5px;
     border-radius: 8px 8px 0 0;
 }
 
@@ -227,7 +227,7 @@ body {
 }
 
 .service-status-table .service {
-    width: 59%;
+    width: 60%;
     float: left;
 }
 
@@ -235,7 +235,6 @@ body {
 .service-status-table .nm {
     width: 15%;
     float: left;
-    text-transform: uppercase;
     min-width: 25px;
 }
 
