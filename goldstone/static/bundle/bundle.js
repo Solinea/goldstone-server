@@ -5003,13 +5003,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         */
 
         this.serviceStatusChart = new ServiceStatusCollection({
-            urlBase: 'hi'
+            urlBase: '/core/saved_search/?name=service+status'
         });
 
         this.serviceStatusChartView = new ServiceStatusView({
             chartTitle: goldstone.translate("Service Status"),
             collection: this.serviceStatusChart,
-            height: 350,
             el: '#discover-view-r1-c1',
             width: $('#discover-view-r1-c1').width()
         });
@@ -5167,7 +5166,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         // service status
         '<div class="row">' +
         '<div id="discover-view-r1" class="row">' +
-        '<div id="discover-view-r1-c1" class="col-md-4"></div>' +
+        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '</div>' +
 
         // cpu / mem / disk
@@ -9688,15 +9687,43 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         }
     },
 
-    // template: _.template('' +
-    //     '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
+    update: function() {
+        this.hideSpinner();
+    },
 
-    //     '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-    //     '<div class="panel-body shadow-block" style="height:<%= this.height %>px">' +
-    //     '</div>' +
-    //     '</div>' +
-    //     '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
-    // ),
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    template: _.template('' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<ul class="service-status-table shadow-block">' +
+        '<li class="table-header">' +
+        '<span class="service">Service</span>' +
+        '<span class="sf">Status</span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service">Cinder</span>' +
+        '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service">Glance</span>' +
+        '<span class="sf"><i class="offline">&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service">Keystone</span>' +
+        '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service">Neutron</span>' +
+        '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service">Nova</span>' +
+        '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
+        '</li>' +
+        '</ul>')
 
 });
 ;

@@ -34,13 +34,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         */
 
         this.serviceStatusChart = new ServiceStatusCollection({
-            urlBase: 'hi'
+            urlBase: '/core/saved_search/?name=service+status'
         });
 
         this.serviceStatusChartView = new ServiceStatusView({
             chartTitle: goldstone.translate("Service Status"),
             collection: this.serviceStatusChart,
-            height: 350,
             el: '#discover-view-r1-c1',
             width: $('#discover-view-r1-c1').width()
         });
@@ -198,7 +197,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         // service status
         '<div class="row">' +
         '<div id="discover-view-r1" class="row">' +
-        '<div id="discover-view-r1-c1" class="col-md-4"></div>' +
+        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '</div>' +
 
         // cpu / mem / disk
