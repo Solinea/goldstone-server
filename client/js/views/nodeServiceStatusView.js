@@ -29,7 +29,7 @@ this.serviceStatusChartView = new ServiceStatusView({
 });
 */
 
-var ServiceStatusView = GoldstoneBaseView.extend({
+var NodeServiceStatusView = GoldstoneBaseView.extend({
 
     defaults: {
         margin: {
@@ -86,7 +86,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     },
 
     dataErrorMessage: function(message, errorMessage) {
-        ServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
+        NodeServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
     },
 
     classSelector: function(item) {

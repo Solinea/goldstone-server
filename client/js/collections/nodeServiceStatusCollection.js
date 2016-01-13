@@ -16,7 +16,7 @@
 
 // define collection and link to model
 
-var ServiceStatusCollection = Backbone.Collection.extend({
+var NodeServiceStatusCollection = Backbone.Collection.extend({
 
     defaults: {},
 

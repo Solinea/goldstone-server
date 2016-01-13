@@ -15,9 +15,9 @@
  */
 
 /*global sinon, todo, chai, describe, it, calledOnce*/
-//integration tests - serviceStatusView.js
+//integration tests - nodeServiceStatusView.js
 
-describe('serviceStatusView.js spec', function() {
+describe('nodeServiceStatusView.js spec', function() {
     beforeEach(function() {
         $('body').html('<div class="testContainer"></div>');
 
@@ -32,15 +32,15 @@ describe('serviceStatusView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(ServiceStatusCollection.prototype, "fetch");
+        this.protoFetchSpy = sinon.spy(NodeServiceStatusCollection.prototype, "fetch");
 
-        this.testCollection = new ServiceStatusCollection({
+        this.testCollection = new NodeServiceStatusCollection({
             url: '/null/and/void'
         });
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new ServiceStatusView({
+        this.testView = new NodeServiceStatusView({
             collection: this.testCollection,
             el: '.testContainer',
             width: 800
