@@ -1,9 +1,6 @@
 *.py[cod]
 .ipython/
 
-# C extensions
-*.so
-
 # Packages
 *.egg
 *.egg-info
@@ -31,40 +28,15 @@ nosetests.xml
 coverage.xml
 htmlcov/
 reports/
+test/
 
 # Translations
 *.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
 
 # SQLdatabases
 #
 db.sqlite3
 db.sqlite3.dev
-
-# Ruby
-#
-*.gem
-*.rbc
-.bundle
-.config
-coverage
-InstalledFiles
-lib/bundler/man
-pkg
-rdoc
-spec/reports
-test/tmp
-test/version_tmp
-tmp
-
-# YARD artifacts
-#
-.yardoc
-_yardoc
 
 
 # OSX
@@ -94,43 +66,17 @@ Icon
 [Ss]cripts
 
 
-# Rails
-#
-*.rbc
-*.sassc
-.sass-cache
-capybara-*.html
-.rspec
-.rvmrc
-/.bundle
-/vendor/bundle
-/log/*
-/tmp/*
-/db/*.sqlite3
-/public/system/*
-/coverage/
-/spec/tmp/*
-**.orig
-rerun.txt
-pickle-email-*.html
-.project
-.ropeproject
-
 # JetBrains
 /.idea/
 atlassian-ide-plugin.xml
 goldstone/.idea/
 
-celerybeat-schedule
 
 # local settings
 goldstone/settings/.secret_key_store
+celerybeat-schedule
 celerybeat-schedule.db
-dump.rdb
 node_modules/
-
-# vagrant related
-.vagrant/*
 
 # Emacs backup files, TAGS
 *.*~
@@ -145,8 +91,6 @@ goldstone/static/addons/
 addon-requirements.txt
 /addons
 /docker/**/addons/
-AUTHORS
-ChangeLog
 goldstone/compliance
 
 # docker static data
@@ -165,3 +109,5 @@ docker/goldstone-web-e/static/
 .exrc
 .pylint.d/
 /static
+AUTHORS
+ChangeLog

@@ -509,4 +509,3 @@ class SavedSearchViewSet(ModelViewSet):
 
         serializer = self.get_serializer(page)
         return self.get_paginated_response(serializer.data)
-

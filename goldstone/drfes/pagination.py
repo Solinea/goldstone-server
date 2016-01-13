@@ -14,8 +14,7 @@
 # limitations under the License.
 from collections import OrderedDict
 import logging
-from django.core.paginator import InvalidPage, \
-            Paginator as DjangoPaginator
+from django.core.paginator import InvalidPage, Paginator as DjangoPaginator
 from rest_framework import pagination
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
