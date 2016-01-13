@@ -303,13 +303,15 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table .sf { margin-right: 9%; }
 
-.online { background: url(../../../images/icon-online.png) no-repeat left top; }
+.online { background: url(../../../images/icon-online@2x.png) no-repeat left top; }
 
-.offline { background: url(../../../images/icon-offline.png) no-repeat left top; }
+.offline { background: url(../../../images/icon-offline@2x.png) no-repeat left top; }
 
-.intermittent { background: url(../../../images/icon-intermittent.png) no-repeat left top; }
+.intermittent { background: url(../../../images/icon-intermittent@2x.png) no-repeat left top; }
 
-.online, .offline, .intermittent { display: inline-block; height: 20px; width: 20px; background-size: 20px 20px; border-radius: 50%; }
+.unknown { background: url(../../../images/icon-help-40x40.png) no-repeat left top; }
+
+.online, .offline, .intermittent, .unknown { display: inline-block; height: 20px; width: 20px; background-size: 20px 20px; border-radius: 50%; }
 
 .service-status { margin-right: 2.4%; }
 
