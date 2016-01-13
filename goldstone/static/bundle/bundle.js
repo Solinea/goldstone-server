@@ -423,8 +423,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         // is returned, creates an error message, otherwise clears
         // any existing alert or error messages.
 
+        var noDataMessage = goldstone.translate('No Data Returned');
+
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(noDataMessage);
             return false;
         } else {
             this.clearDataErrorMessage();
