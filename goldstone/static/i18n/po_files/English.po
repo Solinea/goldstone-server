@@ -45,7 +45,7 @@ msgid "myroute 2"
 msgstr ""
 
 #: addonMenuView.js
-msgid "Refresh browser and/or log in to complete addon installation process."
+msgid "Refresh browser and log out, and back in to complete addon installation process."
 msgstr ""
 
 #: apiBrowserPageView.js
