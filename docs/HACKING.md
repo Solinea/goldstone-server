@@ -137,7 +137,8 @@ Execute the following commands to configure the development OpenStack instance t
 Then in another window:
 
     $ eval $(docker-machine env default)
-    $ ./bin/configure_dev_stack.sh
+    $ docker exec -it goldstoneserver_appdev_1 bash
+    (container) $ fab -f post_install.py -H 172.24.4.100 configure_stack:172.24.4.1
 
 
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:

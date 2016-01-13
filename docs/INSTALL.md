@@ -63,8 +63,9 @@ The final configuration
 ```bash
 root# docker exec -i -t docker_gsapp_1 bash
 app@2f31cd23f422:~$ . /venv/bin/activate  # inside the docker container
-(venv)app@2f31cd23f422:~$ fab -f installer_fabfile.py -H {OpenStack_controller_IP,OpenStack_compute_IP,...} configure_stack
-[{your ip address}] Executing task 'configure_stack'
+(venv)app@2f31cd23f422:~$ fab -f post_install.py -H {OpenStack_controller_IP,OpenStack_compute_IP,...} configure_stack:{goldstone_addr}
+
+Executing task 'configure_stack'
 This utility will modify configuration files on the hosts
 supplied via the -H parameter, and optionally restart
 OpenStack and syslog services.
