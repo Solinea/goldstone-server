@@ -19,6 +19,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
     triggerChange: function(change) {
 
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.serviceStatusChartView.trigger('lookbackSelectorChanged');
             this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
             this.memResourcesChartView.trigger('lookbackSelectorChanged');
             this.diskResourcesChartView.trigger('lookbackSelectorChanged');
@@ -27,6 +28,22 @@ var DiscoverView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
+
+        /*
+        Service Status Chart
+        */
+
+        this.serviceStatusChart = new ServiceStatusCollection({
+            urlBase: 'hi'
+        });
+
+        this.serviceStatusChartView = new ServiceStatusView({
+            chartTitle: goldstone.translate("Service Status"),
+            collection: this.serviceStatusChart,
+            height: 350,
+            el: '#discover-view-r1-c1',
+            width: $('#discover-view-r1-c1').width()
+        });
 
         /*
         CPU Resources Chart
@@ -107,6 +124,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
     template: _.template('' +
         '<div class="row first-row">' +
+
+        /* beginning of service status mock up */
         '<div class="single-block service-status">' +
         '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
         '<ul class="service-status-table shadow-block">' +
@@ -152,6 +171,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</li>' +
         '</ul>' +
         '</div>' +
+        /* end of service status mock-up */
+
         '<div class="double-block metrics-overview">' +
         '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
         '<div class="map-block shadow-block">' +
@@ -172,6 +193,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</div>' +
         '</div>' +
         '</div>' +
+        '</div>' +
+
+        // service status
+        '<div class="row">' +
+        '<div id="discover-view-r1" class="row">' +
+        '<div id="discover-view-r1-c1" class="col-md-4"></div>' +
         '</div>' +
 
         // cpu / mem / disk
