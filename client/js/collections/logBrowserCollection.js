@@ -63,7 +63,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addInterval: function() {
-        var n;
+        var computedInterval;
         var start;
         var end;
 
@@ -76,12 +76,12 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         }
 
         // interval ratio of 1/20th the time span in seconds.
-        n = ((end - start) / 20000);
+        computedInterval = ((end - start) / 20000);
         // ensure a minimum of 0.5second interval
-        n = Math.max(0.5, n);
+        computedInterval = Math.max(0.5, computedInterval);
         // round to 3 decimal places
-        n = Math.round(n * 1000) / 1000;
-        return '&interval=' + n + 's';
+        computedInterval = Math.round(computedInterval * 1000) / 1000;
+        return '&interval=' + computedInterval + 's';
     },
 
     addCustom: function(custom) {

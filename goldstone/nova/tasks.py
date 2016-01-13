@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 METRIC_INDEX_PREFIX = 'goldstone_metrics-'
 METRIC_DOCTYPE = 'core_metric'
 
+
 @celery_app.task()
 def nova_hypervisors_stats():
     """Get stats from the nova API and add them as Goldstone metrics."""

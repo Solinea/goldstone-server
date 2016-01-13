@@ -41,9 +41,37 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         // from viz above
     },
 
+    predefinedSearchUrl: null,
+
+    predefinedSearch: function(uuid) {
+        var self = this;
+
+        // turn off refresh range as a signal to the user that refreshes
+        // will no longer be occuring without changing the lookback
+        // or refresh. setZoomed will block the action of the cached refresh
+        $('#global-refresh-range').val(-1);
+        this.trigger('setZoomed', true);
+
+        // the presence of a predefinedSearchUrl will take precidence
+        // when creating a fetch url in the ajax.beforeSend routine.
+        this.predefinedSearchUrl = uuid;
+        oTable = $("#reports-result-table").DataTable();
+        oTable.ajax.reload(function() {
+            setTimeout(function() {
+
+                // manually retrigger column auto adjust which was not firing
+                oTable.columns.adjust().draw();
+            }, 10);
+
+        });
+    },
 
     update: function() {
         var oTable;
+
+        // clear out the saved search url so next time the viz is
+        // triggered it will not return the previously saved url
+        this.predefinedSearchUrl = null;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
@@ -112,10 +140,9 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
-                    // the url that will be fetched is now about to be
-                    // replaced with the urlGen'd url before adding on
-                    // the parsed components
-                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
+                    // if a predefined search url has been set
+                    // use that instead of the generated url
+                    settings.url = (self.predefinedSearchUrl ? self.predefinedSearchUrl + '?' : self.collectionMixin.url + '&') + "page_size=" + pageSize +
                         "&page=" + computeStartPage;
 
                     // here begins the combiation of additional params
@@ -155,8 +182,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         // settings.url = settings.url + "&ordering=" +
                         //     ascDec + columnLabelHash[orderByColumn];
                     }
-
-
 
                 },
                 dataSrc: "results",
