@@ -7283,6 +7283,10 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
+        // initial rendering of logBrowserTable:
+        this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
+        this.logBrowserTable.update();
+
         // set up listener between viz and table to setZoomed to 'true'
         // when user triggers a saved search
         this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
