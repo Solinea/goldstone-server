@@ -80,9 +80,8 @@ test:
         background: true
     - sleep 10 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
-    # - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
-    # - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
-    # - $TEST_APP ". /venv/bin/activate && python ./manage.py test --settings=goldstone.settings.ci"
+    - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
+    - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
   post:
