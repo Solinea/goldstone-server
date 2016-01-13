@@ -26,7 +26,7 @@ msgid "Add-ons"
 msgstr ""
 
 #: addonMenuView.js
-msgid "compliance"
+msgid "Compliance"
 msgstr ""
 
 #: addonMenuView.js
@@ -154,6 +154,10 @@ msgstr ""
 msgid "Interval"
 msgstr ""
 
+#: apiPerfView.js
+msgid "seconds"
+msgstr ""
+
 #: base.html
 
 #: base.html
@@ -216,6 +220,57 @@ msgstr ""
 msgid "License"
 msgstr ""
 
+#: base.html
+#. refers to site-wide settings
+msgid "Settings"
+msgstr ""
+
+#: base.html
+#. refers to a link to customer support
+msgid "Help"
+msgstr ""
+
+#: base.html
+#. link to external site
+msgid "Google Groups"
+msgstr ""
+
+#: base.html
+#. link to github repo
+msgid "Github"
+msgstr ""
+
+#: base.html
+#. logout of site
+msgid "Logout"
+msgstr ""
+
+#: base.html
+#. side-menu icon
+msgid "Dashboard"
+msgstr ""
+
+#: base.html
+#. click to open alert menu, and heading for column of alerts
+msgid "Alerts"
+msgstr ""
+
+#: base.html
+#. side-menu icon to view cloud topology graph
+msgid "Topology"
+msgstr ""
+
+#: base.html
+#. side-menu icon to collapse expanded menu
+msgid "Icons Only"
+msgstr ""
+
+#: base.html
+#. alerts menu column header for unread alerts
+msgid "Unread"
+msgstr ""
+
+
 #: chartHeaderView.js
 msgid "Set Chart Title"
 msgstr ""
@@ -223,6 +278,53 @@ msgstr ""
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr ""
+
+#: addons
+
+#: predefinedSearchView.js
+msgid "Predefined Searches"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "failed authorization"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "stack traces"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance creation failed"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "cinder volume created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "database problems"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "image uploaded"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "queue failures"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova usage audits"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova claim request"
+msgstr ""
+
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -679,18 +781,6 @@ msgctxt "lease"
 msgid "Update Lease Details"
 msgstr ""
 
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leasesManagerPageView.js
-
 #: leasesManagerPageView.js
 msgid "Leases Manager"
 msgstr ""
@@ -875,11 +965,6 @@ msgstr ""
 
 #: metricViewerView.js
 msgctxt "metricviewer"
-msgid "Lookback"
-msgstr ""
-
-#: metricViewerView.js
-msgctxt "metricviewer"
 msgid "Charting Interval (minimum 2 minutes)"
 msgstr ""
 
@@ -1014,53 +1099,6 @@ msgstr ""
 msgctxt "nodereport"
 msgid ""
 msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: novaReportView.js
 
 #: novaReportView.js
 msgid "Nova API Performance"

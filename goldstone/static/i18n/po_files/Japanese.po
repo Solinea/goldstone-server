@@ -965,11 +965,6 @@ msgstr "標準分散範囲"
 
 #: metricViewerView.js
 msgctxt "metricviewer"
-msgid "振り返り"
-msgstr ""
-
-#: metricViewerView.js
-msgctxt "metricviewer"
 msgid "Charting Interval (minimum 2 minutes)"
 msgstr "チャート間隔(最小2分)"
 
