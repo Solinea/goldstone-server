@@ -3656,11 +3656,7 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
                 // fetch return triggers 'sync' which triggers
                 // update in the client with the returned data
                 self.fetch();
-            })
-            .error(function(err) {
-                console.error(err);
             });
-
     },
 
     constructAggregationUrl: function(uuid) {
@@ -5044,8 +5040,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
             width: $('#discover-view-r1-c1').width()
         });
 
-        aaa = this.serviceStatusChartView;
-
         /*
         CPU Resources Chart
         */
@@ -5124,57 +5118,67 @@ var DiscoverView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
-        '<div class="row first-row">' +
 
-        /* beginning of service status mock up */
-        '<div class="single-block service-status">' +
-        '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
-        '<ul class="service-status-table shadow-block">' +
-        '<li class="table-header">' +
-        '<span class="service">Service</span>' +
-        '<span class="sf">Sf</span>' +
-        '<span class="nm">Nm</span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Compute</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Image</span>' +
-        '<span class="sf"><i class="offline">&nbsp;</i></span>' +
-        '<span class="nm"><i class="offline">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Network</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Block Storage</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Object Storage</span>' +
-        '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
-        '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Orchestration</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Identity</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '</ul>' +
-        '</div>' +
-        /* end of service status mock-up */
+        // service status
+        '<div class="row">' +
+        '<div id="discover-view-r1" class="row">' +
+        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
 
-        '<div class="double-block metrics-overview">' +
+
+
+
+
+        // '<div class="row first-row">' +
+
+        // /* beginning of service status mock up */
+        // '<div class="single-block service-status">' +
+        // '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<ul class="service-status-table shadow-block">' +
+        // '<li class="table-header">' +
+        // '<span class="service">Service</span>' +
+        // '<span class="sf">Sf</span>' +
+        // '<span class="nm">Nm</span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Compute</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Image</span>' +
+        // '<span class="sf"><i class="offline">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="offline">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Network</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Block Storage</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Object Storage</span>' +
+        // '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Orchestration</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Identity</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '</ul>' +
+        // '</div>' +
+        // /* end of service status mock-up */
+
+        '<div class="col-md-10">' +
         '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
         '<div class="map-block shadow-block">' +
         '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
@@ -5193,14 +5197,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</span>' +
         '</div>' +
         '</div>' +
-        '</div>' +
+        // '</div>' +
         '</div>' +
 
-        // service status
-        '<div class="row">' +
-        '<div id="discover-view-r1" class="row">' +
-        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '</div>' +
+
+        '<div class="row">&nbsp;</div>' +
 
         // cpu / mem / disk
         '<div class="row">' +
@@ -9733,7 +9735,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         });
 
         this.listenTo(this.model, 'change', function() {
-            console.log('model changed');
             this.updateChart();
         });
     },
@@ -9770,9 +9771,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
         // otherwise extract statuses from buckets
         data = data[0].aggregations.per_component.buckets;
-        console.log(_.each(data, function(item) {
-            return item;
-        }));
+
         /*
         {
             doc_count: 75
@@ -9789,7 +9788,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-        console.log('in render', this.model.attributes);
         $(this.el).html(this.template());
         $(this.el).find('.fill-in').html(this.statusTemplate());
         return this;
@@ -9797,7 +9795,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     updateChart: function() {
         $(this.el).find('.fill-in').html(this.statusTemplate());
-        console.log('in render', this.model.attributes);
     },
 
     statusTemplate: _.template('' +

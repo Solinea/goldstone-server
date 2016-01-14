@@ -56,7 +56,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         });
 
         this.listenTo(this.model, 'change', function() {
-            console.log('model changed');
             this.updateChart();
         });
     },
@@ -93,9 +92,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
         // otherwise extract statuses from buckets
         data = data[0].aggregations.per_component.buckets;
-        console.log(_.each(data, function(item) {
-            return item;
-        }));
+
         /*
         {
             doc_count: 75
@@ -112,7 +109,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-        console.log('in render', this.model.attributes);
         $(this.el).html(this.template());
         $(this.el).find('.fill-in').html(this.statusTemplate());
         return this;
@@ -120,7 +116,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     updateChart: function() {
         $(this.el).find('.fill-in').html(this.statusTemplate());
-        console.log('in render', this.model.attributes);
     },
 
     statusTemplate: _.template('' +

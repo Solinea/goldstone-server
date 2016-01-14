@@ -291,7 +291,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table { list-style-type: none; margin: 0; padding: 0 0 5px; background: #fafafa; }
 
-.service-status-table li { padding: 13px 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
+.service-status-table li { padding: 1.48em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
 
 .service-status-table li:last-child { border-bottom: 0; }
 

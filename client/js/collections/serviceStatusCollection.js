@@ -37,11 +37,7 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
                 // fetch return triggers 'sync' which triggers
                 // update in the client with the returned data
                 self.fetch();
-            })
-            .error(function(err) {
-                console.error(err);
             });
-
     },
 
     constructAggregationUrl: function(uuid) {
