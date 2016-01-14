@@ -34,7 +34,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         */
 
         this.serviceStatusChart = new ServiceStatusCollection({
-            urlBase: '/core/saved_search/?name=service+status'
+            urlBase: '/core/saved_search/'
         });
 
         this.serviceStatusChartView = new ServiceStatusView({
@@ -43,6 +43,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             el: '#discover-view-r1-c1',
             width: $('#discover-view-r1-c1').width()
         });
+
+        aaa = this.serviceStatusChartView;
 
         /*
         CPU Resources Chart

@@ -26,22 +26,26 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     urlGenerator: function(data) {
         var self = this;
 
-        $.get(this.urlBase, function() {})
-        .done(function(data) {
-            console.log('data?', data);
-            var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
-            self.url = searchUuid;
-            console.log('self.url', self.url);
-            self.fetch();
-        })
-        .error(function(err) {
-            console.error(err);
-        });
+        // the call to /core/saved_seaarch/?name=service+status
+        // returns the uuid required for the service aggregations
+
+        $.get(this.urlBase + '?name=service+status', function() {})
+            .done(function(data) {
+                var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
+                self.url = searchUuid;
+
+                // fetch return triggers 'sync' which triggers
+                // update in the client with the returned data
+                self.fetch();
+            })
+            .error(function(err) {
+                console.error(err);
+            });
 
     },
 
     constructAggregationUrl: function(uuid) {
-        return '/core/saved_search/' + uuid + '/results/';
+        return this.urlBase + uuid + '/results/';
     },
 
     // Overwriting. Additinal pages not needed.
