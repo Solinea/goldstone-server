@@ -94,6 +94,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     // will prevent updating when zoom is active
     isZoomed: false,
 
+    predefinedSearch: function(payload) {
+        this.collection.reset();
+        this.collection.add(payload);
+        this.update();
+    },
+
     setZoomed: function(bool) {
         this.isZoomed = bool;
         this.collection.isZoomed = bool;
@@ -123,12 +129,14 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
@@ -137,6 +145,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             }
             this.showSpinner();
             this.constructUrl();
+            this.trigger('chartUpdate');
         });
 
     },
@@ -274,6 +283,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
         this.constructUrl();
+        this.trigger('chartUpdate');
         return;
     },
 
@@ -287,7 +297,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-
         // we use only the 'data' for the construction of the chart
         var data = collectionDataPayload.aggregations.per_interval.buckets;
 
@@ -413,6 +422,10 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
 
+        // clear viz
+        self.chart.selectAll('.component')
+            .remove();
+
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
             return;
@@ -462,9 +475,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 return self.sums(d);
             }))
         ]);
-
-        self.chart.selectAll('.component')
-            .remove();
 
         var component = self.chart.selectAll(".component")
             .data(components)
@@ -589,7 +599,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
-        this.trigger('chartUpdate');
+        // this.trigger('chartUpdate');
     },
 
     template: _.template(

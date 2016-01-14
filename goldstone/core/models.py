@@ -2603,9 +2603,8 @@ class SavedSearch(models.Model):
 
         s = self.search()\
             .query('range',
-                   ** {self.timestamp_field:
-                           {'gt': start.isoformat(),
-                            'lte': end.isoformat()}})
+                   ** {self.timestamp_field: {'gt': start.isoformat(),
+                                              'lte': end.isoformat()}})
         return s, start, end
 
 

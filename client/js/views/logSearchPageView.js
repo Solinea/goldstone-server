@@ -60,7 +60,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             specificHost: this.specificHost,
             urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
-        });    
+        });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -70,29 +70,64 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
-        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
-            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
-            self.logBrowserTable.update();
+        // initial rendering of logBrowserTable:
+        this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
+        this.logBrowserTable.update();
+
+        // set up listener between viz and table to setZoomed to 'true'
+        // when user triggers a saved search
+        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
+            this.setZoomed(trueFalse);
         });
+
+
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+
 
         // check for compliance addon and render predefined search bar if present
         if (goldstone.returnAddonPresent('compliance')) {
             if (goldstone.compliance.PredefinedSearchView) {
                 this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
                     className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul'
+                    tagName: 'ul',
+                    collection: new GoldstoneBaseCollection({
+                        skipFetch: true,
+                        urlBase: '',
+                        addRange: function() {
+                            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                        },
+                        addInterval: function(interval) {
+                            return '&interval=' + interval + 's';
+                        },
+                    })
                 });
 
                 $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
             }
+
+            // stopListening to predefinedSearchModule upon close, if present
+            if (this.predefinedSearchModule !== undefined) {
+                this.viewsToStopListening.push(this.predefinedSearchModule);
+            }
+
+            // subscribe logBrowserViz to click events on predefined
+            // search dropdown to fetch results.
+            this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+                // self.logBrowserTable.predefinedSearch(uuid[1]);
+                self.logBrowserViz.predefinedSearch(uuid[0]);
+            });
+            this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+                self.logBrowserTable.predefinedSearch(uuid[1]);
+                // self.logBrowserViz.predefinedSearch(uuid[0]);
+            });
         }
 
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
-
-        // stopListening to predefinedSearchModule upon close, if present
-        if (this.predefinedSearchModule !== undefined) {
-            this.viewsToStopListening.push(this.predefinedSearchModule);
-        }
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
+        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
+            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
+            self.logBrowserTable.update();
+        });
 
     },
 

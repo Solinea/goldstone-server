@@ -56,12 +56,6 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.discover();
             this.testRouter.help();
             this.testRouter.apiPerfReport();
-            this.testRouter.metricViewer();
-            this.testRouter.metricViewer(6);
-            this.testRouter.metricViewer(7);
-            this.testRouter.metricViewer();
-            this.testRouter.metricViewer();
-            this.testRouter.novaReport();
             this.testRouter.topology();
             this.testRouter.nodeReport('control-01');
             this.testRouter.logSearch();
