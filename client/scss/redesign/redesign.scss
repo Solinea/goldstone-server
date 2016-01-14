@@ -185,7 +185,7 @@ body {
 .dashboard h3 {
     font-size: 24px;
     color: #424242;
-    margin: 0 0 5px;
+    margin: 0 -0.5em 5px;
     border-radius: 8px 8px 0 0;
 }
 
@@ -211,7 +211,7 @@ body {
 }
 
 .service-status-table li {
-    padding: 13px 15px;
+    padding: 1.48em 15px;
     overflow: hidden;
     border-bottom: 1px solid #f3f3f3;
 }
@@ -227,7 +227,7 @@ body {
 }
 
 .service-status-table .service {
-    width: 59%;
+    width: 60%;
     float: left;
 }
 
@@ -235,7 +235,6 @@ body {
 .service-status-table .nm {
     width: 15%;
     float: left;
-    text-transform: uppercase;
     min-width: 25px;
 }
 
@@ -244,20 +243,25 @@ body {
 }
 
 .online {
-    background: url(../../../images/icon-online.png) no-repeat left top;
+    background: url(../../../images/icon-online@2x.png) no-repeat left top;
 }
 
 .offline {
-    background: url(../../../images/icon-offline.png) no-repeat left top;
+    background: url(../../../images/icon-offline@2x.png) no-repeat left top;
 }
 
 .intermittent {
-    background: url(../../../images/icon-intermittent.png) no-repeat left top;
+    background: url(../../../images/icon-intermittent@2x.png) no-repeat left top;
+}
+
+.unknown {
+    background: url(../../../images/icon-help-40x40.png) no-repeat left top;
 }
 
 .online,
 .offline,
-.intermittent {
+.intermittent,
+.unknown {
     display: inline-block;
     height: 20px;
     width: 20px;

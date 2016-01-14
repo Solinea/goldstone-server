@@ -172,11 +172,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Service status chart
-        this.serviceStatusChart = new ServiceStatusCollection({
+        this.serviceStatusChart = new NodeServiceStatusCollection({
             nodeName: hostName
         });
 
-        this.serviceStatusChartView = new ServiceStatusView({
+        this.serviceStatusChartView = new NodeServiceStatusView({
             collection: this.serviceStatusChart,
             el: '#node-report-main #node-report-r2',
             width: $('#node-report-main #node-report-r2').width(),
