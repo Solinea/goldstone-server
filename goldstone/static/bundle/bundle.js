@@ -3640,8 +3640,35 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     instanceSpecificInit: function() {
         this.processOptions();
         this.urlGenerator();
-    }
-    
+    },
+
+    urlGenerator: function(data) {
+        var self = this;
+
+        $.get(this.urlBase, function() {})
+        .done(function(data) {
+            console.log('data?', data);
+            var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
+            self.url = searchUuid;
+            console.log('self.url', self.url);
+            self.fetch();
+        })
+        .error(function(err) {
+            console.error(err);
+        });
+
+    },
+
+    constructAggregationUrl: function(uuid) {
+        return '/core/saved_search/' + uuid + '/results/';
+    },
+
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
+
+
 });
 ;
 /**
@@ -9673,6 +9700,22 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         this.setSpinner();
     },
 
+    processListeners: function() {
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            if (this.collection) {
+                this.showSpinner();
+                this.collection.urlGenerator();
+            }
+        });
+    },
+
     checkReturnedDataSet: function(data) {
         // a method to insert in the callback that is invoked
         // when the collection is done fetching api data. If an empty set
@@ -9688,6 +9731,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     },
 
     update: function() {
+        console.log('in update', this.collection.toJSON());
         this.hideSpinner();
     },
 

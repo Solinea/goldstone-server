@@ -21,6 +21,33 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     instanceSpecificInit: function() {
         this.processOptions();
         this.urlGenerator();
-    }
-    
+    },
+
+    urlGenerator: function(data) {
+        var self = this;
+
+        $.get(this.urlBase, function() {})
+        .done(function(data) {
+            console.log('data?', data);
+            var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
+            self.url = searchUuid;
+            console.log('self.url', self.url);
+            self.fetch();
+        })
+        .error(function(err) {
+            console.error(err);
+        });
+
+    },
+
+    constructAggregationUrl: function(uuid) {
+        return '/core/saved_search/' + uuid + '/results/';
+    },
+
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
+
+
 });
