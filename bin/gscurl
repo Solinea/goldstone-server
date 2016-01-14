@@ -1,6 +1,31 @@
 #!/bin/bash
+# 
+# Authenticate with goldstone and provide the auth token to a curl command line.  It defaults
+# to using the gsadmin/goldstone user, but you can provide your own credentials by setting
+# the GS_USER and GS_PASS environment vars.
+#
+# The '-p' flag pretty prints, but will swallow errors.
 
-GS_AUTH_TOKEN=$(curl -s -X POST -d 'username=admin&password=goldstone' http://localhost:8000/accounts/login/ | sed -e 's/{"auth_token":"\(.*\)".*/\1/')
+# Example usages:
+# 
+# GET logs
+# gscurl -p 'http://localhost:8000/core/logs/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&page_size=10&page=1'
+#
+# POST with heredoc data
+# gscurl -XPOST http://localhost:8000/compliance/trails/ -d @- <<RQ
+# "Name":"all-events","DestinationType":"Swift","DestinationParams":{"SwiftURL":"https://identity.api.rackspacecloud.com/v2.0/","SwiftUsername":"jxstanford","SwiftPassword":"6&emO3m*zU%O","SwiftTenantName":"984805","SwiftContainerName":"OpenTrail","SwiftKeyPrefix":"all"},"AuditFilters":{}}
+# RQ
+#
+# POST with data arg
+# gscurl 'http://localhost:8000/compliance/trails/' \
+#    --data 'Name=all-events&DestinationType=Swift&DestinationParams={"SwiftURL":"https%3A%2F%2Fidentity.api.rackspacecloud.com%2Fv2.0%2F","SwiftUsername":"jxstanford","SwiftPassword":"6%26emO3m*zU%25O","SwiftTenantName":"984805","SwiftContainerName":"OpenTrail","SwiftKeyPrefix":"all"}&AuditFilters={}'
+#
+
+
+GS_USER=${GS_USER:-gsadmin}
+GS_PASS=${GS_PASS:-goldstone}
+
+GS_AUTH_TOKEN=$(curl -s -X POST -d "username=${GS_USER}&password=${GS_PASS}" http://localhost:8000/accounts/login/ | sed -e 's/{"auth_token":"\(.*\)".*/\1/')
 
 if [[ $1 == '-p' || $1 == '--pretty' ]] ; then
     shift
