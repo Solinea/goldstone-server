@@ -1,0 +1,10 @@
+#!/bin/bash
+
+GS_AUTH_TOKEN=$(curl -s -X POST -d 'username=admin&password=goldstone' http://localhost:8000/accounts/login/ | sed -e 's/{"auth_token":"\(.*\)".*/\1/')
+
+if [[ $1 == '-p' || $1 == '--pretty' ]] ; then
+    shift
+    curl -s -H "Authorization: Token $GS_AUTH_TOKEN" $@ | python -m json.tool
+else
+    curl -s -H "Authorization: Token $GS_AUTH_TOKEN" $@ 
+fi

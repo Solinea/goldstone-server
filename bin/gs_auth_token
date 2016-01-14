@@ -1,0 +1,1 @@
+curl -s -X POST -d 'username=gsadmin&password=goldstone' http://localhost:8000/accounts/login/ | sed -e 's/{"auth_token":"\(.*\)".*/\1/'
