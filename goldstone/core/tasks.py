@@ -14,13 +14,13 @@
 # limitations under the License.
 import logging
 from subprocess import check_call
-import datetime
+import arrow
 from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    AlertObj, EmailProducer
+    Alert, EmailProducer
 
 
 logger = logging.getLogger(__name__)
@@ -175,7 +175,7 @@ def check_for_pending_alerts():
             # We can directly call the producer class to send an email
             # AlertObj seems to be redundant : To be discussed
 
-            now = datetime.datetime.now()
+            now = arrow.utcnow().datetime
 
             # TBD : For now lets email to keystone client [0]
             # Do we always have a keystone client configured ?
@@ -185,14 +185,23 @@ def check_for_pending_alerts():
             users = keystone_client.users.list()
             user = users[0]
 
-            producer_obj = EmailProducer(subject='Celery Alert : ' + str(now),
-                             message='AlertSearch : message notification',
-                             to_address=str(user.email))
+            alert_obj = Alert(name='Scheduled Alert loop :' + str(now),
+                          receiver=str(user.email), trigger=obj)
 
-            email_rv = producer_obj.send_email()
+            # currently we only have a producer interface for emails.
+            # So we'll only check for it and call the corresponding producer
+            # object's method
 
-            # Update timestamps on the object for future searches to work.
-            obj.last_start = start
-            obj.last_end = end
-            obj.save()
+            # To be handled later : sanity check on :
+            # channels vs channel configuration info
+            if 'Email' in alert_obj.channels:
+                producer_obj = EmailProducer(query=obj, alert=alert_obj)
+
+                email_rv = producer_obj.send_email()
+
+                # Update timestamps on the object for future searches to work.
+                obj.last_start = start
+                obj.last_end = end
+                obj.save()
+
             return email_rv

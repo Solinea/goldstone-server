@@ -26,7 +26,6 @@ from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.glogging.models import LogData, LogEvent
 from django.core.mail import send_mail
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
@@ -2669,51 +2668,98 @@ class AlertSearch(SavedSearch):
         verbose_name_plural = "saved searches with alerts"
 
 
-class AlertObj(models.Model):
+class Alert(models.Model):
     """
         Create an alert instance object. This contains the fleshed-out
         alert message which will be passed down to the producer interface
         to be sent out.
+
+        This does not contain msg-params for actually sending out this alert.
+        For those details, refer to class Producer.
     """
 
     trigger = models.ForeignKey(AlertSearch)
-    owner = models.CharField(max_length=64, default='goldstone')
+    name = models.CharField(max_length=64, default='generic-alert',
+                            blank=False)
     description = models.CharField(max_length=1024,
                                    default='Alert object instance')
-    description = models.CharField(max_length=1024, default='Alert object instance')
+    # alert assignee vs alert receiver, can be a person vs mailing list
+    owner = models.CharField(max_length=64, default='goldstone',
+                             help_text='alert assignee, individual entity')
     sender = models.CharField(max_length=64, default='goldstone')
-    receiver = models.CharField(max_length=64, default='goldstone')
-    subject = models.CharField(max_length=64, default='Alert notification')
-    message = models.CharField(max_length=1024,
+    receiver = models.CharField(max_length=64, default='goldstone',
+                                help_text='single destination or mailer',
+                                blank=False)
+    default_sender = \
+                        settings.ADMINS[0][1] if settings.ADMINS \
+                        else "root@localhost"
+
+    msg_title = models.CharField(max_length=64, default='Alert notification')
+    msg_body = models.CharField(max_length=1024,
                                default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
     protected = models.BooleanField(default=False,
-                                    help_text='True if this is system-defined')
-    ack_needed = models.BooleanField(default=False,
-                                     help_text='True if alert needs ack')
+                                    help_text='True if system-defined alert')
+    # What are the configured channels for this alert object ?
+    channels = models.CharField(max_length=128, default='Email', blank=False,
+                                help_text='comma separated list of channels')
+
+    # ack_needed = models.BooleanField(default=False,
+                                     # help_text='True if alert needs ack')
 
 
-class EmailProducer(models.Model):
+class Producer(models.Model):
     """
-        Interface class to prepare and send an email
+        Generic interface class for an alert producer. This contains generic
+        producer related information such as sender, receiver names, id's,
+        host, auth-params etc
+
+        Specific types like email, slack, HTTP-POST etc inherit from this
+        class with specific connection attributes
     """
 
-    # alert = models.ForeignKey(AlertObj)
-    subject = models.CharField(max_length=64, default='Alert notification')
-    message = models.CharField(max_length=1024,
-                               default='This is an alert notification')
-    to_address = models.EmailField(max_length=70, blank=False)
-    from_address = models.EmailField(max_length=70, blank=True)
-    default_from_address = \
-                        settings.ADMINS[0][1] if settings.ADMINS \
-                        else "root@localhost"
+    query = models.ForeignKey(AlertSearch)
+    alert = models.ForeignKey(Alert)
+
+    # obtain all the message related parameters from the alert object
+    def __init__(self):
+        self.subject = self.alert.msg_title
+        self.message = self.alert.msg_body
+        self.receiver = self.alert.receiver
+        self.sender = self.alert.sender
+
+        if not self.sender:
+            self.sender = self.alert.default_sendor
+
+    @classmethod
+    def send_message_params(self):
+
+        # always send message as k,v dict, can be extended for JSON based
+        # send subclasses without much overhead
+
+        message_params = {'title':self.subject, 'body':self.message,
+                          'sender':self.sender, 'receiver':self.receiver,
+                          'trigger':self.query.name, 'alert':self.alert.name}
+        return message_params
+
+
+class EmailProducer(Producer):
+    """
+        Specific interface class to prepare and send an email.
+        Class gets all of its email contents from the parent producer class.
+        This class only contains methods specific to a mailing interface.
+    """
 
     @classmethod
     def send_email(cls):
 
-        if not cls.from_address:
-            cls.from_address = cls.default_from_address
+        msg_kv_dict = super(EmailProducer, cls).send_message_params(cls)
 
-        email_rv = send_mail(cls.subject, cls.message, cls.from_address,
-                             [cls.to_address])
+        if not bool(msg_kv_dict):
+            return
+
+        email_rv = send_mail(str(msg_kv_dict['title']),
+                             str(msg_kv_dict['body']),
+                             str(msg_kv_dict['sender']),
+                             list[str(msg_kv_dict['receiver'])])
         return email_rv

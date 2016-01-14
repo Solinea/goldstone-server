@@ -177,7 +177,7 @@ DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
-ALERT_QUERY_INTERVAL = crontab(minute='*/15')
+ALERT_QUERY_INTERVAL = crontab(minute='*/5')
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 

@@ -23,9 +23,9 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
-from goldstone.core.models import SavedSearch, AlertSearch
+from goldstone.core.models import SavedSearch, AlertSearch, Alert
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertSearchSerializer
+    AlertSearchSerializer, AlertSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -514,24 +514,6 @@ class SavedSearchViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class AlertSearchFilter(ElasticFilter):
-
-    @staticmethod
-    def _add_query(param, value, view, queryset, operation='match'):
-        """Return a query, preferring the raw field if available.
-
-        :param param: the field name in ES
-        :param value: the field value
-        :param view: the calling view
-        :param queryset: the base queryset
-        :param operation: the query operation
-        :return: the update Search object
-        :rtype Search
-
-        """
-        return queryset.query(operation, **{param: value})
-
-
 class AlertSearchViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
@@ -573,8 +555,7 @@ class AlertSearchViewSet(ModelViewSet):
         # prefix.
         self.pagination_class = ElasticPageNumberPagination
         self.serializer_class = ReadOnlyElasticSerializer
-        # Do we need a separate one ? Can we reuse SavedSearchFilter ?
-        self.filter_backends = (AlertSearchFilter, )
+        self.filter_backends = (SavedSearchFilter, )
 
         # Tell ElasticFilter to not add these query parameters to the
         # Elasticsearch query.
@@ -594,30 +575,12 @@ class AlertSearchViewSet(ModelViewSet):
             return Response(serializer.data)
 
 
-class AlertSearchFilter(ElasticFilter):
-
-    @staticmethod
-    def _add_query(param, value, view, queryset, operation='match'):
-        """Return a query, preferring the raw field if available.
-
-        :param param: the field name in ES
-        :param value: the field value
-        :param view: the calling view
-        :param queryset: the base queryset
-        :param operation: the query operation
-        :return: the update Search object
-        :rtype Search
-
-        """
-        return queryset.query(operation, **{param: value})
-
-
-class AlertSearchViewSet(ModelViewSet):
+class AlertViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
     pagination_class = Pagination
     permission_classes = (IsAuthenticated, )
-    serializer_class = AlertSearchSerializer
+    serializer_class = AlertSerializer
 
     # Tell DRF that the lookup field is this string, and not "pk".
     lookup_field = "uuid"
@@ -628,10 +591,10 @@ class AlertSearchViewSet(ModelViewSet):
                        'updated', 'target_interval')
 
     class Meta:                     # pylint: disable=W0232,C1001
-        model = AlertSearch
+        model = Alert
 
     def get_queryset(self):
-        return AlertSearch.objects.all()
+        return Alert.objects.all()
 
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
@@ -644,7 +607,7 @@ class AlertSearchViewSet(ModelViewSet):
 
         # Get the model for the requested uuid
         # query = ast.literal_eval(SavedSearch.objects.get(uuid=uuid).query)
-        obj = AlertSearch.objects.get(uuid=uuid)
+        obj = Alert.objects.get(uuid=uuid)
 
         # To use as much Goldstone code as possible, we now override the class
         # to create a "drfes environment" for filtering, pagination, and
@@ -653,8 +616,7 @@ class AlertSearchViewSet(ModelViewSet):
         # prefix.
         self.pagination_class = ElasticPageNumberPagination
         self.serializer_class = ReadOnlyElasticSerializer
-        # Do we need a separate one ? Can we reuse SavedSearchFilter ?
-        self.filter_backends = (AlertSearchFilter, )
+        self.filter_backends = (SavedSearchFilter, )
 
         # Tell ElasticFilter to not add these query parameters to the
         # Elasticsearch query.
