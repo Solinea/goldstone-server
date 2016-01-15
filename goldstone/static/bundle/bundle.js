@@ -7653,6 +7653,37 @@ var MetricOverviewView = ChartSet.extend({
         // this.callYAxis();
 
         this.setYAxisLabel();
+
+        // added
+        this.setLines();
+    },
+
+    setLines: function() {
+        var self = this;
+
+        this.apiLine = d3.svg.line()
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+        this.eventLine = d3.svg.line()
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.logLine = d3.svg.line()
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yLog(d.doc_count);
+            });
     },
 
     resetAxes: function() {
@@ -7669,6 +7700,17 @@ var MetricOverviewView = ChartSet.extend({
     update: function() {
         this.setData(this.collection.toJSON());
         this.updateWithNewData();
+    },
+
+    updateWithNewData: function() {
+        this.setXDomain();
+        this.setYDomain();
+        this.resetAxes();
+        this.linesUpdate();
+        // // this.bindShapeToData(this.shape);
+        // this.shapeUpdate();
+        // this.shapeExit();
+        this.hideSpinner();
     },
 
     svgAdder: function() {
@@ -7711,6 +7753,52 @@ var MetricOverviewView = ChartSet.extend({
             }) : 0])
             .range([(this.height - this.marginTop - this.marginBottom), 0]);
 
+    },
+ 
+    linesUpdate: function() {
+
+        var existingLines = this.chart.select('path');
+
+        if (existingLines.empty()) {
+            this.apiLineRendered = this.chart.append('path')
+                .attr('class', 'apiLine')
+                .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke', 'red');
+
+            this.eventLineRendered = this.chart.append('path')
+                .attr('class', 'eventLine')
+                .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke', 'green');
+
+            this.logLineRendered = this.chart.append('path')
+                .attr('class', 'logLine')
+                .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke', 'blue');
+        }
+
+        this.apiLineRendered
+            .transition()
+            .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets));
+
+        this.eventLineRendered
+            .transition()
+            .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets));
+
+        this.logLineRendered
+            .transition()
+            .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets));
+    },
+
+    shapeExit: function(shape) {
+        this.chart
+            .transition()
+            .exit()
+            .transition()
+            .style('fill-opacity', 1e-6)
+            .remove();
     },
 
 });
