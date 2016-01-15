@@ -270,6 +270,39 @@ msgstr ""
 msgid "Unread"
 msgstr ""
 
+#: base.html
+msgid "Service Status"
+msgstr ""
+
+#: base.html
+msgid "Service"
+msgstr ""
+
+#: base.html
+msgid "Status"
+msgstr ""
+
+#: base.html
+msgid "Cinder"
+msgstr ""
+
+#: base.html
+msgid "Glance"
+msgstr ""
+
+#: base.html
+msgid "Keystone"
+msgstr ""
+
+#: base.html
+msgid "Neutron"
+msgstr ""
+
+#: base.html
+msgid "Nova"
+msgstr ""
+
+
 
 #: chartHeaderView.js
 msgid "Set Chart Title"
