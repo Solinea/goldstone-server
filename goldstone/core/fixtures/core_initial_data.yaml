@@ -140,6 +140,14 @@
             "field": "timestamp",
             "interval": "1d",
             "min_doc_count": 0
+         },
+         "aggs": {
+             "per_outcome": {
+                 "terms": {
+                     "field": "outcome",
+                     "size": 0
+                 }
+             }
          }
       }
    }
