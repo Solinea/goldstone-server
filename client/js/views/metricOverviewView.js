@@ -18,6 +18,8 @@ var MetricOverviewView = GoldstoneBaseView.extend({
 
     update: function() {
         this.hideSpinner();
+        console.log('in update');
+        console.log('collectionData ', this.collection.toJSON()[0]);
     },
 
     template: _.template('' +

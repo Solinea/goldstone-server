@@ -16,9 +16,61 @@
 
 var MetricOverviewCollection = GoldstoneBaseCollection.extend({
 
+    /*
+log
+/core/logs/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+event
+/core/events/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+api
+/core/api-calls/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+*/
+
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
+    },
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 's';
+    },
+
+    urlGenerator: function() {
+        var self = this;
+        this.computeLookbackAndInterval();
+
+
+        var coreUrlVars = ['logs/', 'events/', 'api-calls/'];
+        var coreCalls = coreUrlVars.map(function(item) {
+            return self.urlBase + item + self.addRange() +
+                self.addInterval();
+        });
+
+        $.when($.get(coreCalls[0]), $.get(coreCalls[1]), $.get(coreCalls[2]))
+            .done(function(r1, r2, r3) {
+
+                // container for combined data
+                var finalResult = {};
+                finalResult.logData = r1[0];
+                finalResult.eventData = r2[0];
+                finalResult.apiData = r3[0];
+
+                // reset collection
+                // add aggregated and tagged api call data
+                self.reset();
+                self.add([finalResult]);
+                self.trigger('sync');
+            })
+            .fail(function(err) {
+                self.trigger('error', [err.status, err.statusText]);
+            });
     },
 
 

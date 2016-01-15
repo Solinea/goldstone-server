@@ -50,7 +50,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         */
 
         this.metricOverviewChart = new MetricOverviewCollection({
-            urlBase: '/core/events/'
+            urlBase: '/core/'
         });
 
         this.metricOverviewChartView = new MetricOverviewView({
