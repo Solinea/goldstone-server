@@ -2686,7 +2686,7 @@ class Alert(models.Model):
 
     msg_title = models.CharField(max_length=64, default='Alert notification')
     msg_body = models.CharField(max_length=1024,
-                               default='This is an alert notification')
+                                default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
 
 
@@ -2720,8 +2720,8 @@ class EmailProducer(Producer):
                                 help_text='single destination or mailer',
                                 blank=False)
     default_sender = \
-                        settings.ADMINS[0][1] if settings.ADMINS \
-                        else "root@localhost"
+        settings.ADMINS[0][1] if settings.ADMINS \
+        else "root@localhost"
 
     @classmethod
     def __init__(self):
@@ -2731,5 +2731,6 @@ class EmailProducer(Producer):
     @classmethod
     def send(self, alert):
         email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
-                             str(self.sender), list[self.receiver])
+                             str(self.sender), list[self.receiver],
+                             fail_silently=False)
         return email_rv

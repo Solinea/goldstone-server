@@ -20,4 +20,3 @@ from goldstone.core.models import SavedSearch, AlertSearch
 admin.site.register(PolyResource)
 admin.site.register(SavedSearch)
 admin.site.register(AlertSearch)
-
