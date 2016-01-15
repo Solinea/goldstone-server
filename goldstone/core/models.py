@@ -2633,7 +2633,7 @@ class CADFEventDocType(DailyIndexDocType):
     )
 
     class Meta:
-        doc_type = 'cadf_event'
+        doc_type = 'goldstone_event'
         index = 'events_*'
 
     def __init__(self, event=None, meta=None, **kwargs):
