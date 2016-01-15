@@ -66,6 +66,10 @@ api
                 finalResult.eventData = r2[0];
                 finalResult.apiData = r3[0];
 
+                // append start/end of timestamp__range 
+                finalResult.startTime = self.gte;
+                finalResult.endTime = self.epochNow;
+
                 // reset collection
                 // add aggregated and tagged api call data
                 self.reset();
