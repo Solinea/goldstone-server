@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-var MetricOverviewView = GoldstoneBaseView.extend({
+// ChartSet extends from GoldstoneBaseView
+
+var MetricOverviewView = ChartSet.extend({
 
     update: function() {
-        this.hideSpinner();
-        console.log('in update');
-        console.log('collectionData ', this.collection.toJSON()[0]);
+        MetricOverviewView.__super__.update.apply(this, arguments);
     },
 
-    template: _.template('' +
-        '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
-
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="map panel-body shadow-block" style="height:<%= this.height %>px">' +
-        '</div>' +
-        '<div class="map-block shadow-block map-data"></div>' +
-        '</div>' +
-        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
-    ),
+    svgAdder: function() {
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
+            .attr('width', this.width)
+            .attr('height', this.height);
+    },
 
 });

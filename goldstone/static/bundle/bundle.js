@@ -258,17 +258,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
-        this.infoText = this.options.infoText;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        if (this.options.collectionMixin) {
-            this.collectionMixin = this.options.collectionMixin;
-        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.collection = this.options.collection || undefined;
-        this.infoIcon = this.options.infoIcon;
         this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
@@ -1347,37 +1338,26 @@ var GoldstoneRouter = Backbone.Router.extend({
 var ChartSet = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.data = [];
-        this.processOptions();
-
-        this.renderChartBorders();
+        ChartSet.__super__.instanceSpecificInit.apply(this, arguments);
         this.makeChart();
     },
 
     processOptions: function() {
 
-        this.collection = this.options.collection ? this.options.collection : undefined;
-        this.chartTitle = this.options.chartTitle || null;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        this.width = this.options.width || 300;
-        this.height = this.options.height || 400;
-        this.infoIcon = this.options.infoIcon;
-        this.infoText = this.options.infoText;
+        ChartSet.__super__.processOptions.apply(this, arguments);
+
         this.marginLeft = this.options.marginLeft || 50;
         this.marginRight = this.options.marginRight || 120;
         this.marginTop = this.options.marginTop || 20;
         this.marginBottom = this.options.marginBottom || 80;
-        this.yAxisLabel = this.options.yAxisLabel;
         this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
         this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
-        this.colorArray = new GoldstoneColors().get('colorSets');
         this.shapeArray = ['rect', 'circle'];
         this.shapeCounter = 0;
         this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
         this.xParam = this.options.xParam;
         this.yParam = this.options.yParam;
+        this.data = [];
     },
 
     resetXParam: function(param) {
@@ -1390,16 +1370,7 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yParam = param;
     },
 
-    renderChartBorders: function() {
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.chartTitle,
-            infoText: this.infoText,
-            infoIcon: this.infoIcon
-        }).el);
-    },
-
     makeChart: function() {
-        this.processListeners();
         this.svgAdder(this.width, this.height);
         this.initializePopovers();
         this.chartAdder();
@@ -1413,7 +1384,6 @@ var ChartSet = GoldstoneBaseView.extend({
         this.callYAxis();
 
         this.setYAxisLabel();
-        this.setSpinner();
     },
 
     update: function() {
@@ -1451,7 +1421,7 @@ var ChartSet = GoldstoneBaseView.extend({
     },
 
     svgAdder: function() {
-        this.svg = d3.select(this.el).append('svg')
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
             .attr('width', this.width)
             .attr('height', this.height);
     },
@@ -1478,6 +1448,7 @@ var ChartSet = GoldstoneBaseView.extend({
     setYDomain: function() {
         var param = this.yParam || 'count';
         var self = this;
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
         this.y = d3.scale.linear()
@@ -5139,7 +5110,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Metric Overview"),
             collection: this.metricOverviewChart,
             el: '#discover-view-r1-c2',
-            width: $('#discover-view-r1-c2').width()
+            width: $('#discover-view-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Count")
         });
 
         /*
@@ -7663,24 +7635,19 @@ var LoginPageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var MetricOverviewView = GoldstoneBaseView.extend({
+// ChartSet extends from GoldstoneBaseView
+
+var MetricOverviewView = ChartSet.extend({
 
     update: function() {
-        this.hideSpinner();
-        console.log('in update');
-        console.log('collectionData ', this.collection.toJSON()[0]);
+        MetricOverviewView.__super__.update.apply(this, arguments);
     },
 
-    template: _.template('' +
-        '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
-
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="map panel-body shadow-block" style="height:<%= this.height %>px">' +
-        '</div>' +
-        '<div class="map-block shadow-block map-data"></div>' +
-        '</div>' +
-        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
-    ),
+    svgAdder: function() {
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
+            .attr('width', this.width)
+            .attr('height', this.height);
+    },
 
 });
 ;

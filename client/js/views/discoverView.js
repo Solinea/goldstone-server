@@ -57,7 +57,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.translate("Metric Overview"),
             collection: this.metricOverviewChart,
             el: '#discover-view-r1-c2',
-            width: $('#discover-view-r1-c2').width()
+            width: $('#discover-view-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Count")
         });
 
         /*

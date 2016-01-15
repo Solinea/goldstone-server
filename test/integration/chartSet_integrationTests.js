@@ -19,6 +19,9 @@
 
 describe('chartSet.js spec', function() {
     beforeEach(function() {
+
+        $('body').html('<div class="container"></div>');
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
@@ -32,6 +35,7 @@ describe('chartSet.js spec', function() {
         });
 
         this.testView = new ChartSet({
+            el: '.container',
             collection: this.testCollection
         });
         // this.protoFetchSpy = sinon.spy(GoldstoneBaseCollection.prototype, "fetch");
@@ -49,6 +53,7 @@ describe('chartSet.js spec', function() {
     describe('general methods', function() {
         it('should process options', function() {
             expect(this.testView.options).to.deep.equal({
+                el: '.container',
                 collection: this.testCollection
             });
         });

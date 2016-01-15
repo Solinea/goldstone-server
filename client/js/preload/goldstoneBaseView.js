@@ -64,17 +64,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
-        this.infoText = this.options.infoText;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        if (this.options.collectionMixin) {
-            this.collectionMixin = this.options.collectionMixin;
-        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.collection = this.options.collection || undefined;
-        this.infoIcon = this.options.infoIcon;
         this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
