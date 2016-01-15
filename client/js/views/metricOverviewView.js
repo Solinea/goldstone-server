@@ -27,14 +27,33 @@ var MetricOverviewView = ChartSet.extend({
         this.setYDomain();
 
         this.setXAxis();
-        // this.setYAxis();
         this.callXAxis();
-        // this.callYAxis();
-
         this.setYAxisLabel();
 
         // added
         this.setLines();
+    },
+
+    chartAdder: function() {
+        this.chart = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartApi = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartEvent = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartLog = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
     },
 
     setLines: function() {
@@ -70,10 +89,6 @@ var MetricOverviewView = ChartSet.extend({
         d3.select(this.el).select('.axis.x')
             .transition()
             .call(this.xAxis.scale(self.x));
-
-        // self.svg.select('.axis.y')
-        //     .transition()
-        //     .call(this.yAxis.scale(self.y));
     },
 
     update: function() {
@@ -86,9 +101,9 @@ var MetricOverviewView = ChartSet.extend({
         this.setYDomain();
         this.resetAxes();
         this.linesUpdate();
-        // // this.bindShapeToData(this.shape);
-        // this.shapeUpdate();
-        // this.shapeExit();
+        this.shapeUpdate();
+        this.shapeEnter();
+        this.shapeExit();
         this.hideSpinner();
     },
 
@@ -133,7 +148,7 @@ var MetricOverviewView = ChartSet.extend({
             .range([(this.height - this.marginTop - this.marginBottom), 0]);
 
     },
- 
+
     linesUpdate: function() {
 
         var existingLines = this.chart.select('path');
@@ -171,13 +186,95 @@ var MetricOverviewView = ChartSet.extend({
             .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets));
     },
 
-    shapeExit: function(shape) {
-        this.chart
+    shapeUpdate: function() {
+        var self = this;
+
+        this.chartApiCircles = this.chartApi.selectAll('circle')
+            .data(this.data[0].apiData.aggregations.per_interval.buckets);
+
+        this.chartApiCircles
             .transition()
-            .exit()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+
+        this.chartEventCircles = this.chartEvent.selectAll('circle')
+            .data(this.data[0].eventData.aggregations.per_interval.buckets);
+
+        this.chartEventCircles
             .transition()
-            .style('fill-opacity', 1e-6)
-            .remove();
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.chartLogCircles = this.chartLog.selectAll('circle')
+            .data(this.data[0].logData.aggregations.per_interval.buckets);
+
+        this.chartLogCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            });
+
+    },
+
+    shapeEnter: function() {
+        var self = this;
+
+        this.chartApiCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            })
+            .attr('class', 'apiCircle')
+            .attr('r', 3)
+            .style('stroke', 'red')
+            .style('fill', 'red');
+
+        this.chartEventCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            })
+            .attr('class', 'eventCircle')
+            .attr('r', 3)
+            .style('stroke', 'green')
+            .style('fill', 'green');
+
+        this.chartLogCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            })
+            .attr('class', 'logCircle')
+            .attr('r', 3)
+            .style('stroke', 'blue')
+            .style('fill', 'blue');
+    },
+
+    shapeExit: function() {
+        this.chartApiCircles.exit().remove();
+        this.chartEventCircles.exit().remove();
+        this.chartLogCircles.exit().remove();
     },
 
 });
