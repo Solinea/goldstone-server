@@ -262,7 +262,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table { list-style-type: none; margin: 0; padding: 0 0 5px; background: #fafafa; }
 
-.service-status-table li { padding: 1.48em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
+.service-status-table li { padding: 1.56em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
 
 .service-status-table li:last-child { border-bottom: 0; }
 
@@ -288,13 +288,13 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .double-block { float: left; width: 64.3%; }
 
-.map-block { overflow: hidden; background: #000; }
+.map-block { height: 400px; overflow: hidden; background: #000; }
 
 .map { width: 78%; float: left; }
 
 .map img { max-width: 100%; }
 
-.map-data { width: 22%; float: left; padding: 18px 16px; }
+.map-data { width: 15%; float: left; padding: 18px 16px; }
 
 .map-data .stats { font-size: 12px; display: block; line-height: 1; }
 

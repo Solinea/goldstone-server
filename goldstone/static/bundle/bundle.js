@@ -3421,6 +3421,32 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
  * limitations under the License.
  */
 
+var MetricOverviewCollection = GoldstoneBaseCollection.extend({
+
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // define collection and link to model
 
 /*
@@ -5016,6 +5042,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
             this.serviceStatusChartView.trigger('lookbackSelectorChanged');
+            this.metricOverviewChartView.trigger('lookbackSelectorChanged');
             this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
             this.memResourcesChartView.trigger('lookbackSelectorChanged');
             this.diskResourcesChartView.trigger('lookbackSelectorChanged');
@@ -5038,6 +5065,21 @@ var DiscoverView = GoldstoneBasePageView.extend({
             collection: this.serviceStatusChart,
             el: '#discover-view-r1-c1',
             width: $('#discover-view-r1-c1').width()
+        });
+
+        /*
+        Metric Overview Chart
+        */
+
+        this.metricOverviewChart = new MetricOverviewCollection({
+            urlBase: '/core/events/'
+        });
+
+        this.metricOverviewChartView = new MetricOverviewView({
+            chartTitle: goldstone.translate("Metric Overview"),
+            collection: this.metricOverviewChart,
+            el: '#discover-view-r1-c2',
+            width: $('#discover-view-r1-c2').width()
         });
 
         /*
@@ -5115,6 +5157,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.translate('Spawn Events')
         });
 
+        this.viewsToStopListening = [this.serviceStatusChartView, this.metricOverviewChartView, this.cpuResourcesChartView, this.memResourcesChartView, this.diskResourcesChartView, this.vmSpawnChartView];
+
     },
 
     template: _.template('' +
@@ -5123,89 +5167,37 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div class="row">' +
         '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
+        '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
 
 
-
-
-
-        // '<div class="row first-row">' +
-
-        // /* beginning of service status mock up */
-        // '<div class="single-block service-status">' +
-        // '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<ul class="service-status-table shadow-block">' +
-        // '<li class="table-header">' +
-        // '<span class="service">Service</span>' +
-        // '<span class="sf">Sf</span>' +
-        // '<span class="nm">Nm</span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Compute</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Image</span>' +
-        // '<span class="sf"><i class="offline">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="offline">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Network</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Block Storage</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Object Storage</span>' +
-        // '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Orchestration</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Identity</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '</ul>' +
+        // '<div class="col-md-10">' +
+        // '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="map-block shadow-block">' +
+        // '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
+        // '<div class="map-data">' +
+        // '<span class="stats time">' +
+        // '21 secs ago' +
+        // '</span>' +
+        // '<span class="stats logs">' +
+        // '300 Logs' +
+        // '</span>' +
+        // '<span class="stats events">' +
+        // '17 Events' +
+        // '</span>' +
+        // '<span class="stats call">' +
+        // '12 API Calls' +
+        // '</span>' +
         // '</div>' +
-        // /* end of service status mock-up */
-
-        '<div class="col-md-10">' +
-        '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="map-block shadow-block">' +
-        '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        '<div class="map-data">' +
-        '<span class="stats time">' +
-        '21 secs ago' +
-        '</span>' +
-        '<span class="stats logs">' +
-        '300 Logs' +
-        '</span>' +
-        '<span class="stats events">' +
-        '17 Events' +
-        '</span>' +
-        '<span class="stats call">' +
-        '12 API Calls' +
-        '</span>' +
-        '</div>' +
-        '</div>' +
         // '</div>' +
-        '</div>' +
+        // '</div>' +
 
         '</div>' +
 
+        // extra row for spacing
         '<div class="row">&nbsp;</div>' +
 
         // cpu / mem / disk
-        '<div class="row">' +
+        // '<div class="row">' +
         '<h4>Resource Usage</h4>' +
         '<div id="discover-view-r2" class="row">' +
         '<div id="discover-view-r2-c1" class="col-md-3"></div>' +
@@ -7592,6 +7584,41 @@ var LoginPageView = GoldstoneBaseView.extend({
     redirectPostSuccessfulAuth: function() {
         location.href = '/';
     }
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var MetricOverviewView = GoldstoneBaseView.extend({
+
+    update: function() {
+        this.hideSpinner();
+    },
+
+    template: _.template('' +
+        '<div id = "goldstone-primary-panel" class="panel panel-primary">' +
+
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="map panel-body shadow-block" style="height:<%= this.height %>px">' +
+        '</div>' +
+        '<div class="map-block shadow-block map-data"></div>' +
+        '</div>' +
+        '<div id="modal-container-<%= this.el.slice(1) %>"></div>'
+    ),
 
 });
 ;
