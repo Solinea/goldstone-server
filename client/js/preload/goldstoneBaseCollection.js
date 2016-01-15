@@ -124,7 +124,11 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     //     return custom;
     // },
 
-    computeLookbackAndInterval: function() {
+    computeLookbackAndInterval: function(n) {
+
+        // n designates the number of interval 'slices' to make
+        // default ot 24
+        n = n || 24;
 
         // compute epochNow, globalLookback, globalRefresh
         this.getGlobalLookbackRefresh();
@@ -132,7 +136,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
         // set interval equal to 1/24th of time range
-        this.interval = ((this.epochNow - this.gte) / 1000) / 24;
+        this.interval = ((this.epochNow - this.gte) / 1000) / n;
     },
 
     fetchWithReset: function() {
