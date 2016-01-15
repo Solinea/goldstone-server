@@ -194,16 +194,15 @@ def check_for_pending_alerts():
 
             # To be handled later : sanity check on :
             # channels vs channel configuration info
-            if 'Email' in obj.channels:
 
-                # our receiver currently is a keystone client
-                producer_obj = EmailProducer(receiver=str(user.email))
+            # our receiver currently is a keystone client
+            producer_obj = EmailProducer(receiver=str(user.email))
 
-                email_rv = producer_obj.send(alert=alert_obj)
+            email_rv = producer_obj.send(alert=alert_obj)
 
-                # Update timestamps on the object for future searches to work.
-                obj.last_start = start
-                obj.last_end = end
-                obj.save()
+            # Update timestamps on the object for future searches to work.
+            obj.last_start = start
+            obj.last_end = end
+            obj.save()
 
             return email_rv

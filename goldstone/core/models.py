@@ -2660,10 +2660,6 @@ class AlertSearch(SavedSearch):
 
     """
 
-    # What are the configured channels for this alert-search object ?
-    channels = models.CharField(max_length=128, default='Email', blank=False,
-                                help_text='comma separated list of channels')
-
     class Meta:               # pylint: disable=C0111,W0232,C1001
 
         verbose_name_plural = "saved searches with alerts"
@@ -2703,7 +2699,7 @@ class Producer(models.Model):
         Specific types like email, slack, HTTP-POST etc inherit from this
         class with specific connection attributes
     """
-    query = models.ForeignKey(AlertSearch)
+    query = models.ForeignKey(AlertSearch, default=1)
 
     class Meta:
         abstract = True
@@ -2719,8 +2715,8 @@ class EmailProducer(Producer):
         Class gets all of its email contents from the parent producer class.
         This class only contains methods specific to a mailing interface.
     """
-    sender = models.CharField(max_length=64)
-    receiver = models.CharField(max_length=64,
+    sender = models.CharField(max_length=64, default='goldstone')
+    receiver = models.CharField(max_length=64, default='goldstone',
                                 help_text='single destination or mailer',
                                 blank=False)
     default_sender = \
