@@ -18,14 +18,78 @@
 
 var MetricOverviewView = ChartSet.extend({
 
+    makeChart: function() {
+        this.svgAdder(this.width, this.height);
+        this.initializePopovers();
+        this.chartAdder();
+
+        this.setXDomain();
+        this.setYDomain();
+
+        this.setXAxis();
+        // this.setYAxis();
+        this.callXAxis();
+        // this.callYAxis();
+
+        this.setYAxisLabel();
+    },
+
+    resetAxes: function() {
+        var self = this;
+        d3.select(this.el).select('.axis.x')
+            .transition()
+            .call(this.xAxis.scale(self.x));
+
+        // self.svg.select('.axis.y')
+        //     .transition()
+        //     .call(this.yAxis.scale(self.y));
+    },
+
     update: function() {
-        MetricOverviewView.__super__.update.apply(this, arguments);
+        this.setData(this.collection.toJSON());
+        this.updateWithNewData();
     },
 
     svgAdder: function() {
         this.svg = d3.select(this.el).select('.panel-body').append('svg')
             .attr('width', this.width)
             .attr('height', this.height);
+    },
+
+    setXDomain: function() {
+        var self = this;
+        this.x = d3.time.scale()
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        .domain(self.data.length ? [moment(self.data[0].startTime), moment(self.data[0].endTime)] : [1, 1])
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+
+    },
+
+    setYDomain: function() {
+        var param = this.yParam || 'count';
+        var self = this;
+
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        this.yLog = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].logData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+
+        this.yEvent = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].eventData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+
+        this.yApi = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].apiData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+
     },
 
 });
