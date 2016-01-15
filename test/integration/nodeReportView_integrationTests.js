@@ -15,7 +15,6 @@
  */
 
 /*global sinon, todo, chai, describe, it, calledOnce*/
-//integration tests - serviceStatusView.js
 
 // basic sanity check.
 // base object is tested in apiPerfReportView_integrationTests.js

@@ -34,5 +34,5 @@ if [[ $status == "DOWN" ]] ; then
     exit 1
 fi
 
-exec celery worker --app goldstone --queues default --beat --purge --workdir ${GOLDSTONE_INSTALL_DIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
+exec celery worker --app goldstone --queues default --beat --purge --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
 

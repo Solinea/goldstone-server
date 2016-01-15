@@ -16,41 +16,38 @@
 
 // define collection and link to model
 
-var ServiceStatusCollection = Backbone.Collection.extend({
+var ServiceStatusCollection = GoldstoneBaseCollection.extend({
 
-    defaults: {},
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.urlGenerator();
+    },
 
-    parse: function(data) {
-        var nextUrl;
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
+    urlGenerator: function(data) {
+        var self = this;
+
+        // the call to /core/saved_seaarch/?name=service+status
+        // returns the uuid required for the service aggregations
+
+        $.get(this.urlBase + '?name=service+status', function() {})
+            .done(function(data) {
+                var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
+                self.url = searchUuid;
+
+                // fetch return triggers 'sync' which triggers
+                // update in the client with the returned data
+                self.fetch();
             });
-        }
-        return data.results;
     },
 
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.nodeName = options.nodeName;
-        this.retrieveData();
+    constructAggregationUrl: function(uuid) {
+        return this.urlBase + uuid + '/results/';
     },
 
-    retrieveData: function() {
-        var twentyAgo = (+new Date() - (1000 * 60 * 20));
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
 
-        this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
-            this.defaults.nodeName + "&page_size=300" +
-            "&@timestamp__range={'gte':" + twentyAgo + "}";
 
-        // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
-
-        this.fetch();
-    }
 });

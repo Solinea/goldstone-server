@@ -39,6 +39,5 @@ ENV DJANGO_ADMIN_EMAIL="root@localhost" \
 # Not to be modified unless directed
 ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
     DJANGO_ADMIN_USER=admin \
-    GOLDSTONE_INSTALL_DIR=/home/app \
     GOLDSTONE_REDIS_HOST=gstaskq \
     CELERY_LOGLEVEL=info

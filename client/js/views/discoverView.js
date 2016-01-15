@@ -19,6 +19,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
     triggerChange: function(change) {
 
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.serviceStatusChartView.trigger('lookbackSelectorChanged');
             this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
             this.memResourcesChartView.trigger('lookbackSelectorChanged');
             this.diskResourcesChartView.trigger('lookbackSelectorChanged');
@@ -27,6 +28,21 @@ var DiscoverView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
+
+        /*
+        Service Status Chart
+        */
+
+        this.serviceStatusChart = new ServiceStatusCollection({
+            urlBase: '/core/saved_search/'
+        });
+
+        this.serviceStatusChartView = new ServiceStatusView({
+            chartTitle: goldstone.translate("Service Status"),
+            collection: this.serviceStatusChart,
+            el: '#discover-view-r1-c1',
+            width: $('#discover-view-r1-c1').width()
+        });
 
         /*
         CPU Resources Chart
@@ -106,53 +122,67 @@ var DiscoverView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
-        '<div class="row first-row">' +
-        '<div class="single-block service-status">' +
-        '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
-        '<ul class="service-status-table shadow-block">' +
-        '<li class="table-header">' +
-        '<span class="service">Service</span>' +
-        '<span class="sf">Sf</span>' +
-        '<span class="nm">Nm</span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Compute</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Image</span>' +
-        '<span class="sf"><i class="offline">&nbsp;</i></span>' +
-        '<span class="nm"><i class="offline">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Network</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Block Storage</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Object Storage</span>' +
-        '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
-        '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Orchestration</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Identity</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '</ul>' +
-        '</div>' +
-        '<div class="double-block metrics-overview">' +
+
+        // service status
+        '<div class="row">' +
+        '<div id="discover-view-r1" class="row">' +
+        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
+
+
+
+
+
+        // '<div class="row first-row">' +
+
+        // /* beginning of service status mock up */
+        // '<div class="single-block service-status">' +
+        // '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<ul class="service-status-table shadow-block">' +
+        // '<li class="table-header">' +
+        // '<span class="service">Service</span>' +
+        // '<span class="sf">Sf</span>' +
+        // '<span class="nm">Nm</span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Compute</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Image</span>' +
+        // '<span class="sf"><i class="offline">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="offline">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Network</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Block Storage</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Object Storage</span>' +
+        // '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Orchestration</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '<li>' +
+        // '<span class="service">Identity</span>' +
+        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
+        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
+        // '</li>' +
+        // '</ul>' +
+        // '</div>' +
+        // /* end of service status mock-up */
+
+        '<div class="col-md-10">' +
         '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
         '<div class="map-block shadow-block">' +
         '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
@@ -171,8 +201,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '</span>' +
         '</div>' +
         '</div>' +
+        // '</div>' +
         '</div>' +
+
         '</div>' +
+
+        '<div class="row">&nbsp;</div>' +
 
         // cpu / mem / disk
         '<div class="row">' +
