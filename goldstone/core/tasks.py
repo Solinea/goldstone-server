@@ -186,7 +186,7 @@ def check_for_pending_alerts():
             user = users[0]
 
             alert_obj = Alert(name='Scheduled Alert loop :' + str(now),
-                          receiver=str(user.email), trigger=obj)
+                              query=obj)
 
             # currently we only have a producer interface for emails.
             # So we'll only check for it and call the corresponding producer
@@ -194,10 +194,12 @@ def check_for_pending_alerts():
 
             # To be handled later : sanity check on :
             # channels vs channel configuration info
-            if 'Email' in alert_obj.channels:
-                producer_obj = EmailProducer()
+            if 'Email' in obj.channels:
 
-                email_rv = producer_obj.send(alert_obj)
+                # our receiver currently is a keystone client
+                producer_obj = EmailProducer(receiver=str(user.email))
+
+                email_rv = producer_obj.send(alert=alert_obj)
 
                 # Update timestamps on the object for future searches to work.
                 obj.last_start = start

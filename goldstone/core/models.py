@@ -2660,7 +2660,9 @@ class AlertSearch(SavedSearch):
 
     """
 
-    # TBD : Any fields unique to AlertSearch ?
+    # What are the configured channels for this alert-search object ?
+    channels = models.CharField(max_length=128, default='Email', blank=False,
+                                help_text='comma separated list of channels')
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
 
@@ -2677,7 +2679,7 @@ class Alert(models.Model):
         For those details, refer to class Producer.
     """
 
-    trigger = models.ForeignKey(AlertSearch)
+    query = models.ForeignKey(AlertSearch)
     name = models.CharField(max_length=64, default='generic-alert',
                             blank=False)
     description = models.CharField(max_length=1024,
@@ -2685,27 +2687,11 @@ class Alert(models.Model):
     # alert assignee vs alert receiver, can be a person vs mailing list
     owner = models.CharField(max_length=64, default='goldstone',
                              help_text='alert assignee, individual entity')
-    sender = models.CharField(max_length=64, default='goldstone')
-    receiver = models.CharField(max_length=64, default='goldstone',
-                                help_text='single destination or mailer',
-                                blank=False)
-    default_sender = \
-                        settings.ADMINS[0][1] if settings.ADMINS \
-                        else "root@localhost"
 
     msg_title = models.CharField(max_length=64, default='Alert notification')
     msg_body = models.CharField(max_length=1024,
                                default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
-
-    # What are the configured channels for this alert object ?
-    channels = models.CharField(max_length=128, default='Email', blank=False,
-                                help_text='comma separated list of channels')
-
-    # obtain all the message related parameters from the alert object
-    def __init__(self):
-        if not self.sender:
-            self.sender = self.alert.default_sendor
 
 
 class Producer(models.Model):
@@ -2717,12 +2703,13 @@ class Producer(models.Model):
         Specific types like email, slack, HTTP-POST etc inherit from this
         class with specific connection attributes
     """
+    query = models.ForeignKey(AlertSearch)
 
     class Meta:
         abstract = True
 
     @classmethod
-    def send(Alert):
+    def send(self, alert):
         raise NotImplementedError("Producer must implement send.")
 
 
@@ -2732,10 +2719,21 @@ class EmailProducer(Producer):
         Class gets all of its email contents from the parent producer class.
         This class only contains methods specific to a mailing interface.
     """
+    sender = models.CharField(max_length=64)
+    receiver = models.CharField(max_length=64,
+                                help_text='single destination or mailer',
+                                blank=False)
+    default_sender = \
+                        settings.ADMINS[0][1] if settings.ADMINS \
+                        else "root@localhost"
 
     @classmethod
-    def send(Alert):
+    def __init__(self):
+        if not self.sender:
+            self.sender = self.default_sendor
 
-        email_rv = send_mail(str(Alert.msg_title), str(Alert.msg_body),
-                             str(Alert.sender), list[Alert.receiver])
+    @classmethod
+    def send(self, alert):
+        email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
+                             str(self.sender), list[self.receiver])
         return email_rv
