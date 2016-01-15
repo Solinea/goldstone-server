@@ -37,6 +37,10 @@ api
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
+    addRange2: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
     addInterval: function(n) {
         n = n || this.interval;
         return '&interval=' + n + 's';
@@ -49,7 +53,7 @@ api
 
         var coreUrlVars = ['logs/', 'events/', 'api-calls/'];
         var coreCalls = coreUrlVars.map(function(item) {
-            return self.urlBase + item + self.addRange() +
+            return self.urlBase + item + (item === 'events/' ? self.addRange2() : self.addRange()) +
                 self.addInterval();
         });
 
