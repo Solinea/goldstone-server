@@ -270,6 +270,39 @@ msgstr "アイコンのみ"
 msgid "Unread"
 msgstr "未読"
 
+#: base.html
+msgid "Service Status"
+msgstr "サービス状態"
+
+#: base.html
+msgid "Service"
+msgstr "サービス"
+
+#: base.html
+msgid "Status"
+msgstr "状態"
+
+#: base.html
+msgid "Cinder"
+msgstr ""
+
+#: base.html
+msgid "Glance"
+msgstr ""
+
+#: base.html
+msgid "Keystone"
+msgstr ""
+
+#: base.html
+msgid "Neutron"
+msgstr ""
+
+#: base.html
+msgid "Nova"
+msgstr ""
+
+
 
 #: chartHeaderView.js
 msgid "Set Chart Title"
