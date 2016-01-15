@@ -2697,14 +2697,15 @@ class Alert(models.Model):
     msg_body = models.CharField(max_length=1024,
                                default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
-    protected = models.BooleanField(default=False,
-                                    help_text='True if system-defined alert')
+
     # What are the configured channels for this alert object ?
     channels = models.CharField(max_length=128, default='Email', blank=False,
                                 help_text='comma separated list of channels')
 
-    # ack_needed = models.BooleanField(default=False,
-                                     # help_text='True if alert needs ack')
+    # obtain all the message related parameters from the alert object
+    def __init__(self):
+        if not self.sender:
+            self.sender = self.alert.default_sendor
 
 
 class Producer(models.Model):
@@ -2717,29 +2718,12 @@ class Producer(models.Model):
         class with specific connection attributes
     """
 
-    query = models.ForeignKey(AlertSearch)
-    alert = models.ForeignKey(Alert)
-
-    # obtain all the message related parameters from the alert object
-    def __init__(self):
-        self.subject = self.alert.msg_title
-        self.message = self.alert.msg_body
-        self.receiver = self.alert.receiver
-        self.sender = self.alert.sender
-
-        if not self.sender:
-            self.sender = self.alert.default_sendor
+    class Meta:
+        abstract = True
 
     @classmethod
-    def send_message_params(self):
-
-        # always send message as k,v dict, can be extended for JSON based
-        # send subclasses without much overhead
-
-        message_params = {'title':self.subject, 'body':self.message,
-                          'sender':self.sender, 'receiver':self.receiver,
-                          'trigger':self.query.name, 'alert':self.alert.name}
-        return message_params
+    def send(Alert):
+        raise NotImplementedError("Producer must implement send.")
 
 
 class EmailProducer(Producer):
@@ -2750,15 +2734,8 @@ class EmailProducer(Producer):
     """
 
     @classmethod
-    def send_email(cls):
+    def send(Alert):
 
-        msg_kv_dict = super(EmailProducer, cls).send_message_params(cls)
-
-        if not bool(msg_kv_dict):
-            return
-
-        email_rv = send_mail(str(msg_kv_dict['title']),
-                             str(msg_kv_dict['body']),
-                             str(msg_kv_dict['sender']),
-                             list[str(msg_kv_dict['receiver'])])
+        email_rv = send_mail(str(Alert.msg_title), str(Alert.msg_body),
+                             str(Alert.sender), list[Alert.receiver])
         return email_rv

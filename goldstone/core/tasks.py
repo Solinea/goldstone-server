@@ -195,9 +195,9 @@ def check_for_pending_alerts():
             # To be handled later : sanity check on :
             # channels vs channel configuration info
             if 'Email' in alert_obj.channels:
-                producer_obj = EmailProducer(query=obj, alert=alert_obj)
+                producer_obj = EmailProducer()
 
-                email_rv = producer_obj.send_email()
+                email_rv = producer_obj.send(alert_obj)
 
                 # Update timestamps on the object for future searches to work.
                 obj.last_start = start
