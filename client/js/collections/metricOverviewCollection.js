@@ -48,7 +48,7 @@ api
 
     urlGenerator: function() {
         var self = this;
-        this.computeLookbackAndInterval(30);
+        this.computeLookbackAndInterval(60);
 
 
         var coreUrlVars = ['logs/', 'events/', 'api-calls/'];

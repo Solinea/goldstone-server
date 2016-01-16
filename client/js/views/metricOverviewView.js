@@ -19,6 +19,7 @@
 var MetricOverviewView = ChartSet.extend({
 
     makeChart: function() {
+        this.colorSet = d3.scale.ordinal().domain(['api', 'event', 'log']).range(this.colorArray.distinct['3R']);
         this.svgAdder(this.width, this.height);
         this.initializePopovers();
         this.chartAdder();
@@ -32,6 +33,49 @@ var MetricOverviewView = ChartSet.extend({
 
         // added
         this.setLines();
+        this.setLegend();
+    },
+
+    setLegend: function() {
+        var self = this;
+
+        var legendText = [{
+            text: 'API',
+            colorSet: 'api'
+        }, {
+            text: 'Events',
+            colorSet: 'event'
+        }, {
+            text: 'Logs',
+            colorSet: 'log'
+        }];
+
+        var legend = this.svg.selectAll('g')
+            .data(legendText)
+            .append('g');
+
+        legend.append('rect')
+            .attr('x', function(d, i) {
+                return i * 60;
+            })
+            .attr('y', -20)
+            .attr('width', '10px')
+            .attr('height', '10px')
+            .attr('fill', function(d) {
+                return self.colorSet(d.colorSet);
+            });
+
+        legend.append('text')
+            .text(function(d) {
+                return d.text;
+            })
+            .attr('color', 'black')
+            .attr('x', function(d, i) {
+                return i * 60 + 14;
+            })
+            .attr('y', -10)
+            .attr('font-size', '15px');
+
     },
 
     chartAdder: function() {
@@ -56,10 +100,25 @@ var MetricOverviewView = ChartSet.extend({
             .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
     },
 
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d, setName) {
+                return moment(d.key).format('ddd MMM D YYYY') + "<br>" +
+                    moment(d.key).format('h:mm:ss a') + "<br>" +
+                    d.doc_count + ' ' + setName;
+            });
+
+        this.svg.call(this.tip);
+    },
+
     setLines: function() {
         var self = this;
 
         this.apiLine = d3.svg.line()
+            .interpolate('monotone')
             .x(function(d) {
                 return self.x(d.key);
             })
@@ -68,6 +127,7 @@ var MetricOverviewView = ChartSet.extend({
             });
 
         this.eventLine = d3.svg.line()
+            .interpolate('monotone')
             .x(function(d) {
                 return self.x(d.key);
             })
@@ -76,6 +136,7 @@ var MetricOverviewView = ChartSet.extend({
             });
 
         this.logLine = d3.svg.line()
+            .interpolate('monotone')
             .x(function(d) {
                 return self.x(d.key);
             })
@@ -151,6 +212,7 @@ var MetricOverviewView = ChartSet.extend({
 
     linesUpdate: function() {
 
+        var self = this;
         var existingLines = this.chart.select('path');
 
         if (existingLines.empty()) {
@@ -158,19 +220,25 @@ var MetricOverviewView = ChartSet.extend({
                 .attr('class', 'apiLine')
                 .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets))
                 .style('fill', 'none')
-                .style('stroke', 'red');
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('api'));
 
             this.eventLineRendered = this.chart.append('path')
                 .attr('class', 'eventLine')
                 .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets))
                 .style('fill', 'none')
-                .style('stroke', 'green');
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('event'));
 
             this.logLineRendered = this.chart.append('path')
                 .attr('class', 'logLine')
                 .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets))
                 .style('fill', 'none')
-                .style('stroke', 'blue');
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('log'));
         }
 
         this.apiLineRendered
@@ -241,8 +309,14 @@ var MetricOverviewView = ChartSet.extend({
             })
             .attr('class', 'apiCircle')
             .attr('r', 3)
-            .style('stroke', 'red')
-            .style('fill', 'red');
+            .style('stroke', this.colorSet('api'))
+            .style('fill', this.colorSet('api'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Api Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
 
         this.chartEventCircles
             .enter().append('circle')
@@ -254,8 +328,14 @@ var MetricOverviewView = ChartSet.extend({
             })
             .attr('class', 'eventCircle')
             .attr('r', 3)
-            .style('stroke', 'green')
-            .style('fill', 'green');
+            .style('stroke', this.colorSet('event'))
+            .style('fill', this.colorSet('event'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
 
         this.chartLogCircles
             .enter().append('circle')
@@ -267,14 +347,28 @@ var MetricOverviewView = ChartSet.extend({
             })
             .attr('class', 'logCircle')
             .attr('r', 3)
-            .style('stroke', 'blue')
-            .style('fill', 'blue');
+            .style('stroke', this.colorSet('log'))
+            .style('fill', this.colorSet('log'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Logs');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
     },
 
     shapeExit: function() {
         this.chartApiCircles.exit().remove();
         this.chartEventCircles.exit().remove();
         this.chartLogCircles.exit().remove();
+    },
+
+    mouseoverAction: function(d, setName) {
+        this.tip.show(d, setName);
+    },
+
+    mouseoutAction: function(d) {
+        this.tip.hide();
     },
 
 });
