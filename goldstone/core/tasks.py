@@ -178,6 +178,9 @@ def check_for_pending_alerts():
 
             now = arrow.utcnow().datetime
 
+            msg_dict = obj.build_alert_message_template(hits=
+                                                        response.hits.total)
+
             # TBD : For now lets email to keystone client [0]
             # Do we always have a keystone client configured ?
             # Is it ever null ?
@@ -187,7 +190,8 @@ def check_for_pending_alerts():
             user = users[0]
 
             alert_obj = Alert(name='Scheduled Alert loop :' + str(now),
-                              query=obj)
+                              query=obj, msg_title=msg_dict['title'],
+                              msg_body=msg_dict['body'])
 
             # currently we only have a producer interface for emails.
             # So we'll only check for it and call the corresponding producer

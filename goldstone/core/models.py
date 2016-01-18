@@ -2664,6 +2664,24 @@ class AlertSearch(SavedSearch):
 
         verbose_name_plural = "saved searches with alerts"
 
+    @classmethod
+    def build_alert_message_template(self, hits):
+        msg_title_template = 'Alert : %s ' + self.name + \
+                             ' triggered with %d ' + str(hits) +\
+                             'hits in last %d minutes.' + \
+                             str(self.target_interval)
+        msg_body_template = 'There were %d ' + str(hits) + \
+                            'occurrences of %s ' + str(self.name) +\
+                            'in the last %d minutes.' + '\n' +\
+                            'This query was created at : %s' +\
+                            str(self.created) + 'and last updated at : %s.' +\
+                            str(self.updated)+ '\n' +\
+                            'This query last ran from : %s' +\
+                            str(self.last_start) + 'to : %s.' +\
+                            str(self.last_end)
+        msg_params_dict = {'title': msg_title_template, 'body': msg_body_template}
+        return msg_params_dict
+
 
 class Alert(models.Model):
     """
@@ -2678,13 +2696,11 @@ class Alert(models.Model):
     query = models.ForeignKey(AlertSearch)
     name = models.CharField(max_length=64, default='generic-alert',
                             blank=False)
-    description = models.CharField(max_length=1024,
-                                   default='Alert object instance')
     # alert assignee vs alert receiver, can be a person vs mailing list
     owner = models.CharField(max_length=64, default='goldstone',
                              help_text='alert assignee, individual entity')
 
-    msg_title = models.CharField(max_length=64, default='Alert notification')
+    msg_title = models.CharField(max_length=256, default='Alert notification')
     msg_body = models.CharField(max_length=1024,
                                 default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
