@@ -2664,7 +2664,6 @@ class AlertSearch(SavedSearch):
 
         verbose_name_plural = "saved searches with alerts"
 
-    @classmethod
     def build_alert_message_template(self, hits):
         msg_title_template = 'Alert : %s ' + self.name + \
                              ' triggered with %d ' + str(hits) +\
@@ -2732,12 +2731,8 @@ class EmailProducer(Producer):
         This class only contains methods specific to a mailing interface.
     """
     sender = models.CharField(max_length=64, default='goldstone')
-    receiver = models.CharField(max_length=64, default='goldstone',
-                                help_text='single destination or mailer',
-                                blank=False)
-    default_sender = \
-        settings.ADMINS[0][1] if settings.ADMINS \
-        else "root@localhost"
+    receiver = models.EmailField(max_length=128,blank=False, null=True)
+    default_sender = models.CharField(max_length=64, default='root@localhost')
 
     @classmethod
     def __init__(self):

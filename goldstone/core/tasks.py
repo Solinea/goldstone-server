@@ -17,7 +17,6 @@ from subprocess import check_call
 import arrow
 from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
-from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
     Alert, EmailProducer
@@ -181,14 +180,9 @@ def check_for_pending_alerts():
             msg_dict = obj.build_alert_message_template(hits=
                                                         response.hits.total)
 
-            # TBD : For now lets email to keystone client [0]
-            # Do we always have a keystone client configured ?
-            # Is it ever null ?
-
-            keystone_client = get_keystone_client()['client']
-            users = keystone_client.users.list()
-            user = users[0]
-
+            # For this scheduled celery task, pick up the message template
+            # from the query object and pass it along. For all other
+            # cases, user is allowed to send custom msg_title and msg_body
             alert_obj = Alert(name='Scheduled Alert loop :' + str(now),
                               query=obj, msg_title=msg_dict['title'],
                               msg_body=msg_dict['body'])
@@ -200,8 +194,8 @@ def check_for_pending_alerts():
             # To be handled later : sanity check on :
             # channels vs channel configuration info
 
-            # our receiver currently is a keystone client
-            producer_obj = EmailProducer(receiver=str(user.email))
+            # What is the receiver email id for this default celery task ?
+            producer_obj = EmailProducer(receiver='root@localhost')
 
             email_rv = producer_obj.send(alert=alert_obj)
 
