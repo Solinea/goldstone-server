@@ -15,6 +15,7 @@
 
 import logging
 import sys
+import arrow
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -2617,6 +2618,8 @@ class CADFEventDocType(DailyIndexDocType):
 
     INDEX_DATE_FMT = 'YYYY-MM-DD'
 
+    timestamp = Date()
+
     traits = Nested(
         properties={
             'action': String(),
@@ -2636,10 +2639,13 @@ class CADFEventDocType(DailyIndexDocType):
         doc_type = 'goldstone_event'
         index = 'events_*'
 
-    def __init__(self, event=None, meta=None, **kwargs):
+    def __init__(self, timestamp=None, event=None, meta=None, **kwargs):
         if event is not None:
             kwargs = dict(
                 kwargs.items() + self._get_traits_dict(event).items())
+
+        if timestamp is None:
+            kwargs['timestamp'] = arrow.utcnow().datetime
 
         super(CADFEventDocType, self).__init__(meta, **kwargs)
 
