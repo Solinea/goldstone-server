@@ -15,6 +15,8 @@ machine:
     # build output dirs
     LOG_DIR:      $CIRCLE_ARTIFACTS/logs
     DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
+    # build_images support
+    GS_PROJ_TOP_DIR:    $HOME
     # Docker image directories for staging
     DOCKER_DIR:   $HOME/goldstone-server/docker
     STAGE_APP:    $DOCKER_DIR/goldstone-app
