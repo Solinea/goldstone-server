@@ -64,21 +64,23 @@ dependencies:
     # - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
     # - cp -r dist $STAGE_APP/goldstone-server
     # - cp -r dist $STAGE_TASK/goldstone-server
-    - bin/build_images.sh
     # packaging
     - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
     - docker info
     - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
   post:
     - docker info && docker-compose version
-    - docker build -t goldstone-app $STAGE_APP
-    - docker build -t goldstone-db $STAGE_DB
-    - docker build -t goldstone-log $STAGE_LOG
-    - docker build -t goldstone-search $STAGE_SEARCH
+    - bin/build_images.sh
+    # - docker build -t goldstone-app $STAGE_APP
+    # - docker build -t goldstone-db $STAGE_DB
+    # - docker build -t goldstone-log $STAGE_LOG
+    # - docker build -t goldstone-search $STAGE_SEARCH
+
     # TODO: uncomment build when goldstone-task is pulled out from goldstone-app
     #- docker build -t goldstone-task $STAGE_TASK
-    - docker build -t goldstone-task-queue $STAGE_TASKQ
-    - docker build -t goldstone-web $STAGE_WEB
+
+    # - docker build -t goldstone-task-queue $STAGE_TASKQ
+    # - docker build -t goldstone-web $STAGE_WEB
     - docker images
 
 ## test config
