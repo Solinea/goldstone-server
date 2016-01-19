@@ -52,3 +52,5 @@ RUN  su - ${APPUSER} -c '. /venv/bin/activate && pip install -r requirements.txt
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+USER ${APPUSER}
