@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/gunicorn:19.3.0
+FROM solinea/goldstone-base:0.8.0-SNAPSHOT
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
@@ -42,43 +42,13 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
     GOLDSTONE_REDIS_HOST=gstaskq \
     CELERY_LOGLEVEL=info
 
-WORKDIR ${APPDIR}
-
 COPY goldstone-server/ ${APPDIR}/
-
-COPY config ${APPDIR}/config
-
-COPY docker-entrypoint.sh /
 
 USER root
 
-RUN buildReqs=' \
-    python2.7-dev \
-    gcc \
-    g++ \
-  ' \
-  && preReqs=' \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
-    git \
-  ' \
-  && apt-get update -y -q -q \
-  && apt-get install -y -q $buildReqs \
-  && apt-get install -y -q $preReqs \
-  && su - ${APPUSER} -c '. /venv/bin/activate && pip install -r requirements.txt' \
+RUN  su - ${APPUSER} -c '. /venv/bin/activate && pip install -r requirements.txt' \
   && su - ${APPUSER} -c '. /venv/bin/activate && pip install -r test-requirements.txt' \
   && apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN mkdir -p /usr/share/nginx/html/static \
-  && chown -R ${APPUSER}:staff /usr/share/nginx/html/static \
-  && chown -R ${APPUSER}:staff ${APPDIR}
-
-USER ${APPUSER}
-
-EXPOSE 8000
-
-ENTRYPOINT ["/docker-entrypoint.sh"]

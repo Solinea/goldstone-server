@@ -22,7 +22,7 @@ TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
 # tell nose to destroy the DB after test runs
 os.environ['REUSE_DB'] = "0"
 
-STATIC_ROOT = os.path.join(os.getcwd(), 'static')
+STATIC_ROOT = os.path.join(os.getcwd(), 'docker/goldstone-web/static')
 
 INSTALLED_APPS += (
     'django_nose',
