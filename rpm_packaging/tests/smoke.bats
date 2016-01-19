@@ -45,6 +45,16 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
   [ "$status" -eq 0 ]
 }
 
+@test "elasticsearch configs in place" {
+  run stat /usr/share/elasticsearch/config/elasticsearch.yml
+  [ "$status" -eq 0 ]
+}
+
+@test "elasticsearch templates in place" {
+  run stat /usr/share/elasticsearch/config/templates/ceilo_events_template.json
+  [ "$status" -eq 0 ]
+}
+
 @test "goldstone user created" {
   run getent passwd goldstone
   [ "$status" -eq 0 ]

@@ -121,7 +121,12 @@ rpm_build:
 	docker/config/goldstone-dev.env=/opt/goldstone/config/goldstone-dev.env \
 	docker/config/goldstone-prod.env=/opt/goldstone/config/goldstone-prod.env \
 	docker/config/goldstone-test.env=/opt/goldstone/config/goldstone-test.env \
-	docker/config/goldstone-search/templates/api_stats_template.json=/opt/goldstone/api_stats_template.json
+	docker/goldstone-search/config/templates/api_stats_template.json=/usr/share/elasticsearch/config/templates/api_stats_template.json \
+	docker/goldstone-search/config/templates/ceilo_events_template.json=/usr/share/elasticsearch/config/templates/ \
+	docker/goldstone-search/config/templates/goldstone_metrics_template.json=/usr/share/elasticsearch/config/templates/ \
+	docker/goldstone-search/config/templates/goldstone_reports_template.json=/usr/share/elasticsearch/config/templates/ \
+	docker/goldstone-search/config/elasticsearch.yml=/usr/share/elasticsearch/config/ \
+	docker/goldstone-search/config/logging.yml=/usr/share/elasticsearch/config/
 
 rpm_test:
 	@echo "***********************************************************************"
