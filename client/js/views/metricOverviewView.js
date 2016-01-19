@@ -104,12 +104,9 @@ var MetricOverviewView = ChartSet.extend({
         var self = this;
         this.tip = d3.tip()
             .attr('class', 'd3-tip')
-            .offset([-10, 0])
-            .html(function(d, setName) {
-                return moment(d.key).format('ddd MMM D YYYY') + "<br>" +
-                    moment(d.key).format('h:mm:ss a') + "<br>" +
-                    d.doc_count + ' ' + setName;
-            });
+            .offset([-10, 0]);
+
+        // .html set in this.mouseoverAction
 
         this.svg.call(this.tip);
     },
@@ -327,7 +324,21 @@ var MetricOverviewView = ChartSet.extend({
                 return self.yEvent(d.doc_count);
             })
             .attr('class', 'eventCircle')
-            .attr('r', 3)
+            .attr('r', function(d) {
+                var radiusByOutcome = d.per_outcome.buckets.filter(function(item) {
+
+                        // filter out success/pending
+                        return item.key !== "success" && item.key !== "pending";
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum non success/pending counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByOutcome / d.doc_count) * 2 + 2;
+            })
             .style('stroke', this.colorSet('event'))
             .style('fill', this.colorSet('event'))
             .on('mouseover', function(d) {
@@ -364,6 +375,43 @@ var MetricOverviewView = ChartSet.extend({
     },
 
     mouseoverAction: function(d, setName) {
+
+        // variably set this.tip.html based on the line set that is passed in
+        this.tip.html(function(d, setName) {
+
+            var extraContent;
+            if (setName === 'Events') {
+                extraContent = '<br>' +
+
+                'Success: ' + (d.per_outcome.buckets.filter(function(item) {
+                        return item.key === "success";
+                    })
+                    .reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0)) + '<br>' +
+                    'Pending: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key === "pending";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>' +
+                    'Failure: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key !== "pending" &&
+                                item.key !== "success";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>';
+
+            } else {
+                extraContent = '';
+            }
+
+            return moment(d.key).format('ddd MMM D YYYY') + "<br>" +
+                moment(d.key).format('h:mm:ss a') + "<br>" +
+                d.doc_count + ' ' + setName + extraContent;
+        });
+
         this.tip.show(d, setName);
     },
 
