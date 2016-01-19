@@ -15,7 +15,7 @@
 
 EPOCH=$(date +%s)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-VERSION=$(git describe --tags | cut -f1 -d'-')
+VERSION=$(git describe --tags --match [0-9].[0-9].[0-9] | cut -f1 -d'-')
 if [[ $GIT_BRANCH == 'master' ]] ; then
   RELEASE=$(git describe --match [0-9].[0-9].[0-9] --tags | cut -f2 -d'-')
 else
