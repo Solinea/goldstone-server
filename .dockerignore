@@ -1,5 +1,4 @@
 .dockerignore
-.git
 .gitignore
 .gitmodules
 .travis.yml
@@ -10,4 +9,3 @@
 CLA
 design_docs
 dist
-docs

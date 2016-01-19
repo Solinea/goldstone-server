@@ -1,0 +1,20 @@
+#!/bin/bash
+
+case $1 in
+  start)
+    echo "Starting Goldstone Server ..."
+    /opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml up
+    echo "DONE"
+    ;;
+  stop)
+    echo "Stopping Goldstone Server ..."
+    /opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml stop
+    echo "DONE"
+    ;;
+  version)
+    rpm -qil goldstone-server | grep -E "Version|Release"
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|version}"
+    exit 1
+esac
