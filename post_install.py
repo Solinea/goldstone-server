@@ -25,7 +25,7 @@ from fabric.utils import fastprint
 from fabric.operations import prompt, run, settings as fab_settings
 import operator
 
-INSTALL_DIR = os.environ.get('APPDIR') # set in the Dockerfile
+INSTALL_DIR = os.environ.get('APPDIR')                # set in the Dockerfile
 SETTINGS = os.environ.get('DJANGO_SETTTINGS_MODULE')  # set in compose env
 PROD_CONFIG = INSTALL_DIR + "/config"
 
@@ -338,9 +338,9 @@ def _set_multi_value_configs(file_name, edits_list):
             # pylint: disable=W1401
 
             empty_setting_regex = '^\<%s\>[:space:]*=[:space]*$' % \
-                                   (config_entry['parameter'])
+                                  (config_entry['parameter'])
             setting_regex = '^\<%s\>[ \t]*=.*\<%s\>.*$' % \
-                           (config_entry['parameter'], config_entry['value'])
+                            (config_entry['parameter'], config_entry['value'])
 
             empty_setting_exists = contains(
                 file_name, empty_setting_regex, escape=False)
