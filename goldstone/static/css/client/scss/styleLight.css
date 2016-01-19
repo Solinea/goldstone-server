@@ -338,6 +338,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 .sidebar.expand-menu { width: inherit; }
 
 .btn-grp { list-style-type: none; padding: 0; margin-bottom: 0; width: 64px; z-index: 99; float: left; background: #fff; position: relative; height: 100%; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; -webkit-transition: all 0.3s ease; -ms-transition: all 0.3s ease; -moz-transition: all 0.3s ease; -o-transition: all 0.3s ease; }
+.btn-grp a { text-decoration: none; color: #333; }
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
