@@ -57,11 +57,12 @@ dependencies:
     - pip freeze
   override:
     # build static files
-    - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
+    # - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
     # build goldstone-server distribution
-    - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
-    - cp -r dist $STAGE_APP/goldstone-server
-    - cp -r dist $STAGE_TASK/goldstone-server
+    # - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
+    # - cp -r dist $STAGE_APP/goldstone-server
+    # - cp -r dist $STAGE_TASK/goldstone-server
+    - bin/build_images.sh
     # packaging
     - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
     - docker info
