@@ -59,24 +59,23 @@ dependencies:
     - pip freeze
   override:
     # build static files
-    # - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
+    - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
     # build goldstone-server distribution
-    # - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
-    # - cp -r dist $STAGE_APP/goldstone-server
-    # - cp -r dist $STAGE_TASK/goldstone-server
+    - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
+    - cp -r dist $STAGE_APP/goldstone-server
+    - cp -r dist $STAGE_TASK/goldstone-server
   post:
     - docker info && docker-compose version
-    - bin/build_images.sh
-    # - docker build -t goldstone-app $STAGE_APP
-    # - docker build -t goldstone-db $STAGE_DB
-    # - docker build -t goldstone-log $STAGE_LOG
-    # - docker build -t goldstone-search $STAGE_SEARCH
+    - docker build -t goldstone-app $STAGE_APP
+    - docker build -t goldstone-db $STAGE_DB
+    - docker build -t goldstone-log $STAGE_LOG
+    - docker build -t goldstone-search $STAGE_SEARCH
 
     # TODO: uncomment build when goldstone-task is pulled out from goldstone-app
     #- docker build -t goldstone-task $STAGE_TASK
 
-    # - docker build -t goldstone-task-queue $STAGE_TASKQ
-    # - docker build -t goldstone-web $STAGE_WEB
+    - docker build -t goldstone-task-queue $STAGE_TASKQ
+    - docker build -t goldstone-web $STAGE_WEB
     - docker images
 
 ## test config
@@ -91,6 +90,7 @@ test:
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
   post:
+    - bin/build_images.sh
     # build goldstone RPM package
     - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
     - docker info
