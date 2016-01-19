@@ -922,6 +922,28 @@ msgctxt "nodeavail"
 msgid "Exit"
 msgstr ""
 
+#: metricOverviewView.js
+
+#: metricOverview
+# msgid "Metric Overview"
+# TBD
+
+#: metricOverview
+msgid "API"
+msgstr ""
+
+#: metricOverview
+msgid "Events"
+msgstr ""
+
+#: metricOverview
+msgid "Logs"
+msgstr ""
+
+#: metricOverview
+msgid "Count"
+msgstr ""
+
 #: metricViewerView.js
 
 #: metricViewerView.js

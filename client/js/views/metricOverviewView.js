@@ -40,13 +40,13 @@ var MetricOverviewView = ChartSet.extend({
         var self = this;
 
         var legendText = [{
-            text: 'API',
+            text: goldstone.translate('API'),
             colorSet: 'api'
         }, {
-            text: 'Events',
+            text: goldstone.translate('Events'),
             colorSet: 'event'
         }, {
-            text: 'Logs',
+            text: goldstone.translate('Logs'),
             colorSet: 'log'
         }];
 
@@ -56,7 +56,7 @@ var MetricOverviewView = ChartSet.extend({
 
         legend.append('rect')
             .attr('x', function(d, i) {
-                return i * 60;
+                return i * 70;
             })
             .attr('y', -20)
             .attr('width', '10px')
@@ -71,7 +71,7 @@ var MetricOverviewView = ChartSet.extend({
             })
             .attr('color', 'black')
             .attr('x', function(d, i) {
-                return i * 60 + 14;
+                return i * 70 + 14;
             })
             .attr('y', -10)
             .attr('font-size', '15px');
