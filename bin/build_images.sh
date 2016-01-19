@@ -47,7 +47,7 @@ declare -a priv_to_build=( $GS_APP_E_DIR )
 
 cd $TOP_DIR || exit 1
 
-TAG=$(bin/semver.sh short)
+TAG=$(${TOP_DIR}/bin/semver.sh short)
 
 for arg in "$@" ; do
     case $arg in
