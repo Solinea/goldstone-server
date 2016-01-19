@@ -16,9 +16,9 @@ machine:
     LOG_DIR:      $CIRCLE_ARTIFACTS/logs
     DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
     # build_images support
-    GS_PROJ_TOP_DIR:    $HOME
+    GS_PROJ_TOP_DIR:    $HOME/goldstone-server
     # Docker image directories for staging
-    DOCKER_DIR:   $HOME/goldstone-server/docker
+    DOCKER_DIR:   $GS_PROJ_TOP_DIR/docker
     STAGE_APP:    $DOCKER_DIR/goldstone-app
     STAGE_DB:     $DOCKER_DIR/goldstone-db
     STAGE_LOG:    $DOCKER_DIR/goldstone-log
@@ -64,10 +64,6 @@ dependencies:
     # - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
     # - cp -r dist $STAGE_APP/goldstone-server
     # - cp -r dist $STAGE_TASK/goldstone-server
-    # packaging
-    - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
-    - docker info
-    - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
   post:
     - docker info && docker-compose version
     - bin/build_images.sh
@@ -96,6 +92,9 @@ test:
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
   post:
     # build goldstone RPM package
+    - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
+    - docker info
+    - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
     - docker run --name gss-rpm gss.rpm make rpm_native
     - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
     - docker run --name gsse-rpm gss.rpm make gse_native
