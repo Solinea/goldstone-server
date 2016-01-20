@@ -17,7 +17,6 @@
 # goldstone-server docker container context for build. Once copied, it
 # performs a build of the docker container, and pushes it to the repo.
 
-DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
 GS_APP_E_DIR=${TOP_DIR}/docker/goldstone-app-e
@@ -38,17 +37,13 @@ TAG=$(${TOP_DIR}/bin/semver.sh short)
 
 for arg in "$@" ; do
     case $arg in
-        --docker-vm=*)
-            DOCKER_VM="${arg#*=}"
-            shift
-        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=vmname]"
+            echo "Usage: $0"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
+            echo "Usage: $0"
             exit 1
         ;;
     esac
@@ -61,21 +56,16 @@ else
    echo "Bumping files to tag: $TAG"
 fi
 
-if [[ ${DOCKER_VM} != "false" ]] ; then
-    docker-machine start ${DOCKER_VM}
-    eval "$(docker-machine env ${DOCKER_VM})"
-fi
-
 # We're looking for two patterns:
 # 
 #   FROM solinea/goldstone-*:version
-#   image: solinea/golstone-*:version
+#       image: solinea/golstone-*:version
 #
 # We will replace the version with our $TAG, and if any files have changed, 
 # exit with a non-zero code to make the hook fail.
 for file in "${dockerfile_list[@]}" ; do
     echo "Bumping versions in $file..."
-    cat $file | sed -e 's/^\(FROM solinea\/goldstone-.*:\).*$/\1${TAG}/' > ${file}.new
+    cat $file | sed -e "s/^\(FROM solinea\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
        mv ${file}.new $file
@@ -86,7 +76,8 @@ done
 
 for file in "${composefile_list[@]}" ; do
     echo "Bumping versions in $file..."
-    cat $file | sed -e 's/^\(image: solinea\/goldstone-.*:\).*$/\1${TAG}/' > ${file}.new
+    cat $file | sed -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
+                    -e "s/^\([[:space:]]*image:[[:space:]]*gs-docker-ent.bintray.io\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
        mv ${file}.new $file

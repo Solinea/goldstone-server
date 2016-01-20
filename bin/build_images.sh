@@ -136,12 +136,14 @@ done
 echo "Building open source containers"
 for folder in "${open_to_build[@]}" ; do
     cd $folder || exit 1
+    echo "*** Building $folder ***"
     docker build -t ${OPEN_REGISTRY_ORG}/${folder##*/}:${TAG} .
 done
 
 echo "Building private containers"
 for folder in "${priv_to_build[@]}" ; do
     cd $folder || exit 1
+    echo "*** Building $folder ***"
     docker build -t ${PRIV_REGISTRY_ORG}/${folder##*/}:${TAG} .
 done
 
