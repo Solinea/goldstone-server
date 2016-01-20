@@ -159,11 +159,7 @@ def check_for_pending_alerts():
      Run an AlertSearch query to check for any pending alerts to be fired.
     """
 
-    # limit our searches to those owned by us, and concerned with logs
-    owner = 'events'
-    indices = 'logstash-*'
-    saved_alerts = AlertSearch.objects.filter(owner=owner,
-                                              index_prefix=indices)
+    saved_alerts = AlertSearch.objects.filter()
 
     for obj in saved_alerts:
         # execute the search, and assuming no error, update the last_ times
@@ -195,9 +191,9 @@ def check_for_pending_alerts():
             # channels vs channel configuration info
 
             # What is the receiver email id for this default celery task ?
-            producer_obj = EmailProducer(receiver='root@localhost')
+            producer_obj = EmailProducer('root@localhost', 'goldstone-bot@solinea.com')
 
-            email_rv = producer_obj.send(alert=alert_obj)
+            email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
 
             # Update timestamps on the object for future searches to work.
             obj.last_start = start

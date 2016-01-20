@@ -36,8 +36,6 @@ from goldstone.core.models import SavedSearch, CADFEventDocType, \
     AlertSearch, Alert, EmailProducer
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
-from goldstone.keystone.utils import get_client as get_keystone_client
-
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -348,16 +346,13 @@ class AlertSearchModelTests(TestCase):
     """
 
     fixtures = ['core_initial_data.yaml']
-    import arrow
 
     def test_loaded_data_from_fixtures(self):
         self.assertGreater(AlertSearch.objects.all(), 0)
 
     def test_predefined_alert_func(self):
-        owner = 'events'
-        indices = 'logstash-*'
-        saved_alerts = AlertSearch.objects.filter(owner=owner,
-                                                  index_prefix=indices)
+
+        saved_alerts = AlertSearch.objects.filter()
         self.assertIsNotNone(saved_alerts)
 
         for entry in saved_alerts:
@@ -373,20 +368,17 @@ class AlertSearchModelTests(TestCase):
             self.assertGreater(response.hits.total, 0)
 
             if response.hits.total > 0:
-                keystone_client = get_keystone_client()['client']
-                users = keystone_client.users.list()
-                user = users[0]
 
                 alert_obj = Alert(name='Test Alert loop :',
                                   query=entry)
                 self.assertIsNotNone(alert_obj)
                 self.assertIsInstance(alert_obj, Alert)
 
-                producer_obj = EmailProducer(receiver=str(user.email))
+                producer_obj = EmailProducer('root@localhost', 'goldstone-bot@solinea.com')
                 self.assertIsNotNone(producer_obj)
                 self.assertIsInstance(producer_obj, EmailProducer)
 
-                email_rv = producer_obj.send(alert=alert_obj)
+                email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
 
                 # This return value should never be a zero
                 print email_rv

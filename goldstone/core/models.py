@@ -2730,18 +2730,21 @@ class EmailProducer(Producer):
         Class gets all of its email contents from the parent producer class.
         This class only contains methods specific to a mailing interface.
     """
-    sender = models.CharField(max_length=64, default='goldstone')
+
+    sender = models.CharField(max_length=64, default='goldstone-bot@solinea.com')
     receiver = models.EmailField(max_length=128,blank=False, null=True)
     default_sender = models.CharField(max_length=64, default='root@localhost')
 
-    @classmethod
-    def __init__(self):
-        if not self.sender:
-            self.sender = self.default_sendor
+    def __init__(self, sender, receiver):
+        EmailProducer.sender = sender
+        EmailProducer.receiver = receiver
 
-    @classmethod
-    def send(self, alert):
+    def send(self, alert, to_str):
+        to_list = list()
+        to_list.append(to_str)
+
         email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
-                             str(self.sender), list[self.receiver],
+                             str(self.sender), to_list,
                              fail_silently=False)
         return email_rv
+
