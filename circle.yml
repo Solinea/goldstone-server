@@ -70,10 +70,8 @@ dependencies:
     - docker build -t goldstone-db $STAGE_DB
     - docker build -t goldstone-log $STAGE_LOG
     - docker build -t goldstone-search $STAGE_SEARCH
-
     # TODO: uncomment build when goldstone-task is pulled out from goldstone-app
     #- docker build -t goldstone-task $STAGE_TASK
-
     - docker build -t goldstone-task-queue $STAGE_TASKQ
     - docker build -t goldstone-web $STAGE_WEB
     - docker images
