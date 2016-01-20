@@ -17,7 +17,6 @@ machine:
     DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
     # build_images support
     GS_PROJ_TOP_DIR:    $HOME/goldstone-server
-    GS_VERSION: "bin/semver.sh short"
     # Docker image directories for staging
     DOCKER_DIR:   $GS_PROJ_TOP_DIR/docker
     STAGE_APP:    $DOCKER_DIR/goldstone-app
@@ -29,7 +28,7 @@ machine:
     STAGE_WEB:    $DOCKER_DIR/goldstone-web
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
-    TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GS_VERSION} -c"
+    TEST_APP: "GS_VERSION=$(bin/semver.sh short) docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GS_VERSION} -c"
   # /etc/hosts
   hosts:
     gsapp: 127.0.0.1
