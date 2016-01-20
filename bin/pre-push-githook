@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# ensure that there are no uncommitted changes after checking
+# the docker image semvers.  ignore tag pushes.
+#
+# to install, link '.git/hooks/pre-push' to this file
+#
+
+remote="$1"
+url="$2"
+
+tag_push=true
+while read local_ref local_sha remote_ref remote_sha
+do
+    if [[ $remote_ref == ${remote_ref##refs/tags/} ]] ; then
+        # this is not a tag
+        tag_push=false
+    fi
+done
+
+if [[ $tag_push == "false" ]] ; then
+    TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
+
+    cd ${TOP_DIR} || { echo "set env var GS_PROJ_TOP_DIR to repo root" && exit 1 ; }
+
+    bin/bump_images.sh
+    CHANGES=$(git status --short | awk 'END{print NR}')
+    if [ $CHANGES -gt 0 ] ; then
+        echo "docker image version references bumped.  review, commit, and try again..."
+        exit 1
+    fi 
+fi
+
+exit 0
