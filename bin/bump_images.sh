@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# builds the software dist of the django project, and extracts it to the
-# goldstone-server docker container context for build. Once copied, it
-# performs a build of the docker container, and pushes it to the repo.
+# uses the semver.sh script to replace the image tags in Dockerfiles
+# and compose files.
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
