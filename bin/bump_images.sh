@@ -63,7 +63,6 @@ fi
 # We will replace the version with our $TAG, and if any files have changed, 
 # exit with a non-zero code to make the hook fail.
 for file in "${dockerfile_list[@]}" ; do
-    echo "Bumping versions in $file..."
     cat $file | sed -e "s/^\(FROM solinea\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
@@ -74,7 +73,6 @@ for file in "${dockerfile_list[@]}" ; do
 done
 
 for file in "${composefile_list[@]}" ; do
-    echo "Bumping versions in $file..."
     cat $file | sed -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
                     -e "s/^\([[:space:]]*image:[[:space:]]*gs-docker-ent.bintray.io\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
     RC=`diff $file $file.new`
@@ -84,3 +82,5 @@ for file in "${composefile_list[@]}" ; do
        rm ${file}.new
     fi
 done
+
+git status --short
