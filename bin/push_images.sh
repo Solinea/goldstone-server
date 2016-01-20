@@ -14,7 +14,8 @@
 # limitations under the License.
 
 DOCKER_VM=default
-TAG=""
+TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
+TAG=$(${TOP_DIR}/bin/semver.sh short)
 
 REGISTRY_ORG=solinea
 
@@ -24,17 +25,13 @@ for arg in "$@" ; do
             DOCKER_VM="${arg#*=}"
             shift
         ;;
-        --tag=*)
-            TAG="${arg#*=}"
-            shift
-        ;;
         --help)
-            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
+            echo "Usage: $0 [--docker-vm=vmname]"
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
+            echo "Usage: $0 [--docker-vm=vmname]"
             exit 1
         ;;
     esac
@@ -50,7 +47,7 @@ fi
 #
 
 if [[ $TAG == "" ]] ; then
-    echo "Usage: $0 --tag=tagname [--docker-vm=vmname]"
+    echo "Usage: $0 [--docker-vm=vmname]"
     exit 1
 fi 
 
