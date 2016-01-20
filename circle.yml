@@ -50,15 +50,13 @@ checkout:
 ## custom dependencies
 dependencies:
   pre:
-    - echo "TEST_APP = $TEST_APP gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c"
+    - echo "$TEST_APP gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
     - mkdir -p {$LOG_DIR,$DJANGO_DIR}             # create output directories
     - sudo service postgresql stop                # stop default postgresql service
     - sudo service redis-server stop              # stop default redis-server service
     - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
     - sudo pip install docker-compose             # circleci env fix, install docker-compose
-    # - pip install -r requirements.txt
     - pip install -r test-requirements.txt
-    # - pip freeze
     - docker info && docker-compose version
   override:
     - bin/build_images.sh --docker-vm=false
@@ -72,8 +70,8 @@ test:
         background: true
     - sleep 10 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
-    - $TEST_APP "gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
-    - $TEST_APP "gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
+    - $TEST_APP gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci
+    - $TEST_APP gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
   post:
