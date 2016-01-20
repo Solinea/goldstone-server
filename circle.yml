@@ -17,7 +17,6 @@ machine:
     DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
     # build_images support
     GS_PROJ_TOP_DIR:    $HOME/goldstone-server
-    GS_VERSION: $(bin/semver.sh short)
     # Docker image directories for staging
     DOCKER_DIR:   $GS_PROJ_TOP_DIR/docker
     STAGE_APP:    $DOCKER_DIR/goldstone-app
@@ -50,7 +49,7 @@ checkout:
 ## custom dependencies
 dependencies:
   pre:
-    - echo "GS_VERSION = ${GS_VERSION}"
+    - echo "GS_VERSION = $(bin/semver.sh short)"
     - mkdir -p {$LOG_DIR,$DJANGO_DIR}             # create output directories
     - sudo service postgresql stop                # stop default postgresql service
     - sudo service redis-server stop              # stop default redis-server service
