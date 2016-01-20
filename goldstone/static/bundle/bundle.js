@@ -7871,7 +7871,26 @@ var MetricOverviewView = ChartSet.extend({
                 return self.yApi(d.doc_count);
             })
             .attr('class', 'apiCircle')
-            .attr('r', 3)
+            .attr('r', function(d) {
+
+                // response_ranges need to be pushed into an array
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                var radiusByResponseRange = responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 400 || item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 4 and 500's
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return radiusByResponseRange === 0 ? 2 : (radiusByResponseRange / d.doc_count) * 2 + 2;
+            })
             .style('stroke', this.colorSet('api'))
             .style('fill', this.colorSet('api'))
             .on('mouseover', function(d) {
@@ -8010,6 +8029,32 @@ var MetricOverviewView = ChartSet.extend({
                             }, 0));
                     }
                 });
+
+            } else if (setName === 'Api Events') {
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                extraContent = '<br>' +
+
+
+                '400 errors: ' + responseRangeArray.filter(function(item) {
+                    // filter for 4 and 500's
+                    return item.from === 400;
+                })
+                    .reduce(function(pre, next) {
+                        // add up 400's
+                        return pre + next.doc_count;
+                    }, 0) + '<br>' +
+                    '500 errors: ' + responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 500's
+                        return pre + next.doc_count;
+                    }, 0);
 
             } else {
                 extraContent = '';
