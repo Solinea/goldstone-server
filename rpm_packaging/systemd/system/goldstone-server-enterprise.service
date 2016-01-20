@@ -1,0 +1,14 @@
+[Unit]
+Description=Goldstone Server Enterprise
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+User=root
+Group=root
+ExecStart=/usr/bin/goldstone-server-enterprise start
+ExecStop=/usr/bin/goldstone-server-enterprise stop
+
+[Install]
+WantedBy=local.target

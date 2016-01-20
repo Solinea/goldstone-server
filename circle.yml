@@ -1,12 +1,15 @@
 ---
 ## test machine configuration
 machine:
+  pre:
+    # cp workaround from https://discuss.circleci.com/t/unable-to-use-docker-cp-but-it-worked-2-days-ago/1137/9
+    - echo 'DOCKER_OPTS="-s btrfs -e lxc -D --userland-proxy=false"' | sudo tee -a /etc/default/docker
+    - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci-cp-workaround'
+    - sudo chmod 0755 /usr/bin/docker
   python:
     version: 2.7.10
-
   services:
     - docker
-
   # environment variables
   environment:
     # build output dirs
@@ -24,7 +27,6 @@ machine:
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
     TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash goldstone-app -c"
-
   # /etc/hosts
   hosts:
     gsapp: 127.0.0.1
@@ -61,6 +63,10 @@ dependencies:
     - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
     - cp -r dist $STAGE_APP/goldstone-server
     - cp -r dist $STAGE_TASK/goldstone-server
+    # packaging
+    - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
+    - docker info
+    - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
   post:
     - docker info && docker-compose version
     - docker build -t goldstone-app $STAGE_APP
@@ -85,6 +91,11 @@ test:
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
     - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
   post:
+    # build goldstone RPM package
+    - docker run --name gss-rpm gss.rpm make rpm_native
+    - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
+    - docker run --name gsse-rpm gss.rpm make gse_native
+    - docker cp gsse-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server-enterprise` $CIRCLE_ARTIFACTS/redhat/
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
     # TODO: uncomment when priv env logon is added to solinea/goldstone-server
