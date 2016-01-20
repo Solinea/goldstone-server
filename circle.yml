@@ -55,9 +55,9 @@ dependencies:
     - sudo service redis-server stop              # stop default redis-server service
     - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
     - sudo pip install docker-compose             # circleci env fix, install docker-compose
-    - pip install -r requirements.txt
+    # - pip install -r requirements.txt
     - pip install -r test-requirements.txt
-    - pip freeze
+    # - pip freeze
     - docker info && docker-compose version
   override:
     - bin/build_images.sh --docker-vm=false
