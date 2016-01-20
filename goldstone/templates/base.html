@@ -60,22 +60,22 @@ limitations under the License.
                         <div class="menu shadow-block">
                             <a href="#settings" class="setting">
                                 <i class="icon setting-icon">&nbsp;</i>
-                                Settings
+                                <span class="i18n" data-i18n="Settings">Settings</span>
                             </a>
                             <a href="https://solinea.freshdesk.com/support/tickets/new/" class="help">
                                 <i class="icon help-icon">&nbsp;</i>
-                                Help
+                                <span class="i18n" data-i18n="Help">Help</span>
                             </a>
                             <a href="https://groups.google.com/forum/#!forum/goldstone-users" class="google-group">
                                 <i class="icon google-group-icon">&nbsp;</i>
-                                Google Groups
+                                <span class="i18n" data-i18n="Google Groups">Google Groups</span>
                             </a>
                             <a href="https://github.com/Solinea/goldstone-server/issues" class="github">
                                 <i class="icon github-icon">&nbsp;</i>
-                                Github Issues
+                                <span class="i18n" data-i18n="Github">Github Issues</span>
                             </a>
-                            <a href="#" class="logout-btn shadow-block">
-                                Logout
+                            <a href="#" class="logout-btn shadow-block"><span class="i18n" data-i18n="Logout">
+                                Logout</span>
                             </a>
                         </div>
                     </div>
@@ -88,29 +88,29 @@ limitations under the License.
                     <a href="#discover">
                         <li class="active-page" data-toggle="tooltip" data-placement="right" title="" data-original-title="Dashboard">
                             <span class="btn-icon-block"><i class="icon dashboard-icon">&nbsp;</i></span>
-                            <span class="btn-txt">Dashboard</span>
+                            <span data-i18n="Dashboard" class="btn-txt i18n">Dashboard</span>
                         </li>
                     </a>
                         <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Alerts">
                             <span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>
-                            <span class="btn-txt">Alerts</span>
+                            <span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>
                         </li>
                     <a href="#metrics/api_perf">
                         <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Metrics">
                             <span class="btn-icon-block"><i class="icon metrics">&nbsp;</i></span>
-                            <span class="btn-txt">Metrics</span>
+                            <span data-i18n="Metrics" class="btn-txt i18n">Metrics</span>
                         </li>
                     </a>
                     <a href="#reports/logbrowser">
                         <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Reports">
                             <span class="btn-icon-block"><i class="icon reports">&nbsp;</i></span>
-                            <span class="btn-txt">Reports</span>
+                            <span data-i18n="Reports" class="btn-txt i18n">Reports</span>
                         </li>
                     </a>
                     <a href="#metrics/topology">
                         <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Topology">
                             <span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>
-                            <span class="btn-txt">Topology</span>
+                            <span data-i18n="Topology" class="btn-txt i18n">Topology</span>
                         </li>
                     </a>
                     <span class="addon-menu-view-container">
@@ -118,7 +118,7 @@ limitations under the License.
                     </span>
                         <li class="menu-toggle" data-toggle="tooltip" data-placement="right" title="" data-original-title="Expand">
                             <span class="btn-icon-block"><i class="icon expand">&nbsp;</i></span>
-                            <span class="btn-txt">Icons Only</span>
+                            <span data-i18n="Icons Only" class="btn-txt i18n">Icons Only</span>
                         </li>
                 </ul>
 
@@ -126,11 +126,11 @@ limitations under the License.
 
                 <div class="tab-content">
                     <div class="tab alert-tab">
-                        <h4 class="header-block">Alerts</h4>
+                        <h4 class="header-block i18n" data-i18n="Alerts">Alerts</h4>
                         <div class="subtab">
                             <ul class="tab-links">
-                                <li class="active">Unread</li>
-                                <li>All</li>
+                                <li class="active i18n" data-i18n="Unread">Unread</li>
+                                <li class="i18n" data-i18n="All">All</li>
                             </ul>
                             <div class="sub-tab-content">
                                 <div class="tabs">
@@ -181,8 +181,8 @@ limitations under the License.
                 <footer class="footer">
                     <!-- <div class="container"> -->
                         <div class="row">
-                            <span class="copyright"><strong>Copyright 2014-2015</strong> <a href="http://www.solinea.com/">Solinea, Inc.</a></span>
-                            <span class="license"><a href="https://www.apache.org/licenses/LICENSE-2.0">License</a></span>
+                            <span class="copyright"><strong><span class="i18n" data-i18n="Copyright">Copyright</span> 2014-2016</strong> <a href="http://www.solinea.com/">Solinea, Inc.</a></span>
+                            <span class="license"><a href="https://www.apache.org/licenses/LICENSE-2.0"><span class="i18n" data-i18n="License">License</span></a></span>
                         </div>
                     <!-- </div> -->
                 </footer>
@@ -246,6 +246,12 @@ limitations under the License.
 
             // define the router
             goldstone.gsRouter = new GoldstoneRouter();
+
+            // re-translate the base template when switching pages to make sure
+            // the possibly hidden lookback/refresh selectors are translated
+            goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+                goldstone.i18n.translateBaseTemplate();
+            });
 
             // contains the machinery for appending/maintaining
             // 'add-ons' dropdown menu

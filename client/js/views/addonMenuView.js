@@ -29,25 +29,11 @@ goldstone.addonMenuView = new AddonMenuView({
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.processListeners();
 
         // passing true will also dynamically generate new routes in
         // Backbone router corresponding with the .routes param in the
         // addon's .js file.
         this.refreshAddonsMenu(true);
-    },
-
-    processListeners: function() {
-        var self = this;
-
-        // this trigger is fired by loginPageView after user logs in
-        this.listenTo(this, 'installedAppsUpdated', function() {
-
-            // calling refreshAddonsMenu without passing true will update the
-            // add-ons drop-down menu, but will not again re-register the
-            // url routes with Backbone router.
-            self.refreshAddonsMenu(true);
-        });
     },
 
     refreshAddonsMenu: function(addNewRoute) {
@@ -63,7 +49,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
-            this.generateDropdownElementsPerAddon(addNewRoute);
+            this.generateRoutesPerAddon(addNewRoute);
 
             // must trigger html template translation in order to display a
             // language other than English upon initial render without
@@ -78,7 +64,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
         }
     },
 
-    generateDropdownElementsPerAddon: function(addNewRoute) {
+    generateRoutesPerAddon: function(addNewRoute) {
         var self = this;
         var list = localStorage.getItem('addons');
         list = JSON.parse(list);
@@ -87,65 +73,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         // for each object in the array of addons in 'list', do the following:
         _.each(list, function(item) {
 
-            /*
-            In keeping with the i18n scheme for dynamically tranlsating
-            elements that are appended to the base template, addon drop-down
-            are given the required <span> element with a class of 'i18n'
-            and a data-i18n atribute with a key equal to the string
-            to be translated.
-
-            example:
-            <li class="dropdown-submenu"><a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="opentrail">opentrail</a><ul class="dropdown-menu" role="menu"></li>
-            */
-
-            // create a sub-menu labelled with the addon's 'name' property
-            result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name + '</a>' +
-                '<ul class="dropdown-menu" role="menu">';
-
-            // addons will be loaded into localStorage after the redirect
-            // to /#login, but a full page refresh is required before the
-            // newly appended js script tags are loaded.
             if (goldstone[item.url_root]) {
 
                 // for each sub-array in the array of 'routes' in
                 // the addon's javascript file, do the following:
                 _.each(goldstone[item.url_root].routes, function(route) {
-
-                    // conditional to skip adding a drop-down entry if
-                    // no drop-down label is supplied.
-                    if (route[1] !== null) {
-
-                        // append a drop-down <li> tag for each item with a link
-                        // pointing to index 0 of the route, and a menu label
-                        // derived from index 1 of the item
-                        result += '<li><a href="#' + route[0] +
-                            '"><span class="i18n" data-i18n="' + route[1] +
-                            '">' + route[1] + '</a>';
-                    }
-
-                    // dynamically add a new route for each item
-                    // the 'addNewRoute === true' condition prevents the route from
-                    // being added again when it is re-triggered by the listener
-                    // on gsRouter 'switchingView'
                     if (addNewRoute === true) {
-                        // ignored for menu updates beyond the first one
                         self.addNewRoute(route);
                     }
-
                 });
-
-                // cap the dropdown sub-menu with closing tags before
-                // continuing the iteration through the addons localStorage entry.
-                result += '</ul></li>';
-            } else {
-
-                var refreshMessage = goldstone.translate('Refresh browser and log out, and back in to complete addon installation process.');
-
-                goldstone.raiseInfo(refreshMessage);
-                result += '<li>' + refreshMessage;
             }
-
         });
 
         // initialize tooltip connected to new menu item
@@ -181,7 +118,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
         '<a href="#compliance/opentrail/manager/">' +
         '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
-        '<span class="btn-txt">Compliance</span>' +
+        '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
         '</a>'
     )

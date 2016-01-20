@@ -258,17 +258,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
-        this.infoText = this.options.infoText;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        if (this.options.collectionMixin) {
-            this.collectionMixin = this.options.collectionMixin;
-        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.collection = this.options.collection || undefined;
-        this.infoIcon = this.options.infoIcon;
         this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
@@ -432,8 +423,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         // is returned, creates an error message, otherwise clears
         // any existing alert or error messages.
 
+        var noDataMessage = goldstone.translate('No Data Returned');
+
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(noDataMessage);
             return false;
         } else {
             this.clearDataErrorMessage();
@@ -795,7 +788,11 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     //     return custom;
     // },
 
-    computeLookbackAndInterval: function() {
+    computeLookbackAndInterval: function(n) {
+
+        // n designates the number of interval 'slices' to make
+        // default ot 24
+        n = n || 24;
 
         // compute epochNow, globalLookback, globalRefresh
         this.getGlobalLookbackRefresh();
@@ -803,7 +800,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
         // set interval equal to 1/24th of time range
-        this.interval = ((this.epochNow - this.gte) / 1000) / 24;
+        this.interval = ((this.epochNow - this.gte) / 1000) / n;
     },
 
     fetchWithReset: function() {
@@ -1315,7 +1312,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         });
     },
     redirect: function() {
-        location.href = "#metrics/topology";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -1347,37 +1344,26 @@ var GoldstoneRouter = Backbone.Router.extend({
 var ChartSet = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.data = [];
-        this.processOptions();
-
-        this.renderChartBorders();
+        ChartSet.__super__.instanceSpecificInit.apply(this, arguments);
         this.makeChart();
     },
 
     processOptions: function() {
 
-        this.collection = this.options.collection ? this.options.collection : undefined;
-        this.chartTitle = this.options.chartTitle || null;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        this.width = this.options.width || 300;
-        this.height = this.options.height || 400;
-        this.infoIcon = this.options.infoIcon;
-        this.infoText = this.options.infoText;
+        ChartSet.__super__.processOptions.apply(this, arguments);
+
         this.marginLeft = this.options.marginLeft || 50;
         this.marginRight = this.options.marginRight || 120;
         this.marginTop = this.options.marginTop || 20;
         this.marginBottom = this.options.marginBottom || 80;
-        this.yAxisLabel = this.options.yAxisLabel;
         this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
         this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
-        this.colorArray = new GoldstoneColors().get('colorSets');
         this.shapeArray = ['rect', 'circle'];
         this.shapeCounter = 0;
         this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
         this.xParam = this.options.xParam;
         this.yParam = this.options.yParam;
+        this.data = [];
     },
 
     resetXParam: function(param) {
@@ -1390,16 +1376,7 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yParam = param;
     },
 
-    renderChartBorders: function() {
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.chartTitle,
-            infoText: this.infoText,
-            infoIcon: this.infoIcon
-        }).el);
-    },
-
     makeChart: function() {
-        this.processListeners();
         this.svgAdder(this.width, this.height);
         this.initializePopovers();
         this.chartAdder();
@@ -1413,7 +1390,6 @@ var ChartSet = GoldstoneBaseView.extend({
         this.callYAxis();
 
         this.setYAxisLabel();
-        this.setSpinner();
     },
 
     update: function() {
@@ -1451,7 +1427,7 @@ var ChartSet = GoldstoneBaseView.extend({
     },
 
     svgAdder: function() {
-        this.svg = d3.select(this.el).append('svg')
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
             .attr('width', this.width)
             .attr('height', this.height);
     },
@@ -1478,6 +1454,7 @@ var ChartSet = GoldstoneBaseView.extend({
     setYDomain: function() {
         var param = this.yParam || 'count';
         var self = this;
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
         this.y = d3.scale.linear()
@@ -3421,6 +3398,92 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
  * limitations under the License.
  */
 
+var MetricOverviewCollection = GoldstoneBaseCollection.extend({
+
+    /*
+log
+/core/logs/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+event
+/core/events/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+api
+/core/api-calls/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+*/
+
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addRange2: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 's';
+    },
+
+    urlGenerator: function() {
+        var self = this;
+        this.computeLookbackAndInterval(60);
+
+
+        var coreUrlVars = ['logs/', 'events/', 'api-calls/'];
+        var coreCalls = coreUrlVars.map(function(item) {
+            return self.urlBase + item + (item === 'events/' ? self.addRange2() : self.addRange()) +
+                self.addInterval();
+        });
+
+        $.when($.get(coreCalls[0]), $.get(coreCalls[1]), $.get(coreCalls[2]))
+            .done(function(r1, r2, r3) {
+
+                // container for combined data
+                var finalResult = {};
+                finalResult.logData = r1[0];
+                finalResult.eventData = r2[0];
+                finalResult.apiData = r3[0];
+
+                // append start/end of timestamp__range 
+                finalResult.startTime = self.gte;
+                finalResult.endTime = self.epochNow;
+
+                // reset collection
+                // add aggregated and tagged api call data
+                self.reset();
+                self.add([finalResult]);
+                self.trigger('sync');
+            })
+            .fail(function(err) {
+                self.trigger('error', [err.status, err.statusText]);
+            });
+    },
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // define collection and link to model
 
 /*
@@ -3768,25 +3831,11 @@ goldstone.addonMenuView = new AddonMenuView({
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.processListeners();
 
         // passing true will also dynamically generate new routes in
         // Backbone router corresponding with the .routes param in the
         // addon's .js file.
         this.refreshAddonsMenu(true);
-    },
-
-    processListeners: function() {
-        var self = this;
-
-        // this trigger is fired by loginPageView after user logs in
-        this.listenTo(this, 'installedAppsUpdated', function() {
-
-            // calling refreshAddonsMenu without passing true will update the
-            // add-ons drop-down menu, but will not again re-register the
-            // url routes with Backbone router.
-            self.refreshAddonsMenu(true);
-        });
     },
 
     refreshAddonsMenu: function(addNewRoute) {
@@ -3802,7 +3851,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
-            this.generateDropdownElementsPerAddon(addNewRoute);
+            this.generateRoutesPerAddon(addNewRoute);
 
             // must trigger html template translation in order to display a
             // language other than English upon initial render without
@@ -3817,7 +3866,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
         }
     },
 
-    generateDropdownElementsPerAddon: function(addNewRoute) {
+    generateRoutesPerAddon: function(addNewRoute) {
         var self = this;
         var list = localStorage.getItem('addons');
         list = JSON.parse(list);
@@ -3826,65 +3875,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         // for each object in the array of addons in 'list', do the following:
         _.each(list, function(item) {
 
-            /*
-            In keeping with the i18n scheme for dynamically tranlsating
-            elements that are appended to the base template, addon drop-down
-            are given the required <span> element with a class of 'i18n'
-            and a data-i18n atribute with a key equal to the string
-            to be translated.
-
-            example:
-            <li class="dropdown-submenu"><a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="opentrail">opentrail</a><ul class="dropdown-menu" role="menu"></li>
-            */
-
-            // create a sub-menu labelled with the addon's 'name' property
-            result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name + '</a>' +
-                '<ul class="dropdown-menu" role="menu">';
-
-            // addons will be loaded into localStorage after the redirect
-            // to /#login, but a full page refresh is required before the
-            // newly appended js script tags are loaded.
             if (goldstone[item.url_root]) {
 
                 // for each sub-array in the array of 'routes' in
                 // the addon's javascript file, do the following:
                 _.each(goldstone[item.url_root].routes, function(route) {
-
-                    // conditional to skip adding a drop-down entry if
-                    // no drop-down label is supplied.
-                    if (route[1] !== null) {
-
-                        // append a drop-down <li> tag for each item with a link
-                        // pointing to index 0 of the route, and a menu label
-                        // derived from index 1 of the item
-                        result += '<li><a href="#' + route[0] +
-                            '"><span class="i18n" data-i18n="' + route[1] +
-                            '">' + route[1] + '</a>';
-                    }
-
-                    // dynamically add a new route for each item
-                    // the 'addNewRoute === true' condition prevents the route from
-                    // being added again when it is re-triggered by the listener
-                    // on gsRouter 'switchingView'
                     if (addNewRoute === true) {
-                        // ignored for menu updates beyond the first one
                         self.addNewRoute(route);
                     }
-
                 });
-
-                // cap the dropdown sub-menu with closing tags before
-                // continuing the iteration through the addons localStorage entry.
-                result += '</ul></li>';
-            } else {
-
-                var refreshMessage = goldstone.translate('Refresh browser and log out, and back in to complete addon installation process.');
-
-                goldstone.raiseInfo(refreshMessage);
-                result += '<li>' + refreshMessage;
             }
-
         });
 
         // initialize tooltip connected to new menu item
@@ -3920,12 +3920,13 @@ var AddonMenuView = GoldstoneBaseView.extend({
         '<a href="#compliance/opentrail/manager/">' +
         '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
-        '<span class="btn-txt">Compliance</span>' +
+        '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
         '</a>'
     )
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -5016,6 +5017,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
             this.serviceStatusChartView.trigger('lookbackSelectorChanged');
+            this.metricOverviewChartView.trigger('lookbackSelectorChanged');
             this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
             this.memResourcesChartView.trigger('lookbackSelectorChanged');
             this.diskResourcesChartView.trigger('lookbackSelectorChanged');
@@ -5038,6 +5040,23 @@ var DiscoverView = GoldstoneBasePageView.extend({
             collection: this.serviceStatusChart,
             el: '#discover-view-r1-c1',
             width: $('#discover-view-r1-c1').width()
+        });
+
+        /*
+        Metric Overview Chart
+        */
+
+        this.metricOverviewChart = new MetricOverviewCollection({
+            urlBase: '/core/'
+        });
+
+        this.metricOverviewChartView = new MetricOverviewView({
+            chartTitle: goldstone.translate("Metric Overview"),
+            collection: this.metricOverviewChart,
+            el: '#discover-view-r1-c2',
+            width: $('#discover-view-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Count"),
+            marginRight: 60
         });
 
         /*
@@ -5115,6 +5134,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.translate('Spawn Events')
         });
 
+        this.viewsToStopListening = [this.serviceStatusChartView, this.metricOverviewChartView, this.cpuResourcesChartView, this.memResourcesChartView, this.diskResourcesChartView, this.vmSpawnChartView];
+
     },
 
     template: _.template('' +
@@ -5123,89 +5144,37 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div class="row">' +
         '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
+        '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
 
 
-
-
-
-        // '<div class="row first-row">' +
-
-        // /* beginning of service status mock up */
-        // '<div class="single-block service-status">' +
-        // '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<ul class="service-status-table shadow-block">' +
-        // '<li class="table-header">' +
-        // '<span class="service">Service</span>' +
-        // '<span class="sf">Sf</span>' +
-        // '<span class="nm">Nm</span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Compute</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Image</span>' +
-        // '<span class="sf"><i class="offline">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="offline">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Network</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Block Storage</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Object Storage</span>' +
-        // '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Orchestration</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '<li>' +
-        // '<span class="service">Identity</span>' +
-        // '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        // '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        // '</li>' +
-        // '</ul>' +
+        // '<div class="col-md-10">' +
+        // '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
+        // '<div class="map-block shadow-block">' +
+        // '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
+        // '<div class="map-data">' +
+        // '<span class="stats time">' +
+        // '21 secs ago' +
+        // '</span>' +
+        // '<span class="stats logs">' +
+        // '300 Logs' +
+        // '</span>' +
+        // '<span class="stats events">' +
+        // '17 Events' +
+        // '</span>' +
+        // '<span class="stats call">' +
+        // '12 API Calls' +
+        // '</span>' +
         // '</div>' +
-        // /* end of service status mock-up */
-
-        '<div class="col-md-10">' +
-        '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="map-block shadow-block">' +
-        '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        '<div class="map-data">' +
-        '<span class="stats time">' +
-        '21 secs ago' +
-        '</span>' +
-        '<span class="stats logs">' +
-        '300 Logs' +
-        '</span>' +
-        '<span class="stats events">' +
-        '17 Events' +
-        '</span>' +
-        '<span class="stats call">' +
-        '12 API Calls' +
-        '</span>' +
-        '</div>' +
-        '</div>' +
         // '</div>' +
-        '</div>' +
+        // '</div>' +
 
         '</div>' +
 
+        // extra row for spacing
         '<div class="row">&nbsp;</div>' +
 
         // cpu / mem / disk
-        '<div class="row">' +
+        // '<div class="row">' +
         '<h4>Resource Usage</h4>' +
         '<div id="discover-view-r2" class="row">' +
         '<div id="discover-view-r2-c1" class="col-md-3"></div>' +
@@ -5769,7 +5738,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
             result = '';
             _.each(this.defaults.lookbackValues.lookback, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -5777,12 +5746,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
-                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
-                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
-                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
-                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
-                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
+            return '<option class="i18n" data-i18n="lookback 15m" value="15" selected>lookback 15m</option>' +
+                '<option class="i18n" data-i18n="lookback 1h" value="60">lookback 1h</option>' +
+                '<option class="i18n" data-i18n="lookback 6h" value="360">lookback 6h</option>' +
+                '<option class="i18n" data-i18n="lookback 1d" value="1440">lookback 1d</option>' +
+                '<option class="i18n" data-i18n="lookback 3d" value="4320">lookback 3d</option>' +
+                '<option class="i18n" data-i18n="lookback 7d" value="10080">lookback 7d</option>';
         }
     },
 
@@ -5790,7 +5759,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
             result = '';
             _.each(this.defaults.lookbackValues.refresh, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -5798,10 +5767,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>' + goldstone.translate('refresh 30s') + '</option>' +
-                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
-                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
-                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
+            return '<option class="i18n" data-i18n="refresh 30s" value="30" selected>refresh 30s</option>' +
+                '<option class="i18n" data-i18n="refresh 1m" value="60">refresh 1m</option>' +
+                '<option class="i18n" data-i18n="refresh 5m" value="300">refresh 5m</option>' +
+                '<option class="i18n" data-i18n="refresh off" value="-1">refresh off</option>';
         }
     },
 
@@ -7591,6 +7560,529 @@ var LoginPageView = GoldstoneBaseView.extend({
 
     redirectPostSuccessfulAuth: function() {
         location.href = '/';
+    }
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ChartSet extends from GoldstoneBaseView
+
+var MetricOverviewView = ChartSet.extend({
+
+    makeChart: function() {
+        this.colorSet = d3.scale.ordinal().domain(['api', 'event', 'log']).range(this.colorArray.distinct['3R']);
+        this.svgAdder(this.width, this.height);
+        this.initializePopovers();
+        this.chartAdder();
+
+        this.setXDomain();
+        this.setYDomain();
+
+        this.setXAxis();
+        this.callXAxis();
+        this.setYAxisLabel();
+
+        // added
+        this.setLines();
+        this.setLegend();
+    },
+
+    setLegend: function() {
+        var self = this;
+
+        var legendText = [{
+            text: goldstone.translate('API'),
+            colorSet: 'api'
+        }, {
+            text: goldstone.translate('Events'),
+            colorSet: 'event'
+        }, {
+            text: goldstone.translate('Logs'),
+            colorSet: 'log'
+        }];
+
+        var legend = this.svg.selectAll('g')
+            .data(legendText)
+            .append('g');
+
+        legend.append('rect')
+            .attr('x', function(d, i) {
+                return i * 70;
+            })
+            .attr('y', -20)
+            .attr('width', '10px')
+            .attr('height', '10px')
+            .attr('fill', function(d) {
+                return self.colorSet(d.colorSet);
+            });
+
+        legend.append('text')
+            .text(function(d) {
+                return d.text;
+            })
+            .attr('color', 'black')
+            .attr('x', function(d, i) {
+                return i * 70 + 14;
+            })
+            .attr('y', -10)
+            .attr('font-size', '15px');
+
+    },
+
+    chartAdder: function() {
+        this.chart = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartApi = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartEvent = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+
+        this.chartLog = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+    },
+
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0]);
+
+        // .html set in this.mouseoverAction
+
+        this.svg.call(this.tip);
+    },
+
+    setLines: function() {
+        var self = this;
+
+        this.apiLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+        this.eventLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.logLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yLog(d.doc_count);
+            });
+    },
+
+    resetAxes: function() {
+        var self = this;
+        d3.select(this.el).select('.axis.x')
+            .transition()
+            .call(this.xAxis.scale(self.x));
+    },
+
+    update: function() {
+        this.setData(this.collection.toJSON());
+        this.updateWithNewData();
+    },
+
+    updateWithNewData: function() {
+        this.setXDomain();
+        this.setYDomain();
+        this.resetAxes();
+        this.linesUpdate();
+        this.shapeUpdate();
+        this.shapeEnter();
+        this.shapeExit();
+        this.hideSpinner();
+    },
+
+    svgAdder: function() {
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
+            .attr('width', this.width)
+            .attr('height', this.height);
+    },
+
+    setXDomain: function() {
+        var self = this;
+        this.x = d3.time.scale()
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        .domain(self.data.length ? [moment(self.data[0].startTime), moment(self.data[0].endTime)] : [1, 1])
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+
+    },
+
+    setYDomain: function() {
+        var param = this.yParam || 'count';
+        var self = this;
+
+        var oneThird = (this.height - this.marginTop - this.marginBottom)/3;
+
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        this.yLog = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].logData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird * 3, oneThird * 2]);
+
+        this.yEvent = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].eventData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird * 2, oneThird]);
+
+        this.yApi = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].apiData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird, 0]);
+
+    },
+
+    linesUpdate: function() {
+
+        var self = this;
+        var existingLines = this.chart.select('path');
+
+        if (existingLines.empty()) {
+            this.apiLineRendered = this.chart.append('path')
+                .attr('class', 'apiLine')
+                .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('api'));
+
+            this.eventLineRendered = this.chart.append('path')
+                .attr('class', 'eventLine')
+                .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('event'));
+
+            this.logLineRendered = this.chart.append('path')
+                .attr('class', 'logLine')
+                .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('log'));
+        }
+
+        this.apiLineRendered
+            .transition()
+            .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets));
+
+        this.eventLineRendered
+            .transition()
+            .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets));
+
+        this.logLineRendered
+            .transition()
+            .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets));
+    },
+
+    shapeUpdate: function() {
+        var self = this;
+
+        this.chartApiCircles = this.chartApi.selectAll('circle')
+            .data(this.data[0].apiData.aggregations.per_interval.buckets);
+
+        this.chartApiCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+
+        this.chartEventCircles = this.chartEvent.selectAll('circle')
+            .data(this.data[0].eventData.aggregations.per_interval.buckets);
+
+        this.chartEventCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.chartLogCircles = this.chartLog.selectAll('circle')
+            .data(this.data[0].logData.aggregations.per_interval.buckets);
+
+        this.chartLogCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            });
+
+    },
+
+    shapeEnter: function() {
+        var self = this;
+
+        this.chartApiCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            })
+            .attr('class', 'apiCircle')
+            .attr('r', function(d) {
+
+                // response_ranges need to be pushed into an array
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                var radiusByResponseRange = responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 400 || item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 4 and 500's
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return radiusByResponseRange === 0 ? 2 : (radiusByResponseRange / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('api'))
+            .style('fill', this.colorSet('api'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Api Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+
+        this.chartEventCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            })
+            .attr('class', 'eventCircle')
+            .attr('r', function(d) {
+                var radiusByOutcome = d.per_outcome.buckets.filter(function(item) {
+
+                        // filter out success/pending
+                        return item.key !== "success" && item.key !== "pending";
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum non success/pending counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByOutcome / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('event'))
+            .style('fill', this.colorSet('event'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+
+        this.chartLogCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            })
+            .attr('class', 'logCircle')
+            .attr('r', function(d) {
+
+                var radiusByLevel = d.per_level.buckets.filter(function(item) {
+
+                        // filter out debug through error
+                        return self.severityHash[item] === true;
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByLevel / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('log'))
+            .style('fill', this.colorSet('log'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Logs');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+    },
+
+    shapeExit: function() {
+        this.chartApiCircles.exit().remove();
+        this.chartEventCircles.exit().remove();
+        this.chartLogCircles.exit().remove();
+    },
+
+    mouseoverAction: function(d, setName) {
+        var self = this;
+
+        // variably set this.tip.html based on the line set that is passed in
+        this.tip.html(function(d, setName) {
+
+            var extraContent;
+            if (setName === 'Events') {
+                extraContent = '<br>' +
+
+                'Success: ' + (d.per_outcome.buckets.filter(function(item) {
+                        return item.key === "success";
+                    })
+                    .reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0)) + '<br>' +
+                    'Pending: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key === "pending";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>' +
+                    'Failure: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key !== "pending" &&
+                                item.key !== "success";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>';
+
+            } else if (setName === 'Logs') {
+
+                extraContent = '';
+
+                // iterate through the severity levels
+                _.each(self.severityHash, function(item, name) {
+
+                    // filter for nonZero values against the severity level
+                    var nonZero = d.per_level.buckets.filter(function(bucket) {
+                        return bucket.key === name;
+                    }).reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0);
+
+
+                    // and append a popup value for that nonZero filter level
+                    if (nonZero > 0) {
+                        extraContent += '<br>' + name + ': ' + (d.per_level.buckets.filter(function(level) {
+                                return level.key === name;
+                            })
+                            .reduce(function(pre, next) {
+                                return pre + next.doc_count;
+                            }, 0));
+                    }
+                });
+
+            } else if (setName === 'Api Events') {
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                extraContent = '<br>' +
+
+
+                '400 errors: ' + responseRangeArray.filter(function(item) {
+                    // filter for 4 and 500's
+                    return item.from === 400;
+                })
+                    .reduce(function(pre, next) {
+                        // add up 400's
+                        return pre + next.doc_count;
+                    }, 0) + '<br>' +
+                    '500 errors: ' + responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 500's
+                        return pre + next.doc_count;
+                    }, 0);
+
+            } else {
+                extraContent = '';
+            }
+
+            return moment(d.key).format('ddd MMM D YYYY') + "<br>" +
+                moment(d.key).format('h:mm:ss a') + "<br>" +
+                d.doc_count + ' ' + setName + extraContent;
+        });
+
+        this.tip.show(d, setName);
+    },
+
+    mouseoutAction: function(d) {
+        this.tip.hide();
+    },
+
+    severityHash: {
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: false,
+        WARNING: false,
+        NOTICE: false,
+        INFO: false,
+        DEBUG: false,
     }
 
 });
@@ -9799,23 +10291,23 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     statusTemplate: _.template('' +
         '<li>' +
-        '<span class="service">Cinder</span>' +
+        '<span class="service"><%= goldstone.translate("Cinder") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("cinder") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Glance</span>' +
+        '<span class="service"><%= goldstone.translate("Glance") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("glance") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Keystone</span>' +
+        '<span class="service"><%= goldstone.translate("Keystone") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("keystone") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Neutron</span>' +
+        '<span class="service"><%= goldstone.translate("Neutron") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("neutron") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Nova</span>' +
+        '<span class="service"><%= goldstone.translate("Nova") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
         '</li>'),
 
@@ -9823,8 +10315,8 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<ul class="service-status-table shadow-block">' +
         '<li class="table-header">' +
-        '<span class="service">Service</span>' +
-        '<span class="sf">Status</span>' +
+        '<span class="service"><%= goldstone.translate("Service") %></span>' +
+        '<span class="sf"><%= goldstone.translate("Status") %></span>' +
         '</li>' +
         '<div class="fill-in"></div>' +
         '</ul>')

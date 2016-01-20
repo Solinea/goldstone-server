@@ -26,26 +26,26 @@ msgid "Add-ons"
 msgstr "アドオン"
 
 #: addonMenuView.js
-msgid "compliance"
+msgid "Compliance"
 msgstr "コンプライアンス"
 
 #: addonMenuView.js
 #. do not translate
 msgid "yourapp"
-msgstr ""
+msgstr "アプリ"
 
 #: addonMenuView.js
 #. do not translate
 msgid "myroute 1"
-msgstr ""
+msgstr "経路1"
 
 #: addonMenuView.js
 #. do not translate
 msgid "myroute 2"
-msgstr ""
+msgstr "経路2"
 
 #: addonMenuView.js
-msgid "Refresh browser and/or log in to complete addon installation process."
+msgid "Refresh browser and log out, and back in to complete addon installation process."
 msgstr "ブラウザをリロードするかログインしなおしてアドオンインストールを完了してください"
 
 #: apiBrowserPageView.js
@@ -154,6 +154,10 @@ msgstr "終了"
 msgid "Interval"
 msgstr "間隔"
 
+#: apiPerfView.js
+msgid "seconds"
+msgstr "秒"
+
 #: base.html
 
 #: base.html
@@ -216,6 +220,90 @@ msgstr "コピーライト"
 msgid "License"
 msgstr "ライセンス"
 
+#: base.html
+#. refers to site-wide settings
+msgid "Settings"
+msgstr "設定"
+
+#: base.html
+#. refers to a link to customer support
+msgid "Help"
+msgstr "ヘルプ"
+
+#: base.html
+#. link to external site
+msgid "Google Groups"
+msgstr "Googleグループ"
+
+#: base.html
+#. link to github repo
+msgid "Github"
+msgstr "Github"
+
+#: base.html
+#. logout of site
+msgid "Logout"
+msgstr "ログアウト"
+
+#: base.html
+#. side-menu icon
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+#: base.html
+#. click to open alert menu, and heading for column of alerts
+msgid "Alerts"
+msgstr "アラート"
+
+#: base.html
+#. side-menu icon to view cloud topology graph
+msgid "Topology"
+msgstr "トポロジー"
+
+#: base.html
+#. side-menu icon to collapse expanded menu
+msgid "Icons Only"
+msgstr "アイコンのみ"
+
+#: base.html
+#. alerts menu column header for unread alerts
+msgid "Unread"
+msgstr "未読"
+
+#: base.html
+msgid "Service Status"
+msgstr "サービス状態"
+
+#: base.html
+msgid "Service"
+msgstr "サービス"
+
+#: base.html
+msgid "Status"
+msgstr "状態"
+
+#: base.html
+msgid "Cinder"
+msgstr ""
+
+#: base.html
+msgid "Glance"
+msgstr ""
+
+#: base.html
+msgid "Keystone"
+msgstr ""
+
+#: base.html
+msgid "Neutron"
+msgstr ""
+
+#: base.html
+msgid "Nova"
+msgstr ""
+
+
+
 #: chartHeaderView.js
 msgid "Set Chart Title"
 msgstr "表名を設定"
@@ -223,6 +311,53 @@ msgstr "表名を設定"
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr "InfoButtonText.jsに設定"
+
+#: addons
+
+#: predefinedSearchView.js
+msgid "Predefined Searches"
+msgstr "事前設定検索"
+
+#: predefinedSearchView.js
+msgid "failed authorization"
+msgstr "認証に失敗しました"
+
+#: predefinedSearchView.js
+msgid "stack traces"
+msgstr "スタックトレース"
+
+#: predefinedSearchView.js
+msgid "nova instance created"
+msgstr "Novaサーバが作成されました"
+
+#: predefinedSearchView.js
+msgid "nova instance creation failed"
+msgstr "Novaサーバの作成に失敗しました"
+
+#: predefinedSearchView.js
+msgid "cinder volume created"
+msgstr "Cinderボリュームが作成されました"
+
+#: predefinedSearchView.js
+msgid "database problems"
+msgstr "データベースで問題が発生しました"
+
+#: predefinedSearchView.js
+msgid "image uploaded"
+msgstr "イメージアップロード"
+
+#: predefinedSearchView.js
+msgid "queue failures"
+msgstr "キューの処理に失敗しました"
+
+#: predefinedSearchView.js
+msgid "nova usage audits"
+msgstr "Nova使用量監査"
+
+#: predefinedSearchView.js
+msgid "nova claim request"
+msgstr "Novaリクエスト"
+
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -787,6 +922,28 @@ msgctxt "nodeavail"
 msgid "Exit"
 msgstr "終了"
 
+#: metricOverviewView.js
+
+#: metricOverview
+# msgid "Metric Overview"
+# TBD
+
+#: metricOverview
+msgid "API"
+msgstr "API"
+
+#: metricOverview
+msgid "Events"
+msgstr "イベント"
+
+#: metricOverview
+msgid "Logs"
+msgstr "ログ"
+
+#: metricOverview
+msgid "Count"
+msgstr "数"
+
 #: metricViewerView.js
 
 #: metricViewerView.js
@@ -860,11 +1017,6 @@ msgstr "リソース"
 #: metricViewerView.js
 msgid "Standard Deviation Bands"
 msgstr "標準分散範囲"
-
-#: metricViewerView.js
-msgctxt "metricviewer"
-msgid "振り返り"
-msgstr ""
 
 #: metricViewerView.js
 msgctxt "metricviewer"
@@ -1470,7 +1622,7 @@ msgstr "暗い"
 #: settingsPageView.js
 msgctxt "settingspage"
 msgid "Collapse"
-msgstr "畳む"
+msgstr "折りたたむ"
 
 #: settingsPageView.js
 msgctxt "settingspage"
