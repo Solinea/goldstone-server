@@ -72,9 +72,9 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
   post:
-    # build goldstone RPM package
     - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
     - docker info
+    # build goldstone RPM package
     - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
     - docker run --name gss-rpm gss.rpm make rpm_native
     - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
@@ -100,9 +100,6 @@ deployment:
   latest:
     branch: master
     commands:
-      # need to figure out a sane push strategy that doesn't have devs tripping over each other, and addresses
-      # the master branch off by one commit issue. also need to set credentials to allow pushes.
-      # - bin/push_images.sh
       # - echo "latest, $CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} ($CIRCLE_SHA1)"
       # TODO: replace with full tag/push when merged with solinea/goldstone-server
       #- docker tag goldstone-app gs-docker-oss.bintray.io/app:latest
