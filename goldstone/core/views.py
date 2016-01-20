@@ -22,7 +22,6 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
-from goldstone.core.pagination import Pagination
 from goldstone.core.serializers import SavedSearchSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
@@ -434,7 +433,6 @@ class SavedSearchFilter(ElasticFilter):
 class SavedSearchViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
-    pagination_class = Pagination
     permission_classes = (IsAuthenticated, )
     serializer_class = SavedSearchSerializer
 
