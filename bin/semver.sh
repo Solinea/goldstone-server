@@ -18,11 +18,11 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
 VERSION=$(git describe --tags --match [0-9].[0-9].[0-9]  --always | cut -f1 -d'-')
 if [[ $GIT_BRANCH == 'master' ]] ; then
   RELEASE=$(git describe --match [0-9].[0-9].[0-9] --tags | cut -f2 -d'-')
-  SHORT=${VERSION}-${RELEASE}
-  FULL=${VERSION}-${RELEASE}
+  SHORT=${VERSION}.${RELEASE}
+  FULL=${VERSION}.${RELEASE}
 else
   COMMIT_DETAIL=$(git describe --long --tags --always --match [0-9].[0-9].[0-9] | cut -f2- -d'-' | sed -e 's/-/./g')
-  RELEASE="SNAPSHOT-${COMMIT_DETAIL}.${GIT_BRANCH}"
+  RELEASE="SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}"
   SHORT=${VERSION}-SNAPSHOT
   FULL=${VERSION}-SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}
 fi
