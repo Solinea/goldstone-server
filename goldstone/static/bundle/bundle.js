@@ -7751,25 +7751,27 @@ var MetricOverviewView = ChartSet.extend({
         var param = this.yParam || 'count';
         var self = this;
 
+        var oneThird = (this.height - this.marginTop - this.marginBottom)/3;
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
         this.yLog = d3.scale.linear()
             .domain([0, self.data.length ? d3.max(self.data[0].logData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+            .range([oneThird * 3, oneThird * 2]);
 
         this.yEvent = d3.scale.linear()
             .domain([0, self.data.length ? d3.max(self.data[0].eventData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+            .range([oneThird * 2, oneThird]);
 
         this.yApi = d3.scale.linear()
             .domain([0, self.data.length ? d3.max(self.data[0].apiData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([(this.height - this.marginTop - this.marginBottom), 0]);
+            .range([oneThird, 0]);
 
     },
 
