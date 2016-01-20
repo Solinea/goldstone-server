@@ -925,8 +925,8 @@ msgstr ""
 #: metricOverviewView.js
 
 #: metricOverview
-# msgid "Metric Overview"
-# TBD
+msgid "Metric Overview"
+msgstr ""
 
 #: metricOverview
 msgid "API"
