@@ -357,7 +357,22 @@ var MetricOverviewView = ChartSet.extend({
                 return self.yLog(d.doc_count);
             })
             .attr('class', 'logCircle')
-            .attr('r', 3)
+            .attr('r', function(d) {
+
+                var radiusByLevel = d.per_level.buckets.filter(function(item) {
+
+                        // filter out debug through error
+                        return self.severityHash[item] === true;
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByLevel / d.doc_count) * 2 + 2;
+            })
             .style('stroke', this.colorSet('log'))
             .style('fill', this.colorSet('log'))
             .on('mouseover', function(d) {
@@ -375,6 +390,7 @@ var MetricOverviewView = ChartSet.extend({
     },
 
     mouseoverAction: function(d, setName) {
+        var self = this;
 
         // variably set this.tip.html based on the line set that is passed in
         this.tip.html(function(d, setName) {
@@ -403,6 +419,32 @@ var MetricOverviewView = ChartSet.extend({
                             return pre + next.doc_count;
                         }, 0)) + '<br>';
 
+            } else if (setName === 'Logs') {
+
+                extraContent = '';
+
+                // iterate through the severity levels
+                _.each(self.severityHash, function(item, name) {
+
+                    // filter for nonZero values against the severity level
+                    var nonZero = d.per_level.buckets.filter(function(bucket) {
+                        return bucket.key === name;
+                    }).reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0);
+
+
+                    // and append a popup value for that nonZero filter level
+                    if (nonZero > 0) {
+                        extraContent += '<br>' + name + ': ' + (d.per_level.buckets.filter(function(level) {
+                                return level.key === name;
+                            })
+                            .reduce(function(pre, next) {
+                                return pre + next.doc_count;
+                            }, 0));
+                    }
+                });
+
             } else {
                 extraContent = '';
             }
@@ -418,5 +460,16 @@ var MetricOverviewView = ChartSet.extend({
     mouseoutAction: function(d) {
         this.tip.hide();
     },
+
+    severityHash: {
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: false,
+        WARNING: false,
+        NOTICE: false,
+        INFO: false,
+        DEBUG: false,
+    }
 
 });
