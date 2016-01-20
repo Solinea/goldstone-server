@@ -28,7 +28,8 @@ machine:
     STAGE_WEB:    $DOCKER_DIR/goldstone-web
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
-    TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c"
+    # Apparently can't use a command in the env value. Building TEST_APP cmd in two pieces
+    TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash"
   # /etc/hosts
   hosts:
     gsapp: 127.0.0.1
@@ -49,7 +50,7 @@ checkout:
 ## custom dependencies
 dependencies:
   pre:
-    - echo "TEST_APP = $TEST_APP"
+    - echo "TEST_APP = $TEST_APP gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c"
     - mkdir -p {$LOG_DIR,$DJANGO_DIR}             # create output directories
     - sudo service postgresql stop                # stop default postgresql service
     - sudo service redis-server stop              # stop default redis-server service
@@ -71,8 +72,8 @@ test:
         background: true
     - sleep 10 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
+    - $TEST_APP "gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
+    - $TEST_APP "gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c . /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
   post:
