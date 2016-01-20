@@ -59,7 +59,7 @@ dependencies:
     - pip freeze
   post:
     - docker info && docker-compose version
-    - bin/build_images.sh
+    - bin/build_images.sh --docker-vm=false
     - docker images
 
 ## test config
