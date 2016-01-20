@@ -72,7 +72,6 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
   post:
-    - bin/push_images.sh
     # build goldstone RPM package
     - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
     - docker info
@@ -92,7 +91,6 @@ deployment:
     # pattern of 1, 1.2, 1.2.3
     tag: /[0-9]+(\.[0-9]+)*/
     commands:
-      - bin/push_images.sh
       # - echo "stable, $CIRCLE_TAG"
       # TODO: replace with full tag/push when merged with solinea/goldstone-server
       #- docker tag goldstone-app gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH
@@ -102,7 +100,9 @@ deployment:
   latest:
     branch: master
     commands:
-      - bin/push_images.sh
+      # need to figure out a sane push strategy that doesn't have devs tripping over each other, and addresses
+      # the master branch off by one commit issue. also need to set credentials to allow pushes.
+      # - bin/push_images.sh
       # - echo "latest, $CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} ($CIRCLE_SHA1)"
       # TODO: replace with full tag/push when merged with solinea/goldstone-server
       #- docker tag goldstone-app gs-docker-oss.bintray.io/app:latest
