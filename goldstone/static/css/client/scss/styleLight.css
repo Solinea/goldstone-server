@@ -181,7 +181,7 @@ css stylesheets supporting redesign
 
 .icon.github-icon { background-image: url(../../../images/icon-github.png); }
 
-.menu .logout-btn { clear: left; width: 78px; min-height: 34px; font-size: 14px; line-height: 34px; text-transform: uppercase; margin: 0 auto !important; display: block; color: #1D9CA5; float: none; border-radius: 2px; padding: 0 5px; background: #eeeeee; }
+.menu .logout-btn { clear: left; width: 81px; min-height: 34px; font-size: 14px; line-height: 34px; text-transform: uppercase; margin: 0 auto !important; display: block; color: #1D9CA5; float: none; border-radius: 2px; padding: 0 5px; background: #eeeeee; }
 
 .shadow-block { box-shadow: 0 0 5px rgba(0, 0, 0, 0.4); }
 
@@ -262,7 +262,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table { list-style-type: none; margin: 0; padding: 0 0 5px; background: #fafafa; }
 
-.service-status-table li { padding: 1.48em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
+.service-status-table li { padding: 1.56em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
 
 .service-status-table li:last-child { border-bottom: 0; }
 
@@ -270,9 +270,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .service-status-table .service { width: 60%; float: left; }
 
-.service-status-table .sf, .service-status-table .nm { width: 15%; float: left; min-width: 25px; }
-
-.service-status-table .sf { margin-right: 9%; }
+.service-status-table .sf { width: 36%; float: left; min-width: 25px; }
 
 .online { background: url(../../../images/icon-online@2x.png) no-repeat left top; }
 
@@ -288,13 +286,13 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .double-block { float: left; width: 64.3%; }
 
-.map-block { overflow: hidden; background: #000; }
+.map-block { height: 400px; overflow: hidden; background: #000; }
 
 .map { width: 78%; float: left; }
 
 .map img { max-width: 100%; }
 
-.map-data { width: 22%; float: left; padding: 18px 16px; }
+.map-data { width: 15%; float: left; padding: 18px 16px; }
 
 .map-data .stats { font-size: 12px; display: block; line-height: 1; }
 
@@ -338,6 +336,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 .sidebar.expand-menu { width: inherit; }
 
 .btn-grp { list-style-type: none; padding: 0; margin-bottom: 0; width: 64px; z-index: 99; float: left; background: #fff; position: relative; height: 100%; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; -webkit-transition: all 0.3s ease; -ms-transition: all 0.3s ease; -moz-transition: all 0.3s ease; -o-transition: all 0.3s ease; }
+.btn-grp a { text-decoration: none; color: #333; }
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
@@ -499,151 +498,6 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 ::-moz-placeholder { color: rgba(255, 255, 255, 0.7); }
 
 :-ms-input-placeholder { color: rgba(255, 255, 255, 0.7); }
-
-/* 3.) Colors ----------------------------------------*/
-.color1 { background-color: #8bc34a; }
-
-.color2 { background-color: #8bc34a; }
-
-.color3 { background-color: #8bc34a; }
-
-.color4 { background-color: #8bc34a; }
-
-.color5 { background-color: #cddc39; }
-
-.color6 { background-color: #cddc39; }
-
-.color7 { background-color: #ff9800; }
-
-.color8 { background-color: #ff7c30; }
-
-.color9 { background-color: #ff7c30; }
-
-.color10 { background-color: #8bc34a; }
-
-.color11 { background-color: #8bc34a; }
-
-.color12 { background-color: #8bc34a; }
-
-.color13 { background-color: #cddc39; }
-
-.color14 { background-color: #cddc39; }
-
-.color15 { background-color: #ff9800; }
-
-.color16 { background-color: #ff9800; }
-
-.color17 { background-color: #ff7c30; }
-
-.color18 { background-color: #ff7c30; }
-
-.color19 { background-color: #8bc34a; }
-
-.color20 { background-color: #8bc34a; }
-
-.color21 { background-color: #cddc39; }
-
-.color22 { background-color: #cddc39; }
-
-.color23 { background-color: #ff9800; }
-
-.color24 { background-color: #ff9800; }
-
-.color25 { background-color: #ff7c30; }
-
-.color26 { background-color: #ff7c30; }
-
-.color27 { background-color: #ff7c30; }
-
-.color28 { background-color: #8bc34a; }
-
-.color29 { background-color: #cddc39; }
-
-.color30 { background-color: #cddc39; }
-
-.color31 { background-color: #ff9800; }
-
-.color32 { background-color: #ff9800; }
-
-.color33 { background-color: #ff7c30; }
-
-.color34 { background-color: #ff7c30; }
-
-.color35 { background-color: #ff7c30; }
-
-.color36 { background-color: #ff5252; }
-
-.color37 { background-color: #cddc39; }
-
-.color38 { background-color: #cddc39; }
-
-.color39 { background-color: #ff9800; }
-
-.color40 { background-color: #ff9800; }
-
-.color41 { background-color: #ff7c30; }
-
-.color42 { background-color: #ff7c30; }
-
-.color43 { background-color: #ff7c30; }
-
-.color44 { background-color: #ff5252; }
-
-.color45 { background-color: #b71c1c; }
-
-.color46 { background-color: #cddc39; }
-
-.color47 { background-color: #ff9800; }
-
-.color48 { background-color: #ff7c30; }
-
-.color49 { background-color: #ff7c30; }
-
-.color50 { background-color: #ff7c30; }
-
-.color51 { background-color: #ff7c30; }
-
-.color52 { background-color: #ff5252; }
-
-.color53 { background-color: #b71c1c; }
-
-.color54 { background-color: #b71c1c; }
-
-.color55 { background-color: #ff9800; }
-
-.color56 { background-color: #ff9800; }
-
-.color57 { background-color: #ff7c30; }
-
-.color58 { background-color: #ff7c30; }
-
-.color59 { background-color: #ff7c30; }
-
-.color60 { background-color: #ff5252; }
-
-.color61 { background-color: #b71c1c; }
-
-.color62 { background-color: #b71c1c; }
-
-.color63 { background-color: #b71c1c; }
-
-.color64 { background-color: #ff9800; }
-
-.color65 { background-color: #ff7c30; }
-
-.color66 { background-color: #ff7c30; }
-
-.color67 { background-color: #ff7c30; }
-
-.color68 { background-color: #ff5252; }
-
-.color69 { background-color: #b71c1c; }
-
-.color70 { background-color: #b71c1c; }
-
-.color71 { background-color: #b71c1c; }
-
-.color72 { background-color: #b71c1c; }
 
 /* Table Of Contents 1.) Media Query for Handheld Devices 2.) Media Query for Tablet 3.) Media Query for mobile ===============================================*/
 /* 1.) Media Query for Handheld Devices ===============================*/
