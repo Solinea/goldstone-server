@@ -277,8 +277,9 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
                                 'rest_framework.filters.OrderingFilter', ),
-    'PAGINATE_BY': 10,
-    'PAGINATE_BY_PARAM': 'page_size',
+    'DEFAULT_PAGINATION_CLASS':
+        'goldstone.core.pagination.Pagination',
+    'PAGE_SIZE': 10,
     'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
