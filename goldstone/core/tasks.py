@@ -167,9 +167,8 @@ def check_for_pending_alerts():
         response = s.execute()
         if response.hits.total > 0:
             # We have a non-zero match for pending alerts
-            # Go ahead and generate an insance of the alert object here ?
+            # Go ahead and generate an instance of the alert object here.
             # We can directly call the producer class to send an email
-            # AlertObj seems to be redundant : To be discussed
 
             now = arrow.utcnow().datetime
 
@@ -183,16 +182,13 @@ def check_for_pending_alerts():
                               query=obj, msg_title=msg_dict['title'],
                               msg_body=msg_dict['body'])
 
-            # currently we only have a producer interface for emails.
-            # So we'll only check for it and call the corresponding producer
-            # object's method
+            # Currently we only have a producer interface for emails.
+            # For the default celery task, goldstone-bot@solinea.com acts as
+            # both the sender and receiver.
+            producer_obj = EmailProducer('goldstone-bot@solinea.com', 'goldstone-bot@solinea.com')
 
-            # To be handled later : sanity check on :
-            # channels vs channel configuration info
-
-            # What is the receiver email id for this default celery task ?
-            producer_obj = EmailProducer('root@localhost', 'goldstone-bot@solinea.com')
-
+            # to_str can also be a command separated string of to-addresses
+            # Ex : to_str = 'goldstone@solinea.com, admin@solinea.com '
             email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
 
             # Update timestamps on the object for future searches to work.

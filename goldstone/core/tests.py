@@ -374,14 +374,13 @@ class AlertSearchModelTests(TestCase):
                 self.assertIsNotNone(alert_obj)
                 self.assertIsInstance(alert_obj, Alert)
 
-                producer_obj = EmailProducer('root@localhost', 'goldstone-bot@solinea.com')
+                producer_obj = EmailProducer('goldstone-bot@solinea.com', 'goldstone-bot@solinea.com')
                 self.assertIsNotNone(producer_obj)
                 self.assertIsInstance(producer_obj, EmailProducer)
 
                 email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
 
                 # This return value should never be a zero
-                print email_rv
                 self.assertGreater(email_rv, 0)
 
 

@@ -2740,8 +2740,11 @@ class EmailProducer(Producer):
         EmailProducer.receiver = receiver
 
     def send(self, alert, to_str):
+
         to_list = list()
-        to_list.append(to_str)
+
+        for to_addr in to_str.split(","):
+            to_list.append(to_addr)
 
         email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
                              str(self.sender), to_list,
