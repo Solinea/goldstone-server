@@ -19,7 +19,7 @@ from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    Alert, EmailProducer
+    Alert, EmailProducer, Producer
 
 
 logger = logging.getLogger(__name__)
@@ -159,7 +159,7 @@ def check_for_pending_alerts():
      Run an AlertSearch query to check for any pending alerts to be fired.
     """
 
-    saved_alerts = AlertSearch.objects.filter()
+    saved_alerts = AlertSearch.objects.all()
 
     for obj in saved_alerts:
         # execute the search, and assuming no error, update the last_ times
@@ -172,28 +172,23 @@ def check_for_pending_alerts():
 
             now = arrow.utcnow().datetime
 
-            msg_dict = obj.build_alert_message_template(hits=
-                                                        response.hits.total)
+            msg_dict = obj.build_alert_template(hits=response.hits.total)
 
             # For this scheduled celery task, pick up the message template
             # from the query object and pass it along. For all other
             # cases, user is allowed to send custom msg_title and msg_body
-            alert_obj = Alert(name='Scheduled Alert loop :' + str(now),
+            alert_obj = Alert(name=obj.name,
                               query=obj, msg_title=msg_dict['title'],
                               msg_body=msg_dict['body'])
 
-            # Currently we only have a producer interface for emails.
-            # For the default celery task, goldstone-bot@solinea.com acts as
-            # both the sender and receiver.
-            producer_obj = EmailProducer('goldstone-bot@solinea.com', 'goldstone-bot@solinea.com')
-
-            # to_str can also be a command separated string of to-addresses
-            # Ex : to_str = 'goldstone@solinea.com, admin@solinea.com '
-            email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
+            # Filter by fk = AlertSearch obj
+            for producer in EmailProducer.objects.filter(query=obj):
+                producer_ret = producer.send(alert_obj)
 
             # Update timestamps on the object for future searches to work.
             obj.last_start = start
             obj.last_end = end
             obj.save()
+            alert_obj.save()
 
             return email_rv

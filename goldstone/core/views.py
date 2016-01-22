@@ -25,7 +25,7 @@ from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
 from goldstone.core.models import SavedSearch, AlertSearch, Alert
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertSearchSerializer, AlertSerializer
+    AlertSearchSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -577,18 +577,6 @@ class AlertSearchViewSet(ModelViewSet):
 class AlertViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
-    pagination_class = Pagination
-    permission_classes = (IsAuthenticated, )
-    serializer_class = AlertSerializer
-
-    # Tell DRF that the lookup field is this string, and not "pk".
-    lookup_field = "uuid"
-
-    filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
-    ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
-                       'doc_type', 'last_start', 'last_end', 'created',
-                       'updated', 'target_interval')
-
     class Meta:                     # pylint: disable=W0232,C1001
         model = Alert
 
@@ -596,40 +584,5 @@ class AlertViewSet(ModelViewSet):
         return Alert.objects.all()
 
     @detail_route()
-    def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
-        """Return a defined search's results."""
-        from elasticsearch import Elasticsearch
-        from elasticsearch_dsl import Q
-        from goldstone.drfes.filters import ElasticFilter
-        from goldstone.drfes.pagination import ElasticPageNumberPagination
-        from goldstone.drfes.serializers import ReadOnlyElasticSerializer
-
-        # Get the model for the requested uuid
-        # query = ast.literal_eval(SavedSearch.objects.get(uuid=uuid).query)
-        obj = Alert.objects.get(uuid=uuid)
-
-        # To use as much Goldstone code as possible, we now override the class
-        # to create a "drfes environment" for filtering, pagination, and
-        # serialization. We then create an elasticsearch_dsl Search object from
-        # the Elasticsearch query. DailyIndexDocType uses a "logstash-" index
-        # prefix.
-        self.pagination_class = ElasticPageNumberPagination
-        self.serializer_class = ReadOnlyElasticSerializer
-        self.filter_backends = (SavedSearchFilter, )
-
-        # Tell ElasticFilter to not add these query parameters to the
-        # Elasticsearch query.
-        self.reserved_params = []                    # pylint: disable=W0201
-
-        queryset = obj.search()
-        queryset = self.filter_queryset(queryset)
-
-        # Perform the search and paginate the response.
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        else:
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
+    def get_by_id(self, uuid=None):       # pylint: disable=W0613,R0201
+        return Alert.objects.get(uuid=uuid)

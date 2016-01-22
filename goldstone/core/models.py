@@ -15,6 +15,7 @@
 
 import logging
 import sys
+import os
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -2664,21 +2665,23 @@ class AlertSearch(SavedSearch):
 
         verbose_name_plural = "saved searches with alerts"
 
-    def build_alert_message_template(self, hits):
-        msg_title_template = 'Alert : %s ' + self.name + \
-                             ' triggered with %d ' + str(hits) +\
-                             'hits in last %d minutes.' + \
-                             str(self.target_interval)
-        msg_body_template = 'There were %d ' + str(hits) + \
-                            'occurrences of %s ' + str(self.name) +\
-                            'in the last %d minutes.' + '\n' +\
-                            'This query was created at : %s' +\
-                            str(self.created) + 'and last updated at : %s.' +\
-                            str(self.updated)+ '\n' +\
-                            'This query last ran from : %s' +\
-                            str(self.last_start) + 'to : %s.' +\
+    def build_alert_template(self, hits):
+        msg_title_template = 'Alert : ' + str(self.name) + \
+                             ' triggered with ' + str(hits) +\
+                             ' hits in the last ' + str(self.target_interval) +\
+                             ' minutes.'
+
+        msg_body_template = 'There were ' + str(hits) + \
+                            ' occurrences of ' + str(self.name) +\
+                            ' in the last ' + str(self.target_interval) +\
+                            ' minutes.' + '\n' +\
+                            'This query was last updated at : ' +\
+                            str(self.updated) + '\n' +\
+                            'This query last ran from : ' +\
+                            str(self.last_start) + ' to : ' +\
                             str(self.last_end)
-        msg_params_dict = {'title': msg_title_template, 'body': msg_body_template}
+        msg_params_dict = {'title': msg_title_template,
+                           'body': msg_body_template}
         return msg_params_dict
 
 
@@ -2714,7 +2717,7 @@ class Producer(models.Model):
         Specific types like email, slack, HTTP-POST etc inherit from this
         class with specific connection attributes
     """
-    query = models.ForeignKey(AlertSearch, default=1)
+    query = models.ForeignKey(AlertSearch)
 
     class Meta:
         abstract = True
@@ -2731,23 +2734,20 @@ class EmailProducer(Producer):
         This class only contains methods specific to a mailing interface.
     """
 
-    sender = models.CharField(max_length=64, default='goldstone-bot@solinea.com')
-    receiver = models.EmailField(max_length=128,blank=False, null=True)
-    default_sender = models.CharField(max_length=64, default='root@localhost')
+    EMAIL_DEFAULT_SENDER = os.environ.get('EMAIL_HOST_USER', None)
+    sender = models.CharField(max_length=64, default=EMAIL_DEFAULT_SENDER)
+    receiver = models.EmailField(max_length=128, blank=False, null=True)
 
     def __init__(self, sender, receiver):
         EmailProducer.sender = sender
         EmailProducer.receiver = receiver
 
-    def send(self, alert, to_str):
+    def send(self, alert):
 
         to_list = list()
-
-        for to_addr in to_str.split(","):
-            to_list.append(to_addr)
+        to_list.append(self.receiver)
 
         email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
                              str(self.sender), to_list,
                              fail_silently=False)
         return email_rv
-

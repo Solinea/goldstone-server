@@ -334,56 +334,6 @@ class SavedSearchModelTests(TestCase):
             self.assertIsInstance(end, datetime.datetime)
 
 
-class AlertSearchModelTests(TestCase):
-    """
-
-    Test the
-    Test SavedSearch model for :
-    1. Given a query-string, build a correct elastic search query object
-    2. Given this query object, execute the query against the log indices
-    3. Return the rows of results back to caller
-    4. Fire an independent elastic search query and compare results with 3.
-    """
-
-    fixtures = ['core_initial_data.yaml']
-
-    def test_loaded_data_from_fixtures(self):
-        self.assertGreater(AlertSearch.objects.all(), 0)
-
-    def test_predefined_alert_func(self):
-
-        saved_alerts = AlertSearch.objects.filter()
-        self.assertIsNotNone(saved_alerts)
-
-        for entry in saved_alerts:
-            search_obj = entry.search()
-            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
-
-        for entry in saved_alerts:
-            search_obj, start, end = entry.search_recent()
-            self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
-            self.assertIsInstance(start, datetime.datetime)
-            self.assertIsInstance(end, datetime.datetime)
-            response = search_obj.execute()
-            self.assertGreater(response.hits.total, 0)
-
-            if response.hits.total > 0:
-
-                alert_obj = Alert(name='Test Alert loop :',
-                                  query=entry)
-                self.assertIsNotNone(alert_obj)
-                self.assertIsInstance(alert_obj, Alert)
-
-                producer_obj = EmailProducer('goldstone-bot@solinea.com', 'goldstone-bot@solinea.com')
-                self.assertIsNotNone(producer_obj)
-                self.assertIsInstance(producer_obj, EmailProducer)
-
-                email_rv = producer_obj.send(alert=alert_obj, to_str='goldstone-bot@solinea.com')
-
-                # This return value should never be a zero
-                self.assertGreater(email_rv, 0)
-
-
 class PolyResourceModelTests(APITestCase):
     """Test the PolyResourceModel."""
 
