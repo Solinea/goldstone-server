@@ -13,20 +13,23 @@
 #       rebuild version from master: 2.2.0-5
 #       dev version from feature : 2.2.0-SNAPSHOT.35.g88e2ebb.versioning
 
+BINARY_NAME=${2:-goldstone-server}
 EPOCH=$(date +%s)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
 VERSION=$(git describe --tags --match [0-9].[0-9].[0-9]  --always | cut -f1 -d'-')
 if [[ $GIT_BRANCH == 'master' ]] ; then
-  RELEASE=$(git describe --match [0-9].[0-9].[0-9] --tags | cut -f2 -d'-')
   SHORT=${VERSION}
-  FULL=${VERSION}.${RELEASE}
+  FULL=${VERSION}
+  RPM_NAME=${BINARY_NAME}-${VERSION}.el7.x86_64.rpm
+  DEB_NAME=${BINARY_NAME}_${VERSION}_amd64.deb
 else
   COMMIT_DETAIL=$(git describe --long --tags --always --match [0-9].[0-9].[0-9] | cut -f2- -d'-' | sed -e 's/-/./g')
   RELEASE="SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}"
   SHORT=${VERSION}-SNAPSHOT
   FULL=${VERSION}-SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}
+  RPM_NAME=${BINARY_NAME}-${VERSION}-${RELEASE}.el7.x86_64.rpm
+  DEB_NAME=${BINARY_NAME}_${VERSION}-${RELEASE}_amd64.deb
 fi
-BINARY_NAME=${2:-goldstone-server}
 
 case $1 in
   full)
@@ -45,10 +48,10 @@ case $1 in
     echo $EPOCH
     ;;
   rpmname)
-    echo ${BINARY_NAME}-${VERSION}-${RELEASE}.el7.x86_64.rpm
+    echo $RPM_NAME
     ;;
   debname)
-    echo ${BINARY_NAME}_${VERSION}-${RELEASE}_amd64.deb
+    echo $DEB_NAME
     ;;
   *)
     echo $"Usage: $0 {version|release|epoch|full|rpmname|debname}"
