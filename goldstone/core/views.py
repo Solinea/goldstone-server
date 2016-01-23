@@ -24,7 +24,8 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
 from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
 from goldstone.core.models import SavedSearch, AlertSearch, Alert
-from goldstone.core.serializers import SavedSearchSerializer
+from goldstone.core.serializers import SavedSearchSerializer, \
+    AlertSearchSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -447,10 +448,11 @@ class SavedSearchViewSet(ModelViewSet):
                        'updated', 'target_interval')
 
     class Meta:                     # pylint: disable=W0232,C1001
-        model = SavedSearch
+        db_table = SavedSearch
 
     def get_queryset(self):
-        return self._meta.model.objects.all()
+        return SavedSearch.objects.all()
+        # self._meta.db_table.objects.all()
 
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
@@ -459,7 +461,7 @@ class SavedSearchViewSet(ModelViewSet):
         from ast import literal_eval
 
         # Get the model for the requested uuid
-        obj = self._meta.model.objects.get(uuid=uuid)
+        obj = SavedSearch.objects.get(uuid=uuid)
 
         # To use as much Goldstone code as possible, we now override the class
         # to create a "drfes environment" for filtering, pagination, and
@@ -514,10 +516,73 @@ class SavedSearchViewSet(ModelViewSet):
 class AlertSearchViewSet(SavedSearchViewSet):
     """Provide the /defined_search/ endpoints."""
 
+    permission_classes = (IsAuthenticated, )
     serializer_class = AlertSearchSerializer
 
     class Meta:                     # pylint: disable=W0232,C1001
-        model = AlertSearch
+        db_table = AlertSearch
+
+    def get_queryset(self):
+        return AlertSearch.objects.all()
+        # return self._meta.db_table.objects.all()
+
+    @detail_route()
+    def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
+        """Return a defined search's results."""
+        from goldstone.drfes.pagination import ElasticPageNumberPagination
+        from ast import literal_eval
+
+        # Get the model for the requested uuid
+        obj = AlertSearch.objects.get(uuid=uuid)
+
+        # To use as much Goldstone code as possible, we now override the class
+        # to create a "drfes environment" for filtering, pagination, and
+        # serialization. We then create an elasticsearch_dsl Search object from
+        # the Elasticsearch query. DailyIndexDocType uses a "logstash-" index
+        # prefix.
+        self.pagination_class = ElasticPageNumberPagination
+        self.serializer_class = ElasticResponseSerializer
+        self.filter_backends = (SavedSearchFilter, )
+
+        # Tell ElasticFilter to not add these query parameters to the
+        # Elasticsearch query.
+        self.reserved_params = ['interval']            # pylint: disable=W0201
+
+        queryset = obj.search()
+        queryset = self.filter_queryset(queryset)
+
+        # if an interval parameter was provided, assume that it is meant to
+        # be a change to the saved search data_histogram aggregation interval
+        # if present.
+        if 'interval' in self.request.query_params:
+            try:
+                queryset.aggs.aggs['per_interval'].interval = \
+                    self.request.query_params['interval']
+            except:
+                return HTTP_400_BAD_REQUEST("interval parameter not supported "
+                                            "for this request")
+
+        # if there is a timestamp range parameter supplied, we'll construct
+        # an extended_bounds.min parameter from the gt/gte parameter and add
+        # it to the date_histogram aggregation. this will ensure that the
+        # buckets go back to the start time.
+        time_range_param = obj.timestamp_field + "__range"
+        if time_range_param in request.query_params:
+            json = literal_eval(request.query_params[time_range_param])
+            if 'gt' in json:
+                queryset.aggs.aggs['per_interval'].extended_bounds = {
+                    'min': json['gt']
+                }
+            elif 'gte' in json:
+                queryset.aggs.aggs['per_interval'].extended_bounds = {
+                    'min': json['gte']
+                }
+
+        # Perform the search and paginate the response.
+        page = self.paginate_queryset(queryset)
+
+        serializer = self.get_serializer(page)
+        return self.get_paginated_response(serializer.data)
 
 
 class AlertViewSet(ModelViewSet):

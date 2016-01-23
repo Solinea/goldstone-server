@@ -15,8 +15,10 @@
 
 from django.contrib import admin
 from .models import PolyResource
-from goldstone.core.models import SavedSearch, AlertSearch
+from goldstone.core.models import SavedSearch, AlertSearch, EmailProducer
 
 admin.site.register(PolyResource)
 admin.site.register(SavedSearch)
 admin.site.register(AlertSearch)
+admin.site.register(EmailProducer)
+

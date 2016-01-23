@@ -16,12 +16,15 @@ from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
 from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
-    ResourcesRetrieve, TopologyView, SavedSearchViewSet
+    ResourcesRetrieve, TopologyView, SavedSearchViewSet, AlertSearchViewSet
 
 router = DefaultRouter()
 router.register(r'saved_search',
                 SavedSearchViewSet,
                 base_name="saved_search")
+router.register(r'alert_search',
+                AlertSearchViewSet,
+                base_name="alert_search")
 
 urlpatterns = router.urls
 urlpatterns += patterns(

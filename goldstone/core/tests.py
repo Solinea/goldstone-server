@@ -100,6 +100,20 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
 
 
+class EmailProducerTests(SimpleTestCase):
+    """ Test EmailProducer class model
+    """
+
+    def test_send_email(self):
+        """ Tests that sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+        EmailProducer.send = mock.Mock(return_value=1)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')), 1)
+
+
 class DailyIndexDocTypeTests(SimpleTestCase):
 
     class CADFEvent(DailyIndexDocType):
