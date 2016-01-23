@@ -182,8 +182,10 @@ def check_for_pending_alerts():
                               msg_body=msg_dict['body'])
 
             # Filter by fk = AlertSearch obj
+            producer_rv_list = list()
             for producer in EmailProducer.objects.filter(query=obj):
                 producer_ret = producer.send(alert_obj)
+                producer_rv_list.append(producer_ret)
 
             # Update timestamps on the object for future searches to work.
             obj.last_start = start
@@ -191,4 +193,4 @@ def check_for_pending_alerts():
             obj.save()
             alert_obj.save()
 
-            return email_rv
+            return producer_rv_list

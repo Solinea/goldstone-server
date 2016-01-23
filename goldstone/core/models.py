@@ -2734,20 +2734,12 @@ class EmailProducer(Producer):
         This class only contains methods specific to a mailing interface.
     """
 
-    EMAIL_DEFAULT_SENDER = os.environ.get('EMAIL_HOST_USER', None)
-    sender = models.CharField(max_length=64, default=EMAIL_DEFAULT_SENDER)
-    receiver = models.EmailField(max_length=128, blank=False, null=True)
-
-    def __init__(self, sender, receiver):
-        EmailProducer.sender = sender
-        EmailProducer.receiver = receiver
+    sender = models.CharField(max_length=64, default=settings.EMAIL_HOST_USER)
+    receiver = models.EmailField(max_length=128, blank=False)
 
     def send(self, alert):
 
-        to_list = list()
-        to_list.append(self.receiver)
-
-        email_rv = send_mail(str(alert.msg_title), str(alert.msg_body),
-                             str(self.sender), to_list,
+        email_rv = send_mail(alert.msg_title, alert.msg_body,
+                             str(self.sender), list(self.receiver),
                              fail_silently=False)
         return email_rv
