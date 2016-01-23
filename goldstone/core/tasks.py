@@ -20,6 +20,7 @@ from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
     Alert, EmailProducer, Producer
+from celery.exceptions import RetryTaskError
 
 
 logger = logging.getLogger(__name__)
@@ -164,6 +165,9 @@ def check_for_pending_alerts():
     for obj in saved_alerts:
         # execute the search, and assuming no error, update the last_ times
         s, start, end = obj.search_recent()
+        obj.last_start = start
+        obj.last_end = end
+        obj.save()
         response = s.execute()
         if response.hits.total > 0:
             # We have a non-zero match for pending alerts
@@ -180,17 +184,23 @@ def check_for_pending_alerts():
             alert_obj = Alert(name=obj.name,
                               query=obj, msg_title=msg_dict['title'],
                               msg_body=msg_dict['body'])
-
-            # Filter by fk = AlertSearch obj
-            producer_rv_list = list()
-            for producer in EmailProducer.objects.filter(query=obj):
-                producer_ret = producer.send(alert_obj)
-                producer_rv_list.append(producer_ret)
-
-            # Update timestamps on the object for future searches to work.
-            obj.last_start = start
-            obj.last_end = end
-            obj.save()
             alert_obj.save()
 
+
+            # Filter by fk = AlertSearch obj
+            # dont throw an exception from this loop and keep retrying
+            # till all the producers in the list are exhausted
+            producer_rv_list = list()
+            for producer in EmailProducer.objects.filter(query=obj):
+                try:
+                    producer_ret = producer.send(alert_obj)
+                    producer_rv_list.append(producer_ret)
+                except:
+                    check_for_pending_alerts.retry(throw=False)
+                    # Uncomment the line below if we ever want to mark
+                    # this task to be in retry state. For now, we don't
+                    # mind that this task is marked success/failure.
+                    # raise RetryTaskError(None, None)
+
             return producer_rv_list
+
