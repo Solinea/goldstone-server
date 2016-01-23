@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class ElasticPageNumberPagination(pagination.PageNumberPagination):
 
     page_size_query_param = "page_size"
-    
+
     def paginate_queryset(self, queryset, request, view=None):
         """Paginate a queryset if required, either returning a page object, or
         `None` if pagination is not configured for this view."""
