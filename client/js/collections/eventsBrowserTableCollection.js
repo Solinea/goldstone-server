@@ -40,11 +40,5 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    preProcessData: function(data) {
-        if(data) {
-            return data;
-        }
     }
 });
