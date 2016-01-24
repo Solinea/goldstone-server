@@ -21,6 +21,7 @@ from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 import elasticsearch
 import elasticsearch_dsl
+import smtplib
 from elasticsearch_dsl import String, Date, Nested
 from elasticsearch_dsl.result import Response
 import mock
@@ -148,7 +149,7 @@ class EmailProducerTests(SimpleTestCase):
     """ Test EmailProducer class model
     """
 
-    def test_send_email(self):
+    def test_send_email_success(self):
         """ Tests that sending out an email returns an integer value
             rv <= 0 failure to send or error
             rv >=1 success in send, rv corresponds to number of recipients
@@ -156,6 +157,28 @@ class EmailProducerTests(SimpleTestCase):
         EmailProducer.send = mock.Mock(return_value=1)
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
                                             list('xyz@y.com')), 1)
+    def test_send_email_failure(self):
+        """ Tests that sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+        EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')), smtplib.SMTPException)
+
+class AlertSearchTests(TestCase):
+
+    fixtures = ['core_initial_data.yaml']
+
+    def test_loaded_data_from_fixtures(self):
+        self.assertGreater(AlertSearch.objects.all(), 0)
+
+    def test_model_instance_data(self):
+        expected_keys = ['created', 'name', 'protected', 'query', 'updated',
+                         'uuid', 'owner', 'index_prefix', 'doc_type',
+                         'timestamp_field', 'last_start', 'last_end',
+                         'target_interval']
+        # TBD : Mock ES DRF for as_fields and return
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):

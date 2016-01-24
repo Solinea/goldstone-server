@@ -16,7 +16,8 @@ from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
 from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
-    ResourcesRetrieve, TopologyView, SavedSearchViewSet, AlertSearchViewSet
+    ResourcesRetrieve, TopologyView, SavedSearchViewSet, AlertSearchViewSet, \
+    AlertViewSet
 
 router = DefaultRouter()
 router.register(r'saved_search',
@@ -25,6 +26,9 @@ router.register(r'saved_search',
 router.register(r'alert_search',
                 AlertSearchViewSet,
                 base_name="alert_search")
+router.register(r'alert',
+                AlertViewSet,
+                base_name="alert")
 
 urlpatterns = router.urls
 urlpatterns += patterns(
