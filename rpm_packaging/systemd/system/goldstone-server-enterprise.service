@@ -5,8 +5,8 @@ After=docker.service
 
 [Service]
 Restart=always
-User=root
-Group=root
+User=goldstone
+Group=goldstone
 ExecStart=/usr/bin/goldstone-server-enterprise start
 ExecStop=/usr/bin/goldstone-server-enterprise stop
 
