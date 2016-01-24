@@ -21,7 +21,7 @@ NAME=goldstone-server
 ###########################
 ## Do not modify below here
 ###########################
-SEMVER_VERSION=1.0
+SEMVER_VERSION=1.2
 BINARY_NAME=${2:-${NAME}}
 EPOCH=$(date +%s)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
@@ -32,7 +32,7 @@ DIST=el7
 
 ## Naming logic
 if [[ $GIT_BRANCH == 'master' ]] ; then
-  RELEASE=$(git describe --long --tags --always | cut -f2 -d'-')
+  RELEASE=$(git describe --long --tags --always --match [0-9].[0-9].[0-9] | cut -f2 -d'-')
   SHORT=${VERSION}
   FULL=${VERSION}
 else
