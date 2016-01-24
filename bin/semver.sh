@@ -32,19 +32,18 @@ DIST=el7
 
 ## Naming logic
 if [[ $GIT_BRANCH == 'master' ]] ; then
+  RELEASE=$(git describe --long --tags --always | cut -f2 -d'-')
   SHORT=${VERSION}
   FULL=${VERSION}
-  RPM_NAME=${BINARY_NAME}-${VERSION}.${DIST}.${RPMARCH}.rpm
-  DEB_NAME=${BINARY_NAME}_${VERSION}_${DEBARCH}.deb
-  RELEASE=""
 else
   COMMIT_DETAIL=$(git describe --long --tags --always --match [0-9].[0-9].[0-9] | cut -f2- -d'-' | sed -e 's/-/./g')
   RELEASE="SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}"
   SHORT=${VERSION}-SNAPSHOT
   FULL=${VERSION}-SNAPSHOT.${COMMIT_DETAIL}.${GIT_BRANCH}
-  RPM_NAME=${BINARY_NAME}-${VERSION}-${RELEASE}.${DIST}.${RPMARCH}.rpm
-  DEB_NAME=${BINARY_NAME}_${VERSION}-${RELEASE}_${DEBARCH}.deb
 fi
+
+RPM_NAME=${BINARY_NAME}-${VERSION}-${RELEASE}.${DIST}.${RPMARCH}.rpm
+DEB_NAME=${BINARY_NAME}_${VERSION}-${RELEASE}_${DEBARCH}.deb
 
 # Evaluate arguments
 case $1 in
