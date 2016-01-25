@@ -2639,7 +2639,7 @@ class CADFEventDocType(DailyIndexDocType):
         doc_type = 'goldstone_event'
         index = 'events_*'
 
-    def __init__(self, timestamp=None, event=None, meta=None, **kwargs):
+    def __init__(self, timestamp=None, event=None, **kwargs):
         if event is not None:
             kwargs = dict(
                 kwargs.items() + self._get_traits_dict(event).items())
@@ -2647,7 +2647,7 @@ class CADFEventDocType(DailyIndexDocType):
         if timestamp is None:
             kwargs['timestamp'] = arrow.utcnow().datetime
 
-        super(CADFEventDocType, self).__init__(meta, **kwargs)
+        super(CADFEventDocType, self).__init__(**kwargs)
 
     @staticmethod
     def _get_traits_dict(e):

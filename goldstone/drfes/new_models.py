@@ -69,4 +69,6 @@ class DailyIndexDocType(DocType):
     def _index_today(self):
         import arrow
         today = arrow.utcnow().format(self.INDEX_DATE_FMT)
-        return self._doc_type.index.rstrip('*') + today
+        idx = self._doc_type.index.rstrip('*') + today
+        print "_index_today = %s" % idx
+        return idx
