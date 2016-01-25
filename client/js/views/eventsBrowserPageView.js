@@ -29,11 +29,14 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+        // for access to url generation functions
+        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({
+            skipFetch: true
+        });
 
         this.eventsBrowserTable = new EventsBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
-            collection: this.eventsBrowserTableCollection,
+            collectionMixin: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
             width: $('#events-browser-table').width()
@@ -41,7 +44,9 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+        this.viewsToStopListening = [
+        this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable]
+        ;
     },
 
     triggerChange: function(change) {
