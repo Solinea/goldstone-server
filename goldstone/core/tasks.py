@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 from subprocess import check_call
-import arrow
 from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
@@ -169,12 +168,11 @@ def check_for_pending_alerts():
         obj.last_end = end
         obj.save()
         response = s.execute()
+
         if response.hits.total > 0:
             # We have a non-zero match for pending alerts
             # Go ahead and generate an instance of the alert object here.
             # We can directly call the producer class to send an email
-
-            now = arrow.utcnow().datetime
 
             msg_dict = obj.build_alert_template(hits=response.hits.total)
 
@@ -186,7 +184,6 @@ def check_for_pending_alerts():
                               msg_body=msg_dict['body'])
             alert_obj.save()
 
-
             # Filter by fk = AlertSearch obj
             # dont throw an exception from this loop and keep retrying
             # till all the producers in the list are exhausted
@@ -194,12 +191,16 @@ def check_for_pending_alerts():
             for producer in EmailProducer.objects.filter(query=obj):
                 try:
                     producer_ret = producer.send(alert_obj)
-                    producer_rv_list.append(producer_ret)
-                except:
-                    check_for_pending_alerts.retry(throw=False)
-                    # Uncomment the line below if we ever want to mark
+                    ret_dict = {producer.query.name:producer_ret}
+                    producer_rv_list.append(ret_dict)
+                except Exception as e:
+                    ret_dict = {producer.query.name:e}
+                    producer_rv_list.append(ret_dict)
+                    pass
+                    # Uncomment the lines below if we ever want to mark
                     # this task to be in retry state. For now, we don't
                     # mind that this task is marked success/failure.
+                    # check_for_pending_alerts.retry(throw=False)
                     # raise RetryTaskError(None, None)
 
             return producer_rv_list
