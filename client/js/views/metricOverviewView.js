@@ -186,6 +186,7 @@ var MetricOverviewView = ChartSet.extend({
         var self = this;
 
         var oneThird = (this.height - this.marginTop - this.marginBottom)/3;
+        var rangePadding = 10;
 
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
@@ -193,19 +194,19 @@ var MetricOverviewView = ChartSet.extend({
             .domain([0, self.data.length ? d3.max(self.data[0].logData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([oneThird * 3, oneThird * 2]);
+            .range([oneThird * 3, oneThird * 2 + rangePadding]);
 
         this.yEvent = d3.scale.linear()
             .domain([0, self.data.length ? d3.max(self.data[0].eventData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([oneThird * 2, oneThird]);
+            .range([oneThird * 2, oneThird + rangePadding]);
 
         this.yApi = d3.scale.linear()
             .domain([0, self.data.length ? d3.max(self.data[0].apiData.aggregations.per_interval.buckets, function(d) {
                 return d.doc_count;
             }) : 0])
-            .range([oneThird, 0]);
+            .range([oneThird, 0 + rangePadding]);
 
     },
 
