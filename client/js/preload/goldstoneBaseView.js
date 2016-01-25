@@ -285,5 +285,21 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         flattenator(obj);
         return result;
-    }
+    },
+
+    templateButtonConstructor: function(routeArray) {
+
+        // usually implemented by passing in this.templateButtonSelectors
+        // in the following order: [url, display text, active (optional)]
+
+        var result = '<div class="btn-group" role="group">';
+        _.each(routeArray, function(route) {
+            result += '<a href="' + route[0] + '"><button type="button"' +
+                'class="' + (route[2] === 'active' ? 'active' : '') +
+                ' btn btn-default">' + goldstone.translate(route[1]) + '</button></a>';
+        });
+        result += '</div><br><br>';
+        return result;
+    },
+
 });

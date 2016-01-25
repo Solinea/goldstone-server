@@ -479,7 +479,23 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         flattenator(obj);
         return result;
-    }
+    },
+
+    templateButtonConstructor: function(routeArray) {
+
+        // usually implemented by passing in this.templateButtonSelectors
+        // in the following order: [url, display text, active (optional)]
+
+        var result = '<div class="btn-group" role="group">';
+        _.each(routeArray, function(route) {
+            result += '<a href="' + route[0] + '"><button type="button"' +
+                'class="' + (route[2] === 'active' ? 'active' : '') +
+                ' btn btn-default">' + goldstone.translate(route[1]) + '</button></a>';
+        });
+        result += '</div><br><br>';
+        return result;
+    },
+
 });
 ;
 /**
@@ -4170,14 +4186,18 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'Api Browser', 'active'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="api-histogram-visualization" class="col-md-12"></div>' +
@@ -5622,8 +5642,8 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-        this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable]
-        ;
+            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+        ];
     },
 
     triggerChange: function(change) {
@@ -5633,14 +5653,18 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser', 'active'],
+        ['/#reports/apibrowser', 'Api Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="events-histogram-visualization" class="col-md-12"></div>' +
@@ -7710,14 +7734,18 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser', 'active'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'Api Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         // divs for log viewer viz on top and dataTable below
         '<div class="row">' +
