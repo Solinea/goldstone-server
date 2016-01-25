@@ -4,11 +4,13 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+Type=simple
 Restart=always
-User=goldstone
-Group=goldstone
-ExecStart=/usr/bin/goldstone-server start
-ExecStop=/usr/bin/goldstone-server stop
+User=root
+Group=root
+ExecStart=/opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml up
+ExecStop=/opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml stop
+RestartSec=
 
 [Install]
 WantedBy=local.target
