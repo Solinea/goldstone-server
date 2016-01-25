@@ -216,10 +216,10 @@ class DailyIndexDocTypeTests(SimpleTestCase):
         # force flush the index so our test has a chance to succeed.
         cadf._doc_type.using.indices.flush(cadf.meta.index)
 
-        ge = self.CADFEvent.get(id=cadf.meta.id, index=cadf.meta.index)
+        ge = CADFEventDocType.get(id=cadf.meta.id, index=cadf.meta.index)
         self.assertEqual(cadf.traits['initiatorId'], ge.traits['initiatorId'])
         self.assertEqual(cadf.traits['eventTime'], ge.traits['eventTime'])
-        self.assertIsInstance(ge, self.CADFEvent)
+        self.assertIsInstance(ge, CADFEventDocType)
 
         s = CADFEventDocType.search()
         s = s.filter('term', ** {'traits.initiatorId': initiator_id})\
