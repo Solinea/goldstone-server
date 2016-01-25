@@ -120,23 +120,23 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     statusTemplate: _.template('' +
         '<li>' +
-        '<span class="service">Cinder</span>' +
+        '<span class="service"><%= goldstone.translate("Cinder") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("cinder") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Glance</span>' +
+        '<span class="service"><%= goldstone.translate("Glance") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("glance") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Keystone</span>' +
+        '<span class="service"><%= goldstone.translate("Keystone") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("keystone") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Neutron</span>' +
+        '<span class="service"><%= goldstone.translate("Neutron") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("neutron") %>>&nbsp;</i></span>' +
         '</li>' +
         '<li>' +
-        '<span class="service">Nova</span>' +
+        '<span class="service"><%= goldstone.translate("Nova") %></span>' +
         '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
         '</li>'),
 
@@ -144,8 +144,8 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<ul class="service-status-table shadow-block">' +
         '<li class="table-header">' +
-        '<span class="service">Service</span>' +
-        '<span class="sf">Status</span>' +
+        '<span class="service"><%= goldstone.translate("Service") %></span>' +
+        '<span class="sf"><%= goldstone.translate("Status") %></span>' +
         '</li>' +
         '<div class="fill-in"></div>' +
         '</ul>')

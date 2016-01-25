@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-app:0.7.3
+FROM solinea/goldstone-base:0.8.3
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
@@ -41,3 +41,16 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
     DJANGO_ADMIN_USER=admin \
     GOLDSTONE_REDIS_HOST=gstaskq \
     CELERY_LOGLEVEL=info
+
+COPY goldstone-server/ ${APPDIR}/
+
+USER root
+
+RUN  su - ${APPUSER} -c '. /venv/bin/activate && pip install -r requirements.txt' \
+  && su - ${APPUSER} -c '. /venv/bin/activate && pip install -r test-requirements.txt' \
+  && apt-get remove -y $buildReqs \
+  && apt-get autoremove -y \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+USER ${APPUSER}

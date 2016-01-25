@@ -164,7 +164,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         });
     },
     redirect: function() {
-        location.href = "#metrics/topology";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);

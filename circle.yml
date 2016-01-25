@@ -1,19 +1,24 @@
 ---
 ## test machine configuration
 machine:
+  pre:
+    # cp workaround from https://discuss.circleci.com/t/unable-to-use-docker-cp-but-it-worked-2-days-ago/1137/9
+    - echo 'DOCKER_OPTS="-s btrfs -e lxc -D --userland-proxy=false"' | sudo tee -a /etc/default/docker
+    - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci-cp-workaround'
+    - sudo chmod 0755 /usr/bin/docker
   python:
     version: 2.7.10
-
   services:
     - docker
-
   # environment variables
   environment:
     # build output dirs
     LOG_DIR:      $CIRCLE_ARTIFACTS/logs
     DJANGO_DIR:   $CIRCLE_TEST_REPORTS/django
+    # build_images support
+    GS_PROJ_TOP_DIR:    $HOME/goldstone-server
     # Docker image directories for staging
-    DOCKER_DIR:   $HOME/goldstone-server/docker
+    DOCKER_DIR:   $GS_PROJ_TOP_DIR/docker
     STAGE_APP:    $DOCKER_DIR/goldstone-app
     STAGE_DB:     $DOCKER_DIR/goldstone-db
     STAGE_LOG:    $DOCKER_DIR/goldstone-log
@@ -23,8 +28,6 @@ machine:
     STAGE_WEB:    $DOCKER_DIR/goldstone-web
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
-    TEST_APP: "docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash goldstone-app -c"
-
   # /etc/hosts
   hosts:
     gsapp: 127.0.0.1
@@ -50,27 +53,11 @@ dependencies:
     - sudo service redis-server stop              # stop default redis-server service
     - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
     - sudo pip install docker-compose             # circleci env fix, install docker-compose
-    - pip install -r requirements.txt
     - pip install -r test-requirements.txt
-    - pip freeze
-  override:
-    # build static files
-    - python manage.py collectstatic --noinput --settings=goldstone.settings.ci
-    - cp -r static $STAGE_WEB/static
-    # build goldstone-server distribution
-    - python setup.py sdist && tar xzvf dist/*.gz --strip-components=1 -C dist
-    - cp -r dist $STAGE_APP/goldstone-server
-    - cp -r dist $STAGE_TASK/goldstone-server
-  post:
     - docker info && docker-compose version
-    - docker build -t goldstone-app $STAGE_APP
-    - docker build -t goldstone-db $STAGE_DB
-    - docker build -t goldstone-log $STAGE_LOG
-    - docker build -t goldstone-search $STAGE_SEARCH
-    # TODO: uncomment build when goldstone-task is pulled out from goldstone-app
-    #- docker build -t goldstone-task $STAGE_TASK
-    - docker build -t goldstone-task-queue $STAGE_TASKQ
-    - docker build -t goldstone-web $STAGE_WEB
+  override:
+    - bin/build_images.sh --docker-vm=false
+  post:
     - docker images
 
 ## test config
@@ -80,10 +67,10 @@ test:
         background: true
     - sleep 10 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
+    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
+    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
-    - $TEST_APP ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
@@ -105,12 +92,28 @@ deployment:
   latest:
     branch: master
     commands:
-      - echo "latest, $CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} ($CIRCLE_SHA1)"
+      - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
+      - docker info
+      - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
+      - docker run --name gss-rpm gss.rpm make rpm_native
+      - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
+      - docker run --name gsse-rpm gss.rpm make gse_native
+      - docker cp gsse-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server-enterprise` $CIRCLE_ARTIFACTS/redhat/
       # TODO: replace with full tag/push when merged with solinea/goldstone-server
       #- docker tag goldstone-app gs-docker-oss.bintray.io/app:latest
       #- docker tag goldstone-app gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
       #- docker push gs-docker-oss.bintray.io/app:latest
       #- docker push gs-docker-oss.bintray.io/app:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+  dev:
+    branch: /.*/
+    commands:
+      - mkdir -p $CIRCLE_ARTIFACTS/ubuntu $CIRCLE_ARTIFACTS/redhat
+      - docker info
+      - docker build -t gss.rpm -f rpm_packaging/Dockerfile.rpm .
+      - docker run --name gss-rpm gss.rpm make rpm_native
+      - docker cp gss-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server` $CIRCLE_ARTIFACTS/redhat/
+      - docker run --name gsse-rpm gss.rpm make gse_native
+      - docker cp gsse-rpm:/tmp/goldstone-server/`bin/semver.sh rpmname goldstone-server-enterprise` $CIRCLE_ARTIFACTS/redhat/
 
 general:
   artifacts:

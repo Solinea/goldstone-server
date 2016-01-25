@@ -73,7 +73,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
             result = '';
             _.each(this.defaults.lookbackValues.lookback, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -81,12 +81,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
-                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
-                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
-                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
-                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
-                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
+            return '<option class="i18n" data-i18n="lookback 15m" value="15" selected>lookback 15m</option>' +
+                '<option class="i18n" data-i18n="lookback 1h" value="60">lookback 1h</option>' +
+                '<option class="i18n" data-i18n="lookback 6h" value="360">lookback 6h</option>' +
+                '<option class="i18n" data-i18n="lookback 1d" value="1440">lookback 1d</option>' +
+                '<option class="i18n" data-i18n="lookback 3d" value="4320">lookback 3d</option>' +
+                '<option class="i18n" data-i18n="lookback 7d" value="10080">lookback 7d</option>';
         }
     },
 
@@ -94,7 +94,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
             result = '';
             _.each(this.defaults.lookbackValues.refresh, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -102,10 +102,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>' + goldstone.translate('refresh 30s') + '</option>' +
-                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
-                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
-                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
+            return '<option class="i18n" data-i18n="refresh 30s" value="30" selected>refresh 30s</option>' +
+                '<option class="i18n" data-i18n="refresh 1m" value="60">refresh 1m</option>' +
+                '<option class="i18n" data-i18n="refresh 5m" value="300">refresh 5m</option>' +
+                '<option class="i18n" data-i18n="refresh off" value="-1">refresh off</option>';
         }
     },
 

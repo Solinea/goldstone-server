@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 class ElasticPageNumberPagination(pagination.PageNumberPagination):
 
-    # Allow the API call to specify a custom page size.
     page_size_query_param = "page_size"
 
     def paginate_queryset(self, queryset, request, view=None):

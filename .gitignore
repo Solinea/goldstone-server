@@ -111,3 +111,7 @@ docker/goldstone-web-e/static/
 /static
 AUTHORS
 ChangeLog
+
+# packaging
+rpm_packaging/temp/
+rpm_packaging/pkg/
