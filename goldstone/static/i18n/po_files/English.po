@@ -1193,6 +1193,10 @@ msgstr ""
 msgid "GB"
 msgstr ""
 
+#: openTrailManagerPageView.js
+msgid "OpenTrail Manager"
+msgstr ""
+
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Create New Trail"
@@ -1798,13 +1802,10 @@ msgstr ""
 msgid "No data"
 msgstr ""
 
-#: addons
-#: opentrail
-
-#: server-generated data for addon name
-msgid "opentrail"
+#: vulnerability advisor
+msgid "Vulnerability Advisor"
 msgstr ""
 
-#: opentrail main.js
-msgid "OpenTrail Manager"
+#: vulnerability advisor
+msgid "OpenStack Vulnerabilities"
 msgstr ""
