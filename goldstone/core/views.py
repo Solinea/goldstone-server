@@ -535,4 +535,3 @@ class AlertViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Alert.objects.all()
-

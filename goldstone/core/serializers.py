@@ -57,6 +57,7 @@ class AlertSearchSerializer(serializers.ModelSerializer):
 
         model = AlertSearch
 
+
 class AlertSerializer(serializers.ModelSerializer):
     """The Defined Alert serializer."""
 

@@ -23,4 +23,3 @@ admin.site.register(SavedSearch)
 admin.site.register(AlertSearch)
 admin.site.register(EmailProducer)
 admin.site.register(Alert)
-

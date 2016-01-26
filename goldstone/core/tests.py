@@ -125,7 +125,7 @@ class TaskTests(SimpleTestCase):
 
         search_mock.execute.return_value = {'hits': {'total': 1}}
         alert_search.search_recent = mock.MagicMock(
-            return_value=[Search(),None, None])
+            return_value=[Search(), None, None])
 
         # mock two producers with fk back to the the alert search
         p1 = mock.MagicMock(spec=EmailProducer, query=alert_search)
@@ -157,6 +157,7 @@ class EmailProducerTests(SimpleTestCase):
         EmailProducer.send = mock.Mock(return_value=1)
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
                                             list('xyz@y.com')), 1)
+
     def test_send_email_failure(self):
         """ Tests that sending out an email returns an integer value
             rv <= 0 failure to send or error
@@ -164,7 +165,9 @@ class EmailProducerTests(SimpleTestCase):
         """
         EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
-                                            list('xyz@y.com')), smtplib.SMTPException)
+                                            list('xyz@y.com')),
+                         smtplib.SMTPException)
+
 
 class AlertSearchTests(TestCase):
 

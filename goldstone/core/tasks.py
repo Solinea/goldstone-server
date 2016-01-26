@@ -202,5 +202,4 @@ def check_for_pending_alerts():
                     # raise RetryTaskError(None, None)
                 producer_rv_list.append(ret_dict)
 
-
             return producer_rv_list
