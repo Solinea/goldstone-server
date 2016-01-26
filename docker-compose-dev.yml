@@ -54,6 +54,7 @@ gslog:
     - "5516:5516"
   links:
     - gssearch
+    - gstaskq
   log_driver: "json-file"
   log_opt:
     max-size: "100k"

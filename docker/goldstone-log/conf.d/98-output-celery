@@ -15,5 +15,11 @@
 output {
     if [type] == "agent" {
         stdout { codec => rubydebug }
+        redis {
+            host => "gstaskq"
+            key => "default"
+            db => 0
+            data_type => "list"
+        }
     }
 }
