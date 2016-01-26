@@ -306,5 +306,18 @@ describe('goldstoneBaseView.js spec', function() {
             });
 
         });
+        it('should create button groups', function() {
+            var testRouteArray = [
+                ['/#reports/logbrowser', 'Log Browser', 'active'],
+                ['/#reports/eventbrowser', 'Event Browser'],
+                ['/#reports/apibrowser', 'Api Browser'],
+            ];
+
+            var test1 = this.testView.templateButtonConstructor(testRouteArray);
+            expect(test1).to.equal('<div class="btn-group" role="group"><a href="/#reports/logbrowser" class="active btn btn-default">Log Browser</a><a href="/#reports/eventbrowser" class="btn btn-default">Event Browser</a><a href="/#reports/apibrowser" class="btn btn-default">Api Browser</a></div><br><br>');
+            testRouteArray = [['','']];
+            var test2 = this.testView.templateButtonConstructor(testRouteArray);
+            expect(test2).to.equal('<div class="btn-group" role="group"><a href="" class="btn btn-default"></a></div><br><br>');
+        });
     });
 });

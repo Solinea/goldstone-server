@@ -482,15 +482,22 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     templateButtonConstructor: function(routeArray) {
+        /*
+        usually implemented by passing in this.templateButtonSelectors
+        in the following order: [url, display text, active (optional)]
 
-        // usually implemented by passing in this.templateButtonSelectors
-        // in the following order: [url, display text, active (optional)]
+        produces output such as:
+        <div class="btn-group" role="group">
+            <a href="/#reports/logbrowser" class=" btn btn-default">Log Browser</a>
+            <a href="/#reports/eventbrowser" class="active btn btn-default">Event Browser</a>
+            <a href="/#reports/apibrowser" class=" btn btn-default">Api Browser</a>
+        </div><br><br>
+        */
 
         var result = '<div class="btn-group" role="group">';
         _.each(routeArray, function(route) {
-            result += '<a href="' + route[0] + '"><button type="button"' +
-                'class="' + (route[2] === 'active' ? 'active' : '') +
-                ' btn btn-default">' + goldstone.translate(route[1]) + '</button></a>';
+            result += '<a href="' + route[0] + '"' + ' class="' + (route[2] === 'active' ? 'active ' : '') +
+                'btn btn-default">' + goldstone.translate(route[1]) + '</a>';
         });
         result += '</div><br><br>';
         return result;
