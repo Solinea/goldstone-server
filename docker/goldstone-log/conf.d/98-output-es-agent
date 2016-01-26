@@ -13,10 +13,7 @@
 # limitations under the License.
 
 output {
-    if [type] == "syslog" {
-        elasticsearch {
-            hosts => ["gssearch:9200"]
-            workers => 4
-        }
+    if [type] == "agent" {
+        stdout { codec => rubydebug }
     }
 }

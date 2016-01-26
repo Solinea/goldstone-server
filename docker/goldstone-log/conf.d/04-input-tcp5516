@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output {
-    if [type] in ["nova_claims_resub", "nova_spawns_resub", "api_stats_resub"] {
-        # stdout { codec => json }
-        tcp {
-            codec => json_lines
-            host => localhost
-            port => 5515
-            workers => 8
-        }
+#
+# accepts TCP from goldstone agent
+#
+input {
+    tcp {
+        port => 5516
+        type => agent
+        codec => json
     }
 }

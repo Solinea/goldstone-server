@@ -48,13 +48,6 @@ filter {
                     replace => [ "host", "%{syslog5424_host}" ]
                     add_tag => ["openstack_syslog", "filter_34_pass"]
                 }
-
-                # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
-                # if it happened earlier, this filter would end up processing each of the clones regardless
-                # of their type.
-                clone {
-                    clones => ["nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
-                }
             } else {
                 mutate {
                     add_tag => ["filter_34_fail"]

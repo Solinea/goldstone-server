@@ -13,7 +13,10 @@
 # limitations under the License.
 
 filter {
-    if [type] == "api_stats_resub" {
+    mutate {
+        remove_tag => ["_grokparsefailure"]
+    }
+    if [type] == "syslog" {
         mutate {
             gsub => ["openstack_message", '\"', '"']
         }
@@ -21,19 +24,20 @@ filter {
             patterns_dir => "/opt/logstash/patterns"
             match => { "openstack_message" => "%{OPENSTACK_API_CALL}" }
         }
-        if ("_grokparsefailure" in [tags]) {
-            drop { }
-        } else {
-            mutate {
-                replace => [ "type", "api_stats" ]
+        if ("_grokparsefailure" not in [tags]) {
+            clone {
+                clones => ["api_stats"]
                 remove_field => [ syslog5424_pri, syslog5424_host, syslog_ts, log_message, pid, loglevel,
                                   syslog_severity_code, syslog_facility_code,
                                   syslog_severity, syslog_facility, program, timestamp,
                                   openstack_message, request_id, instance_id,
                                   request_id_list, message, tags ]
+                add_field => ["creation_time", "%{@timestamp}"]
             }
-            ruby {
-                code => "event['creation_time'] = event['@timestamp']"
+        } else {
+            mutate {
+                add_tag => ["filter_35_fail"]
+                remove_tag => ["_grokparsefailure"]
             }
         }
     }

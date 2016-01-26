@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# accepts TCP from an alternate syslog port
-#
-input {
-    tcp {
-        codec => json_lines
-        port => 5515
+
+filter {
+
+    if [type] == "agent" {
+        # is this a file integrity monitor event?
+        if [fim]  {
+            ruby {
+                code => "event['args'] = event['fim'].values_at('meta', 'doc')"
+                remove_field => ["fim"]
+                add_field => ["task", "goldstone.compliance.tasks.process_fim_event"]
+            }
+        }
     }
 }

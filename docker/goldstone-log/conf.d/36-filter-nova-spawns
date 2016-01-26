@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# categorize openstack syslog messages related to instance
-# spawning.  
-#
 filter {
-    if [type] == "nova_spawns_resub" {
+    mutate {
+        remove_tag => ["_grokparsefailure"]
+    }
+    if [type] == "syslog" {
         if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
-            mutate {
-                    remove_tag => ["_grokparsefailure"]
-            }
             grok {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_START}" }
@@ -63,22 +59,23 @@ filter {
             mutate {
                 remove_tag => ["_grokparsefailure"]
             }
-            if ("nova_spawn_start" not in [tags] and "nova_spawn_finish" not in [tags]) {
-                drop { }
-            } else {
-                mutate {
-                    replace => [ "type", "nova_spawns" ]
+            if ("nova_spawn_start" in [tags] or "nova_spawn_finish" in [tags]) {
+                clone {
+                    clones => [ "nova_spawns" ]
                     remove_field => [
                           syslog5424_pri, syslog_ts, log_message, pid, loglevel,
                           syslog_severity_code, syslog_facility_code,
                           syslog_severity, syslog_facility, program, component,
                           openstack_message, request_id, instance_id, timestamp,
                           request_id_list, message, tags ]
+                    add_field => ["creation_time", "%{@timestamp}"]
                 }
             }
         } else {
-            drop { }
+            mutate {
+                add_tag => ["filter_37_fail"]
+                remove_tag => ["_grokparsefailure"]
+            }
         }
     }
 }
-

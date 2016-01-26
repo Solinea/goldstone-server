@@ -13,11 +13,11 @@
 # limitations under the License.
 
 filter {
-    if [type] == "nova_claims_resub" {
+    mutate {
+        remove_tag => ["_grokparsefailure"]
+    }
+    if [type] == "syslog" {
         if [program] == "nova.compute.claims" {
-            mutate {
-                remove_tag => ["_grokparsefailure"]
-            }
             grok {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
@@ -44,22 +44,21 @@ filter {
             mutate {
                 remove_tag => ["_grokparsefailure"]
             }
-            if ("nova_phys_claim" not in [tags] and "nova_virt_claim" not in [tags] and "nova_claim_request" not in [tags]) {
-                drop { }
-            } else {
-                mutate {
-                    replace => [ "type", "nova_claims" ]
-                    remove_field => [
-                        syslog5424_pri, syslog_ts, log_message, pid, loglevel,
-                        syslog_severity_code, syslog_facility_code,
-                        syslog_severity, syslog_facility, program, component,
-                        openstack_message, request_id, instance_id, timestamp,
-                        request_id_list, message, tags ]
+            if ("nova_phys_claim" in [tags] or "nova_virt_claim" in [tags] or "nova_claim_request" in [tags]) {
+                clone {
+                    clones => ["nova_claims"]
+                    remove_field => [ syslog5424_pri, syslog5424_host, syslog_ts, log_message, pid, loglevel,
+                                      syslog_severity_code, syslog_facility_code,
+                                      syslog_severity, syslog_facility, program, timestamp,
+                                      openstack_message, request_id, instance_id,
+                                      request_id_list, message, tags ]
+                    add_field => ["creation_time", "%{@timestamp}"]
                 }
             }
         } else {
-            drop { } 
+            mutate {
+                add_tag => ["filter_37_fail"]
+            }
         }
     }
 }
-
