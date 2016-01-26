@@ -107,7 +107,9 @@ class EmailProducerTests(SimpleTestCase):
         try:
             rv = super(EmailProducer, producer_inst).send(producer_inst)
         except Exception as e:
-            self.assertEqual(str(e), str(NotImplementedError('Producer must implement send.',)))
+            self.assertEqual(str(e),
+                             str(NotImplementedError(
+                                 'Producer must implement send.',)))
 
     def test_send_email_success(self):
         """ Tests that sending out an email returns an integer value

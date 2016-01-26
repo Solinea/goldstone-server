@@ -447,9 +447,6 @@ class SavedSearchViewSet(ModelViewSet):
                        'doc_type', 'last_start', 'last_end', 'created',
                        'updated', 'target_interval')
 
-    class Meta:                     # pylint: disable=W0232,C1001
-        db_table = SavedSearch
-
     def get_queryset(self):
         return self.query_model.objects.all()
 
@@ -519,18 +516,12 @@ class AlertSearchViewSet(SavedSearchViewSet):
     serializer_class = AlertSearchSerializer
     query_model = AlertSearch
 
-    class Meta:                     # pylint: disable=W0232,C1001
-        model = AlertSearch
-
 
 class AlertViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertSerializer
-
-    class Meta:                     # pylint: disable=W0232,C1001
-        model = Alert
 
     def get_queryset(self):
         return Alert.objects.all()
