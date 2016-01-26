@@ -20,6 +20,8 @@
 # content-type: "application/json"
 # properties: 
 # "{\"body\": \"eyJleHBpcmVzIjogbnVsbCwgInV0YyI6IHRydWUsICJhcmdzIjogW10sICJjaG9yZCI6IG51bGwsICJjYWxsYmFja3MiOiBudWxsLCAiZXJyYmFja3MiOiBudWxsLCAidGFza3NldCI6IG51bGwsICJpZCI6ICI1ZjRlM2Y5MS00OGUzLTQwZGItYmM5Ni03OWFkMmVmYWJjNTEiLCAicmV0cmllcyI6IDAsICJ0YXNrIjogImdvbGRzdG9uZS5ub3ZhLnRhc2tzLm5vdmFfaHlwZXJ2aXNvcnNfc3RhdHMiLCAidGltZWxpbWl0IjogW251bGwsIG51bGxdLCAiZXRhIjogbnVsbCwgImt3YXJncyI6IHt9fQ==\", \"headers\": {}, \"content-type\": \"application/json\", \"properties\": {\"body_encoding\": \"base64\", \"correlation_id\": \"5f4e3f91-48e3-40db-bc96-79ad2efabc51\", \"reply_to\": \"eff2c3d8-7213-3848-a702-74252ed12cab\", \"delivery_info\": {\"priority\": 0, \"routing_key\": \"default\", \"exchange\": \"default\"}, \"delivery_mode\": 2, \"delivery_tag\": \"86dfdb87-80fa-4d63-b0d7-0291ce9db07b\"}, \"content-encoding\": \"utf-8\"}"
+# decoded body looks something like:
+# {"expires": null, "utc": true, "args": [], "chord": null, "callbacks": null, "errbacks": null, "taskset": null, "id": "0785fd37-648e-4250-9367-a71a22fc7cff", "retries": 0, "task": "goldstone.compliance.tasks.vulnerability_check", "timelimit": [null, null], "eta": null, "kwargs": {}}
 
 filter {
     if [type] == "agent" {
@@ -28,13 +30,23 @@ filter {
             uuid {
                 target => ["id"]
             }
+            uuid {
+                target => ["delivery_tag"]
+            }
+            uuid {
+                target => ["correlation_id"]
+            }
+            uuid {
+                target => ["reply_to"]
+            }
             ruby {
                 code => "require 'base64';
-                         event['body'] = { :args => event['fim'].values_at('meta', 'doc'), :task => 'goldstone.compliance.tasks.process_fim_event', :id => event['id'] };
+                         require 'json';
+                         event['body'] = { :args => event['fim'].values_at('meta', 'doc'), :task => 'goldstone.compliance.tasks.process_fim_event', :id => event['id'] }.to_json.gsub(/\n/, '');
                          event['body'] = Base64.encode64(event['body']);
                          event['content-type'] = 'application/json';
-                         event['properties'] = 'xyz'"
-                remove_field => [ "fim", "@timestamp", "@version", "id" ]
+                         event['properties'] = { :body_encoding => 'base64', :correlation_id => event['correlation_id'], :reply_to => event['reply_to'], :delivery_mode => 2, :delivery_tag => event['delivery_tag'], :delivery_info => { :priority => 0, :routing_key => 'default', :exchange => 'default' }};"
+                remove_field => [ "fim", "@timestamp", "@version", "id", "correlation_id", "reply_to", "delivery_tag" ]
             }
         }
     }
