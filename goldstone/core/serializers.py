@@ -56,3 +56,10 @@ class AlertSearchSerializer(serializers.ModelSerializer):
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
         model = AlertSearch
+
+class AlertSerializer(serializers.ModelSerializer):
+    """The Defined Alert serializer."""
+
+    class Meta:                 # pylint: disable=C0111,C1001,W0232
+
+        model = Alert

@@ -25,7 +25,7 @@ from rest_framework.viewsets import ModelViewSet
 from goldstone.compliance.pagination import Pagination
 from goldstone.core.models import SavedSearch, AlertSearch, Alert
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertSearchSerializer
+    AlertSearchSerializer, AlertSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -528,6 +528,7 @@ class AlertViewSet(ModelViewSet):
     """Provide the /defined_search/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
+    serializer_class = AlertSerializer
 
     class Meta:                     # pylint: disable=W0232,C1001
         model = Alert
@@ -535,6 +536,3 @@ class AlertViewSet(ModelViewSet):
     def get_queryset(self):
         return Alert.objects.all()
 
-    @detail_route()
-    def get_by_id(self, uuid=None):       # pylint: disable=W0613,R0201
-        return Alert.objects.get(uuid=uuid)

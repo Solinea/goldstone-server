@@ -1,4 +1,4 @@
-"""Defined search unit tests."""
+"""Alert search unit tests."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import json
 from types import NoneType
 
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.test import APIRequestFactory, force_authenticate
-
 from goldstone.core.models import AlertSearch
 from goldstone.core.views import AlertSearchViewSet
 from goldstone.test_utils import Setup, create_and_login, \
@@ -36,9 +36,9 @@ class SearchSetup(Setup):
     saved_search tests.
 
     """
-
-    # load the system saved searches
-    fixtures = ['core_initial_data.yaml']
+    def create_store_alert_search_object(self):
+        search_obj = AlertSearch()
+        search_obj.save()
 
 
 class PermissionsTest(SearchSetup):
@@ -81,12 +81,10 @@ class PermissionsTest(SearchSetup):
         for method in (self.client.get, self.client.put, self.client.patch,
                        self.client.delete):
             for url in [SEARCH_UUID_URL, SEARCH_UUID_RESULTS_URL]:
-
                 response = \
                     method(url % BAD_UUID,
                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD %
                            BAD_TOKEN)
-
                 self.assertContains(response,
                                     CONTENT_BAD_TOKEN,
                                     status_code=HTTP_401_UNAUTHORIZED)
@@ -144,8 +142,10 @@ class GetPostTests(SearchSetup):
         # table's initial data. We verify the result count, the next and
         # previous keys, and each row's keys.  We don't verify the contents
         # of each defined search.
+
+        super(GetPostTests, self).create_store_alert_search_object()
+
         expected_rows = AlertSearch.objects.all().count()
-        print expected_rows
         if expected_rows > 10:
             expected_rows = 10
         expected_keys = ['created', 'name', 'protected', 'query', 'updated',
@@ -177,12 +177,15 @@ class GetPostTests(SearchSetup):
         """Good GET request using pages."""
 
         # We'll ask for the last page of single-entry pages.
+
+        super(GetPostTests, self).create_store_alert_search_object()
+
         expected_rows = AlertSearch.objects.all().count()
         if expected_rows > 10:
             expected_rows = 10
 
         # we are expected to get only 1 row for now, so skip prev-page tests
-        #expected_prev = expected_rows - 1
+        # expected_prev = expected_rows - 1
 
         token = create_and_login()
         response = self.client.get(
@@ -202,6 +205,9 @@ class GetPostTests(SearchSetup):
         """Good GET request for one search."""
 
         # Select one row from the pre-defined searches.
+
+        super(GetPostTests, self).create_store_alert_search_object()
+
         row = AlertSearch.objects.all()[0]
 
         token = create_and_login()

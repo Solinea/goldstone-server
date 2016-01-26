@@ -191,17 +191,16 @@ def check_for_pending_alerts():
             for producer in EmailProducer.objects.filter(query=obj):
                 try:
                     producer_ret = producer.send(alert_obj)
-                    ret_dict = {producer.query.name:producer_ret}
-                    producer_rv_list.append(ret_dict)
+                    ret_dict = {producer.query.name: producer_ret}
                 except Exception as e:
-                    ret_dict = {producer.query.name:e}
-                    producer_rv_list.append(ret_dict)
+                    ret_dict = {producer.query.name: e}
                     pass
                     # Uncomment the lines below if we ever want to mark
                     # this task to be in retry state. For now, we don't
                     # mind that this task is marked success/failure.
                     # check_for_pending_alerts.retry(throw=False)
                     # raise RetryTaskError(None, None)
+                producer_rv_list.append(ret_dict)
+
 
             return producer_rv_list
-

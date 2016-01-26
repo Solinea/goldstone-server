@@ -1,4 +1,4 @@
-"""Defined search unit tests."""
+"""Alert views unit tests."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.test import APIRequestFactory, force_authenticate
 from django.test import SimpleTestCase, TestCase
 
-from goldstone.core.models import Alert
+from goldstone.core.models import Alert, AlertSearch
 from goldstone.core.views import AlertViewSet
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
@@ -37,8 +37,21 @@ class SearchSetup(Setup):
     saved_search tests.
 
     """
-    # load the system saved searches
-    fixtures = ['core_initial_data.yaml']
+
+    def create_store_alert_object(self):
+
+        # First create and store an Alert-Search object
+        # Second, use that AlertSearch to foreign-key into an Alert
+
+        search_obj = AlertSearch()
+        search_obj.save()
+
+        new_alert = Alert(name='generic-alert', owner='core',
+                          created='2015-09-01T13:20:30+03:00',
+                          msg_title='Alert : openstack syslog errors',
+                          msg_body='There are 23 incidents of syslog errors',
+                          query_id=search_obj.pk)
+        new_alert.save()
 
 
 class PermissionsTest(SearchSetup):
@@ -56,7 +69,7 @@ class PermissionsTest(SearchSetup):
 
         for method in (self.client.get, self.client.put, self.client.patch,
                        self.client.delete):
-            for url in [SEARCH_UUID_URL, SEARCH_UUID_RESULTS_URL]:
+            for url in [SEARCH_UUID_URL]:
 
                 response = method(url % BAD_UUID)
 
@@ -80,13 +93,13 @@ class PermissionsTest(SearchSetup):
 
         for method in (self.client.get, self.client.put, self.client.patch,
                        self.client.delete):
-            for url in [SEARCH_UUID_URL, SEARCH_UUID_RESULTS_URL]:
 
+            # we dont have a results() or get_by_uuid() for alerts
+            for url in [SEARCH_UUID_URL]:
                 response = \
                     method(url % BAD_UUID,
                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD %
                            BAD_TOKEN)
-
                 self.assertContains(response,
                                     CONTENT_BAD_TOKEN,
                                     status_code=HTTP_401_UNAUTHORIZED)
@@ -144,12 +157,13 @@ class GetPostTests(SearchSetup):
         # table's initial data. We verify the result count, the next and
         # previous keys, and each row's keys.  We don't verify the contents
         # of each defined search.
+
+        super(GetPostTests, self).create_store_alert_object()
         expected_rows = Alert.objects.all().count()
-        print expected_rows
         if expected_rows > 10:
             expected_rows = 10
 
-        expected_keys = ['query', 'name', 'msg_title', 'msg_body'
+        expected_keys = ['query', 'name', 'msg_title', 'msg_body',
                          'created', 'owner']
 
         token = create_and_login()
@@ -176,12 +190,14 @@ class GetPostTests(SearchSetup):
         """Good GET request using pages."""
 
         # We'll ask for the last page of single-entry pages.
+
+        super(GetPostTests, self).create_store_alert_object()
         expected_rows = Alert.objects.all().count()
         if expected_rows > 10:
             expected_rows = 10
 
         # we are expected to get only 1 row for now, so skip prev-page tests
-        #expected_prev = expected_rows - 1
+        # expected_prev = expected_rows - 1
 
         token = create_and_login()
         response = self.client.get(
@@ -196,28 +212,3 @@ class GetPostTests(SearchSetup):
         self.assertEqual(expected_rows, response_content["count"])
         self.assertIsNone(response_content["next"])
         self.assertEqual(1, len(response_content["results"]))
-
-    def test_get_uuid(self):
-        """Good GET request for one search."""
-
-        # Select one row from the pre-defined searches.
-        print Alert.objects.all()
-        row = Alert.objects.all()[0]
-
-        token = create_and_login()
-
-        factory = APIRequestFactory()
-        view = AlertViewSet.as_view({'get': 'retrieve'})
-        request = factory.get(SEARCH_URL,
-                              HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-        response = view(request, uuid=row.uuid)
-        response.render()
-
-        # pylint: disable=E1101
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        response_content = json.loads(response.content)
-
-        self.assertEqual(row.name, response_content["name"])
-        self.assertEqual(row.query, response_content["query"])
-        self.assertEqual(row.owner, response_content["owner"])

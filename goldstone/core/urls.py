@@ -49,4 +49,8 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
     url(r'^agent/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+    url(r'^agent/', AlertSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '4c010ac2-d437-460a-a6cf-5234eceff5b2'}),
+    url(r'^agent/', AlertViewSet.as_view(
+        {'get': 'get_queryset'})),
 )
