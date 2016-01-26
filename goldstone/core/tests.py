@@ -92,6 +92,30 @@ def load_persistent_rg(startnodes, startedges):
         fromnode.save()
 
 
+class EmailProducerTests(SimpleTestCase):
+    """ Test EmailProducer class model
+    """
+
+    def test_send_email_success(self):
+        """ Tests that sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+        EmailProducer.send = mock.Mock(return_value=1)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')), 1)
+
+    def test_send_email_failure(self):
+        """ Tests that sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+        EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')),
+                         smtplib.SMTPException)
+
+
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
@@ -145,43 +169,27 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(len(rv), 2)
 
 
-class EmailProducerTests(SimpleTestCase):
-    """ Test EmailProducer class model
-    """
-
-    def test_send_email_success(self):
-        """ Tests that sending out an email returns an integer value
-            rv <= 0 failure to send or error
-            rv >=1 success in send, rv corresponds to number of recipients
-        """
-        EmailProducer.send = mock.Mock(return_value=1)
-        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
-                                            list('xyz@y.com')), 1)
-
-    def test_send_email_failure(self):
-        """ Tests that sending out an email returns an integer value
-            rv <= 0 failure to send or error
-            rv >=1 success in send, rv corresponds to number of recipients
-        """
-        EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
-        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
-                                            list('xyz@y.com')),
-                         smtplib.SMTPException)
-
-
-class AlertSearchTests(TestCase):
+class AlertSearchModelTests(TestCase):
 
     fixtures = ['core_initial_data.yaml']
 
     def test_loaded_data_from_fixtures(self):
         self.assertGreater(AlertSearch.objects.all(), 0)
 
-    def test_model_instance_data(self):
-        expected_keys = ['created', 'name', 'protected', 'query', 'updated',
-                         'uuid', 'owner', 'index_prefix', 'doc_type',
-                         'timestamp_field', 'last_start', 'last_end',
-                         'target_interval']
-        # TBD : Mock ES DRF for as_fields and return
+    def test_alert_search_recent(self):
+        search_obj = AlertSearch()
+        search_obj.save()
+        s = '<elasticsearch_dsl.search.Search object at 0x7fb60f642a90>'
+        start = '2016-01-23 15:15:06.007474+00'
+        end = '2016-01-23 15:25:06.007474+00'
+
+        with mock.patch("goldstone.core.models.AlertSearch.search_recent") \
+                as esmock:
+            esmock.return_value = s, start, end
+            saved_alerts = AlertSearch.objects.all()
+
+            for obj in saved_alerts:
+                self.assertEqual(obj.search_recent(), esmock.return_value)
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):
