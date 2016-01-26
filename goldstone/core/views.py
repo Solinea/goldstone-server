@@ -22,7 +22,6 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
-from goldstone.compliance.pagination import Pagination
 from goldstone.core.models import SavedSearch, AlertSearch, Alert
 from goldstone.core.serializers import SavedSearchSerializer, \
     AlertSearchSerializer, AlertSerializer

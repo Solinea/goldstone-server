@@ -95,6 +95,19 @@ def load_persistent_rg(startnodes, startedges):
 class EmailProducerTests(SimpleTestCase):
     """ Test EmailProducer class model
     """
+    def test_parent_producer_send_fail(self):
+        """ Calling send on the parent-producer's send:
+          This should throw an exception """
+        alert_search = AlertSearch()
+        alert_search.save()
+        producer_inst = EmailProducer(query=alert_search,
+                                      sender='abc@x.com',
+                                      receiver='y@y.com')
+        producer_inst.save()
+        try:
+            rv = super(EmailProducer, producer_inst).send(producer_inst)
+        except Exception as e:
+            self.assertEqual(str(e), str(NotImplementedError('Producer must implement send.',)))
 
     def test_send_email_success(self):
         """ Tests that sending out an email returns an integer value
@@ -190,6 +203,12 @@ class AlertSearchModelTests(TestCase):
 
             for obj in saved_alerts:
                 self.assertEqual(obj.search_recent(), esmock.return_value)
+
+    def test_alert_search_save(self):
+        with mock.patch("goldstone.core.models.AlertSearch.save") \
+                as esmock:
+                esmock.return_value = None
+                self.assertEqual(AlertSearch.save(), esmock.return_value)
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):
