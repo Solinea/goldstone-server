@@ -101,46 +101,6 @@ class TaskTests(SimpleTestCase):
 
 class DailyIndexDocTypeTests(SimpleTestCase):
 
-    class CADFEvent(DailyIndexDocType):
-
-        INDEX_DATE_FMT = 'YYYY-MM-DD'
-
-        traits = Nested(
-            properties={
-                'action': String(),
-                'eventTime': Date(),
-                'eventType': String(),
-                'id': String(),
-                'initiatorId': String(),
-                'name': String(),
-                'observerId': String(),
-                'outcome': String(),
-                'targetId': String(),
-                'typeURI': String(),
-            }
-        )
-
-        class Meta:
-            doc_type = 'cadf_event'
-            index = 'events_*'
-
-        def __init__(self, event=None, meta=None, **kwargs):
-            if event is not None:
-                kwargs = dict(
-                    kwargs.items() + self._get_traits_dict(event).items())
-
-            super(DailyIndexDocTypeTests.CADFEvent, self) \
-                .__init__(meta, **kwargs)
-
-        @staticmethod
-        def _get_traits_dict(e):
-            """
-            convert a pycadf.event to an ES doc
-            :param e:
-            :return: dict
-            """
-            return {"traits": e.as_dict()}
-
     class LogMessage(DailyIndexDocType):
 
         message = String()
@@ -248,7 +208,7 @@ class DailyIndexDocTypeTests(SimpleTestCase):
             observerId=observer_id,
             name="test event")
 
-        cadf = self.CADFEvent(event=e)
+        cadf = CADFEventDocType(event=e)
 
         result = cadf.save()
         self.assertTrue(result)
@@ -256,12 +216,12 @@ class DailyIndexDocTypeTests(SimpleTestCase):
         # force flush the index so our test has a chance to succeed.
         cadf._doc_type.using.indices.flush(cadf.meta.index)
 
-        ge = self.CADFEvent.get(id=cadf.meta.id, index=cadf.meta.index)
+        ge = CADFEventDocType.get(id=cadf.meta.id, index=cadf.meta.index)
         self.assertEqual(cadf.traits['initiatorId'], ge.traits['initiatorId'])
         self.assertEqual(cadf.traits['eventTime'], ge.traits['eventTime'])
-        self.assertIsInstance(ge, self.CADFEvent)
+        self.assertIsInstance(ge, CADFEventDocType)
 
-        s = self.CADFEvent.search()
+        s = CADFEventDocType.search()
         s = s.filter('term', ** {'traits.initiatorId': initiator_id})\
             .execute()
         self.assertIsInstance(s, Response)
@@ -275,7 +235,7 @@ class DailyIndexDocTypeTests(SimpleTestCase):
         cadf._doc_type.using.indices.flush(cadf.meta.index)
 
         # we should not be able to find the record now.
-        s2 = self.CADFEvent.search()
+        s2 = CADFEventDocType.search()
         # Alternate form of filter/query expression since we have a nested
         # field.
         r2 = s2.filter('term', ** {'traits.initiatorId': initiator_id})\
@@ -290,7 +250,21 @@ class CADFEventDocTypeTests(SimpleTestCase):
 
     @classmethod
     def test_event_save(self):
-        pyobj = CADFEventDocType()
+
+        initiator_id = ''.join([c for c in str(uuid.uuid4()) if c != '-'])
+        observer_id = ''.join([c for c in str(uuid.uuid4()) if c != '-'])
+        target_id = ''.join([c for c in str(uuid.uuid4()) if c != '-'])
+
+        e = event.Event(
+            eventType=cadftype.EVENTTYPE_ACTIVITY,
+            action=cadftaxonomy.ACTION_READ,
+            outcome=cadftaxonomy.OUTCOME_SUCCESS,
+            initiatorId=initiator_id,
+            targetId=target_id,
+            observerId=observer_id,
+            name="test event")
+
+        pyobj = CADFEventDocType(e)
         isinstance(pyobj, CADFEventDocType)
         new_event = event.Event()
         isinstance(new_event, event.Event)

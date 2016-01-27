@@ -45,8 +45,8 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-        this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable]
-        ;
+            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+        ];
     },
 
     triggerChange: function(change) {
@@ -56,14 +56,18 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser', 'active'],
+        ['/#reports/apibrowser', 'Api Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="events-histogram-visualization" class="col-md-12"></div>' +
