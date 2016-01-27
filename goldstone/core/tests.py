@@ -95,6 +95,7 @@ def load_persistent_rg(startnodes, startedges):
 class EmailProducerTests(SimpleTestCase):
     """ Test EmailProducer class model
     """
+
     def test_parent_producer_send_fail(self):
         """ Calling send on the parent-producer's send:
           This should throw an exception """
@@ -110,6 +111,8 @@ class EmailProducerTests(SimpleTestCase):
             self.assertEqual(str(e),
                              str(NotImplementedError(
                                  'Producer must implement send.',)))
+        alert_search.delete()
+        producer_inst.delete()
 
     def test_send_email_success(self):
         """ Tests that sending out an email returns an integer value
@@ -129,6 +132,30 @@ class EmailProducerTests(SimpleTestCase):
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
                                             list('xyz@y.com')),
                          smtplib.SMTPException)
+
+    def test_inner_send_mail_function(self):
+
+        as_obj = AlertSearch()
+        as_obj.save()
+        new_alert = Alert(name='generic-alert', owner='core',
+                          created='2015-09-01T13:20:30+03:00',
+                          msg_title='Alert : openstack syslog errors',
+                          msg_body='There are 23 incidents of syslog errors',
+                          query_id=as_obj.pk)
+        new_alert.save()
+        with mock.patch("django.core.mail.send_mail") \
+                as sm_mock:
+                sm_mock.return_value = 1
+
+                producer_inst = EmailProducer(query=as_obj,
+                                              sender='abc@x.com',
+                                              receiver='y@y.com')
+                producer_inst.save()
+                rv = producer_inst.send(new_alert)
+                self.assertEqual(rv, sm_mock.return_value)
+
+        as_obj.delete()
+        new_alert.delete()
 
 
 class TaskTests(SimpleTestCase):
@@ -183,13 +210,24 @@ class TaskTests(SimpleTestCase):
         rv = check_for_pending_alerts()
         self.assertEqual(len(rv), 2)
 
+        # simulate results when there are no AlertSearches to be looped-over
+        search_mock.execute.return_value = {'hits': {'total': 0}}
+        alert_search.search_recent = mock.MagicMock(
+            return_value=[Search(), None, None])
+        rv = check_for_pending_alerts()
+        self.assertIsInstance(rv, list)
+        self.assertEqual(len(rv), 2)
+
 
 class AlertSearchModelTests(TestCase):
 
-    fixtures = ['core_initial_data.yaml']
-
-    def test_loaded_data_from_fixtures(self):
-        self.assertGreater(AlertSearch.objects.all(), 0)
+    def test_build_msg_template(self):
+        as_obj = AlertSearch()
+        as_obj.save()
+        search_hits = 215
+        msg_dict = as_obj.build_alert_template(hits=search_hits)
+        self.assertTrue(str(search_hits) in str(msg_dict['title']))
+        self.assertTrue(str(search_hits) in str(msg_dict['body']))
 
     def test_alert_search_recent(self):
         search_obj = AlertSearch()
