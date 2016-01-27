@@ -57,3 +57,14 @@ $paused_grey: rgba(220, 220, 220, 0.5);
     color: #aaa !important;
     background-color: if($theme==dark, $paused_grey, $paused_grey) !important;
 }
+
+/* green plus */
+.fa-plus-square {
+    color: #6BA757;
+}
+
+/* saved-search - system search text*/
+.saved-search-no-delete {
+    display: inline;
+    vertical-align: super;
+}

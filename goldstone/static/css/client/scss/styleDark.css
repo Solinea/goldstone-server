@@ -152,6 +152,12 @@ svg.e { margin-left: 50px; }
 
 .table tbody tr.paused:hover td, .table tbody tr.paused:hover th { color: #aaa !important; background-color: rgba(220, 220, 220, 0.5) !important; }
 
+/* green plus */
+.fa-plus-square { color: #6BA757; }
+
+/* saved-search - system search text*/
+.saved-search-no-delete { display: inline; vertical-align: super; }
+
 /*
 css stylesheets supporting redesign
 */
