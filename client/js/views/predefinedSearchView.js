@@ -73,6 +73,8 @@ PredefinedSearchView = GoldstoneBaseView.extend({
 
     processListeners: function() {
         var self = this;
+
+        // dropdown to reveal predefined search list
         $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
             var clickedUuid = $(this).data('uuid');
             var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
@@ -81,6 +83,11 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             self.collection.urlGenerator();
             var constructedUrlforViz = self.collection.url;
             self.fetchResults(constructedUrlforViz, constructedUrlForTable);
+        });
+
+        // gear icon navigation to saved search settings page
+        this.$el.find('.fa-gear').click(function() {
+            window.location.href = "/#reports/logbrowser/search";
         });
     },
 
@@ -107,7 +114,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
         '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
-        '</a>' +
+        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
         '<ul class="dropdown-menu">' +
         '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
         '</ul>' +
