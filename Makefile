@@ -63,7 +63,7 @@ gse_native: DCFILE=docker/docker-compose-enterprise.yml=/opt/goldstone/docker-co
 gse_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server-enterprise.service=/usr/lib/systemd/system/goldstone-server-enterprise.service
 gse_native: GSE_START=rpm_packaging/goldstone-server-enterprise=/usr/bin/goldstone-server-enterprise
 gse_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server-enterprise
-gse_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server-enterprise.service
+gse_native: GSE_SYSTEMD_ATTR=--rpm-attr 0644,root,root:/usr/lib/systemd/system/goldstone-server-enterprise.service
 gse_native: version rpm_build rpm_test
 
 rpm_native: PKGNAME=goldstone-server
@@ -73,7 +73,7 @@ rpm_native: DCFILE=docker/docker-compose.yml=/opt/goldstone/docker-compose.yml
 rpm_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service
 rpm_native: GSE_START=rpm_packaging/goldstone-server=/usr/bin/goldstone-server
 rpm_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server
-rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0750,root,root:/usr/lib/systemd/system/goldstone-server.service
+rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0644,root,root:/usr/lib/systemd/system/goldstone-server.service
 rpm_native: version rpm_build rpm_test
 
 version:
