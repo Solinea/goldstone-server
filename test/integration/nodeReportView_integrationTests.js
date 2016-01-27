@@ -72,7 +72,7 @@ describe('NodeReportView.js spec', function() {
         // blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";app = {};
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new NodeReportView({
+        this.testView = new NodeReportPageView({
             el: '.test-container',
             node_uuid: 'power-of-greyskull'
         });

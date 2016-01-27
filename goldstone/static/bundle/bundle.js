@@ -1208,11 +1208,11 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
-        "help": "help",
         "metrics/api_perf": "apiPerfReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
+        "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
         "reports/apibrowser": "apiBrowser",
         "settings": "settings",
@@ -1303,39 +1303,27 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(ApiBrowserPageView);
     },
     apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
+        this.switchView(ApiPerfReportPageView);
     },
     discover: function() {
-        this.switchView(DiscoverView);
+        this.switchView(DiscoverPageView);
     },
     eventsBrowser: function() {
         this.switchView(EventsBrowserPageView);
     },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    keystoneReport: function() {
-        this.switchView(KeystoneReportView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
     nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
+        this.switchView(NodeReportPageView, {
             node_uuid: nodeId
         });
     },
     redirect: function() {
         location.href = "#discover";
+    },
+    savedSearchLog: function() {
+        this.switchView(SavedSearchLogPageView);
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -4251,7 +4239,7 @@ var ApiBrowserView = ChartSet.extend({
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
+var ApiPerfReportPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -5027,7 +5015,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var DiscoverView = GoldstoneBasePageView.extend({
+var DiscoverPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 
@@ -6155,48 +6143,6 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</div>'
 
         )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var HelpView = GoldstoneBaseView.extend({
-
-    instanceSpecificInit: function() {
-        this.el = this.options.el;
-        this.render();
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
-    },
-
-    template: _.template('' +
-        '<div class="row">' +
-        '<div class="col-md-12">' +
-        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
-        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
-
-        '<h3><%=goldstone.translate("License")%></h3>' +
-        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
-        '</div>' +
-        '</div>'
-    )
-
 });
 ;
 /**
@@ -9319,100 +9265,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView.extend({
-
-    initialize: function(options) {
-        this.getUidToken();
-        this.addHandlers();
-    },
-
-    getUidToken: function() {
-        this.uidToken = window.location.search.slice(1);
-    },
-
-    addHandlers: function() {
-        var self = this;
-
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-
-            var $password = $('#password');
-            var $confirm_password = $('#confirm_password');
-
-            if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning("Passwords don't match.");
-            } else {
-
-                // options.uidToken is passed in when the view is
-                // instantiated via goldstoneRouter.js
-
-                self.submitRequest(self.uidToken + '&' + $(this).serialize());
-            }
-        });
-    },
-
-    clearFields: function() {
-        // clear input fields
-        $('#password').val('');
-        $('#confirm_password').val('');
-    },
-
-    submitRequest: function(input) {
-        var self = this;
-
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
-
-        $.post('/accounts/password/reset/confirm/', input, function() {})
-            .done(function(success) {
-
-                // clear input fields
-                self.clearFields();
-
-                // and add a success message to the top of the screen
-                goldstone.raiseInfo('Password changed. Redirecting to login.');
-
-
-                setTimeout(function() {
-                    location.href = '/login/';
-
-                }, 2000);
-
-            })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                if (fail.non_field_errors) {
-                    goldstone.raiseWarning(fail.non_field_errors);
-                } else {
-                    // clear input fields
-                    self.clearFields();
-                    goldstone.raiseWarning('Password reset failed.');
-                }
-
-            });
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var NodeReportView = GoldstoneBasePageView.extend({
+var NodeReportPageView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
@@ -9421,7 +9274,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
+        NodeReportPageView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
@@ -10103,68 +9956,6 @@ var NodeServiceStatusView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var PasswordResetView = GoldstoneBaseView.extend({
-
-    initialize: function(options) {
-        this.addHandlers();
-    },
-
-    addHandlers: function() {
-        var self = this;
-
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-            self.submitRequest($(this).serialize());
-        });
-    },
-
-    submitRequest: function(input) {
-        var self = this;
-
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
-
-        $.post('/accounts/password/reset/', input, function() {})
-            .done(function(success) {
-
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
-            })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-
-                // TODO: change this after SMTP handling is set up
-                // to reflect the proper error
-                goldstone.raiseInfo(fail.responseJSON.detail);
-            });
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
@@ -10632,6 +10423,40 @@ var ReportsReportView = GoldstoneBaseView.extend({
         '</table>'
     )
 
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+SavedSearchLogPageView = GoldstoneBasePageView.extend({
+
+    renderCharts: function() {
+
+    },
+
+    triggerChange: function(change) {
+
+    },
+
+    onClose: function() {
+
+    },
+
+    template: _.template('')
 
 });
 ;

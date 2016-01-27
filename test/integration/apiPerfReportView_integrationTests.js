@@ -71,7 +71,7 @@ describe('apiPerfReportView.js spec', function() {
 
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new ApiPerfReportView({
+        this.testView = new ApiPerfReportPageView({
             el: '.testContainer',
         });
     });
