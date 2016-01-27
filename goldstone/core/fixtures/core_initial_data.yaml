@@ -244,6 +244,7 @@
    }
 }'
 
+
   - model: core.SavedSearch
     pk: 47b0a892-40b0-45e6-81d3-3d645e1c18bd
     fields:
@@ -309,3 +310,4 @@
       }
    }
 }'
+

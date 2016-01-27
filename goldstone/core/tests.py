@@ -21,20 +21,24 @@ from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 import elasticsearch
 import elasticsearch_dsl
+import smtplib
 from elasticsearch_dsl import String, Date, Nested
 from elasticsearch_dsl.result import Response
 import mock
-from mock import patch, MagicMock
 from rest_framework.test import APISimpleTestCase, APITestCase
+
+from goldstone.core.tasks import check_for_pending_alerts
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.core.models import SavedSearch, CADFEventDocType
+from goldstone.core.models import SavedSearch, CADFEventDocType, \
+    AlertSearch, Alert, EmailProducer
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
+from elasticsearch_dsl import Search
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -88,6 +92,76 @@ def load_persistent_rg(startnodes, startedges):
         fromnode.save()
 
 
+class EmailProducerTests(SimpleTestCase):
+    """ Test EmailProducer class model
+    """
+
+    def test_parent_producer_send_fail(self):
+        """ Calling send on the parent-producer's send:
+          This should throw an exception """
+        alert_search = AlertSearch()
+        alert_search.save()
+        producer_inst = EmailProducer(query=alert_search,
+                                      sender='abc@x.com',
+                                      receiver='y@y.com')
+        producer_inst.save()
+        try:
+            rv = super(EmailProducer, producer_inst).send(producer_inst)
+        except Exception as e:
+            self.assertEqual(str(e),
+                             str(NotImplementedError(
+                                 'Producer must implement send.',)))
+        alert_search.delete()
+        producer_inst.delete()
+
+    def test_send_email_success(self):
+        """ Tests that sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+
+        EmailProducer.send = mock.Mock(return_value=1)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')), 1)
+        self.assertEqual(EmailProducer.send.call_count, 1)
+
+    def test_send_email_failure(self):
+        """ Test if sending out an email returns an integer value
+            rv <= 0 failure to send or error
+            rv >=1 success in send, rv corresponds to number of recipients
+        """
+
+        EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
+        self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
+                                            list('xyz@y.com')),
+                         smtplib.SMTPException)
+        self.assertEqual(EmailProducer.send.call_count, 1)
+
+    def test_inner_send_mail_function(self):
+
+        as_obj = AlertSearch()
+        as_obj.save()
+        new_alert = Alert(owner='core',
+                          created='2015-09-01T13:20:30+03:00',
+                          msg_title='Alert : openstack syslog errors',
+                          msg_body='There are 23 incidents of syslog errors',
+                          query_id=as_obj.pk)
+        new_alert.save()
+        with mock.patch("django.core.mail.send_mail") \
+                as sm_mock:
+                sm_mock.return_value = 1
+
+                producer_inst = EmailProducer(query=as_obj,
+                                              sender='abc@x.com',
+                                              receiver='y@y.com')
+                producer_inst.save()
+                rv = producer_inst.send(new_alert)
+                self.assertEqual(rv, sm_mock.return_value)
+
+        as_obj.delete()
+        new_alert.delete()
+
+
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
@@ -97,6 +171,90 @@ class TaskTests(SimpleTestCase):
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
+        self.assertEqual(tasks.check_call.call_count, 1)
+
+    def test_no_saved_alerts_for_task(self):
+        # simulate results when there are no saved alerts to call
+        rv = check_for_pending_alerts()
+        self.assertIsInstance(rv, type(None))
+
+    @mock.patch('goldstone.core.tasks.AlertSearch')
+    @mock.patch('goldstone.core.tasks.EmailProducer')
+    @mock.patch('goldstone.core.models.Search')
+    @mock.patch('goldstone.core.tasks.Alert')
+    def test_check_for_pending_alerts(self, a_mock, search_mock, ep_mock,
+                                      as_mock):
+        """Test that task processes all producers even when exception raised
+        by one"""
+
+        a_mock.save.return_value = None
+
+        alert_search = mock.MagicMock(spec=AlertSearch)
+        alert_search.name = 'name'
+        alert_search._state = mock.MagicMock()
+        alert_search.savedsearch_ptr_id = mock.MagicMock()
+        alert_search.save.return_value = None
+
+        as_mock.objects = mock.MagicMock()
+        as_mock.objects.all = mock.MagicMock()
+        as_mock.objects.all.return_value = [alert_search]
+
+        search_mock.execute.return_value = {'hits': {'total': 1}}
+        alert_search.search_recent = mock.MagicMock(
+            return_value=[Search(), None, None])
+        self.assertEqual(alert_search.search_recent.call_count, 0)
+
+        # mock two producers with fk back to the the alert search
+        p1 = mock.MagicMock(spec=EmailProducer, query=alert_search)
+        p2 = mock.MagicMock(spec=EmailProducer, query=alert_search)
+        ep_mock.objects = mock.MagicMock()
+        ep_mock.objects.filter = mock.MagicMock()
+        ep_mock.objects.filter.return_value = [p1, p2]
+
+        # simulate results when all producers succeed
+        rv = check_for_pending_alerts()
+        self.assertIsInstance(rv, list)
+        self.assertEqual(len(rv), 2)
+        self.assertEqual(alert_search.search_recent.call_count, 1)
+
+        # simulate results when a producer throws an exception
+        p1.send.side_effect = Exception
+        rv = check_for_pending_alerts()
+        self.assertEqual(len(rv), 2)
+        self.assertEqual(alert_search.search_recent.call_count, 2)
+
+
+class AlertSearchModelTests(TestCase):
+
+    def test_build_msg_template(self):
+        as_obj = AlertSearch()
+        as_obj.save()
+        search_hits = 215
+        msg_dict = as_obj.build_alert_template(hits=search_hits)
+        self.assertTrue(str(search_hits) in str(msg_dict['title']))
+        self.assertTrue(str(search_hits) in str(msg_dict['body']))
+
+    def test_alert_search_recent(self):
+        search_obj = AlertSearch()
+        search_obj.save()
+        s = '<elasticsearch_dsl.search.Search object at 0x7fb60f642a90>'
+        start = '2016-01-23 15:15:06.007474+00'
+        end = '2016-01-23 15:25:06.007474+00'
+
+        with mock.patch("goldstone.core.models.AlertSearch.search_recent") \
+                as esmock:
+            esmock.return_value = s, start, end
+            saved_alerts = AlertSearch.objects.all()
+            for obj in saved_alerts:
+                self.assertEqual(obj.search_recent(), esmock.return_value)
+                self.assertEqual(esmock.call_count, 1)
+
+    def test_alert_search_save(self):
+        with mock.patch("goldstone.core.models.AlertSearch.save") \
+                as esmock:
+                esmock.return_value = None
+                self.assertEqual(AlertSearch.save(), esmock.return_value)
+        self.assertEqual(esmock.call_count, 1)
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):
@@ -337,7 +495,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_drf_handled_exception(self):
         """Test that we pass DRF recognized exceptions through unmodified"""
 
-        with patch('goldstone.core.utils.exception_handler') \
+        with mock.patch('goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = "it's handled"
@@ -348,7 +506,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_502_error_exceptions(self):
         """Test ES connection exception is handled"""
 
-        with patch('goldstone.core.utils.exception_handler') \
+        with mock.patch('goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -360,7 +518,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_500_error_exceptions(self):
         """Test ES connection exception is handled"""
 
-        with patch('goldstone.core.utils.exception_handler') \
+        with mock.patch('goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -387,7 +545,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_not_exception(self):
         """Test ES connection exception is handled"""
 
-        with patch('goldstone.core.utils.exception_handler') \
+        with mock.patch('goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -420,7 +578,7 @@ class UpdateEdges(SimpleTestCase):
 
         # Get the Host instance and do the test.
         node = Host.objects.all()[0]
-        node.outgoing_edges = MagicMock()
+        node.outgoing_edges = mock.MagicMock()
         node.outgoing_edges.return_value = []
         node.update_edges()
 
@@ -627,7 +785,7 @@ class ProcessResourceType(Setup):
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
 
-    @patch('goldstone.core.models.get_glance_client')
+    @mock.patch('goldstone.core.models.get_glance_client')
     def test_empty_rg_empty_cloud(self, ggc):
         """Nothing in the resource graph, nothing in the cloud.
 
@@ -642,7 +800,7 @@ class ProcessResourceType(Setup):
 
         self.assertEqual(PolyResource.objects.count(), 0)
 
-    @patch('goldstone.core.models.get_glance_client')
+    @mock.patch('goldstone.core.models.get_glance_client')
     def test_rg_empty_cloud_image(self, ggc):
         """The resource graph contains only Image instances; nothing in the
         cloud.
@@ -668,7 +826,7 @@ class ProcessResourceType(Setup):
 
         self.assertEqual(PolyResource.objects.count(), 0)
 
-    @patch('goldstone.core.models.get_glance_client')
+    @mock.patch('goldstone.core.models.get_glance_client')
     def test_rg_other_empty_cloud(self, ggc):
         """Something in the resource graph, some of which are non-Image
         instances; nothing in the cloud.

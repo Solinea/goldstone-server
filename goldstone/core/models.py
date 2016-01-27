@@ -27,7 +27,7 @@ from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
-
+from django.core.mail import send_mail
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.nova.utils import get_client as get_nova_client
@@ -2657,3 +2657,92 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
+
+
+class AlertSearch(SavedSearch):
+    """
+        Model for AlertSearches, a subclass of SavedSearch that has an alert
+        notification configured to be sent out to one or more recipients.
+
+    """
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+
+        verbose_name_plural = "saved searches with alerts"
+
+    def build_alert_template(self, hits):
+        msg_title_template = 'Alert : ' + str(self.name) + \
+                             ' triggered with ' + str(hits) +\
+                             ' hits in the last ' + str(self.target_interval) +\
+                             ' minutes.'
+
+        msg_body_template = 'There were ' + str(hits) + \
+                            ' occurrences of ' + str(self.name) +\
+                            ' in the last ' + str(self.target_interval) +\
+                            ' minutes.' + '\n' +\
+                            'This query was last updated at : ' +\
+                            str(self.updated) + '\n' +\
+                            'This query last ran from : ' +\
+                            str(self.last_start) + ' to : ' +\
+                            str(self.last_end)
+        msg_params_dict = {'title': msg_title_template,
+                           'body': msg_body_template}
+        return msg_params_dict
+
+
+class Alert(models.Model):
+    """
+        Create an alert instance object. This contains the fleshed-out
+        alert message which will be passed down to the producer interface
+        to be sent out.
+
+        This does not contain msg-params for actually sending out this alert.
+        For those details, refer to class Producer.
+    """
+
+    query = models.ForeignKey(AlertSearch)
+    # alert assignee vs alert receiver, can be a person vs mailing list
+    owner = models.CharField(max_length=64, default='goldstone',
+                             help_text='alert assignee, individual entity')
+
+    msg_title = models.CharField(max_length=256, default='Alert notification')
+    msg_body = models.CharField(max_length=1024,
+                                default='This is an alert notification')
+    created = CreationDateTimeField(editable=False, blank=False, null=False)
+
+
+class Producer(models.Model):
+    """
+        Generic interface class for an alert producer. This contains generic
+        producer related information such as sender, receiver names, id's,
+        host, auth-params etc
+
+        Specific types like email, slack, HTTP-POST etc inherit from this
+        class with specific connection attributes
+    """
+    query = models.ForeignKey(AlertSearch)
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def send(self, alert):
+        raise NotImplementedError("Producer must implement send.")
+
+
+class EmailProducer(Producer):
+    """
+        Specific interface class to prepare and send an email.
+        Class gets all of its email contents from the parent producer class.
+        This class only contains methods specific to a mailing interface.
+    """
+
+    sender = models.CharField(max_length=64, default=settings.EMAIL_HOST_USER)
+    receiver = models.EmailField(max_length=128, blank=False)
+
+    def send(self, alert):
+
+        email_rv = send_mail(alert.msg_title, alert.msg_body,
+                             str(self.sender), list(self.receiver),
+                             fail_silently=False)
+        return email_rv

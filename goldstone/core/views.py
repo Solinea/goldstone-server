@@ -22,7 +22,9 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
-from goldstone.core.serializers import SavedSearchSerializer
+from goldstone.core.models import SavedSearch, AlertSearch, Alert
+from goldstone.core.serializers import SavedSearchSerializer, \
+    AlertSearchSerializer, AlertSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -435,6 +437,7 @@ class SavedSearchViewSet(ModelViewSet):
 
     permission_classes = (IsAuthenticated, )
     serializer_class = SavedSearchSerializer
+    query_model = SavedSearch
 
     # Tell DRF that the lookup field is this string, and not "pk".
     lookup_field = "uuid"
@@ -444,11 +447,8 @@ class SavedSearchViewSet(ModelViewSet):
                        'doc_type', 'last_start', 'last_end', 'created',
                        'updated', 'target_interval')
 
-    class Meta:                     # pylint: disable=W0232,C1001
-        model = SavedSearch
-
     def get_queryset(self):
-        return SavedSearch.objects.all()
+        return self.query_model.objects.all()
 
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201
@@ -457,7 +457,7 @@ class SavedSearchViewSet(ModelViewSet):
         from ast import literal_eval
 
         # Get the model for the requested uuid
-        obj = SavedSearch.objects.get(uuid=uuid)
+        obj = self.query_model.objects.get(uuid=uuid)
 
         # To use as much Goldstone code as possible, we now override the class
         # to create a "drfes environment" for filtering, pagination, and
@@ -507,3 +507,21 @@ class SavedSearchViewSet(ModelViewSet):
 
         serializer = self.get_serializer(page)
         return self.get_paginated_response(serializer.data)
+
+
+class AlertSearchViewSet(SavedSearchViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AlertSearchSerializer
+    query_model = AlertSearch
+
+
+class AlertViewSet(ModelViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AlertSerializer
+
+    def get_queryset(self):
+        return Alert.objects.all()

@@ -16,12 +16,19 @@ from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
 from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
-    ResourcesRetrieve, TopologyView, SavedSearchViewSet
+    ResourcesRetrieve, TopologyView, SavedSearchViewSet, AlertSearchViewSet, \
+    AlertViewSet
 
 router = DefaultRouter()
 router.register(r'saved_search',
                 SavedSearchViewSet,
                 base_name="saved_search")
+router.register(r'alert_search',
+                AlertSearchViewSet,
+                base_name="alert_search")
+router.register(r'alert',
+                AlertViewSet,
+                base_name="alert")
 
 urlpatterns = router.urls
 urlpatterns += patterns(
@@ -42,4 +49,8 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
     url(r'^agent/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+    url(r'^agent/', AlertSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '4c010ac2-d437-460a-a6cf-5234eceff5b2'}),
+    url(r'^agent/', AlertViewSet.as_view(
+        {'get': 'get_queryset'})),
 )
