@@ -168,6 +168,11 @@ class TaskTests(SimpleTestCase):
         # pylint: disable=W0212
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
 
+    def test_no_saved_alerts_for_task(self):
+        # simulate results when there are no saved alerts to call
+        rv = check_for_pending_alerts()
+        self.assertIsInstance(rv, type(None))
+
     @mock.patch('goldstone.core.tasks.AlertSearch')
     @mock.patch('goldstone.core.tasks.EmailProducer')
     @mock.patch('goldstone.core.models.Search')
@@ -208,14 +213,6 @@ class TaskTests(SimpleTestCase):
         # simulate results when a producer throws an exception
         p1.send.side_effect = Exception
         rv = check_for_pending_alerts()
-        self.assertEqual(len(rv), 2)
-
-        # simulate results when there are no AlertSearches to be looped-over
-        search_mock.execute.return_value = {'hits': {'total': 0}}
-        alert_search.search_recent = mock.MagicMock(
-            return_value=[Search(), None, None])
-        rv = check_for_pending_alerts()
-        self.assertIsInstance(rv, list)
         self.assertEqual(len(rv), 2)
 
 
