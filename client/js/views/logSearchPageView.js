@@ -131,14 +131,18 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser', 'active'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'Api Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         // divs for log viewer viz on top and dataTable below
         '<div class="row">' +

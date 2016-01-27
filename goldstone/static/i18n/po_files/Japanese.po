@@ -925,8 +925,8 @@ msgstr "終了"
 #: metricOverviewView.js
 
 #: metricOverview
-# msgid "Metric Overview"
-# TBD
+msgid "Metric Overview"
+TBD
 
 #: metricOverview
 msgid "API"
@@ -1192,6 +1192,10 @@ msgstr "メガバイト"
 #. Gigabytes
 msgid "GB"
 msgstr "ギガバイト"
+
+#: openTrailManagerPageView.js
+msgid "OpenTrail Manager"
+msgstr "Open追跡マネージャ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1798,13 +1802,10 @@ msgstr "リソースリスト"
 msgid "No data"
 msgstr "データがありません"
 
-#: addons
-#: opentrail
+#: vulnerability advisor
+# msgid "Vulnerability Advisor"
+# msgstr ""
 
-#: server-generated data for addon name
-msgid "opentrail"
-msgstr "オープン追跡"
-
-#: opentrail main.js
-msgid "OpenTrail Manager"
-msgstr "Open追跡マネージャ"
+#: vulnerability advisor
+# msgid "OpenStack Vulnerabilities"
+# msgstr ""
