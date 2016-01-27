@@ -46,7 +46,7 @@ class SearchSetup(Setup):
         search_obj = AlertSearch()
         search_obj.save()
 
-        new_alert = Alert(name='generic-alert', owner='core',
+        new_alert = Alert(owner='core',
                           created='2015-09-01T13:20:30+03:00',
                           msg_title='Alert : openstack syslog errors',
                           msg_body='There are 23 incidents of syslog errors',
@@ -163,7 +163,7 @@ class GetPostTests(SearchSetup):
         if expected_rows > 10:
             expected_rows = 10
 
-        expected_keys = ['query', 'name', 'msg_title', 'msg_body',
+        expected_keys = ['query', 'msg_title', 'msg_body',
                          'created', 'owner']
 
         token = create_and_login()

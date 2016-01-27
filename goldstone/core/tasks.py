@@ -164,10 +164,10 @@ def check_for_pending_alerts():
     for obj in saved_alerts:
         # execute the search, and assuming no error, update the last_ times
         s, start, end = obj.search_recent()
+        response = s.execute()
         obj.last_start = start
         obj.last_end = end
         obj.save()
-        response = s.execute()
 
         if response.hits.total > 0:
             # We have a non-zero match for pending alerts
@@ -179,8 +179,7 @@ def check_for_pending_alerts():
             # For this scheduled celery task, pick up the message template
             # from the query object and pass it along. For all other
             # cases, user is allowed to send custom msg_title and msg_body
-            alert_obj = Alert(name=obj.name,
-                              query=obj, msg_title=msg_dict['title'],
+            alert_obj = Alert(query=obj, msg_title=msg_dict['title'],
                               msg_body=msg_dict['body'])
             alert_obj.save()
 
@@ -194,7 +193,6 @@ def check_for_pending_alerts():
                     ret_dict = {producer.query.name: producer_ret}
                 except Exception as e:
                     ret_dict = {producer.query.name: e}
-                    pass
                     # Uncomment the lines below if we ever want to mark
                     # this task to be in retry state. For now, we don't
                     # mind that this task is marked success/failure.

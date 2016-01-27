@@ -2701,8 +2701,6 @@ class Alert(models.Model):
     """
 
     query = models.ForeignKey(AlertSearch)
-    name = models.CharField(max_length=64, default='generic-alert',
-                            blank=False)
     # alert assignee vs alert receiver, can be a person vs mailing list
     owner = models.CharField(max_length=64, default='goldstone',
                              help_text='alert assignee, individual entity')

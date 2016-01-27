@@ -119,25 +119,29 @@ class EmailProducerTests(SimpleTestCase):
             rv <= 0 failure to send or error
             rv >=1 success in send, rv corresponds to number of recipients
         """
+
         EmailProducer.send = mock.Mock(return_value=1)
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
                                             list('xyz@y.com')), 1)
+        assert EmailProducer.send.call_count == 1
 
     def test_send_email_failure(self):
-        """ Tests that sending out an email returns an integer value
+        """ Test if sending out an email returns an integer value
             rv <= 0 failure to send or error
             rv >=1 success in send, rv corresponds to number of recipients
         """
+
         EmailProducer.send = mock.Mock(return_value=smtplib.SMTPException)
         self.assertEqual(EmailProducer.send('title', 'body', 'abc@x.com',
                                             list('xyz@y.com')),
                          smtplib.SMTPException)
+        assert EmailProducer.send.call_count == 1
 
     def test_inner_send_mail_function(self):
 
         as_obj = AlertSearch()
         as_obj.save()
-        new_alert = Alert(name='generic-alert', owner='core',
+        new_alert = Alert(owner='core',
                           created='2015-09-01T13:20:30+03:00',
                           msg_title='Alert : openstack syslog errors',
                           msg_body='There are 23 incidents of syslog errors',
@@ -167,6 +171,7 @@ class TaskTests(SimpleTestCase):
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
+        assert tasks.check_call.call_count == 1
 
     def test_no_saved_alerts_for_task(self):
         # simulate results when there are no saved alerts to call
@@ -197,6 +202,7 @@ class TaskTests(SimpleTestCase):
         search_mock.execute.return_value = {'hits': {'total': 1}}
         alert_search.search_recent = mock.MagicMock(
             return_value=[Search(), None, None])
+        assert alert_search.search_recent.call_count == 0
 
         # mock two producers with fk back to the the alert search
         p1 = mock.MagicMock(spec=EmailProducer, query=alert_search)
@@ -209,11 +215,13 @@ class TaskTests(SimpleTestCase):
         rv = check_for_pending_alerts()
         self.assertIsInstance(rv, list)
         self.assertEqual(len(rv), 2)
+        assert alert_search.search_recent.call_count == 1
 
         # simulate results when a producer throws an exception
         p1.send.side_effect = Exception
         rv = check_for_pending_alerts()
         self.assertEqual(len(rv), 2)
+        assert alert_search.search_recent.call_count == 2
 
 
 class AlertSearchModelTests(TestCase):
@@ -237,15 +245,16 @@ class AlertSearchModelTests(TestCase):
                 as esmock:
             esmock.return_value = s, start, end
             saved_alerts = AlertSearch.objects.all()
-
             for obj in saved_alerts:
                 self.assertEqual(obj.search_recent(), esmock.return_value)
+            assert esmock.call_count == 1
 
     def test_alert_search_save(self):
         with mock.patch("goldstone.core.models.AlertSearch.save") \
                 as esmock:
                 esmock.return_value = None
                 self.assertEqual(AlertSearch.save(), esmock.return_value)
+        assert esmock.call_count == 1
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):
