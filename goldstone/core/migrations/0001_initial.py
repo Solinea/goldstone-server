@@ -14,6 +14,27 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='Alert',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('owner', models.CharField(default=b'goldstone', help_text=b'alert assignee, individual entity', max_length=64)),
+                ('msg_title', models.CharField(default=b'Alert notification', max_length=256)),
+                ('msg_body', models.CharField(default=b'This is an alert notification', max_length=1024)),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='EmailProducer',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('sender', models.CharField(default=None, max_length=64)),
+                ('receiver', models.EmailField(max_length=128)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
             name='PolyResource',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(primary_key=True, serialize=False, editable=False, version=1, blank=True)),
@@ -26,6 +47,28 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'polyresource',
+            },
+        ),
+        migrations.CreateModel(
+            name='SavedSearch',
+            fields=[
+                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
+                ('name', models.CharField(max_length=64)),
+                ('owner', models.CharField(max_length=64)),
+                ('description', models.CharField(default=b'Defined Search', max_length=1024)),
+                ('query', models.TextField(help_text=b'JSON Elasticsearch query body')),
+                ('protected', models.BooleanField(default=False, help_text=b'True if this is system-defined')),
+                ('index_prefix', models.CharField(max_length=64)),
+                ('doc_type', models.CharField(max_length=64)),
+                ('timestamp_field', models.CharField(max_length=64, null=True)),
+                ('last_start', models.DateTimeField(null=True, blank=True)),
+                ('last_end', models.DateTimeField(null=True, blank=True)),
+                ('target_interval', models.IntegerField(default=0)),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
+            ],
+            options={
+                'verbose_name_plural': 'saved searches',
             },
         ),
         migrations.CreateModel(
@@ -47,6 +90,16 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('core.polyresource',),
+        ),
+        migrations.CreateModel(
+            name='AlertSearch',
+            fields=[
+                ('savedsearch_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='core.SavedSearch')),
+            ],
+            options={
+                'verbose_name_plural': 'saved searches with alerts',
+            },
+            bases=('core.savedsearch',),
         ),
         migrations.CreateModel(
             name='AvailabilityZone',
@@ -551,9 +604,23 @@ class Migration(migrations.Migration):
             },
             bases=('core.polyresource',),
         ),
+        migrations.AlterUniqueTogether(
+            name='savedsearch',
+            unique_together=set([('name', 'owner')]),
+        ),
         migrations.AddField(
             model_name='polyresource',
             name='polymorphic_ctype',
             field=models.ForeignKey(related_name='polymorphic_core.polyresource_set+', editable=False, to='contenttypes.ContentType', null=True),
+        ),
+        migrations.AddField(
+            model_name='emailproducer',
+            name='query',
+            field=models.ForeignKey(to='core.AlertSearch'),
+        ),
+        migrations.AddField(
+            model_name='alert',
+            name='query',
+            field=models.ForeignKey(to='core.AlertSearch'),
         ),
     ]
