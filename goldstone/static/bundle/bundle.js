@@ -8451,7 +8451,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         self.xAxis = d3.svg.axis()
             .scale(self.x)
-            .ticks(5)
+            .ticks(2)
             .orient("bottom");
 
         self.yAxis = d3.svg.axis()
@@ -8498,7 +8498,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         self.yAxis = d3.svg.axis()
             .scale(self.y)
             .orient("left")
-            .tickFormat(d3.format("01d"));
+            .tickFormat(d3.format("d"));
 
         // differentiate color sets for mem and cpu charts
         if (self.featureSet === 'mem' || self.featureSet === 'cpu') {
