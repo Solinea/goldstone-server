@@ -5149,29 +5149,6 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
-
-
-        // '<div class="col-md-10">' +
-        // '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="map-block shadow-block">' +
-        // '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        // '<div class="map-data">' +
-        // '<span class="stats time">' +
-        // '21 secs ago' +
-        // '</span>' +
-        // '<span class="stats logs">' +
-        // '300 Logs' +
-        // '</span>' +
-        // '<span class="stats events">' +
-        // '17 Events' +
-        // '</span>' +
-        // '<span class="stats call">' +
-        // '12 API Calls' +
-        // '</span>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-
         '</div>' +
 
         // extra row for spacing
@@ -9224,7 +9201,9 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
-        '<div class="mainContainer"></div>' +
+        '<div class="mainContainer shadow-block panel-body">' +
+        '<div style="height:<%= (this.height - 30) %>">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '</div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +
@@ -12615,7 +12594,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -12983,7 +12962,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (self.multiRsrcViewEl !== null) {
             self.multiRscsView = new MultiRscsView({
                 el: self.multiRsrcViewEl,
-                chartTitle: goldstone.translate("Resource List")
+                chartTitle: goldstone.translate("Resource List"),
+                height: self.height
             });
 
             var appendSpinnerLocation = $(self.multiRsrcViewEl);
