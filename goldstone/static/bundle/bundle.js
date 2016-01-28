@@ -10517,51 +10517,16 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // if cancelling add trail dialog, just close modal
         $('#cancel-create-button').on('click', function() {
-            $('#create-modal').modal('toggle');
+            $('#create-modal').modal('hide');
         });
 
         // when submitting data in modal form for add swift trail
         $('.create-form').on('submit', function(e) {
             e.preventDefault();
             var data = $('.create-form').serialize();
-            console.log('form data ', data);
             self.createNewSearchAjax(data);
         });
 
-    },
-
-    encodeURI: function(str) {
-        return encodeURIComponent(str);
-    },
-
-    destParamCombiner: function(arr) {
-        var self = this;
-        var result = {};
-        _.each(arr, function(item) {
-            if (item.value !== "" && item.value !== undefined) {
-                result[item.name] = self.encodeURI(item.value);
-            }
-        });
-        return JSON.stringify(result);
-    },
-
-    combineAddTrailDataParams: function(name, destinationType, destinationParams, auditFilters) {
-
-        var result = '';
-        result += name;
-        result += '&' + destinationType;
-        result += '&DestinationParams=' + this.destParamCombiner(destinationParams);
-        result += '&AuditFilters=' + this.destParamCombiner(auditFilters);
-        return result;
-    },
-
-    combineUpdateTrailDataParams: function(name, status, destinationParams) {
-
-        var result = '';
-        result += name;
-        result += '&' + status;
-        result += '&DestinationParams=' + this.destParamCombiner(destinationParams);
-        return result;
     },
 
     createNewSearchAjax: function(data) {
@@ -10594,7 +10559,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
             }).always(function() {
                 // close modal
-                $('#create-modal').modal('toggle');
+                $('#create-modal').modal('hide');
                 // reload table
                 self.oTable.ajax.reload();
             });
@@ -10605,23 +10570,20 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // if cancelling update trail dialog, just close modal
         $('#cancel-submit-update-search').on('click', function() {
-            $('#update-modal').modal('toggle');
+            $('#update-modal').modal('hide');
         });
 
         // when submitting data in modal form for updating trail
-        $('#submit-update-search').on('click', function(e) {
+        $('.update-form').on('submit', function(e) {
             e.preventDefault();
 
-            var name = $('#updateTrailName').serialize();
-            var status = $('#updateTrailLoggingStatus').serialize();
-            var destinationParams = $('.updateSwiftDestParamBlock input').serializeArray();
+            var data = $('.update-form').serialize();
 
-            var serializedData = self.combineUpdateTrailDataParams(name, status, destinationParams);
 
             $.ajax({
                 type: "PATCH",
                 url: self.urlRoot + $('#updateUUID').val() + "/",
-                data: serializedData
+                data: data
             })
                 .done(function() {
 
@@ -10637,7 +10599,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 .fail(function(err) {
 
                     var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
-                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-search-form #updateTrailName').val());
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
 
                     // failure message
                     // uses sprintf string interpolation to create a properly
@@ -10646,7 +10608,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
                 }).always(function() {
                     // close modal and reload list
-                    $('#update-modal').modal('toggle');
+                    $('#update-modal').modal('hide');
                     self.oTable.ajax.reload();
                 });
         });
@@ -10657,7 +10619,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // if cancelling delete trail dialogue, just close modal
         $('#cancel-delete-search').on('click', function() {
-            $('#delete-modal').modal('toggle');
+            $('#delete-modal').modal('hide');
         });
 
         // when submitting data in modal for delete trail
@@ -10692,7 +10654,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 })
                 .always(function() {
                     // close modal and reload list
-                    $('#delete-modal').modal('toggle');
+                    $('#delete-modal').modal('hide');
                     self.oTable.ajax.reload();
                 });
 
@@ -10748,52 +10710,26 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         $(row).on('click', '.fa-gear', function() {
 
+            // clear modal
+            $('.update-form')[0].reset();
+
             // update trail modal - pass in row data details
             // name / isLogging/UUID
-            $('#update-modal #updateTrailName').val(data.Name);
-            $('#update-modal #updateTrailLoggingStatus').val('' + data.IsLogging);
-            $('#update-modal #updateUUID').val('' + data.UUID);
+            $('#update-modal #update-search-name').val(data.name);
+            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #updateUUID').val('' + data.uuid);
 
-            // swift params
-            $('#update-modal #updateSwiftContainerName').val('' + data.DestinationParams.SwiftContainerName);
-            $('#update-modal #updateSwiftKeyPrefix').val('' + data.DestinationParams.SwiftKeyPrefix);
-            $('#update-modal #updateSwiftTenantName').val('' + data.DestinationParams.SwiftTenantName);
-            $('#update-modal #updateSwiftURL').val('' + data.DestinationParams.SwiftURL);
-            $('#update-modal #updateSwiftUsername').val('' + data.DestinationParams.SwiftUsername);
+            // shut off input on protected searches
+            if (data.protected === true) {
+                $('#update-modal #update-search-name').attr('disabled', true);
+                $('#update-modal #update-search-query').attr('disabled', true);
+            } else {
 
-            // fill in audit filter data, if any
-            if (data.AuditFilters.ProjectID !== undefined) {
-                $('#update-modal #displayProjectId').val('' + data.AuditFilters.ProjectID);
+                // must disable when clicking non-protected or else it will
+                // persist after viewing a persisted search
+                $('#update-modal #update-search-name').attr('disabled', false);
+                $('#update-modal #update-search-query').attr('disabled', false);
             }
-            if (data.AuditFilters.ProjectName !== undefined) {
-                $('#update-modal #displayProjectId').val('' + data.AuditFilters.ProjectName);
-            }
-            if (data.AuditFilters.UserID !== undefined) {
-                $('#update-modal #displayProjectId').val('' + data.AuditFilters.UserID);
-            }
-
-            // clear out password field
-            $('#update-modal #updateSwiftPassword').val('');
-        });
-
-        $(row).on('click', '.play-pause-icon', function() {
-
-            // simple start/stop of logging
-            $.ajax({
-                type: "PATCH",
-                url: self.urlRoot + data.UUID + "/",
-                data: "IsLogging=" + !data.IsLogging
-            }).done(function() {
-
-                // success message
-                goldstone.raiseInfo('Request to ' + (data.IsLogging === true ? 'stop' : 'start') + ' logging for ' + data.Name + ' successful');
-                self.oTable.ajax.reload();
-            }).fail(function() {
-
-                // failure message
-                self.dataErrorMessage('FAILURE TO START/STOP LOGGING');
-
-            });
         });
     },
 
@@ -10969,7 +10905,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
         '<input name="query" type="text" class="form-control"' +
-        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query\', \'savedsearch\')%>" required>' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
         '</div>' +
 
         // hidden owner
@@ -10992,11 +10928,11 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         '</form>' +
 
-        '</div>' +
+        '</div>' + // modal body
 
-        '</div>' +
-        '</div>' +
-        '</div>'
+        '</div>' + // modal content
+        '</div>' + // modal dialogue
+        '</div>' // modal container
     ),
 
     updateModal: _.template("" +
@@ -11015,24 +10951,30 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         '<form class="update-form">' +
 
-        // hidden UUID
-        '<input id="updateUUID" hidden type="text">' +
-
         // Search name
         '<div class="form-group">' +
-        '<label for="updateTrailName"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
-        '<input name="Name" type="text" class="form-control"' +
-        'id="updateTrailName" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '<label for="update-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
+        '<input name="name" type="text" class="form-control"' +
+        'id="update-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
         '</div>' +
 
+        // Search query
+        '<div class="form-group">' +
+        '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
+        '<input name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // hidden UUID
+        '<input name="uuid" id="updateUUID" hidden type="text">' +
+
         // ui submit / cancel button
-        '<button id="submit-update-search" type="button" class="btn btn-default"><%=goldstone.contextTranslate(\'Submit\', \'savedsearch\')%></button>' +
+        '<button id="submit-update-search" type="submit" class="btn btn-default"><%=goldstone.contextTranslate(\'Submit\', \'savedsearch\')%></button>' +
         ' <button id="cancel-submit-update-search" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button><br><br>' +
 
         '</form>' +
 
         '</div>' + // modal body
-
 
         '</div>' + // modal content
         '</div>' + // modal dialogue
@@ -11055,9 +10997,6 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // hidden UUID to be submitted with delete request
         '<input id="deleteUUID" hidden type="text">' +
-
-        // hidden name to be submitted with delete request
-        '<input id="deleteName" hidden type="text">' +
 
         // <h4> will be filled in by handler in dataTableRowGenerationHooks with
         // warning prior to deleting a trail
