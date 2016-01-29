@@ -156,8 +156,14 @@
     width: 100%;
 }
 
+.footer .version{
+    float: left;
+    color: rgba(255, 255, 255, 0.54);
+}
+
 .footer .copyright {
     float: left;
+    margin-left: 36%;
     font-size: 14px;
     color: #fff;
 }
@@ -174,8 +180,8 @@
 }
 
 .dashboard .footer {
-    left: 9%;
-    width: 90%;
+    left: 3%;
+    width: 96%;
     bottom: -38px;
 }
 
@@ -190,4 +196,8 @@
 .dashboard .footer .copyright,
 .dashboard .footer .license {
     color: #1d9ca5;
+}
+
+.dashboard .footer .version {
+    color: #616161;
 }
