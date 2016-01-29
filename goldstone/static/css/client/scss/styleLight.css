@@ -148,8 +148,7 @@ css stylesheets supporting redesign
 @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; src: local("Roboto"), local("Roboto-Regular"), url(https://fonts.gstatic.com/s/roboto/v15/Ks_cVxiCiwUWVsFWFA3Bjn-_kf6ByYO6CLYdB4HQE-Y.woff2) format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF; }
 /* latin */
 @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; src: local("Roboto"), local("Roboto-Regular"), url(https://fonts.gstatic.com/s/roboto/v15/oMMgfZMQthOryQo9n22dcuvvDin1pK8aKteLpeZ5c0A.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000; }
-/*body{
-	background:url(../../../images/bg4.jpg) no-repeat left top;
+/*body{ background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
 /*Wrapper*/
 .dashboard .wrapper { overflow: hidden; }
@@ -193,25 +192,18 @@ css stylesheets supporting redesign
 
 .shadow-block { box-shadow: 0 0 5px rgba(0, 0, 0, 0.4); }
 
-/*footer*/
+/* footer */
 .footer { position: absolute; bottom: 25px; left: 0; width: 100%; }
-
 .footer .version { float: left; color: rgba(255, 255, 255, 0.54); }
-
 .footer .copyright { float: left; margin-left: 36%; font-size: 14px; color: #fff; }
-
 .footer .copyright strong { font-weight: 400; color: rgba(255, 255, 255, 0.54); }
-
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
+/* dashboard */
 .dashboard .footer { left: 3%; width: 96%; bottom: -38px; }
-
 .dashboard .footer .row { width: 100%; }
-
-.dashboard .footer .copyright strong { color: #616161; }
-
 .dashboard .footer .copyright, .dashboard .footer .license { color: #1d9ca5; }
-
+.dashboard .footer .copyright strong, .dashboard .footer .license strong { color: #616161; }
 .dashboard .footer .version { color: #616161; }
 
 /* Table Of Contents
