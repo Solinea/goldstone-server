@@ -445,7 +445,7 @@ class SavedSearchViewSet(ModelViewSet):
     filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
     ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
                        'doc_type', 'last_start', 'last_end', 'created',
-                       'updated', 'target_interval')
+                       'updated', 'target_interval', 'description')
 
     def get_queryset(self):
         return self.query_model.objects.all()
