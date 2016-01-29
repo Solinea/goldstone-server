@@ -41,6 +41,8 @@ css stylesheets prior to redesign
 
 text:not(.zoomable), .axis.label { font: 12px sans-serif; fill: #bbb; }
 
+#discover-view-r2 g.x.axis text { font-size: 9px; }
+
 #goldstone-primary-panel g.text text { font-size: 10px; }
 
 .legend rect { opacity: 0.0; }
