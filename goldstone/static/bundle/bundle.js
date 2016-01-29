@@ -10451,7 +10451,6 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     form_index_prefix: 'logstash-*',
     form_doc_type: 'syslog',
     form_timestamp_field: '@timestamp',
-    form_description: 'Defined Search',
     urlRoot: '/core/saved_search/',
     iDisplayLengthOverride: 25,
 
@@ -10893,7 +10892,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="new-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
         '<input name="description" type="text" class="form-control"' +
-        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" value="<%= this.form_description %>" required>' +
+        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" required>' +
         '</div>' +
 
         // Search Query
