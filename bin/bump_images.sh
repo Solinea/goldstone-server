@@ -91,7 +91,7 @@ for file in "${composefile_list[@]}" ; do
 done
 
 for file in "${templatefile_list[@]}" ; do
-    cat $file | sed -e "s?\>Version:.*\<?\>Version: ${FULL_VERSION}\<?" > ${file}.new
+    cat $file | sed -e "s?\>Version: [^\<]*?\>Version: ${FULL_VERSION}?" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
        mv ${file}.new $file
