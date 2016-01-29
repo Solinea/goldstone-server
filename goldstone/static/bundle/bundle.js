@@ -4147,12 +4147,12 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
@@ -4162,7 +4162,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
@@ -4184,7 +4184,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser', 'active'],
+        ['/#reports/apibrowser', 'API Browser', 'active'],
     ],
 
     template: _.template('' +
@@ -5628,7 +5628,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser'],
         ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +
@@ -7657,7 +7657,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser', 'active'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +

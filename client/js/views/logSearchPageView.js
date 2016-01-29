@@ -124,7 +124,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser', 'active'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +

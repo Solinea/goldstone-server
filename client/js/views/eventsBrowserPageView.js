@@ -59,7 +59,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser'],
         ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +
