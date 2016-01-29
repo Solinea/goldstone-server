@@ -485,7 +485,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="new-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
         '<input name="description" type="text" class="form-control"' +
-        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" required>' +
+        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
         '</div>' +
 
         // Search Query
@@ -552,7 +552,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="update-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
         '<input name="description" type="text" class="form-control"' +
-        'id="update-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" required>' +
+        'id="update-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
         '</div>' +
 
         // Search query
