@@ -10450,6 +10450,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
     form_index_prefix: 'logstash-*',
     form_doc_type: 'syslog',
+    form_timestamp_field: '@timestamp',
+    form_description: 'Defined Search',
     urlRoot: '/core/saved_search/',
     iDisplayLengthOverride: 25,
 
@@ -10695,6 +10697,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
             // update trail modal - pass in row data details
             // name / isLogging/UUID
             $('#update-modal #update-search-name').val(data.name);
+            $('#update-modal #update-search-description').val(data.description);
             $('#update-modal #update-search-query').val('' + data.query);
             $('#update-modal #updateUUID').val('' + data.uuid);
 
@@ -10741,7 +10744,11 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                     "targets": 0,
                     "sortable": true
                 }, {
+                    "data": "description",
                     "targets": 1,
+                    "sortable": true
+                }, {
+                    "targets": 2,
                     "data": null,
 
                     // add icons to dataTable cell
@@ -10804,7 +10811,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
                         // generalize if sorting is implemented server-side
                         var columnLabelHash = {
-                            0: 'name'
+                            0: 'name',
+                            1: 'description'
                         };
 
                         var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
@@ -10855,6 +10863,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
         '<th>Name</th>' +
+        '<th>Description</th>' +
         '<th>Controls</th>' +
         '</tr>'
     ),
@@ -10880,7 +10889,14 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         'id="new-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
         '</div>' +
 
-        // trail description
+        // Search Description
+        '<div class="form-group">' +
+        '<label for="new-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" value="<%= this.form_description %>" required>' +
+        '</div>' +
+
+        // Search Query
         '<div class="form-group">' +
         '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
         '<input name="query" type="text" class="form-control"' +
@@ -10896,6 +10912,9 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // hidden doc_type
         '<input name="doc_type" id="doc_type" hidden type="text" value="<%= this.form_doc_type %>">' +
+
+        // hidden timestamp_field
+        '<input name="timestamp_field" id="timestamp_field" hidden type="text" value="<%= this.form_timestamp_field %>">' +
 
         // submit button
         '<button id="submit-create-button" type="submit"' +
@@ -10935,6 +10954,13 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         '<label for="update-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
         '<input name="name" type="text" class="form-control"' +
         'id="update-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // Search description
+        '<div class="form-group">' +
+        '<label for="update-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="update-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>" required>' +
         '</div>' +
 
         // Search query
