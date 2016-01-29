@@ -2608,7 +2608,6 @@ class SavedSearch(models.Model):
                                               'lte': end.isoformat()}})
         return s, start, end
 
-
     def __unicode__(self):
         """Return a useful string."""
 

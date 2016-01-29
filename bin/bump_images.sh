@@ -30,9 +30,16 @@ declare -a composefile_list=(
                        $TOP_DIR/docker/docker-compose-ci.yml \
                        $TOP_DIR/docker/docker-compose.yml 
     )
+
+declare -a templatefile_list=(
+                       $TOP_DIR/goldstone/templates/base.html \
+                       $TOP_DIR/goldstone/templates/login.html
+    )
+
 cd $TOP_DIR || exit 1
 
 TAG=$(${TOP_DIR}/bin/semver.sh short)
+FULL_VERSION=$(${TOP_DIR}/bin/semver.sh full)
 
 for arg in "$@" ; do
     case $arg in
@@ -82,5 +89,14 @@ for file in "${composefile_list[@]}" ; do
        rm ${file}.new
     fi
 done
+
+for file in "${templatefile_list[@]}" ; do
+    cat $file | sed -e "s/\>Version:.*\</Version: ${FULL_VERSION}/" > ${file}.new
+    RC=`diff $file $file.new`
+    if [[ $RC != 0 ]] ; then
+       mv ${file}.new $file
+    else
+       rm ${file}.new
+    fi
 
 git status --short
