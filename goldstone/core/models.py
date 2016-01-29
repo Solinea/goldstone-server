@@ -2555,7 +2555,7 @@ class SavedSearch(models.Model):
     uuid = UUIDField(version=4, auto=True, primary_key=True)
     name = models.CharField(max_length=64)
     owner = models.CharField(max_length=64)
-    description = models.CharField(max_length=1024, default='Defined Search')
+    description = models.CharField(max_length=1024, blank=True, default='')
     query = models.TextField(help_text='JSON Elasticsearch query body')
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
@@ -2607,6 +2607,13 @@ class SavedSearch(models.Model):
                    ** {self.timestamp_field: {'gt': start.isoformat(),
                                               'lte': end.isoformat()}})
         return s, start, end
+
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return "%s owned by %s (%s)" % \
+            (self.name, self.owner, self.uuid)
 
 
 class CADFEventDocType(DailyIndexDocType):
@@ -2700,6 +2707,7 @@ class Alert(models.Model):
         For those details, refer to class Producer.
     """
 
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
     query = models.ForeignKey(AlertSearch)
     # alert assignee vs alert receiver, can be a person vs mailing list
     owner = models.CharField(max_length=64, default='goldstone',
@@ -2709,6 +2717,12 @@ class Alert(models.Model):
     msg_body = models.CharField(max_length=1024,
                                 default='This is an alert notification')
     created = CreationDateTimeField(editable=False, blank=False, null=False)
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return "%s (%s)" % \
+            (self.msg_title, self.uuid)
 
 
 class Producer(models.Model):
