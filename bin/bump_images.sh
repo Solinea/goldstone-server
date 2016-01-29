@@ -39,7 +39,6 @@ declare -a templatefile_list=(
 cd $TOP_DIR || exit 1
 
 TAG=$(${TOP_DIR}/bin/semver.sh short)
-FULL_VERSION=$(${TOP_DIR}/bin/semver.sh full)
 
 for arg in "$@" ; do
     case $arg in
@@ -55,11 +54,11 @@ for arg in "$@" ; do
     esac
 done
 
-if [[ ${TAG} == "" || ${FULL_VERSION} == "" ]] ; then
+if [[ ${TAG} == "" ]] ; then
    echo "Couldn't find a semver tag."
    exit 1
 else
-   echo "Bumping files to tag: $TAG and UI to version: ${FULL_VERSION}"
+   echo "Bumping files to tag: $TAG"
 fi
 
 # We're looking for two patterns:
@@ -91,7 +90,7 @@ for file in "${composefile_list[@]}" ; do
 done
 
 for file in "${templatefile_list[@]}" ; do
-    cat $file | sed -e "s?\>Version: [^\<]*?\>Version: ${FULL_VERSION}?" > ${file}.new
+    cat $file | sed -e "s?\>Version: [^\<]*?\>Version: ${TAG}?" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
        mv ${file}.new $file
