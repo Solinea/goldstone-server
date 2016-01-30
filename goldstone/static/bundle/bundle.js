@@ -1208,11 +1208,11 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
-        "help": "help",
         "metrics/api_perf": "apiPerfReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
+        "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
         "reports/apibrowser": "apiBrowser",
         "settings": "settings",
@@ -1303,39 +1303,27 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(ApiBrowserPageView);
     },
     apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
+        this.switchView(ApiPerfReportPageView);
     },
     discover: function() {
-        this.switchView(DiscoverView);
+        this.switchView(DiscoverPageView);
     },
     eventsBrowser: function() {
         this.switchView(EventsBrowserPageView);
     },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    keystoneReport: function() {
-        this.switchView(KeystoneReportView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
     nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
+        this.switchView(NodeReportPageView, {
             node_uuid: nodeId
         });
     },
     redirect: function() {
         location.href = "#discover";
+    },
+    savedSearchLog: function() {
+        this.switchView(SavedSearchLogPageView);
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -2376,9 +2364,9 @@ var I18nModel = Backbone.Model.extend({
         finalResult.domain = "English";
 
         // if goldstone.translate is called on a key not in the .po file
-        finalResult.missing_key_callback = function(key) {
+        finalResult.missing_key_callback = function(key, language) {
             if(!goldstone.skipI18nLog) {
-                console.error('missing .po file translation for: `' + key + '`');
+                console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
 
@@ -4159,12 +4147,12 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
@@ -4174,7 +4162,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
@@ -4196,7 +4184,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser', 'active'],
+        ['/#reports/apibrowser', 'API Browser', 'active'],
     ],
 
     template: _.template('' +
@@ -4251,7 +4239,7 @@ var ApiBrowserView = ChartSet.extend({
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
+var ApiPerfReportPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -5027,7 +5015,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var DiscoverView = GoldstoneBasePageView.extend({
+var DiscoverPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 
@@ -5161,29 +5149,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
-
-
-        // '<div class="col-md-10">' +
-        // '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="map-block shadow-block">' +
-        // '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        // '<div class="map-data">' +
-        // '<span class="stats time">' +
-        // '21 secs ago' +
-        // '</span>' +
-        // '<span class="stats logs">' +
-        // '300 Logs' +
-        // '</span>' +
-        // '<span class="stats events">' +
-        // '17 Events' +
-        // '</span>' +
-        // '<span class="stats call">' +
-        // '12 API Calls' +
-        // '</span>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-
         '</div>' +
 
         // extra row for spacing
@@ -5663,7 +5628,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser'],
         ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +
@@ -6155,48 +6120,6 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</div>'
 
         )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var HelpView = GoldstoneBaseView.extend({
-
-    instanceSpecificInit: function() {
-        this.el = this.options.el;
-        this.render();
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
-    },
-
-    template: _.template('' +
-        '<div class="row">' +
-        '<div class="col-md-12">' +
-        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
-        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
-
-        '<h3><%=goldstone.translate("License")%></h3>' +
-        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
-        '</div>' +
-        '</div>'
-    )
-
 });
 ;
 /**
@@ -7690,47 +7613,34 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             this.setZoomed(trueFalse);
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchModule = new PredefinedSearchView({
+            className: 'compliance-predefined-search nav nav-pills',
+            tagName: 'ul',
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            })
+        });
 
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
 
-
-        // check for compliance addon and render predefined search bar if present
-        if (goldstone.returnAddonPresent('compliance')) {
-            if (goldstone.compliance.PredefinedSearchView) {
-                this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
-                    className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul',
-                    collection: new GoldstoneBaseCollection({
-                        skipFetch: true,
-                        urlBase: '',
-                        addRange: function() {
-                            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                        },
-                        addInterval: function(interval) {
-                            return '&interval=' + interval + 's';
-                        },
-                    })
-                });
-
-                $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-            }
-
-            // stopListening to predefinedSearchModule upon close, if present
-            if (this.predefinedSearchModule !== undefined) {
-                this.viewsToStopListening.push(this.predefinedSearchModule);
-            }
-
-            // subscribe logBrowserViz to click events on predefined
-            // search dropdown to fetch results.
-            this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
-                // self.logBrowserTable.predefinedSearch(uuid[1]);
-                self.logBrowserViz.predefinedSearch(uuid[0]);
-            });
-            this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
-                self.logBrowserTable.predefinedSearch(uuid[1]);
-                // self.logBrowserViz.predefinedSearch(uuid[0]);
-            });
-        }
+        // subscribe logBrowserViz to click events on predefined
+        // search dropdown to fetch results.
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+            // self.logBrowserTable.predefinedSearch(uuid[1]);
+            self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+            self.logBrowserTable.predefinedSearch(uuid[1]);
+            // self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
 
         // set up a chain of events between viz and table to uddate
         // table when updating viz.
@@ -7739,12 +7649,15 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             self.logBrowserTable.update();
         });
 
+        // destroy listeners and views upon page close
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
+
     },
 
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser', 'active'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +
@@ -8538,7 +8451,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         self.xAxis = d3.svg.axis()
             .scale(self.x)
-            .ticks(5)
+            .ticks(2)
             .orient("bottom");
 
         self.yAxis = d3.svg.axis()
@@ -8585,7 +8498,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         self.yAxis = d3.svg.axis()
             .scale(self.y)
             .orient("left")
-            .tickFormat(d3.format("01d"));
+            .tickFormat(d3.format("d"));
 
         // differentiate color sets for mem and cpu charts
         if (self.featureSet === 'mem' || self.featureSet === 'cpu') {
@@ -9288,7 +9201,9 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
-        '<div class="mainContainer"></div>' +
+        '<div class="mainContainer shadow-block panel-body">' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '</div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +
@@ -9329,100 +9244,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView.extend({
-
-    initialize: function(options) {
-        this.getUidToken();
-        this.addHandlers();
-    },
-
-    getUidToken: function() {
-        this.uidToken = window.location.search.slice(1);
-    },
-
-    addHandlers: function() {
-        var self = this;
-
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-
-            var $password = $('#password');
-            var $confirm_password = $('#confirm_password');
-
-            if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning("Passwords don't match.");
-            } else {
-
-                // options.uidToken is passed in when the view is
-                // instantiated via goldstoneRouter.js
-
-                self.submitRequest(self.uidToken + '&' + $(this).serialize());
-            }
-        });
-    },
-
-    clearFields: function() {
-        // clear input fields
-        $('#password').val('');
-        $('#confirm_password').val('');
-    },
-
-    submitRequest: function(input) {
-        var self = this;
-
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
-
-        $.post('/accounts/password/reset/confirm/', input, function() {})
-            .done(function(success) {
-
-                // clear input fields
-                self.clearFields();
-
-                // and add a success message to the top of the screen
-                goldstone.raiseInfo('Password changed. Redirecting to login.');
-
-
-                setTimeout(function() {
-                    location.href = '/login/';
-
-                }, 2000);
-
-            })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                if (fail.non_field_errors) {
-                    goldstone.raiseWarning(fail.non_field_errors);
-                } else {
-                    // clear input fields
-                    self.clearFields();
-                    goldstone.raiseWarning('Password reset failed.');
-                }
-
-            });
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var NodeReportView = GoldstoneBasePageView.extend({
+var NodeReportPageView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
@@ -9431,7 +9253,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
+        NodeReportPageView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
@@ -10113,11 +9935,11 @@ var NodeServiceStatusView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -10126,47 +9948,116 @@ var NodeServiceStatusView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView.extend({
+/*
+compliance/defined_search/ results structure:
 
-    initialize: function(options) {
-        this.addHandlers();
+{
+    "uuid": "4ed7499e-d0c6-4d0b-be67-0418cd4b5d60",
+    "name": "failed authorization",
+    "owner": "compliance",
+    "description": "Defined Search",
+    "query": "{ \"query\": { \"bool\": { \"must\": [ { \"match\": { \"component\": \"keystone\" } }, { \"match_phrase\": { \"openstack_message\": \"authorization failed\" } } ] } } }",
+    "protected": true,
+    "index_prefix": "logstash-*",
+    "doc_type": "syslog",
+    "timestamp_field": "@timestamp",
+    "last_start": null,
+    "last_end": null,
+    "target_interval": 0,
+    "created": null,
+    "updated": null
+}
+
+*/
+
+PredefinedSearchView = GoldstoneBaseView.extend({
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.getPredefinedSearches();
     },
 
-    addHandlers: function() {
+    getPredefinedSearches: function() {
         var self = this;
 
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-            self.submitRequest($(this).serialize());
+        $.get('/core/saved_search/?page_size=1000&index_prefix=logstash-*').
+        done(
+            function(result) {
+                if (result.results) {
+                    self.predefinedSearches = result.results;
+                    self.render();
+                } else {
+                    console.log('unknown result format');
+                }
+            }).
+        fail(function(result) {
+            console.log('failed defined search ', result);
         });
     },
 
-    submitRequest: function(input) {
+    populatePredefinedSearches: function(arr) {
+        var result = '';
+
+        _.each(arr, function(item) {
+            result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
+        });
+
+        return result;
+    },
+
+    processListeners: function() {
         var self = this;
 
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
+        // dropdown to reveal predefined search list
+        $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
+            var clickedUuid = $(this).data('uuid');
+            var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
 
-        $.post('/accounts/password/reset/', input, function() {})
-            .done(function(success) {
+            self.collection.urlBase = '/compliance/defined_search/' + clickedUuid + '/results/';
+            self.collection.urlGenerator();
+            var constructedUrlforViz = self.collection.url;
+            self.fetchResults(constructedUrlforViz, constructedUrlForTable);
+        });
 
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
+        // gear icon navigation to saved search settings page
+        this.$el.find('.fa-gear').click(function() {
+            window.location.href = "/#reports/logbrowser/search";
+        });
+    },
+
+    fetchResults: function(vizUrl, tableUrl) {
+        var self = this;
+        $.get(vizUrl)
+            .done(function(res) {
+                self.trigger('clickedUuidViz', [res, vizUrl]);
             })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
+            .fail(function(err) {
+                console.error(err);
+            });
 
-                // TODO: change this after SMTP handling is set up
-                // to reflect the proper error
-                goldstone.raiseInfo(fail.responseJSON.detail);
+        $.get(tableUrl)
+            .done(function(res) {
+                self.trigger('clickedUuidTable', [res, tableUrl]);
+            })
+            .fail(function(err) {
+                console.error(err);
             });
     },
 
+    template: _.template('' +
+        '<li role="presentation" class="dropdown">' +
+        '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
+        '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
+        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
+        '<ul class="dropdown-menu">' +
+        '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
+        '</ul>' +
+        '</li>'
+    ),
+
     render: function() {
-        this.$el.html(this.template());
+        $(this.el).html(this.template());
+        this.processListeners();
         return this;
     }
 
@@ -10509,6 +10400,692 @@ var ReportsReportView = GoldstoneBaseView.extend({
         '</thead>' +
         '<tbody></tbody>' +
         '</table>'
+    )
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+implemented on SavedSearchLogPageView as:
+
+    this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+
+        this.savedSearchLogView = new savedSearchLogDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+*/
+
+SavedSearchLogDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+
+        // initialize with serverSide dataTable defined on DataTableBaseView
+        this.drawSearchTableServerSide('#reports-result-table');
+    },
+
+    form_index_prefix: 'logstash-*',
+    form_doc_type: 'syslog',
+    form_timestamp_field: '@timestamp',
+    urlRoot: '/core/saved_search/',
+    iDisplayLengthOverride: 25,
+
+    render: function() {
+        this.$el.html(this.template());
+        $(this.el).find('.refreshed-report-container').append(this.dataTableTemplate());
+
+        // append modals for new search / update search / delete search
+        $('#create-modal-container').append(this.createModal());
+        $('#update-modal-container').append(this.updateModal());
+        $('#delete-modal-container').append(this.deleteModal());
+
+        // add event/click handlers to add/update/delete
+        this.createModalHandlers();
+        this.updateModalHandlers();
+        this.deleteModalHandlers();
+
+        return this;
+    },
+
+    createModalHandlers: function() {
+        var self = this;
+
+        // add /user/'s uuid to hidden form field to be submitted as
+        // owner of search
+        var populateOwnerUuid = function() {
+            $.ajax({
+                type: 'GET',
+                url: '/user/'
+            })
+                .done(function(res) {
+                    $('.create-form #owner').val(res.uuid);
+                })
+                .fail(function(err) {
+                    goldstone.raiseInfo(err);
+                });
+        };
+
+        // click listener on add trail plus button to reset modal form
+        $('.add-button').on('click', function() {
+            $('.create-form')[0].reset();
+            populateOwnerUuid();
+        });
+
+        // if cancelling add trail dialog, just close modal
+        $('#cancel-create-button').on('click', function() {
+            $('#create-modal').modal('hide');
+        });
+
+        // when submitting data in modal form for add swift trail
+        $('.create-form').on('submit', function(e) {
+            e.preventDefault();
+            var data = $('.create-form').serialize();
+            self.createNewSearchAjax(data);
+        });
+
+    },
+
+    createNewSearchAjax: function(data) {
+        var self = this;
+
+        $.ajax({
+            type: "POST",
+            url: self.urlRoot,
+            data: data
+        })
+            .done(function() {
+
+                var updateMessage = goldstone.contextTranslate('Creation of %s successful', 'savedsearch');
+                var successMessage = goldstone.sprintf(updateMessage, $('.create-form #new-search-name').val());
+
+                // show success message at top of screen
+                // uses sprintf string interpolation to create a properly
+                // formatted message such as "Creation of trail1 successful"
+                goldstone.raiseInfo(successMessage);
+
+            })
+            .fail(function(err) {
+                var failMessage = goldstone.contextTranslate('Failure to create %s', 'savedsearch');
+                var failureWarning = goldstone.sprintf(failMessage, $('.create-form #new-search-name').val());
+
+                // show failure message at top of screen
+                // uses sprintf string interpolation to create a properly
+                // formatted message such as "Failure to create trail1"
+                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+
+            }).always(function() {
+                // close modal
+                $('#create-modal').modal('hide');
+                // reload table
+                self.oTable.ajax.reload();
+            });
+    },
+
+    updateModalHandlers: function() {
+        var self = this;
+
+        // if cancelling update trail dialog, just close modal
+        $('#cancel-submit-update-search').on('click', function() {
+            $('#update-modal').modal('hide');
+        });
+
+        // when submitting data in modal form for updating trail
+        $('.update-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var data = $('.update-form').serialize();
+
+
+            $.ajax({
+                type: "PATCH",
+                url: self.urlRoot + $('#updateUUID').val() + "/",
+                data: data
+            })
+                .done(function() {
+
+                    var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+
+                    // success message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Update of trail1 successful"
+                    goldstone.raiseInfo(successMessage);
+
+                })
+                .fail(function(err) {
+
+                    var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+
+                    // failure message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Failure to update trail1"
+                    self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+
+                }).always(function() {
+                    // close modal and reload list
+                    $('#update-modal').modal('hide');
+                    self.oTable.ajax.reload();
+                });
+        });
+    },
+
+    deleteModalHandlers: function() {
+        var self = this;
+
+        // if cancelling delete trail dialogue, just close modal
+        $('#cancel-delete-search').on('click', function() {
+            $('#delete-modal').modal('hide');
+        });
+
+        // when submitting data in modal for delete trail
+        $('#confirm-delete').on('click', function(e) {
+            e.preventDefault();
+
+            var serializedData = $('.delete-form').serialize();
+
+            $.ajax({
+                type: "DELETE",
+                url: self.urlRoot + $('.delete-form').find('#deleteUUID').val() + "/"
+            })
+                .done(function() {
+
+                    var deletedTrailName = goldstone.contextTranslate('Deletion of %s complete', 'savedsearch');
+                    var deleteSuccess = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
+
+                    // success message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Deletion of trail1 complete"
+                    goldstone.raiseInfo(deleteSuccess);
+
+                })
+                .fail(function(err) {
+
+                    var deletedTrailName = goldstone.contextTranslate('Failure to delete %s', 'savedsearch');
+                    var deleteFailure = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
+
+                    // failure message
+                    self.dataErrorMessage(err.responseJSON ? err.responseJSON : deleteFailure);
+
+                })
+                .always(function() {
+                    // close modal and reload list
+                    $('#delete-modal').modal('hide');
+                    self.oTable.ajax.reload();
+                });
+
+        });
+
+    },
+
+    update: function() {
+
+        /*
+        update is inactive unless set up with triggers on
+        OpenTrailManagerPageView. The usual implementation is to trigger
+        update upon reaching a refresh interval, if that becomes implemented.
+        */
+
+        var oTable;
+
+        if ($.fn.dataTable.isDataTable("#reports-result-table")) {
+            oTable = $("#reports-result-table").DataTable();
+            oTable.ajax.reload();
+        }
+    },
+
+    dataTableRowGenerationHooks: function(row, data) {
+
+        var self = this;
+
+        /*
+        these hooks are activated once per row when rendering the dataTable.
+        each hook has access to the row, and the data specific to that row
+        */
+
+        // depending on logging status, grey out row
+        $(row).addClass(data.protected === true ? 'paused' : null);
+
+        // set click listeners on row symbols
+
+        $(row).on('click', '.fa-trash-o', function() {
+
+            var deleteWarningText = goldstone.contextTranslate('"%s" will be permanently deleted. Are you sure?', 'savedsearch');
+            var deleteWarningMessage = goldstone.sprintf(deleteWarningText, data.name);
+
+            // delete trail modal - pass in row data details
+            // uses sprintf string interpolation to create a properly
+            // formatted message such as "Trail1 will be permanently deleted."
+            $('#delete-modal #delete-name-span').text(deleteWarningMessage);
+
+            // fill in hidden fields for Name and UUID to be
+            // submitted via API call as form data
+            $('#delete-modal #deleteName').val(data.name);
+            $('#delete-modal #deleteUUID').val(data.uuid);
+        });
+
+        $(row).on('click', '.fa-gear', function() {
+
+            // clear modal
+            $('.update-form')[0].reset();
+
+            // update trail modal - pass in row data details
+            // name / isLogging/UUID
+            $('#update-modal #update-search-name').val(data.name);
+            $('#update-modal #update-search-description').val(data.description);
+            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #updateUUID').val('' + data.uuid);
+
+            // shut off input on protected searches
+            if (data.protected === true) {
+                $('#update-modal #update-search-name').attr('disabled', true);
+                $('#update-modal #update-search-query').attr('disabled', true);
+            } else {
+
+                // must disable when clicking non-protected or else it will
+                // persist after viewing a persisted search
+                $('#update-modal #update-search-name').attr('disabled', false);
+                $('#update-modal #update-search-query').attr('disabled', false);
+            }
+        });
+    },
+
+    // function to add additional initialization paramaters, as dataTables
+    // options can't be changed post-init without the destroy() method.
+    addOTableParams: function(options) {
+        var self = this;
+        options.createdRow = function(row, data) {
+            self.dataTableRowGenerationHooks(row, data);
+        };
+
+        return options;
+    },
+
+    oTableParamGeneratorBase: function() {
+        var self = this;
+        return {
+            "scrollX": "100%",
+            "processing": false,
+            "lengthChange": true,
+            "iDisplayLength": self.iDisplayLengthOverride ? self.iDisplayLengthOverride : 10,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
+            "columnDefs": [{
+                    "data": "name",
+                    "targets": 0,
+                    "sortable": true
+                }, {
+                    "data": "description",
+                    "targets": 1,
+                    "sortable": true
+                }, {
+                    "targets": 2,
+                    "data": null,
+
+                    // add icons to dataTable cell
+                    "render": function(data) {
+                        if (data.protected === true) {
+                            return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
+                                "<div class='saved-search-no-delete'>system search - can not delete</div>";
+                        } else {
+                            return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
+                                "<i class='fa fa-trash-o fa-2x fa-fw text-danger' data-toggle='modal' data-target='#delete-modal'></i>";
+                        }
+                    },
+                    "sortable": false
+                }, {
+                    "data": "uuid",
+                    "visible": false
+                }
+
+            ],
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
+                    self.collectionMixin.urlGenerator();
+                    // the pageSize and searchQuery are jQuery values
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
+
+                    // the paginationStart is taken from the dataTables
+                    // generated serverSide query string that will be
+                    // replaced by this.defaults.url after the required
+                    // components are parsed out of it
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "?page_size=" + pageSize +
+                        "&page=" + computeStartPage;
+
+                    // here begins the combiation of additional params
+                    // to construct the final url for the dataTable fetch
+                    if (searchQuery) {
+                        settings.url += "&_all__regexp=.*" +
+                            searchQuery + ".*";
+                    }
+
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        // generalize if sorting is implemented server-side
+                        var columnLabelHash = {
+                            0: 'name',
+                            1: 'description'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        // uncomment if sorting is in place
+                        settings.url = settings.url + "&ordering=" +
+                            ascDec + columnLabelHash[orderByColumn];
+                    }
+
+
+                    // add filter for log/event/api
+                    settings.url += self.finalUrlMods();
+
+                },
+                dataSrc: "results",
+                dataFilter: function(data) {
+                    data = self.serverSideDataPrep(data);
+                    return data;
+                }
+            }
+        };
+    },
+
+    finalUrlMods: function() {
+        return '&index_prefix=logstash-*';
+    },
+
+    serverSideDataPrep: function(data) {
+        data = JSON.parse(data);
+        var result = {
+            results: data.results,
+            recordsTotal: data.count,
+            recordsFiltered: data.count
+        };
+        result = JSON.stringify(result);
+        return result;
+    },
+
+    serverSideTableHeadings: _.template('' +
+        '<tr class="header">' +
+        '<th>Name</th>' +
+        '<th>Description</th>' +
+        '<th>Controls</th>' +
+        '</tr>'
+    ),
+
+    createModal: _.template("" +
+        '<div class="modal fade" id="create-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Create New Search\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="create-form">' +
+
+        // Search name
+        '<div class="form-group">' +
+        '<label for="new-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
+        '<input name="name" type="text" class="form-control"' +
+        'id="new-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // Search Description
+        '<div class="form-group">' +
+        '<label for="new-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
+        '</div>' +
+
+        // Search Query
+        '<div class="form-group">' +
+        '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
+        '<input name="query" type="text" class="form-control"' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // hidden owner
+        // populate with uuid via call to /user/
+        '<input name="owner" id="owner" hidden type="text">' +
+
+        // hidden index_prefix
+        '<input name="index_prefix" id="index_prefix" hidden type="text" value="<%= this.form_index_prefix  %>">' +
+
+        // hidden doc_type
+        '<input name="doc_type" id="doc_type" hidden type="text" value="<%= this.form_doc_type %>">' +
+
+        // hidden timestamp_field
+        '<input name="timestamp_field" id="timestamp_field" hidden type="text" value="<%= this.form_timestamp_field %>">' +
+
+        // submit button
+        '<button id="submit-create-button" type="submit"' +
+        ' class="btn btn-default"><%=goldstone.contextTranslate(\'Submit Search\', \'savedsearch\')%></button> ' +
+
+        // cancel button
+        '<button id="cancel-create-button" type="button"' +
+        ' class="btn btn-danger"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button>' +
+
+        '</form>' +
+
+        '</div>' + // modal body
+
+        '</div>' + // modal content
+        '</div>' + // modal dialogue
+        '</div>' // modal container
+    ),
+
+    updateModal: _.template("" +
+        '<div class="modal fade" id="update-modal" tabindex="-1" ' +
+        'role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" ' +
+        'aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Update Search Details\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="update-form">' +
+
+        // Search name
+        '<div class="form-group">' +
+        '<label for="update-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
+        '<input name="name" type="text" class="form-control"' +
+        'id="update-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // Search description
+        '<div class="form-group">' +
+        '<label for="update-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="update-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
+        '</div>' +
+
+        // Search query
+        '<div class="form-group">' +
+        '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
+        '<input name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // hidden UUID
+        '<input name="uuid" id="updateUUID" hidden type="text">' +
+
+        // ui submit / cancel button
+        '<button id="submit-update-search" type="submit" class="btn btn-default"><%=goldstone.contextTranslate(\'Submit\', \'savedsearch\')%></button>' +
+        ' <button id="cancel-submit-update-search" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button><br><br>' +
+
+        '</form>' +
+
+        '</div>' + // modal body
+
+        '</div>' + // modal content
+        '</div>' + // modal dialogue
+        '</div>' // modal container
+    ),
+
+    deleteModal: _.template("" +
+        '<div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Delete Search Confirmation\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="delete-form">' +
+
+        // hidden UUID to be submitted with delete request
+        '<input id="deleteUUID" hidden type="text">' +
+
+        // <h4> will be filled in by handler in dataTableRowGenerationHooks with
+        // warning prior to deleting a trail
+        '<h4><span id="delete-name-span"></span></h4>' +
+
+        '<button id="confirm-delete" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Confirm\', \'savedsearch\')%></button>' +
+        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.translate(\'Cancel\')%></button>' +
+        '</form>' +
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
+        '</div>'
+    )
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+SavedSearchLogPageView = GoldstoneBasePageView.extend({
+
+    renderCharts: function() {
+
+        $("select#global-lookback-range").hide();
+
+        this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true,
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+        this.savedSearchLogView = new SavedSearchLogDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+        this.viewToStopListening = [this.savedSearchLogCollection, this.savedSearchLogView];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    onClose: function() {
+        // return global lookback/refresh selectors to page
+        $("select#global-lookback-range").show();
+        $("select#global-refresh-range").show();
+        SavedSearchLogPageView.__super__.onClose.apply(this, arguments);
+    },
+
+    templateButtonSelectors: [
+        ['/#reports/logbrowser/search', 'Saved Search: Log', 'active'],
+    ],
+
+    template: _.template('' +
+
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
+
+        '<h3><%=goldstone.translate(\'Saved Search Manager\')%></h3>' +
+        '<i class="fa fa-plus-square fa-3x add-button" data-toggle="modal" data-target="#create-modal"></i><br><br>' +
+        '<div class="row">' +
+        '<div id="saved-search-viz" class="col-md-12"></div>' +
+        '</div>' +
+        '<div id="create-modal-container"></div>' +
+        '<div id="update-modal-container"></div>' +
+        '<div id="delete-modal-container"></div>'
     )
 
 
@@ -12042,7 +12619,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -12410,7 +12987,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (self.multiRsrcViewEl !== null) {
             self.multiRscsView = new MultiRscsView({
                 el: self.multiRsrcViewEl,
-                chartTitle: goldstone.translate("Resource List")
+                chartTitle: goldstone.translate("Resource List"),
+                height: self.height
             });
 
             var appendSpinnerLocation = $(self.multiRsrcViewEl);

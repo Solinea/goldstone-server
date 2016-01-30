@@ -41,6 +41,8 @@ css stylesheets prior to redesign
 
 text:not(.zoomable), .axis.label { font: 12px sans-serif; fill: #bbb; }
 
+#discover-view-r2 g.x.axis text { font-size: 9px; }
+
 #goldstone-primary-panel g.text text { font-size: 10px; }
 
 .legend rect { opacity: 0.0; }
@@ -152,6 +154,12 @@ svg.e { margin-left: 50px; }
 
 .table tbody tr.paused:hover td, .table tbody tr.paused:hover th { color: #aaa !important; background-color: rgba(220, 220, 220, 0.5) !important; }
 
+/* green plus */
+.fa-plus-square { color: #6BA757; }
+
+/* saved-search - system search text*/
+.saved-search-no-delete { display: inline; vertical-align: super; }
+
 /*
 css stylesheets supporting redesign
 */
@@ -169,8 +177,7 @@ css stylesheets supporting redesign
 @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; src: local("Roboto"), local("Roboto-Regular"), url(https://fonts.gstatic.com/s/roboto/v15/Ks_cVxiCiwUWVsFWFA3Bjn-_kf6ByYO6CLYdB4HQE-Y.woff2) format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF; }
 /* latin */
 @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; src: local("Roboto"), local("Roboto-Regular"), url(https://fonts.gstatic.com/s/roboto/v15/oMMgfZMQthOryQo9n22dcuvvDin1pK8aKteLpeZ5c0A.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000; }
-/*body{
-	background:url(../../../images/bg4.jpg) no-repeat left top;
+/*body{ background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
 /*Wrapper*/
 .dashboard .wrapper { overflow: hidden; }
@@ -214,22 +221,19 @@ css stylesheets supporting redesign
 
 .shadow-block { box-shadow: 0 0 5px rgba(0, 0, 0, 0.4); }
 
-/*footer*/
+/* footer */
 .footer { position: absolute; bottom: 25px; left: 0; width: 100%; }
-
-.footer .copyright { float: left; font-size: 14px; color: #fff; }
-
+.footer .version { float: left; color: rgba(255, 255, 255, 0.54); }
+.footer .copyright { float: left; margin-left: 27%; font-size: 14px; color: #fff; }
 .footer .copyright strong { font-weight: 400; color: rgba(255, 255, 255, 0.54); }
-
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
-.dashboard .footer { left: 9%; width: 90%; bottom: -38px; }
-
+/* dashboard */
+.dashboard .footer { left: 9%; width: 84%; bottom: -38px; }
 .dashboard .footer .row { width: 100%; }
-
-.dashboard .footer .copyright strong { color: #616161; }
-
 .dashboard .footer .copyright, .dashboard .footer .license { color: #1d9ca5; }
+.dashboard .footer .copyright strong, .dashboard .footer .license strong { color: #616161; }
+.dashboard .footer .version { color: #616161; }
 
 /* Table Of Contents
  1.) Login 2.) Dashboard 3.) Colors ===============================================*/
@@ -309,7 +313,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .unknown { background: url(../../../images/icon-help-40x40.png) no-repeat left top; }
 
-.online, .offline, .intermittent, .unknown { display: inline-block; height: 20px; width: 20px; background-size: 20px 20px; border-radius: 50%; }
+.online, .offline, .intermittent, .unknown { display: inline-block; height: 20px; width: 20px; background-size: 20px 20px; border-radius: 50%; margin-left: 12px; }
 
 .service-status { margin-right: 2.4%; }
 
@@ -366,6 +370,8 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .btn-grp { list-style-type: none; padding: 0; margin-bottom: 0; width: 64px; z-index: 99; float: left; background: #fff; position: relative; height: 100%; box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; -webkit-transition: all 0.3s ease; -ms-transition: all 0.3s ease; -moz-transition: all 0.3s ease; -o-transition: all 0.3s ease; }
 .btn-grp a { text-decoration: none; color: #333; }
+
+a.logo-header { text-decoration: none; }
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
@@ -582,7 +588,6 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
   .topology { background: url(../../../images/icon-topology@2x.png) no-repeat center center; background-size: 20px 20px; }
   .metrics:hover { background-image: url(../../../images/icon-metrics-active@2x.png); }
   .btn-grp li.active .metrics { background-image: url(../../../images/icon-metrics-active1@2x.png); }
-  .btn-grp a { text-decoration: none; }
   .alerts:hover { background-image: url(../../../images/icon-notifications-active@2x.png); }
   .btn-grp li.active .alerts { background-image: url(../../../images/icon-notifications-active1@2x.png); }
   .reports:hover { background-image: url(../../../images/icon-reports-active@2x.png); }

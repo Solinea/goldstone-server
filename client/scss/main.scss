@@ -90,6 +90,10 @@ text:not(.zoomable),
     fill: if($theme==dark, $dark_chart_text, null);
 }
 
+#discover-view-r2 g.x.axis text {
+    font-size: 9px;
+}
+
 #goldstone-primary-panel g.text {
     text {
         font-size: 10px;

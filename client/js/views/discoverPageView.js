@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var DiscoverView = GoldstoneBasePageView.extend({
+var DiscoverPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 
@@ -148,29 +148,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
         '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
-
-
-        // '<div class="col-md-10">' +
-        // '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="map-block shadow-block">' +
-        // '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        // '<div class="map-data">' +
-        // '<span class="stats time">' +
-        // '21 secs ago' +
-        // '</span>' +
-        // '<span class="stats logs">' +
-        // '300 Logs' +
-        // '</span>' +
-        // '<span class="stats events">' +
-        // '17 Events' +
-        // '</span>' +
-        // '<span class="stats call">' +
-        // '12 API Calls' +
-        // '</span>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-
         '</div>' +
 
         // extra row for spacing

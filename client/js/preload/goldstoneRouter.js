@@ -37,11 +37,11 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
-        "help": "help",
         "metrics/api_perf": "apiPerfReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
+        "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
         "reports/apibrowser": "apiBrowser",
         "settings": "settings",
@@ -132,39 +132,27 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(ApiBrowserPageView);
     },
     apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
+        this.switchView(ApiPerfReportPageView);
     },
     discover: function() {
-        this.switchView(DiscoverView);
+        this.switchView(DiscoverPageView);
     },
     eventsBrowser: function() {
         this.switchView(EventsBrowserPageView);
     },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    keystoneReport: function() {
-        this.switchView(KeystoneReportView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
     nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
+        this.switchView(NodeReportPageView, {
             node_uuid: nodeId
         });
     },
     redirect: function() {
         location.href = "#discover";
+    },
+    savedSearchLog: function() {
+        this.switchView(SavedSearchLogPageView);
     },
     settings: function() {
         this.switchView(SettingsPageView);

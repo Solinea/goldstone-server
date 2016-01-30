@@ -52,17 +52,17 @@ msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Calls vs Time"
+msgid "API Calls vs Time"
 msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Calls by Range"
+msgid "API Calls by Range"
 msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Browser"
+msgid "API Browser"
 msgstr ""
 
 #: apiBrowserDataTableView.js
@@ -209,7 +209,7 @@ msgid "Event Browser"
 msgstr ""
 
 #: base.html
-msgid "Api Browser"
+msgid "API Browser"
 msgstr ""
 
 #: base.html
