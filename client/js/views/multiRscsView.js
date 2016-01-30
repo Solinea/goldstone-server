@@ -92,7 +92,9 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
-        '<div class="mainContainer"></div>' +
+        '<div class="mainContainer shadow-block panel-body">' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '</div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +

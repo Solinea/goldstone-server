@@ -59,17 +59,17 @@ describe('goldstoneRouter.js spec', function() {
             });
             var tranlateSpy = sinon.spy(goldstone.testi18n, "translateBaseTemplate");
 
-            this.testRouter.discover();
-            this.testRouter.help();
-            this.testRouter.apiPerfReport();
-            this.testRouter.topology();
-            this.testRouter.nodeReport('control-01');
-            this.testRouter.logSearch();
-            this.testRouter.eventsBrowser();
             this.testRouter.apiBrowser();
+            this.testRouter.apiPerfReport();
+            this.testRouter.discover();
+            this.testRouter.eventsBrowser();
+            this.testRouter.logSearch();
+            this.testRouter.nodeReport('control-01');
+            this.testRouter.redirect();
+            this.testRouter.savedSearchLog();
             this.testRouter.settings();
             this.testRouter.tenant();
-            this.testRouter.redirect();
+            this.testRouter.topology();
 
             expect(tranlateSpy.callCount).to.equal(10);
             tranlateSpy.restore();

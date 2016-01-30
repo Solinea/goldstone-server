@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var NodeReportView = GoldstoneBasePageView.extend({
+var NodeReportPageView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
@@ -23,7 +23,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
+        NodeReportPageView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();

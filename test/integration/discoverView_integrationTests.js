@@ -33,7 +33,7 @@ describe('discover.js spec', function() {
 
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
-        this.testView = new DiscoverView({
+        this.testView = new DiscoverPageView({
             el: '.test-container'
         });
 

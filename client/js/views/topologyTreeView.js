@@ -233,7 +233,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -601,7 +601,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (self.multiRsrcViewEl !== null) {
             self.multiRscsView = new MultiRscsView({
                 el: self.multiRsrcViewEl,
-                chartTitle: goldstone.translate("Resource List")
+                chartTitle: goldstone.translate("Resource List"),
+                height: self.height
             });
 
             var appendSpinnerLocation = $(self.multiRsrcViewEl);

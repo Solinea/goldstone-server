@@ -80,47 +80,34 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             this.setZoomed(trueFalse);
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchModule = new PredefinedSearchView({
+            className: 'compliance-predefined-search nav nav-pills',
+            tagName: 'ul',
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            })
+        });
 
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
+        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
 
-
-        // check for compliance addon and render predefined search bar if present
-        if (goldstone.returnAddonPresent('compliance')) {
-            if (goldstone.compliance.PredefinedSearchView) {
-                this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
-                    className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul',
-                    collection: new GoldstoneBaseCollection({
-                        skipFetch: true,
-                        urlBase: '',
-                        addRange: function() {
-                            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                        },
-                        addInterval: function(interval) {
-                            return '&interval=' + interval + 's';
-                        },
-                    })
-                });
-
-                $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-            }
-
-            // stopListening to predefinedSearchModule upon close, if present
-            if (this.predefinedSearchModule !== undefined) {
-                this.viewsToStopListening.push(this.predefinedSearchModule);
-            }
-
-            // subscribe logBrowserViz to click events on predefined
-            // search dropdown to fetch results.
-            this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
-                // self.logBrowserTable.predefinedSearch(uuid[1]);
-                self.logBrowserViz.predefinedSearch(uuid[0]);
-            });
-            this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
-                self.logBrowserTable.predefinedSearch(uuid[1]);
-                // self.logBrowserViz.predefinedSearch(uuid[0]);
-            });
-        }
+        // subscribe logBrowserViz to click events on predefined
+        // search dropdown to fetch results.
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+            // self.logBrowserTable.predefinedSearch(uuid[1]);
+            self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+            self.logBrowserTable.predefinedSearch(uuid[1]);
+            // self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
 
         // set up a chain of events between viz and table to uddate
         // table when updating viz.
@@ -129,12 +116,15 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             self.logBrowserTable.update();
         });
 
+        // destroy listeners and views upon page close
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
+
     },
 
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Browser', 'active'],
         ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'Api Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
     ],
 
     template: _.template('' +

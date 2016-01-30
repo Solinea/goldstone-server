@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
+var ApiPerfReportPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
