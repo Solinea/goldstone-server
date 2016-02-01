@@ -11002,6 +11002,9 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         // hidden UUID to be submitted with delete request
         '<input id="deleteUUID" hidden type="text">' +
 
+        // hidden name to be submitted with delete request
+        '<input id="deleteName" hidden type="text">' +
+
         // <h4> will be filled in by handler in dataTableRowGenerationHooks with
         // warning prior to deleting a trail
         '<h4><span id="delete-name-span"></span></h4>' +
