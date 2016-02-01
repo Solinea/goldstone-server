@@ -895,6 +895,11 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
                 "parameter": "event_connection",
                 "value": "es://%s:9200" % goldstone_addr
             },
+            {
+                "section": "database",
+                "parameter": "time_to_live",
+                "value": "604800"                # one week
+            },
         ]
     }
 
