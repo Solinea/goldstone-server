@@ -164,17 +164,29 @@ def check_for_pending_alerts():
     for obj in saved_alerts:
         # execute the search, and assuming no error, update the last_ times
         s, start, end = obj.search_recent()
-        response = s.execute()
+
+        # TBD : Decide if you want to distinguish the objects by type :
+        # SQL vs ES and then call execute() for the latter. This implies
+        # that the task should be aware of different AlertSearch objects
+        # which is not good OOP. But this overridden function that decides
+        # whether to call es.execute() or not, does not look good either.
+        #
+        # if not hasattr(obj, 'db_table'):
+        #     response = s.execute()
+        #     num_hits = response.hits.total
+        #
+        response, num_hits = obj.return_query_results(s)
+
         obj.last_start = start
         obj.last_end = end
         obj.save()
 
-        if response.hits.total > 0:
+        if num_hits > 0:
             # We have a non-zero match for pending alerts
             # Go ahead and generate an instance of the alert object here.
             # We can directly call the producer class to send an email
 
-            msg_dict = obj.build_alert_template(hits=response.hits.total)
+            msg_dict = obj.build_alert_template(hits=num_hits)
 
             # For this scheduled celery task, pick up the message template
             # from the query object and pass it along. For all other

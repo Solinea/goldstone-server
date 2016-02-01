@@ -34,6 +34,10 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+# from goldstone.compliance.models import Vulnerability
+from django.db import connection
+
+from django.db.models.query import RawQuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -2676,6 +2680,10 @@ class AlertSearch(SavedSearch):
 
         verbose_name_plural = "saved searches with alerts"
 
+    def return_query_results(self, query):
+        response = query.execute()
+        return response, response.hits.total
+
     def build_alert_template(self, hits):
         msg_title_template = 'Alert : ' + str(self.name) + \
                              ' triggered with ' + str(hits) +\
@@ -2694,6 +2702,64 @@ class AlertSearch(SavedSearch):
         msg_params_dict = {'title': msg_title_template,
                            'body': msg_body_template}
         return msg_params_dict
+
+
+class AlertSearchSQLQuery(AlertSearch):
+
+    db_table = models.CharField(max_length=64,
+                                default='compliance_vulnerability',
+                                help_text='database to be searched')
+
+    db_col_filter = models.CharField(max_length=64, default='created',
+                                     help_text='db column filter')
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+
+        verbose_name_plural = "saved searches on DB data with alerts"
+
+    def search(self):
+        # This function returns a dictionary of rows (and not a list of rows)
+        # of all the entries in the vulnerability table.
+        # dict is more useful for k,v parsing. If you care about just a list
+        # simply return cursor.fetchall()
+        cursor = connection.cursor()
+        cursor.execute("SELECT * from %s", [self.db_table])
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row))
+                for row in cursor.fetchall()]
+
+    def search_recent(self):
+
+        if self.timestamp_field is None:
+            return self.search()
+
+        if self.last_end is None:
+            start = arrow.get(0).datetime()
+        else:
+            start = self.last_end
+
+        end = arrow.utcnow().datetime
+
+        # TBD : Cursor() exception handling ? say for connection_fail() etc
+        cursor = connection.cursor()
+        # resist the temptation to use OVERLAPS and BETWEEN operators here.
+        # You will loose out on the ability to use >= and <= operators
+        cursor.execute("SELECT * from %s WHERE %s >= %s AND %s <= %s",
+                       [self.db_table, self.db_col_filter,
+                       str(start), str(end)])
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row))
+                for row in cursor.fetchall()], start, end
+
+    def return_query_results(self, query):
+        return query, len(query)
+
+
+class AlertSearchESQuery(AlertSearch):
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+
+        verbose_name_plural = "saved searches on ES-index with alerts"
 
 
 class Alert(models.Model):
