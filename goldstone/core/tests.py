@@ -27,7 +27,7 @@ from elasticsearch_dsl.result import Response
 import mock
 from rest_framework.test import APISimpleTestCase, APITestCase
 
-from goldstone.core.tasks import check_for_pending_alerts
+from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
@@ -165,13 +165,88 @@ class EmailProducerTests(SimpleTestCase):
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
-    def test_delete_indices(self):
-        """Tests that delete indices returns result of check_call."""
+    @mock.patch('goldstone.core.tasks.es_conn')
+    @mock.patch('goldstone.core.tasks.curator.get_indices')
+    @mock.patch('goldstone.core.tasks.curator.delete_indices')
+    @mock.patch('goldstone.core.tasks.logger.exception')
+    def test_prune_es_indices(self, exception_mock, delete_indices_mock,
+                              get_indices_mock, es_conn_mock):
+        """tests for goldstone.core.tasks.prune_es_indices"""
 
-        tasks.check_call = mock.Mock(return_value='mocked')
-        # pylint: disable=W0212
-        self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
-        self.assertEqual(tasks.check_call.call_count, 1)
+        # test when no indices are present
+        get_indices_mock.return_value = []
+        rv = prune_es_indices()
+        self.assertTrue(es_conn_mock.called)
+        self.assertTrue(get_indices_mock.called)
+        self.assertFalse(delete_indices_mock.called)
+        self.assertItemsEqual(rv, [])
+
+        # test when old versions of all indices are present
+        get_indices_mock.return_value = ['goldstone-1900.01.01',
+                                         'goldstone_metrics-1900.01.01',
+                                         'api_stats-1900.01.01',
+                                         'events_1900-01-01']
+        rv = prune_es_indices()
+
+        self.assertTrue(delete_indices_mock.call_count, 4)
+        self.assertItemsEqual(rv,
+                              ['goldstone-1900.01.01',
+                               'goldstone_metrics-1900.01.01',
+                               'api_stats-1900.01.01',
+                               'events_1900-01-01'])
+        delete_indices_mock.reset_mock()
+
+        # test when old and new versions of all indices are present
+        get_indices_mock.return_value = ['goldstone-1900.01.01',
+                                         'goldstone_metrics-1900.01.01',
+                                         'api_stats-1900.01.01',
+                                         'events_1900-01-01',
+                                         'goldstone-9999.01.01',
+                                         'goldstone_metrics-9999.01.01',
+                                         'api_stats-9999.01.01',
+                                         'events_9999-01-01']
+        rv = prune_es_indices()
+
+        self.assertTrue(delete_indices_mock.call_count, 4)
+        self.assertItemsEqual(rv,
+                              ['goldstone-1900.01.01',
+                               'goldstone_metrics-1900.01.01',
+                               'api_stats-1900.01.01',
+                               'events_1900-01-01'])
+        delete_indices_mock.reset_mock()
+
+        # test when only new versions of all indices are present
+        get_indices_mock.return_value = ['goldstone-9999.01.01',
+                                         'goldstone_metrics-9999.01.01',
+                                         'api_stats-9999.01.01',
+                                         'events_9999-01-01']
+        rv = prune_es_indices()
+
+        self.assertFalse(delete_indices_mock.called)
+        self.assertItemsEqual(rv, [])
+        delete_indices_mock.reset_mock()
+
+        # test when non-goldstone indices are present
+        get_indices_mock.return_value = ['xyz_1900-01-01',
+                                         'abc-1900.01.01']
+        rv = prune_es_indices()
+
+        self.assertFalse(delete_indices_mock.called)
+        self.assertItemsEqual(rv, [])
+        delete_indices_mock.reset_mock()
+
+        # test when an exception is raised.  logstash indices are processed
+        # before goldstone indices.  an exception is raised for logstash, but
+        # goldstone should still be pruned.
+        get_indices_mock.return_value = ['goldstone-1900.01.01',
+                                         'logstash-1900.01.01']
+        delete_indices_mock.side_effect = [Exception, None]
+
+        rv = prune_es_indices()
+
+        self.assertTrue(delete_indices_mock.call_count, 2)
+        self.assertTrue(exception_mock.call_count, 1)
+        self.assertItemsEqual(rv, ['goldstone-1900.01.01'])
 
     def test_no_saved_alerts_for_task(self):
         # simulate results when there are no saved alerts to call

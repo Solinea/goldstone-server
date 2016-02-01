@@ -171,8 +171,6 @@ CELERY_QUEUES = (
 # Definitions for the prune task. Indices older than this number of this time
 # unit are periodically pruned.
 PRUNE_OLDER_THAN = 7
-PRUNE_TIME_UNITS = "days"
-PRUNE_INDICES = ['logstash-', 'events_', 'goldstone-', 'goldstone_metrics-']
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
@@ -185,10 +183,6 @@ CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
         'task': 'goldstone.core.tasks.prune_es_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-    },
-    'create_daily_index': {
-        'task': 'goldstone.core.tasks.create_daily_index',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
