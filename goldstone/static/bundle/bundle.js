@@ -5594,6 +5594,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
+            marginLeft: 60,
             width: $('#events-histogram-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
@@ -6954,8 +6955,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     margin: {
         top: 20,
         right: 40,
-        bottom: 35,
-        left: 63
+        bottom: 80,
+        left: 70
     },
 
     // IMPORTANT: the order of the entries in the
@@ -7039,7 +7040,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         self.mw = self.width - self.margin.left - self.margin.right;
         self.mh = self.height - self.margin.top - self.margin.bottom;
 
-        self.svg = d3.select(this.el).append("svg")
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", self.width)
             .attr("height", self.height);
 
@@ -7139,8 +7140,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var zoomedStart;
         var zoomedEnd;
 
-        var leftMarginX = 64;
-        var rightMarginX = 42;
+        var leftMarginX = 67;
+        var rightMarginX = 26;
 
         var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (self.width - leftMarginX - rightMarginX)));
 
@@ -7484,11 +7485,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // this.trigger('chartUpdate');
     },
 
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="compliance-predefined-search-container"></div>'),
-
-    modal2: _.template(
+    filterModal: _.template(
         // event filter modal
         '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -7525,7 +7522,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 5px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
-        this.$el.append(this.modal2());
+        this.$el.append(this.filterModal());
         return this;
     },
 
@@ -7581,9 +7578,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
-            height: 300,
             infoText: 'logBrowser',
-            marginLeft: 60,
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -7614,9 +7610,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         // render predefinedSearch Dropdown
-        this.predefinedSearchModule = new PredefinedSearchView({
-            className: 'compliance-predefined-search nav nav-pills',
-            tagName: 'ul',
+        this.predefinedSearchDropdown = new PredefinedSearchView({
             collection: new GoldstoneBaseCollection({
                 skipFetch: true,
                 urlBase: '',
@@ -7626,18 +7620,21 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 addInterval: function(interval) {
                     return '&interval=' + interval + 's';
                 },
-            })
+            }),
+            index_prefix: 'logstash-*',
+            settings_redirect: '/#reports/logbrowser/search'
+
         });
 
-        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
+        this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
         // subscribe logBrowserViz to click events on predefined
         // search dropdown to fetch results.
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+        this.listenTo(this.predefinedSearchDropdown, 'clickedUuidViz', function(uuid) {
             // self.logBrowserTable.predefinedSearch(uuid[1]);
             self.logBrowserViz.predefinedSearch(uuid[0]);
         });
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+        this.listenTo(this.predefinedSearchDropdown, 'clickedUuidTable', function(uuid) {
             self.logBrowserTable.predefinedSearch(uuid[1]);
             // self.logBrowserViz.predefinedSearch(uuid[0]);
         });
@@ -7650,7 +7647,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         // destroy listeners and views upon page close
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchDropdown];
 
     },
 
@@ -9972,27 +9969,48 @@ compliance/defined_search/ results structure:
 
 PredefinedSearchView = GoldstoneBaseView.extend({
 
+    // bootstrap classes for dropdown menu heading
+    className: 'nav nav-pills predefined-search-container',
+
     instanceSpecificInit: function() {
+        // index_prefix and settings_redirect defined on instantiation
         this.processOptions();
+        this.render();
+
+        // adds listeners to <li> elements inside dropdown container
+        this.processListeners();
         this.getPredefinedSearches();
     },
 
     getPredefinedSearches: function() {
         var self = this;
 
-        $.get('/core/saved_search/?page_size=1000&index_prefix=logstash-*').
+        // fallback for incompatible API return, or failed ajax call
+        var failAppend = [{
+            uuid: null,
+            name: goldstone.translate('No predefined searches.')
+        }];
+
+        var serverError = [{
+            uuid: null,
+            name: goldstone.translate('Server error.')
+        }];
+
+        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix).
         done(
             function(result) {
                 if (result.results) {
                     self.predefinedSearches = result.results;
-                    self.render();
+                    self.renderUpdatedResultList();
                 } else {
-                    console.log('unknown result format');
+                    self.predefinedSearches = failAppend;
+                    self.renderUpdatedResultList();
                 }
-            }).
-        fail(function(result) {
-            console.log('failed defined search ', result);
-        });
+            })
+            .fail(function(result) {
+                self.predefinedSearches = serverError;
+                self.renderUpdatedResultList();
+            });
     },
 
     populatePredefinedSearches: function(arr) {
@@ -10009,20 +10027,16 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         var self = this;
 
         // dropdown to reveal predefined search list
-        $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
+        this.$el.find('.dropdown-menu').on('click', 'li', function(item) {
             var clickedUuid = $(this).data('uuid');
-            var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
+            var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
 
-            self.collection.urlBase = '/compliance/defined_search/' + clickedUuid + '/results/';
+            self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
             self.collection.urlGenerator();
             var constructedUrlforViz = self.collection.url;
             self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
-
-        // gear icon navigation to saved search settings page
-        this.$el.find('.fa-gear').click(function() {
-            window.location.href = "/#reports/logbrowser/search";
-        });
+        
     },
 
     fetchResults: function(vizUrl, tableUrl) {
@@ -10048,17 +10062,23 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
         '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
-        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
+        '</a>' +
         '<ul class="dropdown-menu">' +
-        '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
+        // populated via renderUpdatedResultList()
         '</ul>' +
-        '</li>'
+        '</li>' +
+        '<a href=<%= this.settings_redirect %>><i class="setting-btn">&nbsp</i></a>'
     ),
+
+    updatedResultList: _.template('<%= this.populatePredefinedSearches(this.predefinedSearches) %>'),
 
     render: function() {
         $(this.el).html(this.template());
-        this.processListeners();
         return this;
+    },
+
+    renderUpdatedResultList: function() {
+        this.$el.find('.dropdown-menu').html(this.updatedResultList());
     }
 
 });

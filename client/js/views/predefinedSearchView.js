@@ -38,27 +38,48 @@ compliance/defined_search/ results structure:
 
 PredefinedSearchView = GoldstoneBaseView.extend({
 
+    // bootstrap classes for dropdown menu heading
+    className: 'nav nav-pills predefined-search-container',
+
     instanceSpecificInit: function() {
+        // index_prefix and settings_redirect defined on instantiation
         this.processOptions();
+        this.render();
+
+        // adds listeners to <li> elements inside dropdown container
+        this.processListeners();
         this.getPredefinedSearches();
     },
 
     getPredefinedSearches: function() {
         var self = this;
 
-        $.get('/core/saved_search/?page_size=1000&index_prefix=logstash-*').
+        // fallback for incompatible API return, or failed ajax call
+        var failAppend = [{
+            uuid: null,
+            name: goldstone.translate('No predefined searches.')
+        }];
+
+        var serverError = [{
+            uuid: null,
+            name: goldstone.translate('Server error.')
+        }];
+
+        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix).
         done(
             function(result) {
                 if (result.results) {
                     self.predefinedSearches = result.results;
-                    self.render();
+                    self.renderUpdatedResultList();
                 } else {
-                    console.log('unknown result format');
+                    self.predefinedSearches = failAppend;
+                    self.renderUpdatedResultList();
                 }
-            }).
-        fail(function(result) {
-            console.log('failed defined search ', result);
-        });
+            })
+            .fail(function(result) {
+                self.predefinedSearches = serverError;
+                self.renderUpdatedResultList();
+            });
     },
 
     populatePredefinedSearches: function(arr) {
@@ -75,20 +96,16 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         var self = this;
 
         // dropdown to reveal predefined search list
-        $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
+        this.$el.find('.dropdown-menu').on('click', 'li', function(item) {
             var clickedUuid = $(this).data('uuid');
-            var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
+            var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
 
-            self.collection.urlBase = '/compliance/defined_search/' + clickedUuid + '/results/';
+            self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
             self.collection.urlGenerator();
             var constructedUrlforViz = self.collection.url;
             self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
-
-        // gear icon navigation to saved search settings page
-        this.$el.find('.fa-gear').click(function() {
-            window.location.href = "/#reports/logbrowser/search";
-        });
+        
     },
 
     fetchResults: function(vizUrl, tableUrl) {
@@ -114,17 +131,23 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
         '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
-        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
+        '</a>' +
         '<ul class="dropdown-menu">' +
-        '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
+        // populated via renderUpdatedResultList()
         '</ul>' +
-        '</li>'
+        '</li>' +
+        '<a href=<%= this.settings_redirect %>><i class="setting-btn">&nbsp</i></a>'
     ),
+
+    updatedResultList: _.template('<%= this.populatePredefinedSearches(this.predefinedSearches) %>'),
 
     render: function() {
         $(this.el).html(this.template());
-        this.processListeners();
         return this;
+    },
+
+    renderUpdatedResultList: function() {
+        this.$el.find('.dropdown-menu').html(this.updatedResultList());
     }
 
 });

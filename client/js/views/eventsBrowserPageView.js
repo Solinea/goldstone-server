@@ -25,6 +25,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
+            marginLeft: 60,
             width: $('#events-histogram-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });

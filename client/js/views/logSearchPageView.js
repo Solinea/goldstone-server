@@ -48,9 +48,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
-            height: 300,
             infoText: 'logBrowser',
-            marginLeft: 60,
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -81,9 +80,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         // render predefinedSearch Dropdown
-        this.predefinedSearchModule = new PredefinedSearchView({
-            className: 'compliance-predefined-search nav nav-pills',
-            tagName: 'ul',
+        this.predefinedSearchDropdown = new PredefinedSearchView({
             collection: new GoldstoneBaseCollection({
                 skipFetch: true,
                 urlBase: '',
@@ -93,18 +90,21 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
                 addInterval: function(interval) {
                     return '&interval=' + interval + 's';
                 },
-            })
+            }),
+            index_prefix: 'logstash-*',
+            settings_redirect: '/#reports/logbrowser/search'
+
         });
 
-        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
+        this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
         // subscribe logBrowserViz to click events on predefined
         // search dropdown to fetch results.
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+        this.listenTo(this.predefinedSearchDropdown, 'clickedUuidViz', function(uuid) {
             // self.logBrowserTable.predefinedSearch(uuid[1]);
             self.logBrowserViz.predefinedSearch(uuid[0]);
         });
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+        this.listenTo(this.predefinedSearchDropdown, 'clickedUuidTable', function(uuid) {
             self.logBrowserTable.predefinedSearch(uuid[1]);
             // self.logBrowserViz.predefinedSearch(uuid[0]);
         });
@@ -117,7 +117,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         // destroy listeners and views upon page close
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchDropdown];
 
     },
 
