@@ -186,10 +186,6 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.core.tasks.prune_es_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
     },
-    'create_daily_index': {
-        'task': 'goldstone.core.tasks.create_daily_index',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE
-    },
     'nova-hypervisors-stats': {
         'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
