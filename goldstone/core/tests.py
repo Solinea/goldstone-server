@@ -165,14 +165,6 @@ class EmailProducerTests(SimpleTestCase):
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
-    def test_delete_indices(self):
-        """Tests that delete indices returns result of check_call."""
-
-        tasks.check_call = mock.Mock(return_value='mocked')
-        # pylint: disable=W0212
-        self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
-        self.assertEqual(tasks.check_call.call_count, 1)
-
     def test_no_saved_alerts_for_task(self):
         # simulate results when there are no saved alerts to call
         rv = check_for_pending_alerts()

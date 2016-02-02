@@ -26,43 +26,37 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task()
-def delete_indices(prefix,
-                   cutoff=None,
-                   es_host=settings.ES_HOST,
-                   es_port=settings.ES_PORT):
-    """Cull old indices from Elasticsearch.
-
-    Takes an index name prefix (ex: goldstone-) and a cutoff time in days
-    Returns 0 or None if no cutoff was provided.
-    """
-
-    if cutoff is not None:
-        cmd = "curator --host %s --port %s delete --prefix %s " \
-              "--older-than %d" % (es_host, es_port, prefix, cutoff)
-        return check_call(cmd.split())
-    else:
-        return "Cutoff was none, no action taken"
-
-
-@celery_app.task()
 def prune_es_indices():
-    """Prune old events_* indices."""
-    from subprocess import check_call
+    """Prune ES indices older than the age defined in
+    settings.PRUNE_OLDER_THAN."""
 
-    for prefix in settings.PRUNE_INDICES:
-        curator = ["curator",
-                   "delete",
-                   "indices",
-                   "--prefix",
-                   "%s" % prefix,
-                   "--older-than",
-                   "%d" % settings.PRUNE_OLDER_THAN,
-                   "--time-unit",
-                   "%s" % settings.PRUNE_TIME_UNITS,
-                   "--timestring",
-                   "%Y.%m.%d"]
+    from goldstone.models import es_conn
+    import curator
 
-    check_call(curator)
+    curation_params = [
+        {"prefix": "events_", "time_string": "%Y-%d-%m"},
+        {"prefix": "logstash-", "time_string": "%Y.%d.%m"},
+        {"prefix": "goldstone-", "time_string": "%Y.%d.%m"},
+        {"prefix": "goldstone_metrics-", "time_string": "%Y.%d.%m"},
+        {"prefix": "api_stats-", "time_string": "%Y.%d.%m"},
+    ]
+
+    client = es_conn()
+    all_indices = curator.get_indices(client)
+    working_list = all_indices
+    for index_set in curation_params:
+        name_filter = curator.build_filter(
+            kindOf='prefix', value=index_set['prefix'])
+        age_filter = curator.build_filter(
+            kindOf='older_than', time_unit='days',
+            timestring=index_set['time_string'],
+            value=settings.PRUNE_OLDER_THAN)
+        working_list = curator.apply_filter(working_list, **name_filter)
+        working_list = curator.apply_filter(working_list, **age_filter)
+        if working_list is not None and len(working_list) > 0:
+            logger.info("deleting indices: %s" % working_list)
+            curator.delete_indices(client, working_list)
+        working_list = all_indices
 
 
 @celery_app.task()

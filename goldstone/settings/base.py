@@ -171,8 +171,6 @@ CELERY_QUEUES = (
 # Definitions for the prune task. Indices older than this number of this time
 # unit are periodically pruned.
 PRUNE_OLDER_THAN = 7
-PRUNE_TIME_UNITS = "days"
-PRUNE_INDICES = ['logstash-', 'events_', 'goldstone-', 'goldstone_metrics-']
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
