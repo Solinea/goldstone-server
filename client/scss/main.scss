@@ -20,18 +20,6 @@ $dark_datatable_text: #eee;
     top: 12px;
 }
 
-.ajax-loader {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin-left: -32px;
-    /* -1 * image width / 2 */
-    margin-top: -32px;
-    /* -1 * image height / 2 */
-    display: block;
-}
-
-
 /* every font-awesome icon everywhere unless excluded */
 
 .fa:not(.fa-check):not(.fa-clock-o) {
@@ -100,6 +88,10 @@ text:not(.zoomable),
 .axis.label {
     font: 12px sans-serif;
     fill: if($theme==dark, $dark_chart_text, null);
+}
+
+#discover-view-r2 g.x.axis text {
+    font-size: 9px;
 }
 
 #goldstone-primary-panel g.text {

@@ -1,5 +1,5 @@
 /*body{
-	background:url(../../../images/bg4.jpg) no-repeat left top;
+    background:url(../../../images/bg4.jpg) no-repeat left top;
 }*/
 
 
@@ -128,7 +128,7 @@
 
 .menu .logout-btn {
     clear: left;
-    width: 78px;
+    width: 81px;
     min-height: 34px;
     font-size: 14px;
     line-height: 34px;
@@ -147,47 +147,52 @@
 }
 
 
-/*footer*/
+/* footer */
 
 .footer {
     position: absolute;
     bottom: 25px;
     left: 0;
     width: 100%;
+    .version {
+        float: left;
+        color: rgba(255, 255, 255, 0.54);
+    }
+    .copyright {
+        float: left;
+        margin-left: 27%;
+        font-size: 14px;
+        color: #fff;
+        strong {
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.54);
+        }
+    }
+    .license {
+        float: right;
+        color: #fff;
+        font-size: 14px;
+    }
 }
 
-.footer .copyright {
-    float: left;
-    font-size: 14px;
-    color: #fff;
-}
 
-.footer .copyright strong {
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.54);
-}
-
-.footer .license {
-    float: right;
-    color: #fff;
-    font-size: 14px;
-}
+/* dashboard */
 
 .dashboard .footer {
     left: 9%;
-    width: 90%;
+    width: 84%;
     bottom: -38px;
-}
-
-.dashboard .footer .row {
-    width: 100%;
-}
-
-.dashboard .footer .copyright strong {
-    color: #616161;
-}
-
-.dashboard .footer .copyright,
-.dashboard .footer .license {
-    color: #1d9ca5;
+    .row {
+        width: 100%;
+    }
+    .copyright,
+    .license {
+        color: #1d9ca5;
+        strong {
+            color: #616161;
+        }
+    }
+    .version {
+        color: #616161;
+    }
 }

@@ -64,17 +64,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
-        this.infoText = this.options.infoText;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        if (this.options.collectionMixin) {
-            this.collectionMixin = this.options.collectionMixin;
-        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.collection = this.options.collection || undefined;
-        this.infoIcon = this.options.infoIcon;
         this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
@@ -134,7 +125,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 'position': 'relative',
                 'margin-left': (self.width / 2),
                 'margin-top': -(self.height / 2),
-                'display': self.spinnerDisplay
+                'display': self.spinnerDisplay,
+                'left': '-1.4em',
+                'top': '-3.6em'
             });
         });
     },
@@ -236,8 +229,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         // is returned, creates an error message, otherwise clears
         // any existing alert or error messages.
 
+        var noDataMessage = goldstone.translate('No Data Returned');
+
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(noDataMessage);
             return false;
         } else {
             this.clearDataErrorMessage();
@@ -290,5 +285,28 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         flattenator(obj);
         return result;
-    }
+    },
+
+    templateButtonConstructor: function(routeArray) {
+        /*
+        usually implemented by passing in this.templateButtonSelectors
+        in the following order: [url, display text, active (optional)]
+
+        produces output such as:
+        <div class="btn-group" role="group">
+            <a href="/#reports/logbrowser" class=" btn btn-default">Log Browser</a>
+            <a href="/#reports/eventbrowser" class="active btn btn-default">Event Browser</a>
+            <a href="/#reports/apibrowser" class=" btn btn-default">Api Browser</a>
+        </div><br><br>
+        */
+
+        var result = '<div class="btn-group" role="group">';
+        _.each(routeArray, function(route) {
+            result += '<a href="' + route[0] + '"' + ' class="' + (route[2] === 'active' ? 'active ' : '') +
+                'btn btn-default">' + goldstone.translate(route[1]) + '</a>';
+        });
+        result += '</div><br><br>';
+        return result;
+    },
+
 });

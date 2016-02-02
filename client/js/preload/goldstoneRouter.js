@@ -37,15 +37,11 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
-        "help": "help",
         "metrics/api_perf": "apiPerfReport",
-        "metrics/metric_report": "metricViewer",
-        "metrics/metric_report/": "metricViewer",
-        "metrics/metric_report/:numCharts": "metricViewer",
-        "metrics/nova_report": "novaReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
+        "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
         "reports/apibrowser": "apiBrowser",
         "settings": "settings",
@@ -136,54 +132,27 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(ApiBrowserPageView);
     },
     apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
+        this.switchView(ApiPerfReportPageView);
     },
     discover: function() {
-        this.switchView(DiscoverView);
+        this.switchView(DiscoverPageView);
     },
     eventsBrowser: function() {
         this.switchView(EventsBrowserPageView);
     },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    keystoneReport: function() {
-        this.switchView(KeystoneReportView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    metricViewer: function(numCharts) {
-        if (numCharts === null || numCharts === undefined) {
-            numCharts = 6;
-        }
-        numCharts = parseInt(numCharts, 10);
-        if (numCharts > 6 || numCharts < 1) {
-            numCharts = 6;
-        }
-        this.switchView(MetricViewerPageView, {
-            numCharts: numCharts
-        });
-    },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
     nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
+        this.switchView(NodeReportPageView, {
             node_uuid: nodeId
         });
     },
-    novaReport: function() {
-        this.switchView(NovaReportView);
-    },
     redirect: function() {
-        location.href = "#metrics/topology";
+        location.href = "#discover";
+    },
+    savedSearchLog: function() {
+        this.switchView(SavedSearchLogPageView);
     },
     settings: function() {
         this.switchView(SettingsPageView);

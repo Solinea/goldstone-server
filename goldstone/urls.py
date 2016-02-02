@@ -40,7 +40,6 @@ urlpatterns += patterns(
     url(r'^core/', include('goldstone.core.urls')),
     url(r'^glance/', include('goldstone.glance.urls')),
     url(r'^keystone/', include('goldstone.keystone.urls')),
-    url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^nova/', include('goldstone.nova.urls')),
     url(r'^user/', include("goldstone.user.urls")),
     url(r'^login/', TemplateView.as_view(template_name='login.html')),

@@ -21,26 +21,22 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
         // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
@@ -59,14 +55,18 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'API Browser', 'active'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="api-histogram-visualization" class="col-md-12"></div>' +

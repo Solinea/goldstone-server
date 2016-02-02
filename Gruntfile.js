@@ -171,6 +171,10 @@ module.exports = function(grunt) {
             compliance: {
                 files: clientIncludeOrder.complianceWatch,
                 tasks: ['concat:compliance', 'notify:compliance']
+            },
+            complianceTest: {
+                files: clientIncludeOrder.testAddons,
+                tasks: ['lint', 'karma']
             }
         },
 

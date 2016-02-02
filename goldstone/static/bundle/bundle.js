@@ -258,17 +258,8 @@ var GoldstoneBaseView = Backbone.View.extend({
         // are not passed into the options hash
         this.chartTitle = this.options.chartTitle || null;
         this.height = this.options.height || 400;
-        this.infoText = this.options.infoText;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        if (this.options.collectionMixin) {
-            this.collectionMixin = this.options.collectionMixin;
-        }
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.collection = this.options.collection || undefined;
-        this.infoIcon = this.options.infoIcon;
         this.colorArray = new GoldstoneColors().get('colorSets');
     },
 
@@ -328,7 +319,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 'position': 'relative',
                 'margin-left': (self.width / 2),
                 'margin-top': -(self.height / 2),
-                'display': self.spinnerDisplay
+                'display': self.spinnerDisplay,
+                'left': '-1.4em',
+                'top': '-3.6em'
             });
         });
     },
@@ -430,8 +423,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         // is returned, creates an error message, otherwise clears
         // any existing alert or error messages.
 
+        var noDataMessage = goldstone.translate('No Data Returned');
+
         if (data.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+            this.dataErrorMessage(noDataMessage);
             return false;
         } else {
             this.clearDataErrorMessage();
@@ -484,7 +479,30 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         flattenator(obj);
         return result;
-    }
+    },
+
+    templateButtonConstructor: function(routeArray) {
+        /*
+        usually implemented by passing in this.templateButtonSelectors
+        in the following order: [url, display text, active (optional)]
+
+        produces output such as:
+        <div class="btn-group" role="group">
+            <a href="/#reports/logbrowser" class=" btn btn-default">Log Browser</a>
+            <a href="/#reports/eventbrowser" class="active btn btn-default">Event Browser</a>
+            <a href="/#reports/apibrowser" class=" btn btn-default">Api Browser</a>
+        </div><br><br>
+        */
+
+        var result = '<div class="btn-group" role="group">';
+        _.each(routeArray, function(route) {
+            result += '<a href="' + route[0] + '"' + ' class="' + (route[2] === 'active' ? 'active ' : '') +
+                'btn btn-default">' + goldstone.translate(route[1]) + '</a>';
+        });
+        result += '</div><br><br>';
+        return result;
+    },
+
 });
 ;
 /**
@@ -793,7 +811,11 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     //     return custom;
     // },
 
-    computeLookbackAndInterval: function() {
+    computeLookbackAndInterval: function(n) {
+
+        // n designates the number of interval 'slices' to make
+        // default ot 24
+        n = n || 24;
 
         // compute epochNow, globalLookback, globalRefresh
         this.getGlobalLookbackRefresh();
@@ -801,7 +823,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.gte = (this.epochNow - (this.globalLookback * 60 * 1000));
 
         // set interval equal to 1/24th of time range
-        this.interval = ((this.epochNow - this.gte) / 1000) / 24;
+        this.interval = ((this.epochNow - this.gte) / 1000) / n;
     },
 
     fetchWithReset: function() {
@@ -1186,15 +1208,11 @@ var LauncherView = Backbone.View.extend({
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
-        "help": "help",
         "metrics/api_perf": "apiPerfReport",
-        "metrics/metric_report": "metricViewer",
-        "metrics/metric_report/": "metricViewer",
-        "metrics/metric_report/:numCharts": "metricViewer",
-        "metrics/nova_report": "novaReport",
         "metrics/topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
+        "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
         "reports/apibrowser": "apiBrowser",
         "settings": "settings",
@@ -1285,54 +1303,27 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(ApiBrowserPageView);
     },
     apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
+        this.switchView(ApiPerfReportPageView);
     },
     discover: function() {
-        this.switchView(DiscoverView);
+        this.switchView(DiscoverPageView);
     },
     eventsBrowser: function() {
         this.switchView(EventsBrowserPageView);
     },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    keystoneReport: function() {
-        this.switchView(KeystoneReportView);
-    },
     logSearch: function() {
         this.switchView(LogSearchPageView);
     },
-    metricViewer: function(numCharts) {
-        if (numCharts === null || numCharts === undefined) {
-            numCharts = 6;
-        }
-        numCharts = parseInt(numCharts, 10);
-        if (numCharts > 6 || numCharts < 1) {
-            numCharts = 6;
-        }
-        this.switchView(MetricViewerPageView, {
-            numCharts: numCharts
-        });
-    },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
     nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
+        this.switchView(NodeReportPageView, {
             node_uuid: nodeId
         });
     },
-    novaReport: function() {
-        this.switchView(NovaReportView);
-    },
     redirect: function() {
-        location.href = "#metrics/topology";
+        location.href = "#discover";
+    },
+    savedSearchLog: function() {
+        this.switchView(SavedSearchLogPageView);
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -1364,37 +1355,26 @@ var GoldstoneRouter = Backbone.Router.extend({
 var ChartSet = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.data = [];
-        this.processOptions();
-
-        this.renderChartBorders();
+        ChartSet.__super__.instanceSpecificInit.apply(this, arguments);
         this.makeChart();
     },
 
     processOptions: function() {
 
-        this.collection = this.options.collection ? this.options.collection : undefined;
-        this.chartTitle = this.options.chartTitle || null;
-        if (this.options.el) {
-            this.el = this.options.el;
-        }
-        this.width = this.options.width || 300;
-        this.height = this.options.height || 400;
-        this.infoIcon = this.options.infoIcon;
-        this.infoText = this.options.infoText;
+        ChartSet.__super__.processOptions.apply(this, arguments);
+
         this.marginLeft = this.options.marginLeft || 50;
         this.marginRight = this.options.marginRight || 120;
         this.marginTop = this.options.marginTop || 20;
         this.marginBottom = this.options.marginBottom || 80;
-        this.yAxisLabel = this.options.yAxisLabel;
         this.popoverTimeLabel = this.options.popoverTimeLabel || "time";
         this.popoverUnitLabel = this.options.popoverUnitLabel || "events";
-        this.colorArray = new GoldstoneColors().get('colorSets');
         this.shapeArray = ['rect', 'circle'];
         this.shapeCounter = 0;
         this.shape = this.options.shape || this.shapeArray[this.shapeCounter];
         this.xParam = this.options.xParam;
         this.yParam = this.options.yParam;
+        this.data = [];
     },
 
     resetXParam: function(param) {
@@ -1407,16 +1387,7 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yParam = param;
     },
 
-    renderChartBorders: function() {
-        this.$el.append(new ChartHeaderView({
-            chartTitle: this.chartTitle,
-            infoText: this.infoText,
-            infoIcon: this.infoIcon
-        }).el);
-    },
-
     makeChart: function() {
-        this.processListeners();
         this.svgAdder(this.width, this.height);
         this.initializePopovers();
         this.chartAdder();
@@ -1430,7 +1401,6 @@ var ChartSet = GoldstoneBaseView.extend({
         this.callYAxis();
 
         this.setYAxisLabel();
-        this.setSpinner();
     },
 
     update: function() {
@@ -1468,7 +1438,7 @@ var ChartSet = GoldstoneBaseView.extend({
     },
 
     svgAdder: function() {
-        this.svg = d3.select(this.el).append('svg')
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
             .attr('width', this.width)
             .attr('height', this.height);
     },
@@ -1495,6 +1465,7 @@ var ChartSet = GoldstoneBaseView.extend({
     setYDomain: function() {
         var param = this.yParam || 'count';
         var self = this;
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
         this.y = d3.scale.linear()
@@ -2393,9 +2364,9 @@ var I18nModel = Backbone.Model.extend({
         finalResult.domain = "English";
 
         // if goldstone.translate is called on a key not in the .po file
-        finalResult.missing_key_callback = function(key) {
+        finalResult.missing_key_callback = function(key, language) {
             if(!goldstone.skipI18nLog) {
-                console.error('missing .po file translation for: `' + key + '`');
+                console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
 
@@ -2717,20 +2688,15 @@ var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/search/',
+    urlBase: "/core/api-calls/",
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    addPageSize: function(n) {
-        n = n || 1000;
-        return '&page_size=' + n;
-    },
-
     preProcessData: function(data) {
-        if(data && data.results) {
-            return data.results;
+        if(data) {
+            return data;
         }
     }
 });
@@ -2773,7 +2739,14 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/summarize/',
+    urlBase: '/core/api-calls/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -2784,21 +2757,22 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
+
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.per_interval, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the object keyed by timestamp
-            // and the 200-500 statuses
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-            tempObj.count = item[tempObj.time].count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -2835,11 +2809,15 @@ this.novaApiPerfChart = new ApiPerfCollection({
 var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
     preProcessData: function(data) {
-        if (data && data.per_interval) {
-            return data.per_interval;
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
+            return data.aggregations.per_interval.buckets;
         } else {
             return [];
         }
+    },
+
+    checkForAdditionalPages: function() {
+
     },
 
     addRange: function() {
@@ -2853,95 +2831,6 @@ var ApiPerfCollection = GoldstoneBaseCollection.extend({
         return '&component=' + this.componentParam;
     }
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var EventTimelineModel = GoldstoneBaseModel.extend({
-    // sort by @timestamp. Used to be id, but that has been
-    // removed as of v3 api.
-    idAttribute: 'timestamp'
-});
-
-var EventTimelineCollection = GoldstoneBaseCollection.extend({
-
-    parse: function(data) {
-        var nextUrl;
-
-        // in the case that there are additional paged server responses
-        if (data.next && data.next !== null) {
-            var dN = data.next;
-
-            // if url params change, be sure to update this:
-            nextUrl = dN.slice(dN.indexOf(this.urlBase));
-
-            // fetch and add to collection without deleting existing data
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
-        }
-
-        // in any case, return the data to the collection
-        return data.results;
-    },
-
-    defaults: {},
-
-    urlBase: '/core/events/search/',
-
-    initialize: function(options) {
-
-        this.defaults = _.clone(this.defaults);
-
-        this.getGlobalLookbackRefresh();
-        this.urlUpdate(this.globalLookback);
-        this.fetchWithReset();
-    },
-
-    model: EventTimelineModel,
-
-    fetchWithReset: function() {
-        // used when you want to delete existing data in collection
-        // such as changing the global-lookback period
-        this.fetch({
-            remove: true
-        });
-    },
-
-    fetchNoReset: function() {
-
-        // used when you want to retain existing data in collection
-        // such as a global-refresh-triggered update to the Event Timeline viz
-        this.fetch({
-            remove: false
-        });
-    },
-
-    urlUpdate: function(val) {
-        // creates a url similar to:
-        // /logging/events/search/?@timestamp__range={"gte":1426698303974}&page_size=1000"
-
-        var lookback = +new Date() - (val * 60 * 1000);
-        this.url = this.urlBase + '?timestamp__range={"gte":' +
-            lookback + ',"lte":' + (+new Date()) + '}&page_size=100';
-    }
 });
 ;
 /**
@@ -2982,21 +2871,10 @@ var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/search/',
+    urlBase: '/core/events/',
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addPageSize: function(n) {
-        n = n || 1000;
-        return '&page_size=' + n;
-    },
-
-    preProcessData: function(data) {
-        if(data && data.results) {
-            return data.results;
-        }
     }
 });
 ;
@@ -3038,7 +2916,14 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/summarize/',
+    urlBase: '/core/events/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -3049,42 +2934,22 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
 
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.data, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the
-            // object keyed by timestamp
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-
-            // iterate through each item in the array
-            _.each(item[tempObj.time], function(obj){
-                var key = _.keys(obj);
-                var value = _.values(obj)[0];
-
-                // copy key/value pairs to tempObj
-                tempObj[key] = value;
-            });
-
-            // initialize counter
-            var count = 0;
-            _.each(tempObj, function(val, key) {
-                // add up the values of each nested object
-                if(key !== 'time') {
-                    count += val;
-                }
-            });
-
-            // set 'count' equal to the counter
-            tempObj.count = count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 
@@ -3362,21 +3227,24 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 /*
 instantiated in logSearchPageView.js as:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+        this.logBrowserVizCollection = new LogBrowserCollection({
+            urlBase: '/core/logs/',
 
-    ** and the view as:
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
 
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
-    });
-
+        this.logBrowserViz = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.logBrowserVizCollection,
+            el: '#log-viewer-visualization',
+            height: 300,
+            infoText: 'logBrowser',
+            marginLeft: 60,
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+        });
 */
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
@@ -3395,8 +3263,15 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     },
 
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
+
     addInterval: function() {
-        var n;
+        var computedInterval;
         var start;
         var end;
 
@@ -3409,23 +3284,19 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         }
 
         // interval ratio of 1/20th the time span in seconds.
-        n = ((end - start) / 20000);
+        computedInterval = ((end - start) / 20000);
         // ensure a minimum of 0.5second interval
-        n = Math.max(0.5, n);
+        computedInterval = Math.max(0.5, computedInterval);
         // round to 3 decimal places
-        n = Math.round(n * 1000) / 1000;
-        return '&interval=' + n + 's';
+        computedInterval = Math.round(computedInterval * 1000) / 1000;
+        return '&interval=' + computedInterval + 's';
     },
 
     addCustom: function(custom) {
-
-        var result = '&per_host=False';
-
-        if (this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
+        
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        return this.specificHost ? '&host=' + this.specificHost : '';
     },
 
 });
@@ -3449,21 +3320,21 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 // define collection and link to model
 
 /*
-instantiated in logSearchPageView.js as:
+instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
 
-    this.logAnalysisCollection = new LogAnalysisCollection({});
+    this.logBrowserTableCollection = new LogBrowserTableCollection({
+        skipFetch: true,
+        specificHost: this.specificHost,
+        urlBase: '/core/logs/',
+        linkedCollection: this.logBrowserVizCollection
+    });    
 
-    ** and the view as:
-
-    this.logAnalysisView = new LogAnalysisView({
-        collection: this.logAnalysisCollection,
-        width: $('.log-analysis-container').width(),
-        height: 300,
-        el: '.log-analysis-container',
-        featureSet: 'logEvents',
-        chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
-
+    this.logBrowserTable = new LogBrowserDataTableView({
+        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+        collectionMixin: this.logBrowserTableCollection,
+        el: '#log-viewer-table',
+        infoIcon: 'fa-table',
+        width: $('#log-viewer-table').width()
     });
 
 */
@@ -3475,13 +3346,12 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function() {
-
         var result = '&syslog_severity__terms=[';
 
         levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
-                result = result.concat('"', k.toUpperCase(), '",');
+                result = result.concat('"', k.toLowerCase(), '",');
             }
         }
         result += "]";
@@ -3510,7 +3380,8 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
 
     },
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -3527,19 +3398,74 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
  * limitations under the License.
  */
 
-// define collection and link to model
+var MetricOverviewCollection = GoldstoneBaseCollection.extend({
 
-var model = GoldstoneBaseModel.extend({});
+    /*
+log
+/core/logs/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
 
-var MetricViewCollection = GoldstoneBaseCollection.extend({
+event
+/core/events/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
 
-    instanceSpecificInit: function() {
-        this.reportParams = {};
-        this.processOptions();
-        this.statistic = this.options.statistic;
-        this.standardDev = this.options.standardDev;
-        this.fetchWithReset();
-    }
+api
+/core/api-calls/?@timestamp__range=\{"gte":1452731730365,"lte":1452732630365\}&interval=5m
+
+*/
+
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
+
+    addRange: function() {
+        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addRange2: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    addInterval: function(n) {
+        n = n || this.interval;
+        return '&interval=' + n + 's';
+    },
+
+    urlGenerator: function() {
+        var self = this;
+        this.computeLookbackAndInterval(60);
+
+
+        var coreUrlVars = ['logs/', 'events/', 'api-calls/'];
+        var coreCalls = coreUrlVars.map(function(item) {
+            return self.urlBase + item + (item === 'events/' ? self.addRange2() : self.addRange()) +
+                self.addInterval();
+        });
+
+        $.when($.get(coreCalls[0]), $.get(coreCalls[1]), $.get(coreCalls[2]))
+            .done(function(r1, r2, r3) {
+
+                // container for combined data
+                var finalResult = {};
+                finalResult.logData = r1[0];
+                finalResult.eventData = r2[0];
+                finalResult.apiData = r3[0];
+
+                // append start/end of timestamp__range 
+                finalResult.startTime = self.gte;
+                finalResult.endTime = self.epochNow;
+
+                // reset collection
+                // add aggregated and tagged api call data
+                self.reset();
+                self.add([finalResult]);
+                self.trigger('sync');
+            })
+            .fail(function(err) {
+                self.trigger('error', [err.status, err.statusText]);
+            });
+    },
+
+
 });
 ;
 /**
@@ -3584,27 +3510,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
     parse: function(data) {
         var self = this;
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
-        } else {
-            this.urlCollectionCount--;
-        }
-
-        // before returning the collection, tag it with the metricName
+        // before adding data to the collection, tag it with the metricName
         // that produced the data
-        data.metricSource = this.metricNames[(this.metricNames.length - 1) - this.urlCollectionCount];
-
+        data.metricSource = this.metricNames[(this.metricNames.length) - this.urlCollectionCount];
+        this.urlCollectionCount--;
         return data;
     },
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
 
     urlGenerator: function() {
         this.fetchMultipleUrls();
@@ -3612,7 +3523,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
     fetchMultipleUrls: function() {
         var self = this;
-
 
         if (this.fetchInProgress) {
             return null;
@@ -3623,12 +3533,6 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         this.computeLookbackAndInterval();
 
-        // grabs minutes from global selector option value
-        // this.globalLookback = $('#global-lookback-range').val();
-
-        // this.epochNow = +new Date();
-        // this.gte = (+new Date() - (this.globalLookback * 1000 * 60));
-
         // set a lower limit to the interval of '2m'
         // in order to avoid the sawtooth effect
         this.interval = '' + Math.max(2, (this.globalLookback / 24)) + 'm';
@@ -3636,7 +3540,7 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
         _.each(this.metricNames, function(prefix) {
 
-            var urlString = '/core/metrics/summarize/?name=' + prefix;
+            var urlString = '/core/metrics/?name=' + prefix;
 
             if (self.nodeName) {
                 urlString += '&node=' + self.nodeName;
@@ -3648,14 +3552,12 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
 
             self.urlsToFetch.push(urlString);
         });
-
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
             url: self.urlsToFetch[0],
             success: function() {
-
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
                 _.each(self.urlsToFetch.slice(1), function(item) {
@@ -3685,93 +3587,44 @@ var MultiMetricComboCollection = GoldstoneBaseCollection.extend({
  * limitations under the License.
  */
 
-/*
-Instantiated on discoverView as:
-    this.nodeAvailChart = new NodeAvailCollection({});
-*/
+// define collection and link to model
 
-var NodeAvailCollection = GoldstoneBaseCollection.extend({
+var NodeServiceStatusCollection = Backbone.Collection.extend({
+
+    defaults: {},
 
     parse: function(data) {
-        if (data && data.next && data.next !== null) {
-            var dN = data.next;
-            var nextUrl = dN.slice(dN.indexOf('/logging'));
+        var nextUrl;
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
                 url: nextUrl,
                 remove: false
             });
-        } else {
-            // there will be multiple fetches arriving and until
-            // they are done, no new fetches can be initiated
-            // decrement the count and return the data so far
-            this.defaults.urlCollectionCount--;
         }
-        return data;
+        return data.results;
     },
 
-    instanceSpecificInit: function(options) {
+    model: GoldstoneBaseModel,
 
-        // fetchInProgress = true will block further fetches
-        this.defaults.fetchInProgress = false;
-
-        // one small interval for more accurate timestamp
-        // and one large interval for more accurate event counts
-        this.defaults.urlCollectionCount = 2;
-        this.defaults.urlCollectionCountOrig = 2;
-
-        // kick off the process of fetching the two data payloads
-        this.fetchMultipleUrls();
-
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.nodeName = options.nodeName;
+        this.retrieveData();
     },
 
-    fetchMultipleUrls: function() {
-        var self = this;
+    retrieveData: function() {
+        var twentyAgo = (+new Date() - (1000 * 60 * 20));
 
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
+        this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
+            this.defaults.nodeName + "&page_size=300" +
+            "&@timestamp__range={'gte':" + twentyAgo + "}";
 
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
+        // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 
-        this.getGlobalLookbackRefresh();
-        var lookbackMinutes = (this.globalLookback);
-        var lookbackSeconds = (lookbackMinutes * 60);
-        var lookbackMilliseconds = (lookbackSeconds * 1000);
-
-        // this is the url with the small interval to gather a more
-        // accurate assessment of the time the node was last seen.
-        // creating approximately 24 buckets for a good mix of accuracy/speed.
-        this.defaults.urlsToFetch[0] = '' +
-            '/logging/summarize/?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackMilliseconds)) +
-            '}&interval=' + Math.max(1, (lookbackMinutes / 24)) + 'm';
-
-        // this is the url with the long lookback to bucket ALL
-        // the values into a single return value per alert level.
-        // currently magnifying 1 day (or portion thereof) into 1 week.
-        this.defaults.urlsToFetch[1] = '' +
-            '/logging/summarize/?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackMilliseconds)) +
-            '}&interval=' + (Math.ceil(lookbackMinutes / 1440)) + 'w';
-
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
-        this.fetch({
-            // clear out the previous results
-            remove: true,
-            url: this.defaults.urlsToFetch[0],
-            // upon successful first fetch, kick off the second
-            success: function() {
-                self.fetch({
-                    url: self.defaults.urlsToFetch[1],
-                    // clear out the previous result, it's already been
-                    // stored in the view for zipping the 2 together
-                    remove: true
-                });
-            }
-        });
+        this.fetch();
     }
 });
 ;
@@ -3845,43 +3698,40 @@ var ReportsReportCollection = Backbone.Collection.extend({
 
 // define collection and link to model
 
-var ServiceStatusCollection = Backbone.Collection.extend({
+var ServiceStatusCollection = GoldstoneBaseCollection.extend({
 
-    defaults: {},
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.urlGenerator();
+    },
 
-    parse: function(data) {
-        var nextUrl;
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false
+    urlGenerator: function(data) {
+        var self = this;
+
+        // the call to /core/saved_seaarch/?name=service+status
+        // returns the uuid required for the service aggregations
+
+        $.get(this.urlBase + '?name=service+status', function() {})
+            .done(function(data) {
+                var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
+                self.url = searchUuid;
+
+                // fetch return triggers 'sync' which triggers
+                // update in the client with the returned data
+                self.fetch();
             });
-        }
-        return data.results;
     },
 
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.nodeName = options.nodeName;
-        this.retrieveData();
+    constructAggregationUrl: function(uuid) {
+        return this.urlBase + uuid + '/results/';
     },
 
-    retrieveData: function() {
-        var twentyAgo = (+new Date() - (1000 * 60 * 20));
+    // Overwriting. Additinal pages not needed.
+    checkForAdditionalPages: function(data) {
+        return true;
+    },
 
-        this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
-            this.defaults.nodeName + "&page_size=300" +
-            "&@timestamp__range={'gte':" + twentyAgo + "}";
 
-        // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
-
-        this.fetch();
-    }
 });
 ;
 /**
@@ -3981,25 +3831,11 @@ goldstone.addonMenuView = new AddonMenuView({
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        this.processListeners();
 
         // passing true will also dynamically generate new routes in
         // Backbone router corresponding with the .routes param in the
         // addon's .js file.
         this.refreshAddonsMenu(true);
-    },
-
-    processListeners: function() {
-        var self = this;
-
-        // this trigger is fired by loginPageView after user logs in
-        this.listenTo(this, 'installedAppsUpdated', function() {
-
-            // calling refreshAddonsMenu without passing true will update the
-            // add-ons drop-down menu, but will not again re-register the
-            // url routes with Backbone router.
-            self.refreshAddonsMenu(true);
-        });
     },
 
     refreshAddonsMenu: function(addNewRoute) {
@@ -4015,7 +3851,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
 
-            this.generateDropdownElementsPerAddon(addNewRoute);
+            this.generateRoutesPerAddon(addNewRoute);
 
             // must trigger html template translation in order to display a
             // language other than English upon initial render without
@@ -4030,7 +3866,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
         }
     },
 
-    generateDropdownElementsPerAddon: function(addNewRoute) {
+    generateRoutesPerAddon: function(addNewRoute) {
         var self = this;
         var list = localStorage.getItem('addons');
         list = JSON.parse(list);
@@ -4039,65 +3875,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         // for each object in the array of addons in 'list', do the following:
         _.each(list, function(item) {
 
-            /*
-            In keeping with the i18n scheme for dynamically tranlsating
-            elements that are appended to the base template, addon drop-down
-            are given the required <span> element with a class of 'i18n'
-            and a data-i18n atribute with a key equal to the string
-            to be translated.
-
-            example:
-            <li class="dropdown-submenu"><a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="opentrail">opentrail</a><ul class="dropdown-menu" role="menu"></li>
-            */
-
-            // create a sub-menu labelled with the addon's 'name' property
-            result += '<li class="dropdown-submenu">' +
-                '<a tabindex="-1"><i class="fa fa-star"></i> <span class="i18n" data-i18n="' + item.name + '">' + item.name + '</a>' +
-                '<ul class="dropdown-menu" role="menu">';
-
-            // addons will be loaded into localStorage after the redirect
-            // to /#login, but a full page refresh is required before the
-            // newly appended js script tags are loaded.
             if (goldstone[item.url_root]) {
 
                 // for each sub-array in the array of 'routes' in
                 // the addon's javascript file, do the following:
                 _.each(goldstone[item.url_root].routes, function(route) {
-
-                    // conditional to skip adding a drop-down entry if
-                    // no drop-down label is supplied.
-                    if (route[1] !== null) {
-
-                        // append a drop-down <li> tag for each item with a link
-                        // pointing to index 0 of the route, and a menu label
-                        // derived from index 1 of the item
-                        result += '<li><a href="#' + route[0] +
-                            '"><span class="i18n" data-i18n="' + route[1] +
-                            '">' + route[1] + '</a>';
-                    }
-
-                    // dynamically add a new route for each item
-                    // the 'addNewRoute === true' condition prevents the route from
-                    // being added again when it is re-triggered by the listener
-                    // on gsRouter 'switchingView'
                     if (addNewRoute === true) {
-                        // ignored for menu updates beyond the first one
                         self.addNewRoute(route);
                     }
-
                 });
-
-                // cap the dropdown sub-menu with closing tags before
-                // continuing the iteration through the addons localStorage entry.
-                result += '</ul></li>';
-            } else {
-
-                var refreshMessage = goldstone.translate('Refresh browser and log out, and back in to complete addon installation process.');
-
-                goldstone.raiseInfo(refreshMessage);
-                result += '<li>' + refreshMessage;
             }
-
         });
 
         // initialize tooltip connected to new menu item
@@ -4133,12 +3920,13 @@ var AddonMenuView = GoldstoneBaseView.extend({
         '<a href="#compliance/opentrail/manager/">' +
         '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
-        '<span class="btn-txt">Compliance</span>' +
+        '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
         '</a>'
     )
 
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -4199,44 +3987,36 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 [0, 'desc']
             ],
             "columnDefs": [{
-                    "data": "@timestamp",
+                    "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
-                    "data": "host",
+                    "data": "_source.host",
                     "targets": 1
                 }, {
-                    "data": "client_ip",
+                    "data": "_source.client_ip",
                     "targets": 2
                 }, {
-                    "data": "uri",
+                    "data": "_source.uri",
                     "targets": 3
                 }, {
-                    "data": "response_status",
+                    "data": "_source.response_status",
                     "targets": 4
                 }, {
-                    "data": "response_time",
+                    "data": "_source.response_time",
                     "targets": 5
                 }, {
-                    "data": "response_length",
+                    "data": "_source.response_length",
                     "targets": 6
                 }, {
-                    "data": "component",
+                    "data": "_source.component",
                     "targets": 7
                 }, {
-                    "data": "type",
+                    "data": "_source.type",
                     "targets": 8
-                }, {
-                    "data": "doc_type",
-                    "visible": false,
-                    "searchable": true
-                }, {
-                    "data": "id",
-                    "visible": false,
-                    "searchable": true
                 }
 
             ],
@@ -4367,26 +4147,22 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('Api Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Api Calls by Range', 'apibrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
             marginLeft: 60
         });
 
         // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new GoldstoneBaseCollection({
+        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
             skipFetch: true
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Api Browser', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
             collectionMixin: this.apiBrowserTableCollection,
             el: '#api-browser-table',
             infoIcon: 'fa-table',
@@ -4405,14 +4181,18 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'API Browser', 'active'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton active btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="api-histogram-visualization" class="col-md-12"></div>' +
@@ -4459,7 +4239,7 @@ var ApiBrowserView = ChartSet.extend({
  * limitations under the License.
  */
 
-var ApiPerfReportView = GoldstoneBasePageView.extend({
+var ApiPerfReportPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
@@ -4483,7 +4263,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.novaApiPerfChart = new ApiPerfCollection({
             componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -4501,7 +4281,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.neutronApiPerfChart = new ApiPerfCollection({
             componentParam: 'neutron',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -4518,7 +4298,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
             componentParam: 'keystone',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -4526,7 +4306,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.keystoneApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c1',
-            width: $('#api-perf-report-r2-c1').width()
+            width: $('#api-perf-report-r2-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4534,7 +4315,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.glanceApiPerfChart = new ApiPerfCollection({
             componentParam: 'glance',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -4542,7 +4323,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.glanceApiPerfChart,
             height: 350,
             el: '#api-perf-report-r2-c2',
-            width: $('#api-perf-report-r2-c2').width()
+            width: $('#api-perf-report-r2-c2').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         //-----------------------------
@@ -4550,7 +4332,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 
         this.cinderApiPerfChart = new ApiPerfCollection({
             componentParam: 'cinder',
-            urlBase: '/core/apiperf/summarize/'
+            urlBase: '/core/api-calls/'
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -4558,7 +4340,8 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             collection: this.cinderApiPerfChart,
             height: 350,
             el: '#api-perf-report-r3-c1',
-            width: $('#api-perf-report-r3-c1').width()
+            width: $('#api-perf-report-r3-c1').width(),
+            yAxisLabel: goldstone.translate("Response Time (s)")
         });
 
         this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChartView, this.neutronApiPerfChart, this.neutronApiPerfChartView, this.keystoneApiPerfChart, this.keystoneApiPerfChartView, this.glanceApiPerfChart, this.glanceApiPerfChartView, this.cinderApiPerfChart, this.cinderApiPerfChartView];
@@ -4566,14 +4349,6 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
     },
 
     template: _.template('' +
-
-        // button selectors for metric viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
-        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
-        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
-        '</div><br><br>' +
-
         '<div id="api-perf-report-r1" class="row">' +
         '<div id="api-perf-report-r1-c1" class="col-md-6"></div>' +
         '<div id="api-perf-report-r1-c2" class="col-md-6"></div>' +
@@ -4707,7 +4482,6 @@ var ApiPerfView = GoldstoneBaseView.extend({
         json = this.dataPrep(json);
         var mw = self.mw;
         var mh = self.mh;
-
         this.hideSpinner();
 
         if (this.checkReturnedDataSet(json) === false) {
@@ -4718,22 +4492,14 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el + '.d3-tip').detach();
 
         self.y.domain([0, d3.max(json, function(d) {
-            var key = _.keys(d).toString();
-            return d[key].stats.max;
+            return d.statistics.max;
         })]);
 
         json.forEach(function(d) {
-            // careful as using _.keys after this
-            // will return [timestamp, 'time']
-            d.time = moment(+_.keys(d)[0]);
-
-            // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item) {
-                return item !== "time";
-            }).toString();
-            d.min = d[key].stats.min || 0;
-            d.max = d[key].stats.max || 0;
-            d.avg = d[key].stats.avg || 0;
+            d.time = moment(d.key);
+            d.min = d.statistics.min || 0;
+            d.max = d.statistics.max || 0;
+            d.avg = d.statistics.avg || 0;
         });
 
         self.x.domain(d3.extent(json, function(d) {
@@ -4792,8 +4558,11 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
             .html(function(d) {
-                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
-                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
+                return "<p>" + d.time.format() +
+                 "<br>Max: " +d.max.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Avg: " + d.avg.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<br>Min: " + d.min.toFixed(3) + ' ' + goldstone.translate('seconds') +
+                "<p>";
             });
 
         // Invoke the tip in the context of your visualization
@@ -5246,18 +5015,53 @@ var DetailsReportView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var DiscoverView = GoldstoneBasePageView.extend({
+var DiscoverPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.serviceStatusChartView.trigger('lookbackSelectorChanged');
+            this.metricOverviewChartView.trigger('lookbackSelectorChanged');
             this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
             this.memResourcesChartView.trigger('lookbackSelectorChanged');
             this.diskResourcesChartView.trigger('lookbackSelectorChanged');
+            this.vmSpawnChartView.trigger('lookbackSelectorChanged');
         }
     },
 
     renderCharts: function() {
+
+        /*
+        Service Status Chart
+        */
+
+        this.serviceStatusChart = new ServiceStatusCollection({
+            urlBase: '/core/saved_search/'
+        });
+
+        this.serviceStatusChartView = new ServiceStatusView({
+            chartTitle: goldstone.translate("Service Status"),
+            collection: this.serviceStatusChart,
+            el: '#discover-view-r1-c1',
+            width: $('#discover-view-r1-c1').width()
+        });
+
+        /*
+        Metric Overview Chart
+        */
+
+        this.metricOverviewChart = new MetricOverviewCollection({
+            urlBase: '/core/'
+        });
+
+        this.metricOverviewChartView = new MetricOverviewView({
+            chartTitle: goldstone.translate("Metric Overview"),
+            collection: this.metricOverviewChart,
+            el: '#discover-view-r1-c2',
+            width: $('#discover-view-r1-c2').width(),
+            yAxisLabel: goldstone.translate("Count"),
+            marginRight: 60
+        });
 
         /*
         CPU Resources Chart
@@ -5273,8 +5077,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             featureSet: 'cpu',
             height: 350,
             infoText: 'novaCpuResources',
-            el: '#nova-report-r2-c1',
-            width: $('#nova-report-r2-c1').width(),
+            el: '#discover-view-r2-c1',
+            width: $('#discover-view-r2-c1').width(),
             yAxisLabel: goldstone.translate('Cores')
         });
 
@@ -5292,8 +5096,8 @@ var DiscoverView = GoldstoneBasePageView.extend({
             featureSet: 'mem',
             height: 350,
             infoText: 'novaMemResources',
-            el: '#nova-report-r2-c2',
-            width: $('#nova-report-r2-c2').width(),
+            el: '#discover-view-r2-c2',
+            width: $('#discover-view-r2-c2').width(),
             yAxisLabel: goldstone.translate('MB')
         });
 
@@ -5311,670 +5115,53 @@ var DiscoverView = GoldstoneBasePageView.extend({
             featureSet: 'disk',
             height: 350,
             infoText: 'novaDiskResources',
-            el: '#nova-report-r2-c3',
-            width: $('#nova-report-r2-c3').width(),
+            el: '#discover-view-r2-c3',
+            width: $('#discover-view-r2-c3').width(),
             yAxisLabel: goldstone.translate('GB')
         });
 
-        //---------------------------
-        // instantiate event timeline chart
+        /*
+        VM Spawns Chart
+        */
 
-        // fetch url is set in eventTimelineCollection
-
-        /*this.eventTimelineChart = new EventTimelineCollection({});
-
-        this.eventTimelineChartView = new EventTimelineView({
-            collection: this.eventTimelineChart,
-            el: '#goldstone-discover-r1-c1',
-            chartTitle: goldstone.translate('Event Timeline'),
-            width: $('#goldstone-discover-r1-c1').width()
-        });*/
-
-        //---------------------------
-        // instantiate Node Availability chart
-
-        /*        this.nodeAvailChart = new NodeAvailCollection({});
-
-        this.nodeAvailChartView = new NodeAvailView({
-            chartTitle: goldstone.translate('Node Availability'),
-            collection: this.nodeAvailChart,
-            el: '#goldstone-discover-r1-c2',
-            h: {
-                "main": 150,
-                "swim": 50
-            },
-            width: $('#goldstone-discover-r1-c2').width()
+        this.vmSpawnChart = new SpawnsCollection({
+            urlBase: '/nova/hypervisor/spawns/'
         });
-*/
 
-        //---------------------------
-        // instantiate Cloud Topology chart
-
-        /*        this.discoverTreeCollection = new TopologyTreeCollection({});
-
-        this.topologyTreeView = new TopologyTreeView({
-            blueSpinnerGif: blueSpinnerGif,
-            collection: this.discoverTreeCollection,
-            chartHeader: ['#goldstone-discover-r2-c1', goldstone.translate('Cloud Topology'),
-                'discoverCloudTopology'
-            ],
-            el: '#goldstone-discover-r2-c1',
-            h: 600,
-            leafDataUrls: this.leafDataUrls,
-            multiRsrcViewEl: '#goldstone-discover-r2-c2',
-            width: $('#goldstone-discover-r2-c2').width(),
+        this.vmSpawnChartView = new SpawnsView({
+            chartTitle: goldstone.translate("VM Spawns"),
+            collection: this.vmSpawnChart,
+            height: 350,
+            infoText: 'novaSpawns',
+            el: '#discover-view-r2-c4',
+            width: $('#discover-view-r2-c4').width(),
+            yAxisLabel: goldstone.translate('Spawn Events')
         });
-*/
+
+        this.viewsToStopListening = [this.serviceStatusChartView, this.metricOverviewChartView, this.cpuResourcesChartView, this.memResourcesChartView, this.diskResourcesChartView, this.vmSpawnChartView];
+
     },
 
     template: _.template('' +
-        // orig
-        // '<div id="goldstone-discover-r1" class="row">' +
-        // '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
-        // '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
-        // '</div>' +
 
-        // '<div id="goldstone-discover-r2" class="row">' +
-        // '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
-        // '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
-        // '</div>' +
-
-        // '<div class="row"><br><br></div>'
-
-
-        // new
-        '<div class="row first-row">' +
-        '<div class="single-block service-status">' +
-        '<h3>Service Status<i class="setting-btn">&nbsp;</i></h3>' +
-        '<ul class="service-status-table shadow-block">' +
-        '<li class="table-header">' +
-        '<span class="service">Service</span>' +
-        '<span class="sf">Sf</span>' +
-        '<span class="nm">Nm</span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Compute</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Image</span>' +
-        '<span class="sf"><i class="offline">&nbsp;</i></span>' +
-        '<span class="nm"><i class="offline">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Network</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Block Storage</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Object Storage</span>' +
-        '<span class="sf"><i class="intermittent">&nbsp;</i></span>' +
-        '<span class="nm"><i class="intermittent">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Orchestration</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service">Identity</span>' +
-        '<span class="sf"><i class="online">&nbsp;</i></span>' +
-        '<span class="nm"><i class="online">&nbsp;</i></span>' +
-        '</li>' +
-        '</ul>' +
-        '</div>' +
-        '<div class="double-block metrics-overview">' +
-        '<h3>Metrics Overview<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="map-block shadow-block">' +
-        '<div class="map"><img src="/static/images/Chart-Metrics-Overview.jpg" alt +=""></div>' +
-        '<div class="map-data">' +
-        '<span class="stats time">' +
-        '21 secs ago' +
-        '</span>' +
-        '<span class="stats logs">' +
-        '300 Logs' +
-        '</span>' +
-        '<span class="stats events">' +
-        '17 Events' +
-        '</span>' +
-        '<span class="stats call">' +
-        '12 API Calls' +
-        '</span>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="row second-row">' +
-        '<div class="single-block service-status">' +
-        '<h3>Node Presence<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="node-block shadow-block">' +
-        '<ul class="node-list">' +
-        '<li class="node color1"></li>' +
-        '<li class="node color2"></li>' +
-        '<li class="node color3"></li>' +
-        '<li class="node color4"></li>' +
-        '<li class="node color5"></li>' +
-        '<li class="node color6"></li>' +
-        '<li class="node color7"></li>' +
-        '<li class="node color8"></li>' +
-        '<li class="node color9"></li>' +
-        '<li class="node color10"></li>' +
-        '<li class="node color11"></li>' +
-        '<li class="node color12"></li>' +
-        '<li class="node color13"></li>' +
-        '<li class="node color14"></li>' +
-        '<li class="node color15"></li>' +
-        '<li class="node color16"></li>' +
-        '<li class="node color17"></li>' +
-        '<li class="node color18"></li>' +
-        '<li class="node color19"></li>' +
-        '<li class="node color20"></li>' +
-        '<li class="node color21"></li>' +
-        '<li class="node color22"></li>' +
-        '<li class="node color23"></li>' +
-        '<li class="node color24"></li>' +
-        '<li class="node color25"></li>' +
-        '<li class="node color26"></li>' +
-        '<li class="node color27"></li>' +
-        '<li class="node color28"></li>' +
-        '<li class="node color29"></li>' +
-        '<li class="node color30"></li>' +
-        '<li class="node color31"></li>' +
-        '<li class="node color32"></li>' +
-        '<li class="node color33"></li>' +
-        '<li class="node color34"></li>' +
-        '<li class="node color35"></li>' +
-        '<li class="node color36"></li>' +
-        '<li class="node color37"></li>' +
-        '<li class="node color38"></li>' +
-        '<li class="node color39"></li>' +
-        '<li class="node color40"></li>' +
-        '<li class="node color41"></li>' +
-        '<li class="node color42"></li>' +
-        '<li class="node color43"></li>' +
-        '<li class="node color44"></li>' +
-        '<li class="node color45"></li>' +
-        '<li class="node color46"></li>' +
-        '<li class="node color47"></li>' +
-        '<li class="node color48"></li>' +
-        '<li class="node color49"></li>' +
-        '<li class="node color50"></li>' +
-        '<li class="node color51"></li>' +
-        '<li class="node color52"></li>' +
-        '<li class="node color53"></li>' +
-        '<li class="node color54"></li>' +
-        '<li class="node color55"></li>' +
-        '<li class="node color56"></li>' +
-        '<li class="node color57"></li>' +
-        '<li class="node color58"></li>' +
-        '<li class="node color59"></li>' +
-        '<li class="node color60"></li>' +
-        '<li class="node color61"></li>' +
-        '<li class="node color62"></li>' +
-        '<li class="node color63"></li>' +
-        '<li class="node color64"></li>' +
-        '<li class="node color65"></li>' +
-        '<li class="node color66"></li>' +
-        '<li class="node color67"></li>' +
-        '<li class="node color68"></li>' +
-        '<li class="node color69"></li>' +
-        '<li class="node color70"></li>' +
-        '<li class="node color71"></li>' +
-        '<li class="node color72"></li>' +
-        '</ul>' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Logs by Type<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/Chart-Logs-by-Type.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '<div class="single-block service-status">' +
-        '<h3>Average API Performance<i class="setting-btn">&nbsp;</i></h3>' +
-        '<div class="full-map shadow-block">' +
-        '<img src="/static/images/API-Performance.jpg" alt="">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
+        // service status
         '<div class="row">' +
+        '<div id="discover-view-r1" class="row">' +
+        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
+        '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
+        '</div>' +
+
+        // extra row for spacing
+        '<div class="row">&nbsp;</div>' +
+
+        // cpu / mem / disk
+        // '<div class="row">' +
         '<h4>Resource Usage</h4>' +
-        // '<div class="single-block service-status">' +
-        // '<h3>CPU<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="full-map shadow-block">' +
-        // '<img src="/static/images/Chart-CPU.jpg" alt="">' +
-        // '</div>' +
-        // '</div>' +
-        // '<div class="single-block service-status">' +
-        // '<h3>Memory<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="full-map shadow-block">' +
-        // '<img src="/static/images/Chart-Memory.jpg" alt="">' +
-        // '</div>' +
-        // '</div>' +
-        // '<div class="single-block service-status">' +
-        // '<h3>Storage<i class="setting-btn">&nbsp;</i></h3>' +
-        // '<div class="full-map shadow-block">' +
-        // '<img src="/static/images/Chart-Disk.jpg" alt="">' +
-        // '</div>' +
-        // '</div>' +
-
-        // add nova report cpu/mem/storage
-
-        '<div id="nova-report-r2" class="row">' +
-        '<div id="nova-report-r2-c1" class="col-md-4"></div>' +
-        '<div id="nova-report-r2-c2" class="col-md-4"></div>' +
-        '<div id="nova-report-r2-c3" class="col-md-4"></div>' +
-        '</div>'
-    )
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-Instantiated on topologyPageView as:
-
-var eventTimelineChart = new EventTimelineCollection({});
-
-this.eventTimelineChartView = new EventTimelineView({
-    collection: this.eventTimelineChart,
-    el: '#goldstone-discover-r1-c1',
-    chartTitle: goldstone.translate('Event Timeline'),
-    width: $('#goldstone-discover-r1-c1').width()
-});
-*/
-
-var EventTimelineView = GoldstoneBaseView.extend({
-
-    margin: {
-        top: 25,
-        bottom: 15,
-        right: 25,
-        left: 15
-    },
-
-    instanceSpecificInit: function() {
-        EventTimelineView.__super__.instanceSpecificInit.apply(this, arguments);
-
-        // basic assignment of variables to be used in chart rendering
-        this.standardInit();
-    },
-
-    processListeners: function() {
-
-        var self = this;
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
-
-        this.on('lookbackSelectorChanged', function() {
-            self.getGlobalLookbackRefresh();
-            self.fetchNowWithReset();
-        });
-
-        this.on('lookbackIntervalReached', function() {
-            self.getGlobalLookbackRefresh();
-            self.fetchNowNoReset();
-        });
-    },
-
-    standardInit: function() {
-        var self = this;
-
-        self.mw = self.width - self.margin.left - self.margin.right;
-        self.mh = self.h.main - self.margin.top - self.margin.bottom;
-
-        self.topAxis = d3.svg.axis()
-            .orient("top")
-            .ticks(3)
-            .tickFormat(d3.time.format("%a %b %e %Y"));
-        self.bottomAxis = d3.svg.axis()
-            .orient("bottom")
-            .ticks(5)
-            .tickFormat(d3.time.format("%H:%M:%S"));
-        self.xScale = d3.time.scale()
-            .range([self.margin.left, self.width - self.margin.right - 10]);
-
-
-        /*
-         * colors
-         */
-
-        // you can change the value in colorArray to select
-        // a particular number of different colors
-        var colorArray = new GoldstoneColors().get('colorSets');
-        self.color = d3.scale.ordinal().range(colorArray.distinct[3]);
-
-        /*
-         * The graph and axes
-         */
-
-        self.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", self.width + self.margin.right)
-            .attr("height", self.h.main + (self.h.padding + self.h.tooltipPadding));
-
-        // tooltipPadding adds room for tooltip popovers
-        self.graph = self.svg.append("g").attr("id", "graph")
-            .attr("transform", "translate(0," + self.h.tooltipPadding + ")");
-
-        self.graph.append("g")
-            .attr("class", "xUpper axis")
-            .attr("transform", "translate(0," + self.h.padding + ")");
-
-        self.graph.append("g")
-            .attr("class", "xLower axis")
-            .attr("transform", "translate(0," + self.h.main + ")");
-
-        self.tooltip = d3.tip()
-            .attr('class', 'd3-tip')
-            .offset(function() {
-                var leftOffset;
-                // [top-offset, left-offset]
-                var halfToolWidth = 260;
-                if (this.getBBox().x < halfToolWidth) {
-                    leftOffset = halfToolWidth - this.getBBox().x;
-                } else if (this.getBBox().x > self.width - halfToolWidth) {
-                    leftOffset = -(halfToolWidth - (self.width - this.getBBox().x));
-                } else {
-                    leftOffset = 0;
-                }
-                return [0, leftOffset];
-            })
-            .html(function(d) {
-
-                d.doc_type = d.doc_type || 'No event type logged';
-                d.initiator_name = d.traits.initiator_name || 'No initiator logged';
-                d.target_name = d.traits.target_name || 'No target logged';
-                d.outcome = d.traits.outcome || 'No outcome logged';
-                d.timestamp = d.timestamp || 'No date logged';
-
-                return "" +
-                    "Doc type: " + d.doc_type + "<br>" +
-                    "Initiator: " + d.initiator_name + "<br>" +
-                    "Target: " + d.target_name + "<br>" +
-                    "Outcome: " + d.outcome + "<br>" +
-                    "Created: " + d.timestamp + "<br>";
-            });
-
-        self.graph.call(self.tooltip);
-
-    },
-
-    fetchNowWithReset: function() {
-        this.showSpinner();
-        this.collection.urlUpdate(this.globalLookback);
-        this.collection.fetchWithReset();
-    },
-
-    fetchNowNoReset: function() {
-        this.showSpinner();
-        this.collection.urlUpdate(this.globalLookback);
-        this.collection.fetchNoReset();
-    },
-
-    opacityByFilter: function(d) {
-        for (var filterType in this.filter) {
-            if (filterType === d.doc_type && !this.filter[filterType].active) {
-                return 0;
-            }
-        }
-        return 0.8;
-    },
-
-    visibilityByFilter: function(d) {
-        for (var filterType in this.filter) {
-            if (filterType === d.doc_type && !this.filter[filterType].active) {
-                return "hidden";
-            }
-        }
-        return "visible";
-    },
-
-    update: function() {
-        var self = this;
-
-        this.hideSpinner();
-
-        var allthelogs = (this.collection.toJSON());
-
-        var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
-            return evt.timestamp;
-        })));
-
-        var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
-            return evt.timestamp;
-        })));
-
-        self.xScale = self.xScale.domain([xEnd._d, xStart._d]);
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        this.checkReturnedDataSet(allthelogs);
-
-        /*
-         * Shape the dataset
-         *   - Convert datetimes to integer
-         *   - Sort by last seen (from most to least recent)
-         */
-        self.dataset = allthelogs
-            .map(function(d) {
-                d.timestamp = moment(d.timestamp)._d;
-                return d;
-            });
-
-
-        // compile an array of the unique event types
-        self.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
-            return item.doc_type;
-        }));
-
-        // populate self.filter based on the array of unique event types
-        // add uniqueEventTypes to filter modal
-        self.filter = self.filter || {};
-
-        // clear out the modal and reapply based on the unique events
-        if ($(this.el).find('#populateEventFilters').length) {
-            $(this.el).find('#populateEventFilters').empty();
-        }
-
-        _.each(self.uniqueEventTypes, function(item) {
-
-            // regEx to create separate words out of the event types
-            // GenericSyslogError --> Generic Syslog Error
-            var re = /([A-Z])/g;
-            if (item === undefined) {
-                item = 'UnspecifiedErrorType';
-            }
-            itemSpaced = item.replace(re, ' $1').trim();
-
-            self.filter[item] = self.filter[item] || {
-                active: true,
-                // color: self.color(self.uniqueEventTypes.indexOf(item) % self.color.range().length),
-                displayName: itemSpaced
-            };
-
-            var addCheckIfActive = function(item) {
-                if (self.filter[item].active) {
-                    return 'checked';
-                } else {
-                    return '';
-                }
-            };
-            var checkMark = addCheckIfActive(item);
-
-            $(this.el).find('#populateEventFilters')
-                .append(
-                    '<div class="row">' +
-                    '<div class="col-lg-12">' +
-                    '<div class="input-group">' +
-                    '<span class="input-group-addon"' +
-                    'style="opacity: 0.8; background-color:' + self.filter[item].color + ';">' +
-                    '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
-                    '</span>' +
-                    '<span type="text" class="form-control">' + itemSpaced + '</span>' +
-                    '</div>' +
-                    '</div>' +
-                    '</div>'
-            );
-        }, this);
-
-        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
-
-            var checkboxId = this.id;
-            self.filter[this.id].active = !self.filter[this.id].active;
-            self.redraw();
-
-        });
-
-        /*
-         * Axes
-         *   - calculate the new domain.
-         *   - adjust each axis to its new scale.
-         */
-
-        self.topAxis.scale(self.xScale);
-        self.bottomAxis.scale(self.xScale);
-
-        self.svg.select(".xUpper.axis")
-            .transition()
-            .call(self.topAxis);
-
-        self.svg.select(".xLower.axis")
-            .transition()
-            .call(self.bottomAxis);
-
-        /*
-         * New rectangles appear at the far right hand side of the graph.
-         */
-
-        var rectangle = self.graph.selectAll("rect")
-
-        // bind data to d3 nodes and create uniqueness based on
-        // th.timestamparam. This could possibly create some
-        // issues due to duplication of a supposedly unique
-        // param, but has not yet been a problem in practice.
-        .data(self.dataset, function(d) {
-            return d.timestamp;
-        });
-
-        // enters at wider width and transitions to lesser width for a
-        // dynamic resizing effect
-        rectangle.enter()
-            .append("rect")
-            .attr("x", self.margin.left)
-            .attr("y", self.h.padding + 1)
-            .attr("width", 2)
-            .attr("height", self.h.main - self.h.padding - 2)
-            .attr("class", "single-event")
-            .style("opacity", function(d) {
-                return self.opacityByFilter(d);
-            })
-            .style("visibility", function(d) {
-                // to avoid showing popovers for hidden lines
-                return self.visibilityByFilter(d);
-            })
-            .attr("fill", function(d) {
-                var result;
-                if (d && d.traits && d.traits.outcome) {
-                    result = d.traits.outcome;
-
-                    // 0: green, 1: blue, 2: orange
-                    return result === 'success' ? self.color(0) : result === 'pending' ? self.color(1) : self.color(2);
-                } else {
-                    return self.color(2);
-                }
-            })
-            .on("mouseover", self.tooltip.show)
-            .on("mouseout", function() {
-                self.tooltip.hide();
-            });
-
-        rectangle
-            .transition()
-            .attr("x", function(d) {
-                return self.xScale(d.timestamp);
-            });
-
-        rectangle.exit().remove();
-
-        return true;
-    },
-
-    redraw: function() {
-        var self = this;
-
-        self.graph.selectAll("rect")
-            .transition().duration(500)
-            .attr("x", function(d) {
-                return self.xScale(d.timestamp);
-            })
-            .style("opacity", function(d) {
-                return self.opacityByFilter(d);
-            })
-            .style("visibility", function(d) {
-                // to avoid showing popovers for hidden lines
-                return self.visibilityByFilter(d);
-            });
-    },
-
-    addModalAndHeadingIcons: function() {
-        $('#modal-container-' + this.el.slice(1)).append(this.eventFilterModal());
-        this.$el.find('.special-icon-post').append(this.filterButton());
-    },
-
-    filterButton: _.template('' +
-        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
-    ),
-
-    eventFilterModal: _.template(
-        // event filter modal
-        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-
-        // header
-        '<div class="modal-header">' +
-
-        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Event Type Filters\')%></h4>' +
-        '</div>' +
-
-        // body
-        '<div class="modal-body">' +
-        '<h5><%=goldstone.translate(\'Uncheck event-type to hide from display\')%></h5><br>' +
-        '<div id="populateEventFilters"></div>' +
-
-
-        '</div>' +
-
-        // footer
-        '<div class="modal-footer">' +
-        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'eventtimeline\')%></button>' +
-        '</div>' +
-
-        '</div>' +
-        '</div>' +
+        '<div id="discover-view-r2" class="row">' +
+        '<div id="discover-view-r2-c1" class="col-md-3"></div>' +
+        '<div id="discover-view-r2-c2" class="col-md-3"></div>' +
+        '<div id="discover-view-r2-c3" class="col-md-3"></div>' +
+        '<div id="discover-view-r2-c4" class="col-md-3"></div>' +
         '</div>'
     )
 
@@ -6002,12 +5189,16 @@ http://datatables.net/reference/api/
 
 instantiated on eventsBrowserPageView as:
 
-    this.eventsBrowserTable = new EventsBrowserDataTableView({
-        el: '.events-browser-table',
-        chartTitle: 'Events Browser',
-        infoIcon: 'fa-table',
-        width: $('.events-browser-table').width()
-    });
+this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+
+this.eventsBrowserView = new ChartSet({
+    chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
+    collection: this.eventsBrowserVizCollection,
+    el: '#events-histogram-visualization',
+    infoIcon: 'fa-tasks',
+    width: $('#events-histogram-visualization').width(),
+    yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
+});
 
 */
 
@@ -6015,66 +5206,364 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
         EventsBrowserDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
-        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+        this.processListenersForServerSide();
+        this.renderFreshTable();
+        this.initializeSearchTableServerSide('#reports-result-table');
     },
 
     update: function() {
-        this.drawSearchTable('#reports-result-table', this.collection.toJSON());
+        this.currentTop = $(document).scrollTop();
+        this.oTable.ajax.reload();
     },
 
-    preprocess: function(data) {
-
-        /*
-        strip object down to _id, _type, timestamp, and things in 'traits'
-        and then flatten object before returning it to the dataPrep function
-        */
-
+    oTableParamGeneratorBase: function() {
         var self = this;
-        var result = [];
+        var standardAjaxOptions = {
 
-        // strip away all but _id, _type, timestamp, and things in traits
-        _.each(data, function(item) {
-            var tempObj = {};
-            tempObj.id = item.id;
-            tempObj.type = item.doc_type;
-            tempObj.timestamp = item.timestamp;
-            tempObj.traits = item.traits;
-            tempObj.user_name = item.user_name;
-            tempObj.user_type = item.user_type;
-            tempObj.tenant_name = item.tenant_name;
-            tempObj.tenant_type = item.tenant_type;
-            tempObj.instance_name = item.instance_name;
-            tempObj.instance_type = item.instance_type;
+            // corresponds to 'show xx entries' selector
+            "iDisplayLength": self.cachedPageSize,
 
-            result.push(tempObj);
+            // corresponds to 'showing x to y of z entries' display
+            // and affects which pagination selector is active
+            "iDisplayStart": self.cachedPaginationStart,
+            "lengthChange": true,
+
+            // populate search input box with string, if present
+            "oSearch": {
+                sSearch: self.cachedSearch
+            },
+            "ordering": false,
+            "processing": false,
+            "paging": true,
+            "scrollX": true,
+            "searching": true,
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
+                    self.hideSpinner();
+
+                    // having the results of the last render that fit the
+                    // current heading structure will allow to return it to 
+                    // the table that is about to be destroyed and overwritten.
+                    // just returning an empty set will cause a disorienting
+                    // flash when the table is destroyed, prior to the next
+                    // one being constructed.
+                    self.mockForAjaxReturn = self.cachedResults;
+
+                    // store the browser page height to restore it post-render
+                    self.currentTop = $(document).scrollTop();
+
+                    self.collectionMixin.urlGenerator();
+
+                    // the pageSize and searchQuery are jQuery values and 
+                    // will be stored as strings, even if numerical
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
+
+                    // the paginationStart is taken from the dataTables
+                    // generated serverSide query string that will be
+                    // replaced by this.defaults.url after the required
+                    // components are parsed out of it
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // cache values for next serverside deferred rendering
+                    self.cachedSearch = searchQuery;
+
+                    // convert strings to numbers for both
+                    self.cachedPageSize = parseInt(pageSize, 10); 
+                    self.cachedPaginationStart = parseInt(paginationStart, 10);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
+                        "&page=" + computeStartPage;
+
+                    // here begins the combiation of additional params
+                    // to construct the final url for the dataTable fetch
+                    if (searchQuery) {
+                        settings.url += "&_all__regexp=.*" +
+                            searchQuery + ".*";
+                    }
+
+                    // if no interesting sort, ignore it
+                    /*if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        // generalize if sorting is implemented server-side
+                        var columnLabelHash = {
+                            0: '@timestamp',
+                            1: 'syslog_severity',
+                            2: 'component',
+                            3: 'host',
+                            4: 'log_message'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        // uncomment when ordering is in place.
+                        // settings.url = settings.url + "&ordering=" +
+                        //     ascDec + columnLabelHash[orderByColumn];
+                    }
+                    */
+
+                },
+                dataSrc: "results",
+                dataFilter: function(data) {
+                    data = self.serverSideDataPrep(data);
+
+                    // add to JavaScript engine event loop to be handled
+                    // after the function returns and the table
+                    // renders the 'throw-away' version of the table
+                    setTimeout(function() {
+                        self.createNewDataTableFromResults(self.cachedTableHeadings, self.cachedResults);
+
+                    }, 0);
+
+                    // make the 'throw-away' version identical to the
+                    // currently rendered table for better UX
+                    if(self.mockForAjaxReturn) {
+                        return JSON.stringify(
+                            self.mockForAjaxReturn
+                        );
+                    } else {
+
+                        // upon instantiation, just render empty dataTable
+                        return JSON.stringify({
+                            results: []
+                        });
+                    }
+                },
+            }
+        }; // end standardAjaxOptions
+
+        // in the case of their being cached data from the last call,
+        // deferLoading will skip the ajax call and use the 
+        // data already present in the dom
+        if (self.cachedResults) {
+
+            // sets 'z' in 'showing x to y of z records'
+            standardAjaxOptions.deferLoading = self.cachedResults.recordsTotal;
+        }
+
+        // will be used as the 'options' when instantiating dataTable
+        return standardAjaxOptions;
+    },
+
+    createNewDataTableFromResults: function(headings, results) {
+
+        // at least one <th> required or else dataTables will error
+        headings = headings || '<th></th>';
+
+        // removes dataTable handling of table (sorting/searching/pagination)
+        // but visible data remaions in DOM
+        this.oTableApi.fnDestroy();
+
+        // cache updated headings
+        this.serverSideTableHeadings = headings;
+        this.renderFreshTable();
+
+        // construct table html from results matrix
+        var constructedResults = '';
+        _.each(results.results, function(line) {
+            constructedResults += '<tr><td>';
+            constructedResults += line.join('</td><td>');
+            constructedResults += '</td></tr>';
         });
 
-        // replace original data with stripped down dataset
-        data = result;
+        // insert constructed table html into DOM target
+        this.$el.find('.data-table-body').html(constructedResults);
 
-        // reset result array
-        result = [];
+        // 'turn on' dataTables handling of table in DOM.
+        this.initializeSearchTableServerSide('#reports-result-table');
 
-        // un-nest (flatten) objects
-        _.each(data, function(item) {
-            result.push(self.flattenObj(item));
-        });
+    },
 
-        // return flattened/stripped array of objects
+    serverSideDataPrep: function(data) {
+        data = JSON.parse(data);
+        var result = {
+
+            // run results through pre-processing step
+            results: this.extractUniqAndDataSet(data.results),
+            recordsTotal: data.count,
+            recordsFiltered: data.count
+        };
+        this.cachedResults = result;
+        result = JSON.stringify(result);
         return result;
+    },
+
+    // just an empty <th> element for initial render.
+    serverSideTableHeadings: '' +
+        '<th></th>',
+
+    extractUniqAndDataSet: function(data) {
+        var self = this;
+        
+        // strip object down to things in 'traits' and then
+        // flatten object before returning it to the dataPrep function
+        
+        var result = data.map(function(record) {
+            return record._source.traits;
+        });
+
+        var uniqueObjectKeys = _.uniq(_.flatten(result.map(function(record) {
+            return _.keys(record);
+        })));
+
+
+        // START SORT
+
+        // sort uniqueHeadings to favor order defined
+        // by the hash in this.headingsToPin
+
+        // if there is a unique key with "name" somewhere in it,
+        // reorder the keys so that it is first
+        var keysWithName = [];
+        for (var i = 0; i < uniqueObjectKeys.length; i++) {
+            var item = uniqueObjectKeys[i];
+            if (this.isPinnedHeading(item)) {
+                var spliced = uniqueObjectKeys.splice(i, 1);
+                keysWithName[this.headingsToPin[item]] = spliced;
+                i--;
+            } else {
+                continue;
+            }
+        }
+
+        // keysWithName have been pulled out, now remove artifacts
+        keysWithName = this.pruneUndefinedValues(keysWithName);
+
+        // and sort remaining uniqueObjectKeys (sans keysWithName)
+        uniqueObjectKeys = this.sortRemainingKeys(uniqueObjectKeys);
+
+        // now put the keysWithName back at the beginning of the
+        // uniqueObjectKeys array
+        _.each(keysWithName, function(item) {
+            uniqueObjectKeys.unshift(item[0]);
+        });
+
+        // END SORT
+
+        // now use the uniqueObjectKeys to construct the table header
+        // for the upcoming render
+        var headerResult = '';
+        _.each(uniqueObjectKeys, function(heading) {
+            headerResult += '<th>' + heading + '</th>';
+        });
+
+        // and store for later
+        self.cachedTableHeadings = headerResult;
+
+        // make nested arrays of the final data to return
+        // any undefined values will be replaced with empty string
+        var finalResult = result.map(function(unit) {
+            return _.map(uniqueObjectKeys, function(heading) {
+                return unit[heading] || '';
+            });
+        });
+
+        return finalResult;
     },
 
     // keys will be pinned in ascending value order of key:value pair
     headingsToPin: {
-        'timestamp': 0,
-        'type': 1,
+        'eventTime': 0,
+        'eventType': 1,
         'id': 2,
-        'user_name': 3,
-        'user_type': 4,
-        'tenant_name': 5,
-        'tenant_type': 6,
-        'instance_name': 7,
-        'instance_type': 8
+        'action': 3,
+        'outcome': 4,
+    },
+
+    // main template with placeholder for table
+    template: _.template(
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="refreshed-report-container"></div>'
+    ),
+
+    // table to be used with dataTables
+    // dynamic headers to be inserted in the 'data-table-header-container'
+    dataTableTemplate: _.template(
+        '<table id="reports-result-table" class="table table-hover">' +
+        '<thead class="data-table-thead">' +
+        '<tr class="header data-table-header-container">' +
+
+        // <th> elements will be dynamically inserted
+        '</tr>' +
+        '</thead>' +
+        '<tbody class="data-table-body"></tbody>' +
+        '</table>'
+    ),
+
+    renderFreshTable: function() {
+
+        // the main table template only needs to be added once, to avoid 
+        // poor UX from erasing and re-rendering entire table.
+        if (!$('.data-table-body').length) {
+            $(this.el).find('.refreshed-report-container').html(this.dataTableTemplate());
+        }
+
+        // add the default or generated table headings
+        $(this.el).find('.data-table-header-container').html(this.serverSideTableHeadings);
+
+        return this;
+    },
+
+    initializeSearchTableServerSide: function(location) {
+        // params will include "deferLoading" after initial table rendering
+        // in order for table to be able to recursively spawn itself
+        // without infinite loop
+        var oTableParams = this.oTableParamGeneratorBase();
+
+        // initialize dataTable
+        this.oTable = $(location).DataTable(oTableParams);
+
+        // set reference to dataTable api to be used for fnDestroy();
+        this.oTableApi = $(location).dataTable();
+
+        // bring focus to search box
+        if ($('input.form-control').val() !== undefined) {
+            $('input.form-control').focus();
+
+            // firefox puts the cursor at the beginning of the search box
+            // after re-focus. Use the native 'input' element method
+            // setSelectionRange to force cursor position to end of input box
+            if($('input')[0].setSelectionRange) {
+                var len = $('input.form-control').val().length * 2; // ensure end
+                $('input.form-control')[0].setSelectionRange(len, len);
+            } else {
+
+                // IE hack, replace input with itself, hopefully to 
+                // end up with cursor at end of input element
+                $('input.form-control').val($('input.form-control').val());
+            }
+
+            // in case input element is a text field
+            $('input.form-control').scrollTop = 1e6;
+        }
+
+        // reposition page to pre-refresh height
+        if (this.currentTop !== undefined) {
+            $(document).scrollTop(this.currentTop);
+        }
     }
 });
 ;
@@ -6109,11 +5598,14 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
+        // for access to url generation functions
+        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({
+            skipFetch: true
+        });
 
         this.eventsBrowserTable = new EventsBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
-            collection: this.eventsBrowserTableCollection,
+            collectionMixin: this.eventsBrowserTableCollection,
             el: '#events-browser-table',
             infoIcon: 'fa-table',
             width: $('#events-browser-table').width()
@@ -6121,7 +5613,9 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable];
+        this.viewsToStopListening = [
+            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+        ];
     },
 
     triggerChange: function(change) {
@@ -6131,14 +5625,18 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser'],
+        ['/#reports/eventbrowser', 'Event Browser', 'active'],
+        ['/#reports/apibrowser', 'API Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         '<div class="row">' +
         '<div id="events-histogram-visualization" class="col-md-12"></div>' +
@@ -6545,7 +6043,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
             result = '';
             _.each(this.defaults.lookbackValues.lookback, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -6553,12 +6051,12 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15" selected>' + goldstone.translate('lookback 15m') + '</option>' +
-                '<option value="60">' + goldstone.translate('lookback 1h') + '</option>' +
-                '<option value="360">' + goldstone.translate('lookback 6h') + '</option>' +
-                '<option value="1440">' + goldstone.translate('lookback 1d') + '</option>' +
-                '<option value="4320">' + goldstone.translate('lookback 3d') + '</option>' +
-                '<option value="10080">' + goldstone.translate('lookback 7d') + '</option>';
+            return '<option class="i18n" data-i18n="lookback 15m" value="15" selected>lookback 15m</option>' +
+                '<option class="i18n" data-i18n="lookback 1h" value="60">lookback 1h</option>' +
+                '<option class="i18n" data-i18n="lookback 6h" value="360">lookback 6h</option>' +
+                '<option class="i18n" data-i18n="lookback 1d" value="1440">lookback 1d</option>' +
+                '<option class="i18n" data-i18n="lookback 3d" value="4320">lookback 3d</option>' +
+                '<option class="i18n" data-i18n="lookback 7d" value="10080">lookback 7d</option>';
         }
     },
 
@@ -6566,7 +6064,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
             result = '';
             _.each(this.defaults.lookbackValues.refresh, function(item) {
-                result += '<option value="' + item[0] + '"';
+                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
@@ -6574,10 +6072,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>' + goldstone.translate('refresh 30s') + '</option>' +
-                '<option value="60">' + goldstone.translate('refresh 1m') + '</option>' +
-                '<option value="300">' + goldstone.translate('refresh 5m') + '</option>' +
-                '<option value="-1">' + goldstone.translate('refresh off') + '</option>';
+            return '<option class="i18n" data-i18n="refresh 30s" value="30" selected>refresh 30s</option>' +
+                '<option class="i18n" data-i18n="refresh 1m" value="60">refresh 1m</option>' +
+                '<option class="i18n" data-i18n="refresh 5m" value="300">refresh 5m</option>' +
+                '<option class="i18n" data-i18n="refresh off" value="-1">refresh off</option>';
         }
     },
 
@@ -6622,48 +6120,6 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</div>'
 
         )
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var HelpView = GoldstoneBaseView.extend({
-
-    instanceSpecificInit: function() {
-        this.el = this.options.el;
-        this.render();
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
-    },
-
-    template: _.template('' +
-        '<div class="row">' +
-        '<div class="col-md-12">' +
-        '<h3><%=goldstone.translate("Getting Help")%></h3>' +
-        '<%=goldstone.translate("If you would like to contact Solinea regarding issues, feature requests, or other Goldstone related feedback, check out the <a href=\'https://groups.google.com/forum/#!forum/goldstone-users\' target=\'_blank\'>goldstone-users forum</a>, or <a href=\'https://github.com/Solinea/goldstone-server/issues\' target=\'_blank\'> file an issue on Github</a>. For general inquiries or to contact our consulting services team, email <a href=\'mailto:info@solinea.com\'>info@solinea.com</a>.")%>' +
-
-        '<h3><%=goldstone.translate("License")%></h3>' +
-        '<%=goldstone.translate("Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>.")%>' +
-        '</div>' +
-        '</div>'
-    )
-
 });
 ;
 /**
@@ -7238,13 +6694,48 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         // from viz above
     },
 
+    predefinedSearchUrl: null,
+
+    predefinedSearch: function(uuid) {
+        var self = this;
+
+        // turn off refresh range as a signal to the user that refreshes
+        // will no longer be occuring without changing the lookback
+        // or refresh. setZoomed will block the action of the cached refresh
+        $('#global-refresh-range').val(-1);
+        this.trigger('setZoomed', true);
+
+        // the presence of a predefinedSearchUrl will take precidence
+        // when creating a fetch url in the ajax.beforeSend routine.
+        this.predefinedSearchUrl = uuid;
+        oTable = $("#reports-result-table").DataTable();
+        oTable.ajax.reload(function() {
+            setTimeout(function() {
+
+                // manually retrigger column auto adjust which was not firing
+                oTable.columns.adjust().draw();
+            }, 10);
+
+        });
+    },
 
     update: function() {
         var oTable;
 
+        // clear out the saved search url so next time the viz is
+        // triggered it will not return the previously saved url
+        this.predefinedSearchUrl = null;
+
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload();
+            oTable.ajax.reload(function() {
+                setTimeout(function() {
+
+                    // manually retrigger column auto adjust which was not firing
+                    oTable.columns.adjust().draw();
+                }, 10);
+
+            });
         }
     },
 
@@ -7302,10 +6793,9 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
-                    // the url that will be fetched is now about to be
-                    // replaced with the urlGen'd url before adding on
-                    // the parsed components
-                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
+                    // if a predefined search url has been set
+                    // use that instead of the generated url
+                    settings.url = (self.predefinedSearchUrl ? self.predefinedSearchUrl + '?' : self.collectionMixin.url + '&') + "page_size=" + pageSize +
                         "&page=" + computeStartPage;
 
                     // here begins the combiation of additional params
@@ -7346,8 +6836,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         //     ascDec + columnLabelHash[orderByColumn];
                     }
 
-
-
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -7365,11 +6853,11 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
             // if any field is undefined, dataTables throws an alert
             // so set to empty string if otherwise undefined
-            item['@timestamp'] = item['@timestamp'] || '';
-            item.syslog_severity = item.syslog_severity || '';
-            item.component = item.component || '';
-            item.log_message = item.log_message || '';
-            item.host = item.host || '';
+            item['@timestamp'] = item._source['@timestamp'] || '';
+            item.syslog_severity = item._source.syslog_severity || '';
+            item.component = item._source.component || '';
+            item.log_message = item._source.log_message || '';
+            item.host = item._source.host || '';
         });
 
         var result = {
@@ -7390,7 +6878,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'Message\', \'logbrowserdata\')%></th>' +
         '</tr>'
     )
-});;
+});
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7487,6 +6976,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     // will prevent updating when zoom is active
     isZoomed: false,
 
+    predefinedSearch: function(payload) {
+        this.collection.reset();
+        this.collection.add(payload);
+        this.update();
+    },
+
     setZoomed: function(bool) {
         this.isZoomed = bool;
         this.collection.isZoomed = bool;
@@ -7516,12 +7011,14 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
+            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
@@ -7530,6 +7027,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             }
             this.showSpinner();
             this.constructUrl();
+            this.trigger('chartUpdate');
         });
 
     },
@@ -7667,6 +7165,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
         this.constructUrl();
+        this.trigger('chartUpdate');
         return;
     },
 
@@ -7678,78 +7177,68 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         var self = this;
 
-        // this.collection.toJSON() returns an object
-        // with keys: timestamps, levels, data.
+        // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-
-        // We will store the levels for the loglevel
-        // construction and add it back in before returning
-        var logLevels = collectionDataPayload.levels;
-
-        // if self.filter isn't defined yet, only do
-        // this once
-        if (!self.filter) {
-            self.filter = {};
-            _.each(logLevels, function(item) {
-                self.filter[item] = true;
-            });
-        }
-
         // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.data;
+        var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
         finalData = [];
 
-        // 3 layers of nested _.each calls
+        // layers of nested _.each calls
         // the first one iterates through each object
         // in the 'data' array as 'item':
+
         // {
-        //     "1426640040000": [
-        //         {
-        //             "audit": 7
-        //         },
-        //         {
-        //             "info": 0
-        //         },
-        //         {
-        //             "warning": 0
-        //         }
-        //     ]
-        // }
+        //     "per_level": {
+        //         "buckets": [{
+        //             "key": "INFO",
+        //             "doc_count": 112
+        //         }, {
+        //             "key": "NOTICE",
+        //             "doc_count": 17
+        //         }, {
+        //             "key": "ERROR",
+        //             "doc_count": 5
+        //         }, {
+        //             "key": "WARNING",
+        //             "doc_count": 2
+        //         }],
+        //         "sum_other_doc_count": 0,
+        //         "doc_count_error_upper_bound": 0
+        //     },
+        //     "key_as_string": "2016-01-07T22:24:45.000Z",
+        //     "key": 1452205485000,
+        //     "doc_count": 190
+        // },
 
         // the next _.each iterates through the array of
         // nested objects that are keyed to the timestamp
         // as 'subItem'
-        // [
-        //     {
-        //         "audit": 7
-        //     },
-        //     {
-        //         "info": 0
-        //     },
-        //     {
-        //         "warning": 0
-        //     }
-        // ]
-
-        // and finally, the last _.each iterates through
-        // the most deeply nested objects as 'subSubItem'
-        // such as:
-        //  {
-        //      "audit": 7
-        //  }
+        // [{
+        //     "key": "INFO",
+        //     "doc_count": 112
+        // }, {
+        //     "key": "NOTICE",
+        //     "doc_count": 17
+        // }, {
+        //     "key": "ERROR",
+        //     "doc_count": 5
+        // }, {
+        //     "key": "WARNING",
+        //     "doc_count": 2
+        // }],
 
         _.each(data, function(item) {
 
             var tempObject = {};
 
-            _.each(item, function(subItem) {
-                _.each(subItem, function(subSubItem) {
+            _.each(item.per_level.buckets, function(subItem) {
+                _.each(subItem, function() {
 
                     // each key/value pair of the subSubItems is added to tempObject
-                    var key = _.keys(subSubItem)[0];
-                    var value = _.values(subSubItem)[0];
+                    var key = subItem.key;
+                    var value = subItem.doc_count;
                     tempObject[key] = value;
                 });
             });
@@ -7762,8 +7251,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             _.each(self.filter, function(item, i) {
                 tempObject[i] = tempObject[i] || 0;
             });
-            tempObject.date = _.keys(item)[0];
-
+            tempObject.date = item.key;
             // which is the equivalent of doing this:
 
             // tempObject.debug = tempObject.debug || 0;
@@ -7781,10 +7269,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // and finally return the massaged data and the
         // levels to the superclass 'update' function
-        return {
-            finalData: finalData,
-            logLevels: logLevels
-        };
+        return finalData;
 
     },
 
@@ -7814,10 +7299,14 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // define allthelogs and self.data even if
         // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-        self.data = allthelogs.finalData;
+        self.data = allthelogs;
         self.loglevel = d3.scale.ordinal()
             .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
+
+        // clear viz
+        self.chart.selectAll('.component')
+            .remove();
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
@@ -7868,9 +7357,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 return self.sums(d);
             }))
         ]);
-
-        self.chart.selectAll('.component')
-            .remove();
 
         var component = self.chart.selectAll(".component")
             .data(components)
@@ -7995,7 +7481,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
-        this.trigger('chartUpdate');
+        // this.trigger('chartUpdate');
     },
 
     template: _.template(
@@ -8084,7 +7570,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
+            urlBase: '/core/logs/',
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -8098,7 +7584,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -8106,9 +7591,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logBrowserTableCollection = new LogBrowserTableCollection({
             skipFetch: true,
             specificHost: this.specificHost,
-            urlBase: '/logging/search/',
+            urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
-        });    
+        });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -8118,40 +7603,69 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
+        // initial rendering of logBrowserTable:
+        this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
+        this.logBrowserTable.update();
+
+        // set up listener between viz and table to setZoomed to 'true'
+        // when user triggers a saved search
+        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
+            this.setZoomed(trueFalse);
+        });
+
+        // render predefinedSearch Dropdown
+        this.predefinedSearchModule = new PredefinedSearchView({
+            className: 'compliance-predefined-search nav nav-pills',
+            tagName: 'ul',
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            })
+        });
+
+        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
+
+        // subscribe logBrowserViz to click events on predefined
+        // search dropdown to fetch results.
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+            // self.logBrowserTable.predefinedSearch(uuid[1]);
+            self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+            self.logBrowserTable.predefinedSearch(uuid[1]);
+            // self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
         this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
             self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
             self.logBrowserTable.update();
         });
 
-        // check for compliance addon and render predefined search bar if present
-        if (goldstone.returnAddonPresent('compliance')) {
-            if (goldstone.compliance.PredefinedSearchView) {
-                this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
-                    className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul'
-                });
-
-                $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-            }
-        }
-
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
-
-        // stopListening to predefinedSearchModule upon close, if present
-        if (this.predefinedSearchModule !== undefined) {
-            this.viewsToStopListening.push(this.predefinedSearchModule);
-        }
+        // destroy listeners and views upon page close
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
 
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser', 'active'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         // divs for log viewer viz on top and dataTable below
         '<div class="row">' +
@@ -8323,838 +7837,511 @@ var LoginPageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-/*
-Instantiated in metricViewerView similar to:
+// ChartSet extends from GoldstoneBaseView
 
-this.metricChart = new MetricViewCollection({
-    url: url
-});
+var MetricOverviewView = ChartSet.extend({
 
-this.metricChartView = new MetricView({
-    collection: this.metricChart,
-    height: 320,
-    el: '.metric-chart-instance' + this.options.instance,
-    width: $('.metric-chart-instance' + this.options.instance).width()
-});
-*/
+    makeChart: function() {
+        this.colorSet = d3.scale.ordinal().domain(['api', 'event', 'log']).range(this.colorArray.distinct['3R']);
+        this.svgAdder(this.width, this.height);
+        this.initializePopovers();
+        this.chartAdder();
 
-// view is linked to collection when instantiated
+        this.setXDomain();
+        this.setYDomain();
 
-var MetricView = GoldstoneBaseView.extend({
+        this.setXAxis();
+        this.callXAxis();
+        this.setYAxisLabel();
 
-    margin: {
-        top: 40,
-        right: 15,
-        bottom: 30,
-        left: 60
+        // added
+        this.setLines();
+        this.setLegend();
     },
 
-    instanceSpecificInit: function() {
-
-        this.processOptions();
-        this.processListeners();
-        this.render();
-        this.setSpinner();
-        this.standardInit();
-    },
-
-    standardInit: function() {
-
-        /*
-        D3.js convention works with the setting of a main svg, a sub-element
-        which we call 'chart' which is reduced in size by the amount of the top
-        and left margins. Also declares the axes, the doubleclick mechanism,
-        and the x and y scales, the axis details, and the chart colors.
-        */
-
-        var ns = this;
+    setLegend: function() {
         var self = this;
 
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
+        var legendText = [{
+            text: goldstone.translate('API'),
+            colorSet: 'api'
+        }, {
+            text: goldstone.translate('Events'),
+            colorSet: 'event'
+        }, {
+            text: goldstone.translate('Logs'),
+            colorSet: 'log'
+        }];
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
+        var legend = this.svg.selectAll('g')
+            .data(legendText)
+            .append('g');
 
-        ns.chart = ns.svg
-            .append("g")
-            .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + (ns.margin.top + 10) + ")");
+        legend.append('rect')
+            .attr('x', function(d, i) {
+                return i * 70;
+            })
+            .attr('y', -20)
+            .attr('width', '10px')
+            .attr('height', '10px')
+            .attr('fill', function(d) {
+                return self.colorSet(d.colorSet);
+            });
 
-        ns.svg.on('dblclick', function() {
-            var coord = d3.mouse(this);
-            self.dblclicked(coord);
-        });
+        legend.append('text')
+            .text(function(d) {
+                return d.text;
+            })
+            .attr('color', 'black')
+            .attr('x', function(d, i) {
+                return i * 70 + 14;
+            })
+            .attr('y', -10)
+            .attr('font-size', '15px');
 
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
+    },
 
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
+    chartAdder: function() {
+        this.chart = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
 
-        // initialize the axes
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
-            .ticks(5)
-            .orient("bottom");
+        this.chartApi = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
-            .orient("left");
+        this.chartEvent = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        this.chartLog = this.svg
+            .append('g')
+            .attr('class', 'chart')
+            .attr('transform', 'translate(' + this.marginLeft + ' ,' + this.marginTop + ')');
+    },
+
+    initializePopovers: function() {
+        var self = this;
+        this.tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0]);
+
+        // .html set in this.mouseoverAction
+
+        this.svg.call(this.tip);
+    },
+
+    setLines: function() {
+        var self = this;
+
+        this.apiLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+        this.eventLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.logLine = d3.svg.line()
+            .interpolate('monotone')
+            .x(function(d) {
+                return self.x(d.key);
+            })
+            .y(function(d) {
+                return self.yLog(d.doc_count);
+            });
+    },
+
+    resetAxes: function() {
+        var self = this;
+        d3.select(this.el).select('.axis.x')
+            .transition()
+            .call(this.xAxis.scale(self.x));
     },
 
     update: function() {
-        var ns = this;
-        var self = this;
-        var data = this.collection.toJSON()[0];
-        json = this.dataPrep(data.per_interval);
-        ns.statToChart = this.collection.statistic || 'band';
-        ns.standardDev = this.collection.standardDev || 0;
-        var mw = ns.mw;
-        var mh = ns.mh;
+        this.setData(this.collection.toJSON());
+        this.updateWithNewData();
+    },
 
+    updateWithNewData: function() {
+        this.setXDomain();
+        this.setYDomain();
+        this.resetAxes();
+        this.linesUpdate();
+        this.shapeUpdate();
+        this.shapeEnter();
+        this.shapeExit();
         this.hideSpinner();
-        $(this.el).find('text').remove();
-        $(this.el).find('svg').find('.chart').html('');
-        // prevents 'stuck' d3-tip on svg element.
-        $('body').find('#' + this.el.slice(1) + '.d3-tip').remove();
+    },
 
-        if (this.checkReturnedDataSet(json) === false) {
-            return;
+    svgAdder: function() {
+        this.svg = d3.select(this.el).select('.panel-body').append('svg')
+            .attr('width', this.width)
+            .attr('height', this.height);
+    },
+
+    setXDomain: function() {
+        var self = this;
+        this.x = d3.time.scale()
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        .domain(self.data.length ? [moment(self.data[0].startTime), moment(self.data[0].endTime)] : [1, 1])
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+
+    },
+
+    setYDomain: function() {
+        var param = this.yParam || 'count';
+        var self = this;
+
+        var oneThird = (this.height - this.marginTop - this.marginBottom)/3;
+        var rangePadding = 10;
+
+        // protect against invalid data and NaN for initial
+        // setting of domain with unary conditional
+        this.yLog = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].logData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird * 3, oneThird * 2 + rangePadding]);
+
+        this.yEvent = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].eventData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird * 2, oneThird + rangePadding]);
+
+        this.yApi = d3.scale.linear()
+            .domain([0, self.data.length ? d3.max(self.data[0].apiData.aggregations.per_interval.buckets, function(d) {
+                return d.doc_count;
+            }) : 0])
+            .range([oneThird, 0 + rangePadding]);
+
+    },
+
+    linesUpdate: function() {
+
+        var self = this;
+        var existingLines = this.chart.select('path');
+
+        if (existingLines.empty()) {
+            this.apiLineRendered = this.chart.append('path')
+                .attr('class', 'apiLine')
+                .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('api'));
+
+            this.eventLineRendered = this.chart.append('path')
+                .attr('class', 'eventLine')
+                .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('event'));
+
+            this.logLineRendered = this.chart.append('path')
+                .attr('class', 'logLine')
+                .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets))
+                .style('fill', 'none')
+                .style('stroke-width', '2px')
+                .style('shape-rendering', 'geometricPrecision')
+                .style('stroke', self.colorSet('log'));
         }
 
-        // append y axis label
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -11)
-            .attr("dy", "1.5em")
-        // returned by metric api call
-        .text(data.units[0])
-            .style("text-anchor", "middle");
+        this.apiLineRendered
+            .transition()
+            .attr('d', this.apiLine(this.data[0].apiData.aggregations.per_interval.buckets));
 
-        ns.y.domain([0, d3.max(json, function(d) {
-            var key = _.keys(d).toString();
+        this.eventLineRendered
+            .transition()
+            .attr('d', this.eventLine(this.data[0].eventData.aggregations.per_interval.buckets));
 
-            if (ns.standardDev === 1) {
-                // add 10% breathing room to y axis domain
-                return d[key].stats.std_deviation_bounds.upper * 1.1;
+        this.logLineRendered
+            .transition()
+            .attr('d', this.logLine(this.data[0].logData.aggregations.per_interval.buckets));
+    },
+
+    shapeUpdate: function() {
+        var self = this;
+
+        this.chartApiCircles = this.chartApi.selectAll('circle')
+            .data(this.data[0].apiData.aggregations.per_interval.buckets);
+
+        this.chartApiCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            });
+
+
+        this.chartEventCircles = this.chartEvent.selectAll('circle')
+            .data(this.data[0].eventData.aggregations.per_interval.buckets);
+
+        this.chartEventCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            });
+
+        this.chartLogCircles = this.chartLog.selectAll('circle')
+            .data(this.data[0].logData.aggregations.per_interval.buckets);
+
+        this.chartLogCircles
+            .transition()
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            });
+
+    },
+
+    shapeEnter: function() {
+        var self = this;
+
+        this.chartApiCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yApi(d.doc_count);
+            })
+            .attr('class', 'apiCircle')
+            .attr('r', function(d) {
+
+                // response_ranges need to be pushed into an array
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                var radiusByResponseRange = responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 400 || item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 4 and 500's
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return radiusByResponseRange === 0 ? 2 : (radiusByResponseRange / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('api'))
+            .style('fill', this.colorSet('api'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Api Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+
+        this.chartEventCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yEvent(d.doc_count);
+            })
+            .attr('class', 'eventCircle')
+            .attr('r', function(d) {
+                var radiusByOutcome = d.per_outcome.buckets.filter(function(item) {
+
+                        // filter out success/pending
+                        return item.key !== "success" && item.key !== "pending";
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum non success/pending counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByOutcome / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('event'))
+            .style('fill', this.colorSet('event'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Events');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+
+        this.chartLogCircles
+            .enter().append('circle')
+            .attr('cx', function(d) {
+                return self.x(d.key);
+            })
+            .attr('cy', function(d) {
+                return self.yLog(d.doc_count);
+            })
+            .attr('class', 'logCircle')
+            .attr('r', function(d) {
+
+                var radiusByLevel = d.per_level.buckets.filter(function(item) {
+
+                        // filter out debug through error
+                        return self.severityHash[item] === true;
+                    })
+                    .reduce(function(pre, next) {
+
+                        // sum counts
+                        return pre + next.doc_count;
+                    }, 0);
+
+                // return proportional radius
+                return d.doc_count === 0 ? 2 : (radiusByLevel / d.doc_count) * 2 + 2;
+            })
+            .style('stroke', this.colorSet('log'))
+            .style('fill', this.colorSet('log'))
+            .on('mouseover', function(d) {
+                self.mouseoverAction(d, 'Logs');
+            })
+            .on('mouseout', function(d) {
+                self.mouseoutAction(d);
+            });
+    },
+
+    shapeExit: function() {
+        this.chartApiCircles.exit().remove();
+        this.chartEventCircles.exit().remove();
+        this.chartLogCircles.exit().remove();
+    },
+
+    mouseoverAction: function(d, setName) {
+        var self = this;
+
+        // variably set this.tip.html based on the line set that is passed in
+        this.tip.html(function(d, setName) {
+
+            var extraContent;
+            if (setName === 'Events') {
+                extraContent = '<br>' +
+
+                'Success: ' + (d.per_outcome.buckets.filter(function(item) {
+                        return item.key === "success";
+                    })
+                    .reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0)) + '<br>' +
+                    'Pending: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key === "pending";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>' +
+                    'Failure: ' + (d.per_outcome.buckets.filter(function(item) {
+                            return item.key !== "pending" &&
+                                item.key !== "success";
+                        })
+                        .reduce(function(pre, next) {
+                            return pre + next.doc_count;
+                        }, 0)) + '<br>';
+
+            } else if (setName === 'Logs') {
+
+                extraContent = '';
+
+                // iterate through the severity levels
+                _.each(self.severityHash, function(item, name) {
+
+                    // filter for nonZero values against the severity level
+                    var nonZero = d.per_level.buckets.filter(function(bucket) {
+                        return bucket.key === name;
+                    }).reduce(function(pre, next) {
+                        return pre + next.doc_count;
+                    }, 0);
+
+
+                    // and append a popup value for that nonZero filter level
+                    if (nonZero > 0) {
+                        extraContent += '<br>' + name + ': ' + (d.per_level.buckets.filter(function(level) {
+                                return level.key === name;
+                            })
+                            .reduce(function(pre, next) {
+                                return pre + next.doc_count;
+                            }, 0));
+                    }
+                });
+
+            } else if (setName === 'Api Events') {
+                var responseRangeArray = [];
+                _.each(d.response_ranges.buckets, function(item) {
+                    responseRangeArray.push(item);
+                });
+
+                extraContent = '<br>' +
+
+
+                '400 errors: ' + responseRangeArray.filter(function(item) {
+                    // filter for 4 and 500's
+                    return item.from === 400;
+                })
+                    .reduce(function(pre, next) {
+                        // add up 400's
+                        return pre + next.doc_count;
+                    }, 0) + '<br>' +
+                    '500 errors: ' + responseRangeArray.filter(function(item) {
+                        // filter for 4 and 500's
+                        return item.from === 500;
+                    })
+                    .reduce(function(pre, next) {
+                        // add up 500's
+                        return pre + next.doc_count;
+                    }, 0);
+
             } else {
-                // add 10% breathing room to y axis domain
-                return d[key].stats.max * 1.1;
+                extraContent = '';
             }
-        })]);
 
-        json.forEach(function(d) {
-            // careful as using _.keys after this
-            // will return [timestamp, 'time']
-            d.time = moment(+_.keys(d)[0]);
-
-            // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item) {
-                return item !== "time";
-            }).toString();
-            d.min = d[key].stats.min || 0;
-            d.max = d[key].stats.max || 0;
-            d.avg = d[key].stats.avg || 0;
-            d.stdHigh = d[key].stats.std_deviation_bounds.upper || 0;
-            d.stdLow = d[key].stats.std_deviation_bounds.lower || 0;
+            return moment(d.key).format('ddd MMM D YYYY') + "<br>" +
+                moment(d.key).format('h:mm:ss a') + "<br>" +
+                d.doc_count + ' ' + setName + extraContent;
         });
 
-        ns.x.domain(d3.extent(json, function(d) {
-            return d.time;
-        }));
-
-        var area = d3.svg.area()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y0(function(d) {
-                return ns.y(d.min);
-            })
-            .y1(function(d) {
-                return ns.y(d.max);
-            });
-
-        var maxLine = d3.svg.line()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y(function(d) {
-                return ns.y(d.max);
-            });
-
-        var minLine = d3.svg.line()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y(function(d) {
-                return ns.y(d.min);
-            });
-
-        var avgLine = d3.svg.line()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y(function(d) {
-                return ns.y(d.avg);
-            });
-
-        var stdHigh = d3.svg.line()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y(function(d) {
-                return ns.y(d.stdHigh);
-            });
-
-        var stdLow = d3.svg.line()
-            .interpolate("monotone")
-            .tension(0.85)
-            .x(function(d) {
-                return ns.x(d.time);
-            })
-            .y(function(d) {
-                return ns.y(d.stdLow);
-            });
-
-        var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
-            .data(json);
-
-        var hiddenBarWidth = mw / json.length;
-
-        var tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .attr('id', this.el.slice(1))
-            .html(function(d) {
-                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
-                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
-            });
-
-        // Invoke the tip in the context of your visualization
-
-        ns.chart.call(tip);
-
-        // initialize the chart lines
-
-        if (ns.statToChart === 'band') {
-            ns.chart.append("path")
-                .datum(json)
-                .attr("class", "area")
-                .attr("id", "minMaxArea")
-                .attr("d", area)
-                .attr("fill", ns.colorArray.distinct[3][1]);
-        }
-
-        if (ns.statToChart === 'band' || ns.statToChart === 'min') {
-            ns.chart.append('path')
-                .attr('class', 'line')
-                .attr('id', 'minLine')
-                .attr('data-legend', "Min")
-                .style("stroke", ns.colorArray.distinct[3][0])
-                .datum(json)
-                .attr('d', minLine);
-        }
-
-        if (ns.statToChart === 'band' || ns.statToChart === 'max') {
-            ns.chart.append('path')
-                .attr('class', 'line')
-                .attr('id', 'maxLine')
-                .attr('data-legend', "Max")
-                .style("stroke", ns.colorArray.distinct[3][2])
-                .datum(json)
-                .attr('d', maxLine);
-        }
-
-        if (ns.statToChart === 'band' || ns.statToChart === 'avg') {
-            ns.chart.append('path')
-                .attr('class', 'line')
-                .attr('id', 'avgLine')
-                .attr('data-legend', "Avg")
-                .style("stroke-dasharray", ("3, 3"))
-                .style("stroke", ns.colorArray.grey[0][0])
-                .datum(json)
-                .attr('d', avgLine);
-        }
-
-        if (ns.standardDev) {
-
-            ns.chart.append('path')
-                .attr('class', 'line')
-                .attr('id', 'stdDevHigh')
-                .attr('data-legend', "Std Dev High")
-                .style("stroke-dasharray", ("3, 3"))
-                .style("stroke", ns.colorArray.distinct[4][1])
-                .datum(json)
-                .attr('d', stdHigh);
-
-            ns.chart.append('path')
-                .attr('class', 'line')
-                .attr('id', 'stdDevLow')
-                .attr('data-legend', "Std Dev Low")
-                .style("stroke-dasharray", ("3, 3"))
-                .style("stroke", ns.colorArray.distinct[4][1])
-                .datum(json)
-                .attr('d', stdLow);
-        }
-
-        ns.chart.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0, ' + mh + ')')
-            .call(ns.xAxis);
-
-        ns.chart.append('g')
-            .attr('class', 'y axis')
-            .call(ns.yAxis);
-
-        var legend = ns.chart.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(20,-38)")
-            .call(d3.legend);
-
-        // UPDATE
-        // Update old elements as needed.
-
-        // ENTER
-        // Create new elements as needed.
-
-        hiddenBar.enter()
-            .append('g')
-            .attr("transform", function(d, i) {
-                return "translate(" + i * hiddenBarWidth + ",0)";
-            });
-
-        // ENTER + UPDATE
-        // Appending to the enter selection expands the update selection to include
-        // entering elements; so, operations on the update selection after appending to
-        // the enter selection will apply to both entering and updating nodes.
-
-        // hidden rectangle for tooltip tethering
-
-        hiddenBar.append("rect")
-            .attr('class', 'partialHiddenBar')
-            .attr("id", function(d, i) {
-                return "verticalRect" + i;
-            })
-            .attr("y", function(d) {
-                return ns.y(d.max);
-            })
-            .attr("height", function(d) {
-                return mh - ns.y(d.max);
-            })
-            .attr("width", hiddenBarWidth);
-
-        // narrow guideline turns on when mouse enters hidden bar
-
-        hiddenBar.append("rect")
-            .attr("class", "verticalGuideLine")
-            .attr("id", function(d, i) {
-                return "verticalGuideLine" + i;
-            })
-            .attr("x", 0)
-            .attr("height", mh)
-            .attr("width", 1)
-            .style("opacity", 0);
-
-        // wide guideline with mouse event handling to show guide and
-        // tooltip.
-
-        hiddenBar.append("rect")
-            .attr('class', 'hiddenBar')
-            .attr("height", mh)
-            .attr("width", hiddenBarWidth)
-            .on('mouseenter', function(d, i) {
-                var rectId = self.el + " #verticalRect" + i,
-                    guideId = self.el + " #verticalGuideLine" + i,
-                    targ = d3.select(guideId).pop().pop();
-                d3.select(guideId).style("opacity", 0.8);
-                tip.offset([50, 0]).show(d, targ);
-            })
-            .on('mouseleave', function(d, i) {
-                var id = self.el + " #verticalGuideLine" + i;
-                d3.select(id).style("opacity", 0);
-                tip.hide();
-            });
+        this.tip.show(d, setName);
     },
 
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>')
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-
-The nesting of this page is:
-
-| MetricViewerPageView
-|__ MetricViewerView
-|____ MetricView + MetricViewCollection
-
-At the moment /#metric will default to 6 charts.
-/metric/1 will show 1 chart
-/metric/2 will show 2 charts
-/metric/3 will show 3 charts
-...etc, up to a maximum of 6 charts.
-*/
-
-var MetricViewerPageView = GoldstoneBasePageView.extend({
-
-    instanceSpecificInit: function(options) {
-
-        // hide global lookback selector, if present
-        var $glr = $("select#global-lookback-range");
-        if ($glr.length) {
-            this.$glr = $glr;
-            this.$glr.hide();
-        }
-
-        // options.numCharts passed in by goldstoneRouter
-        // and reflects the number n (1-6) following "/#metric/n"
-        this.numCharts = this.options.numCharts;
-
-        // model to hold views of chart grids
-        this.metricViewGridContainer = new Backbone.Model({
-            grid: {
-                view: {}
-            }
-        });
-
-        // instantiate initialize in GoldstoneBasePageView
-        MetricViewerPageView.__super__.instanceSpecificInit.apply(this, arguments);
+    mouseoutAction: function(d) {
+        this.tip.hide();
     },
 
-    onClose: function() {
-        // clear out grid of collections/views
-        this.metricViewGridContainer.clear();
-
-        // return global lookback selector to page if relevant
-        if (this.$glr) {
-            $("select#global-lookback-range").show();
-        }
-
-        MetricViewerPageView.__super__.onClose.apply(this, arguments);
-    },
-
-    renderCharts: function() {
-
-        // defined in initialize
-        var num = this.numCharts;
-
-        var locationHash = {
-            0: '#goldstone-metric-r1-c1',
-            1: '#goldstone-metric-r1-c2',
-            2: '#goldstone-metric-r1-c3',
-            3: '#goldstone-metric-r2-c1',
-            4: '#goldstone-metric-r2-c2',
-            5: '#goldstone-metric-r2-c3'
-        };
-
-        //---------------------------------------------
-        // instantiate as many metricViews as requested
-
-        // Backbone getter:
-        var grid = this.metricViewGridContainer.get('grid');
-
-        for (var i = 0; i < num; i++) {
-
-            // underscore method for producing unique integer
-            var id = _.uniqueId();
-
-            grid.view[id] = new MetricViewerView({
-                width: $(locationHash[i]).width(),
-                height: 360,
-                // passing the instance allows for unique
-                // identification of charts and elements
-                instance: id
-            });
-
-            $(locationHash[i]).append(grid.view[id].el);
-        }
-    },
-
-    triggerChange: function(change) {
-        // upon lookbackIntervalReached, trigger all views
-        // so they can be refreshed via metricViewerView
-        if (change === 'lookbackIntervalReached') {
-            var grid = this.metricViewGridContainer.get('grid').view;
-
-            // trigger each chart currently in the grid that the refresh
-            // interval has been reached
-            _.each(grid, function(view) {
-                view.trigger('globalLookbackReached');
-            });
-        }
-    },
-
-    template: _.template('' +
-
-        // button selectors for metric viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
-        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
-        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="active headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
-        '</div><br><br>' +
-
-        '<div id="goldstone-metric-r1" class="row">' +
-        '<div id="goldstone-metric-r1-c1" class="col-md-4"></div>' +
-        '<div id="goldstone-metric-r1-c2" class="col-md-4"></div>' +
-        '<div id="goldstone-metric-r1-c3" class="col-md-4"></div>' +
-        '</div>' +
-        '<div id="goldstone-metric-r2" class="row">' +
-        '<div id="goldstone-metric-r2-c1" class="col-md-4"></div>' +
-        '<div id="goldstone-metric-r2-c2" class="col-md-4"></div>' +
-        '<div id="goldstone-metric-r2-c3" class="col-md-4"></div>' +
-        '</div>'
-    )
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-instance variable added to options hash in order to
-create a custom binding between each metricViewerChart
-and the associated modal menus
-
-Instantiated on metricViewerPageView as:
-
-this.metricViewerChartView = new MetricViewerView({
-        width: $('#goldstone-metric-r1-c1').width(),
-        height: $('#goldstone-metric-r1-c1').width(),
-        instance: xxx
-});
-
-*/
-
-var MetricViewerView = GoldstoneBaseView.extend({
-
-    instanceSpecificInit: function() {
-        this.processListeners();
-        this.render();
-        this.chartOptions = new Backbone.Model({});
-        this.getMetricNames();
-        this.getResourceNames();
-    },
-
-    getResourceNames: function() {
-        var self = this;
-
-        // 'host_name' will be extracted from the returned array of host objects
-        $.get("/nova/hosts/", function() {})
-            .done(function(data) {
-                if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' ' + goldstone.contextTranslate('No resources returned', 'metricviewer'));
-                } else {
-                    self.resourceNames = data[0];
-                    self.populateResources();
-                }
-            })
-            .fail(function() {
-                $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' Resource name fetch failed');
-            });
-    },
-
-    getMetricNames: function() {
-        var self = this;
-
-        $.get("/core/metric_names/", function() {})
-            .done(function(data) {
-                data = data.per_name;
-                if (data === undefined || data.length === 0) {
-                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('No metric reports available', 'metricviewer'));
-                } else {
-                    self.metricNames = data;
-                    self.populateMetrics();
-                }
-            })
-            .fail(function() {
-                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' ' + goldstone.contextTranslate('Metric report list fetch failed', 'metricviewer'));
-            })
-            .always(function() {
-                self.attachModalTriggers();
-            });
-    },
-
-    processListeners: function() {
-        var self = this;
-
-        this.listenTo(this, 'globalLookbackReached', function() {
-            if (this.metricChart) {
-                this.appendChart();
-            }
-        });
-    },
-
-    attachModalTriggers: function() {
-        var self = this;
-
-        // attach listener to the modal submit button
-        $('#gear-modal-content' + this.options.instance).find('.modal-submit').on('click', function() {
-
-            // on submit --> update the chartOptions Model
-            self.setChartOptions('#gear-modal-content' + self.options.instance);
-
-            // and append the metric name and resource to the chart header
-            $('span.metric-viewer-title' + self.options.instance).text(goldstone.contextTranslate('Metric', 'metricviewer') + ': ' +
-                self.chartOptions.get('metric') +
-                '.' + goldstone.contextTranslate('Resource', 'metricviewer') + ': ' +
-                self.chartOptions.get('resource'));
-        });
-
-        // chartOptions will be stored as a Backbone Model
-        // and will be listenTo'd for changes which can
-        // trigger the rendering of a new chart
-        this.listenTo(this.chartOptions, 'change', function() {
-            this.appendChart();
-        });
-    },
-
-    setChartOptions: function(menu) {
-
-        // if these options change, a 'change' event will
-        // be emitted by the Backbone Model and picked up
-        // by the listener in this.attachModalTriggers
-        // otherwise it will be ignored
-        this.chartOptions.set({
-            'metric': $(menu).find('.metric-dropdown-options').val(),
-            'resource': $(menu).find('.resource-dropdown-options').val(),
-            'statistic': $(menu).find('.statistic-dropdown-options').val(),
-            'standardDev': $(menu).find('.standard-dev:checked').length,
-            'lookbackValue': $(menu).find('.modal-lookback-value').val(),
-            'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
-            'intervalValue': $(menu).find('.modal-interval-value').val(),
-            'intervalUnit': $(menu).find('.interval-dropdown-options').val()
-        });
-    },
-
-    populateMetrics: function() {
-        var self = this;
-
-        // clear the 'loading' text next to the dropdown
-        $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
-
-        // append the options within the dropdown
-        _.each(self.metricNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
-        });
-    },
-
-    populateResources: function() {
-        var self = this;
-
-        // clear the 'loading' text next to the dropdown
-        $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text('');
-
-        // host names will be similar to: ctrl-01.c2.oak.solinea.com
-        // so slice from the beginning up to the first '.'
-        var resourceNames = _.uniq(_.map(self.resourceNames, function(item) {
-            return (item.host_name).slice(0, item.host_name.indexOf('.'));
-        }));
-
-        // add 'all' to the beginning of the array of resources which will
-        // be appended as the first drop-down option
-        resourceNames.unshift('all');
-
-        // append the options within the dropdown
-        _.each(resourceNames, function(item) {
-            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option value="' + item + '">' + item + "</option>");
-        });
-    },
-
-    constructUrlFromParams: function() {
-        // chartOptions is a backbone Model instantiated in initialize:
-        var options = this.chartOptions.attributes;
-
-        // set minimum interval to 2 minutes to correct for jagged visualization
-        if (options.intervalUnit === 'm') {
-            options.intervalValue = Math.max(2, options.intervalValue);
-        }
-
-        var url = '/core/metrics/summarize/?name=' +
-            options.metric + '&@timestamp__range={"gte":' +
-            (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
-            '}&interval=' +
-            options.intervalValue +
-            options.intervalUnit;
-        if (options.resource !== 'all') {
-            url += '&node=' + options.resource;
-        }
-        return url;
-
-        /*
-            constructs a url similar to:
-            /core/metrics/summarize/?name=os.cpu.user
-            &@timestamp__range={'gte':1429649259172}&interval=1m
-        */
-
-    },
-
-    appendChart: function() {
-
-        var url = this.constructUrlFromParams();
-        // if there is already a chart populating this div:
-        if (this.metricChart) {
-            this.metricChart.url = url;
-            this.metricChart.statistic = this.chartOptions.get('statistic');
-            this.metricChart.standardDev = this.chartOptions.get('standardDev');
-            $(this.metricChartView.el).find('#spinner').show();
-            this.metricChart.fetchWithReset();
-        } else {
-            this.metricChart = new MetricViewCollection({
-                statistic: this.chartOptions.get('statistic'),
-                url: url,
-                standardDev: this.chartOptions.get('standardDev')
-            });
-            this.metricChartView = new MetricView({
-                collection: this.metricChart,
-                height: 320,
-                el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width()
-            });
-        }
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        var self = this;
-        return this;
-    },
-
-    template: _.template(
-
-        //-----------------------
-        // START MODAL FORMATTING
-
-        '<div class="modal fade" id="modal-filter-<%= this.options.instance %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-
-        '<div id="gear-modal-content<%= this.options.instance %>">' +
-
-        '<div class="modal-header">' +
-        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Select chart parameters\', \'metricviewer\')%></h4>' +
-        '</div>' + // end modal-header
-
-        '<div class="modal-body">' +
-        '<h5><%=goldstone.contextTranslate(\'Metric\', \'metricviewer\')%></h5>' +
-        '<select class="metric-dropdown-options">' +
-        // options will be populated by populateMetrics()
-        '</select>' +
-
-        // loading text will be removed when options are populated
-        '<span class="metric-dropdown-text"> Loading...</span>' +
-
-        // loading text will be removed when options are populated
-        '<h5><%=goldstone.contextTranslate(\'Resource\', \'metricviewer\')%></h5>' +
-        '<select class="resource-dropdown-options">' +
-        // options will be populated by populateMetrics()
-        '</select>' +
-        '<span class="resource-dropdown-text"> Loading...</span>' +
-
-        '<h5><%=goldstone.contextTranslate(\'Statistic\', \'metricviewer\')%></h5>' +
-        '<select class="statistic-dropdown-options">' +
-        '<option value="band" selected><%=goldstone.contextTranslate(\'band\', \'metricviewer\')%></option>' +
-        '<option value="min"><%=goldstone.contextTranslate(\'min\', \'metricviewer\')%></option>' +
-        '<option value="max"><%=goldstone.contextTranslate(\'max\', \'metricviewer\')%></option>' +
-        '<option value="avg"><%=goldstone.contextTranslate(\'avg\', \'metricviewer\')%></option>' +
-        '</select>' +
-
-        '<h5><%=goldstone.translate(\'Standard Deviation Bands\')%> <input class="standard-dev" type="checkbox"></h5>' +
-
-        // ES can handle s/m/h/d in the "interval" param
-        '<h5><%=goldstone.contextTranslate(\'Lookback\', \'metricviewer\')%></h5>' +
-        '<input type="number" min="1" step="1" class="modal-lookback-value" value="1" required>' + ' ' +
-        '<select class="lookback-dropdown-options">' +
-        '<option value="60"><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
-        '<option value="3600" selected><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
-        '<option value="86400"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
-        '</select>' +
-
-        // ES can handle s/m/h/d in the "interval" param
-        '<h5><%=goldstone.contextTranslate(\'Charting Interval (minimum 2 minutes)\', \'metricviewer\')%></h5>' +
-        '<input type="number" min="1" step="1" class="modal-interval-value" value="2" required>' + ' ' +
-        '<select class="interval-dropdown-options">' +
-        '<option value="m" selected><%=goldstone.contextTranslate(\'minutes\', \'metricviewer\')%></option>' +
-        '<option value="h"><%=goldstone.contextTranslate(\'hours\', \'metricviewer\')%></option>' +
-        '<option value="d"><%=goldstone.contextTranslate(\'days\', \'metricviewer\')%></option>' +
-        '</select>' +
-
-        '</div>' + // end modal-body
-
-        '<div class="modal-footer">' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit"><%=goldstone.contextTranslate(\'Submit\', \'metricviewer\')%></button> ' +
-        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel"><%=goldstone.contextTranslate(\'Cancel\', \'metricviewer\')%></button>' +
-        '</div>' + // end modal-footer
-
-        '</div>' + // end gear-modal-content
-
-        '</div>' + // end modal-content
-        '</div>' + // end modal-dialog
-        '</div>' + // end modal
-
-
-        // END MODAL FORMATTING
-        //---------------------
-
-
-        // start visible page elements
-        // add trigger that will reveal modal
-
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>"><%=goldstone.contextTranslate(\'Click gear for config\', \'metricviewer\')%></span>' +
-        '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
-        '</h3></div>' +
-
-        // add div that will contain svg for d3 chart
-        '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
-        '</div>'
-    )
+    severityHash: {
+        EMERGENCY: true,
+        ALERT: true,
+        CRITICAL: true,
+        ERROR: false,
+        WARNING: false,
+        NOTICE: false,
+        INFO: false,
+        DEBUG: false,
+    }
 
 });
 ;
@@ -9264,7 +8451,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         self.xAxis = d3.svg.axis()
             .scale(self.x)
-            .ticks(5)
+            .ticks(2)
             .orient("bottom");
 
         self.yAxis = d3.svg.axis()
@@ -9311,7 +8498,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         self.yAxis = d3.svg.axis()
             .scale(self.y)
             .orient("left")
-            .tickFormat(d3.format("01d"));
+            .tickFormat(d3.format("d"));
 
         // differentiate color sets for mem and cpu charts
         if (self.featureSet === 'mem' || self.featureSet === 'cpu') {
@@ -9338,29 +8525,30 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var finalData = [];
 
         if (self.featureSet === 'cpu') {
+        // data morphed through collectionPrep into:
+        // {
+        //     "eventTime": "1424586240000",
+        //     "Used": 6,
+        //     "Physical": 16,
+        //     "Virtual": 256
+        // });
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9373,11 +8561,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9398,27 +8584,21 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         } else if (self.featureSet === 'disk') {
 
             _.each(data, function(collection) {
-
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9431,11 +8611,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
-
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
             });
 
 
@@ -9458,25 +8636,20 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             _.each(data, function(collection) {
 
                 // within each collection, tag the data points
-                _.each(collection.per_interval, function(dataPoint) {
-
-                    _.each(dataPoint, function(item, i) {
-                        item['@timestamp'] = i;
-                        item.name = collection.metricSource;
-                        item.value = item.stats.max;
-                    });
-
+                _.each(collection.aggregations.per_interval.buckets, function(dataPoint) {
+                    dataPoint['@timestamp'] = dataPoint.key;
+                    dataPoint.name = collection.metricSource;
+                    dataPoint.value = dataPoint.statistics.max;
                 });
             });
 
             condensedData = _.flatten(_.map(data, function(item) {
-                return item.per_interval;
+                return item.aggregations.per_interval.buckets;
             }));
 
             dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
-                return item[_.keys(item)[0]]['@timestamp'];
+                return item['@timestamp'];
             }));
-
             newData = {};
 
             _.each(dataUniqTimes, function(item) {
@@ -9489,10 +8662,9 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             });
 
             _.each(condensedData, function(item) {
-
-                var key = _.keys(item)[0];
-                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
-                newData[key][metric] = item[key].value;
+                var key = item.key;
+                var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+                newData[key][metric] = item.value;
 
             });
 
@@ -9555,7 +8727,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-
         var self = this;
 
         // data originally returned from collection as:
@@ -10030,7 +9201,9 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
-        '<div class="mainContainer"></div>' +
+        '<div class="mainContainer shadow-block panel-body">' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '</div>' +
 
         // modal
         '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +
@@ -10071,916 +9244,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var NewPasswordView = GoldstoneBaseView.extend({
-
-    initialize: function(options) {
-        this.getUidToken();
-        this.addHandlers();
-    },
-
-    getUidToken: function() {
-        this.uidToken = window.location.search.slice(1);
-    },
-
-    addHandlers: function() {
-        var self = this;
-
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-
-            var $password = $('#password');
-            var $confirm_password = $('#confirm_password');
-
-            if ($password.val() !== $confirm_password.val()) {
-                goldstone.raiseWarning("Passwords don't match.");
-            } else {
-
-                // options.uidToken is passed in when the view is
-                // instantiated via goldstoneRouter.js
-
-                self.submitRequest(self.uidToken + '&' + $(this).serialize());
-            }
-        });
-    },
-
-    clearFields: function() {
-        // clear input fields
-        $('#password').val('');
-        $('#confirm_password').val('');
-    },
-
-    submitRequest: function(input) {
-        var self = this;
-
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
-
-        $.post('/accounts/password/reset/confirm/', input, function() {})
-            .done(function(success) {
-
-                // clear input fields
-                self.clearFields();
-
-                // and add a success message to the top of the screen
-                goldstone.raiseInfo('Password changed. Redirecting to login.');
-
-
-                setTimeout(function() {
-                    location.href = '/login/';
-
-                }, 2000);
-
-            })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                if (fail.non_field_errors) {
-                    goldstone.raiseWarning(fail.non_field_errors);
-                } else {
-                    // clear input fields
-                    self.clearFields();
-                    goldstone.raiseWarning('Password reset failed.');
-                }
-
-            });
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-openstack syslog severity levels:
-0       EMERGENCY: system is unusable
-1       ALERT: action must be taken immediately
-2       CRITICAL: critical conditions
-3       ERROR: error conditions
-4       WARNING: warning conditions
-5       NOTICE: normal but significant condition
-6       INFO: informational messages
-7       DEBUG: debug-level messages
-/*
-
-/*
-View is linked to collection when instantiated
-
-Instantiated on topologyPageView as:
-
-this.nodeAvailChart = new NodeAvailCollection({});
-
-this.nodeAvailChartView = new NodeAvailView({
-    chartTitle: goldstone.translate('Node Availability'),
-    collection: this.nodeAvailChart,
-    el: '#goldstone-discover-r1-c2',
-    h: {
-        "main": 150,
-        "swim": 50
-    },
-    width: $('#goldstone-discover-r1-c2').width()
-});
-*/
-
-
-var NodeAvailView = GoldstoneBaseView.extend({
-
-    margin: {
-        top: 18,
-        bottom: 25,
-        right: 40,
-        left: 10
-    },
-
-    filter: {
-        // none must be set to false in order to not display
-        // nodes that have zero associated events.
-        EMERGENCY: true,
-        ALERT: true,
-        CRITICAL: true,
-        ERROR: true,
-        WARNING: true,
-        NOTICE: true,
-        INFO: true,
-        DEBUG: true,
-        none: false,
-        actualZero: true
-    },
-
-    instanceSpecificInit: function() {
-        NodeAvailView.__super__.instanceSpecificInit.apply(this, arguments);
-
-        // basic assignment of variables to be used in chart rendering
-        this.initSvg();
-    },
-
-    processListeners: function() {
-        var self = this;
-
-        this.listenTo(this.collection, 'sync', function() {
-            if (self.collection.defaults.urlCollectionCount === 0) {
-
-                // if the 2nd fetch is done, store the 2nd dataset
-                // in dataToCombine
-                self.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
-
-                // restore the fetch count
-                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-
-                // reset fetchInProgress so further fetches can
-                // be initiated
-                self.collection.defaults.fetchInProgress = false;
-
-                // update the view
-                self.update();
-            } else if (self.collection.defaults.urlCollectionCount === 1) {
-                // if the 1st of 2 fetches are done, store the
-                // first dataset in dataToCombine
-                self.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
-            }
-        });
-
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
-
-        this.on('lookbackSelectorChanged', function() {
-            self.fetchNowWithReset();
-        });
-
-        this.on('lookbackIntervalReached', function() {
-            self.fetchNowWithReset();
-        });
-    },
-
-    fetchNowWithReset: function() {
-        this.showSpinner();
-        this.collection.fetchMultipleUrls();
-    },
-
-    initSvg: function() {
-        var self = this;
-
-
-        this.r = d3.scale.sqrt();
-        this.dataToCombine = [];
-
-        this.mw = this.width - this.margin.left - this.margin.right;
-        this.mh = this.height - this.margin.top - this.margin.bottom;
-
-        // maps between input label domain and output color range for circles
-        self.loglevel = d3.scale.ordinal()
-            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "actualZero"])
-            // concats darkgrey as a color for nodes
-            // reported at 'actualZero'
-            .range(self.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
-
-        // for 'disabled' axis
-        self.xAxis = d3.svg.axis()
-            .orient("bottom")
-            .ticks(3)
-            .tickFormat(d3.time.format("%m/%d %H:%M:%S"));
-
-        self.xScale = d3.time.scale()
-            .range([self.margin.left, self.mw - self.margin.right])
-            // rounding
-            .nice()
-            // values above or below domain will be constrained to range
-            .clamp(true);
-
-        self.yAxis = d3.svg.axis()
-            .ticks(5)
-            .orient("left");
-        self.swimAxis = d3.svg.axis().orient("left");
-        self.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin"].concat(self.loglevel
-                .domain()
-                .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([self.h.main, 0]);
-
-        self.yLogs = d3.scale.linear()
-            .range([
-                self.ySwimLane("unadmin") - self.ySwimLane.rangeBand(),
-                self.ySwimLane("ping") + self.ySwimLane.rangeBand()
-            ]);
-
-
-        /*
-         * The graph and axes
-         */
-
-        self.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", self.width)
-            .attr("height", self.h.main + (self.h.swim * 2) + self.margin.top + self.margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
-
-        self.graph = self.svg.append("g").attr("id", "graph");
-
-        // Visual swim lanes
-        self.swimlanes = {
-            // ping: {
-            //     label: "Ping Only",
-            //     offset: -(self.ySwimLane.rangeBand() / 2)
-            // },
-            unadmin: {
-                label: "Disabled",
-                offset: self.ySwimLane.rangeBand() / 2
-            }
-        };
-
-        self.graph.selectAll(".swimlane")
-            .data(d3.keys(self.swimlanes), function(d) {
-                return d;
-            })
-            .enter().append("g")
-            .attr("class", "swimlane")
-            .attr("id", function(d) {
-                return d;
-            })
-            .attr("transform", function(d) {
-                return "translate(0," + self.ySwimLane(d) + ")";
-            });
-
-        // self.graph.append("g")
-        //     .attr("class", "xping axis")
-        //     .attr("transform", "translate(0," + (self.ySwimLane.rangeBand()) + ")");
-
-        self.graph.append("g")
-            .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (self.h.main - self.ySwimLane.rangeBand()) + ")");
-
-        self.graph.append("g")
-            .attr("class", "y axis invisible-axis")
-            .attr("transform", "translate(" + (self.mw + 10) + ",0)");
-
-        // nudges visible y-axis to the right
-        self.graph.append("g")
-            .attr("class", "swim axis invisible-axis")
-            .attr("transform", "translate(20,0)");
-
-        self.tooltip = d3.tip()
-            .attr('class', 'd3-tip')
-            .direction(function(e) {
-                if (this.getBBox().y < self.h.swim) {
-                    return 's';
-                } else {
-                    return 'n';
-                }
-            })
-            .offset(function() {
-                var leftOffset;
-                // [top-offset, left-offset]
-                var toolTipWidth = 292;
-                var halfToolHeight = 65;
-                if (this.getBBox().x < toolTipWidth) {
-                    leftOffset = toolTipWidth - this.getBBox().x;
-                } else if (this.getBBox().x > self.width - toolTipWidth) {
-                    leftOffset = -(toolTipWidth - (self.width - this.getBBox().x));
-                } else {
-                    leftOffset = 0;
-                }
-                return [0, leftOffset];
-            })
-            .html(function(d) {
-                return self.formatTooltip(d);
-            });
-
-        self.graph.call(self.tooltip);
-
-        // Label the swim lane ticks
-        self.swimAxis
-            .tickFormat(function(d) {
-                // Visual swim lanes
-                var swimlanes = {
-                    // ping: "Ping Only",
-                    unadmin: ""
-                };
-                var middle = self.ySwimLane.domain()[Math.floor(self.ySwimLane.domain().length / 2)];
-                swimlanes[middle] = "";
-                if (swimlanes[d]) {
-                    return swimlanes[d];
-                } else {
-                    return "";
-                }
-            });
-
-        // Draw the axis on the screen
-        d3.select(this.el).select(".swim.axis")
-            .call(self.swimAxis.scale(self.ySwimLane));
-
-        // Transform the swim lane ticks into place
-        // increases size of labels via font-size
-        d3.select(this.el).select(".swim.axis").selectAll("text")
-            .style('font-size', '15px')
-            .style('font-weight', 'bold');
-    },
-
-    formatTooltip: function(d) {
-
-        var self = this;
-
-        // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
-        var tooltipText = '<div class="text-left">Host: ' + d.name + '<br>' +
-            'Time: ' + moment(d.created).toDate() + '<br>';
-
-        var levels = _.filter(_.keys(self.filter), function(item) {
-            return item !== 'actualZero' && item !== 'none';
-        });
-
-        // var levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
-
-        // iterate through levels and if defined and non-zero, append
-        // to toolTip with count
-        _.each(levels, function(item) {
-            item += '_count';
-            if (d[item]) {
-                // changes 'alert_level' to 'Alert: xxx'
-                tooltipText += item.charAt(0).toUpperCase() + item.slice(1, item.indexOf("_")) + ": " + d[item] + '<br>';
-            }
-        });
-
-        tooltipText += '</div>';
-
-        return tooltipText;
-    },
-
-    sums: function(datum) {
-        var self = this;
-
-        // Return the sums for the filters that are on
-        return d3.sum(self.loglevel.domain().map(function(k) {
-
-            if (self.filter[k] && datum[k + "_count"]) {
-                return datum[k + "_count"];
-            } else {
-                return 0;
-            }
-
-        }));
-    },
-
-    collectionPrep: function(data) {
-        var self = this;
-
-        var finalData = [];
-
-        // data.hosts will equal all hosts, so
-        // make an object to keep track of whether each one has been
-        // found in the data.data array, and record the levels
-        // and timestamp for that occurance.
-        // once each host has been found, quit the iteration and
-        // return the record as final data;
-        var setOfHosts = {}; // ['rsrc-01', 'ctrl-01', ....]
-
-        // prime setOfHosts object. keyed to data.hosts
-        // and value all initially set to null
-        _.each(data.hosts, function(item) {
-            setOfHosts[item] = null;
-        }); // {'rsrc-01: null, 'ctrl-01': null, ...}
-
-        // function to return if there are any keys that have
-        // a value of null in the passed in object
-        // (which will be used with setOfHosts)
-        var checkIfAnyNull = function(obj) {
-            return _.any(obj, function(item) {
-                return item === null;
-            });
-        };
-
-        // reverse the data in order to encounter the
-        // most recent timestamps first
-        data.data.reverse();
-
-        // sets up an iteration that will break as soon as every
-        // host value is no longer set to null, or else gets
-        // through the entire data set
-        _.every(data.data, function(item) {
-
-            // iterate through the timestamp
-            _.each(item, function(hostsInTimestamp, timestamp) {
-
-                // iterate through the host
-                _.each(hostsInTimestamp, function(hostObject) {
-
-                    var hostName = _.keys(hostObject)[0];
-                    if (setOfHosts[hostName] === null) {
-
-                        // don't run through this host again
-                        setOfHosts[hostName] = true;
-                        hostResultObject = {};
-
-                        // add in params that are expected by current viz:
-                        hostResultObject.id = hostName;
-                        hostResultObject.name = hostName;
-                        hostResultObject.created = +timestamp;
-                        hostResultObject.updated = +timestamp;
-                        hostResultObject.managed = true;
-                        hostResultObject.update_method = "LOGS";
-
-                        // iterate through host and record the values
-                        _.each(hostObject, function(levels) {
-                            _.each(levels, function(oneLevel) {
-                                hostResultObject[_.keys(oneLevel) + '_count'] = _.values(oneLevel)[0];
-                            });
-                        });
-
-                        // set each alert level to 0 if still undefined
-                        _.each(self.loglevel.domain().filter(function(item) {
-                            return item !== 'actualZero';
-                        }), function(level) {
-                            hostResultObject[level + '_count'] = hostResultObject[level + '_count'] || 0;
-                        });
-
-                        finalData.push(hostResultObject);
-                    }
-                });
-            });
-
-            // if there are any remaining hosts that are set to null
-            // then this return value will be true and the iteration
-            // will continue. but if this returns false, it stops
-            return checkIfAnyNull(setOfHosts);
-        });
-
-        return finalData;
-    },
-
-    combineDatasets: function(dataArray) {
-
-        // take the two datasets and iterate through the first one
-        // looking for '_count' attributes, and then copy them over
-        // from the 2nd dataset which contains the accurate counts
-
-        // function to locate an object in a dataset that contains a name property with the passed in name
-        var findNodeToCopyFrom = function(data, name) {
-            return _.find(data, function(item) {
-                return item.name === name;
-            });
-        };
-
-        _.each(dataArray[0], function(item, i) {
-            for (var k in item) {
-                if (k.indexOf('_count') > -1) {
-                    var itemToCopyFrom = findNodeToCopyFrom(dataArray[1], item.name);
-                    item[k] = itemToCopyFrom[k];
-                }
-            }
-        });
-
-        // after they are zipped together, the final result will
-        // be contained in array index 0.
-        return dataArray[0];
-    },
-
-    update: function() {
-        var self = this;
-
-        this.hideSpinner();
-
-        // includes timestamps, levels, hosts, data
-        var allthelogs = this.collection.toJSON()[0];
-
-        // get the currrent lookback to set the domain of the xAxis
-        this.getGlobalLookbackRefresh();
-        xEnd = +new Date();
-        xStart = xEnd - (1000 * 60 * this.globalLookback);
-
-        self.xScale = self.xScale.domain([xStart, xEnd]);
-
-        // if no response from server, need to assign allthelogs.data
-        allthelogs = allthelogs || {};
-        allthelogs.data = allthelogs.data || [];
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs.data) === false) {
-            return;
-        }
-
-        // clear out the modal and reapply based on the unique events
-        if ($(this.el).find('#populateEventFilters').length) {
-            $(this.el).find('#populateEventFilters').empty();
-        }
-
-        // populate the modal based on the event types.
-        _.each(_.keys(self.filter), function(item) {
-
-            // don't put type 'none' or 'actualZero'
-            // in the modal checkbox options
-            if (item === 'none' || item === 'actualZero') {
-                return null;
-            }
-
-            // function to determine if the html should format
-            // a check box for the filter button in the modal
-            var addCheckIfActive = function(item) {
-                if (self.filter[item]) {
-                    return 'checked';
-                } else {
-                    return '';
-                }
-            };
-
-            var checkMark = addCheckIfActive(item);
-
-            $(self.el).find('#populateEventFilters').
-            append(
-
-                '<div class="row">' +
-                '<div class="col-lg-12">' +
-                '<div class="input-group">' +
-                '<span class="input-group-addon"' +
-                'style="background-color:' + self.loglevel([item]) + ';">' +
-                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
-                '</span>' +
-                '<span type="text" class="form-control">' + item + '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>'
-            );
-        });
-
-        // click listerner for check box to redraw the viz upon change
-        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
-            var checkboxId = this.id;
-            self.filter[checkboxId] = !self.filter[checkboxId];
-            self.redraw();
-
-        });
-
-
-        /*
-         * Shape the dataset
-         *   - Convert datetimes to integer
-         *   - Sort by last seen (from most to least recent)
-         */
-
-        self.dataset = this.combineDatasets(self.dataToCombine)
-            .map(function(d) {
-                d.created = moment(d.created);
-                d.updated = moment(d.updated);
-
-                /*
-                 * Figure out which bucket (logs, ping, or disabled)
-                 * each node belongs to.
-                 */
-
-                if (d.managed === "false") {
-                    d.swimlane = "unadmin";
-                } else {
-                    d.swimlane = d.update_method.toLowerCase();
-                }
-                return d;
-            });
-
-
-        /*
-         * Axes
-         *   - calculate the new domain.
-         *   - adjust each axis to its new scale.
-         */
-
-        // self.pingAxis.scale(self.xScale);
-        self.xAxis.scale(self.xScale);
-
-        // self.svg.select(".xping.axis")
-        //     .call(self.pingAxis);
-
-        self.svg.select(".xunadmin.axis")
-            .call(self.xAxis);
-
-        self.yAxis.scale(self.yLogs);
-
-        self.svg.select(".y.axis")
-            .transition()
-            .duration(500)
-            .call(self.yAxis);
-
-
-        // binds circles to dataset
-        var circle = self.graph.selectAll("circle")
-            .data(self.dataset, function(d) {
-                // if changing this, also must
-                // change idAttribute in backbone model
-
-                /*
-TODO: probably change this to d.timestamp
-*/
-                return d.id;
-            });
-
-        // 'enters' circles at far right of screen.
-        // styling and location will happen in this.redraw().
-        circle.enter()
-            .append("circle")
-            .attr("cx", function(d) {
-                return self.xScale.range()[1];
-            })
-            .attr("cy", function(d) {
-                return self.yLogs(self.sums(d));
-            })
-            .on("mouseover", self.tooltip.show)
-            .on("mouseout", self.tooltip.hide)
-            .on("click", function(d) {
-                window.location.href = '#report/node/' + d.name;
-            });
-
-        this.redraw();
-
-        circle.exit().remove();
-
-        return;
-    },
-
-    redraw: function() {
-        var self = this;
-
-        /*
-         * Figure out the higest non-filtered level.
-         * That will determine its color.
-         */
-
-        _.each(self.dataset, function(nodeObject) {
-
-            // nonzero_levels returns an array of the node's
-            // alert severities that are not filtered out
-
-            var nonzero_levels = self.loglevel.domain()
-                .map(function(level) {
-                    return [level, nodeObject[level + "_count"]];
-                })
-                .filter(function(level) {
-
-                    // only consider 'active' filter buttons
-                    return self.filter[level[0]] && (level[1] > 0);
-                });
-
-            // the .level paramater will determine visibility
-            // and styling of the sphere
-
-            // if the array is empty:
-            if (nonzero_levels[0] === undefined) {
-                nodeObject.level = "actualZero";
-            } else {
-
-                // otherwise set it to the
-                // highest alert severity
-                nodeObject.level = nonzero_levels[0][0];
-            }
-
-        });
-
-        self.yLogs.domain([
-            0,
-            d3.max(self.dataset.map(function(d) {
-                return self.sums(d);
-            }))
-        ]);
-
-        d3.select(this.el).select(".swim.axis")
-            .transition()
-            .duration(500);
-
-        d3.select(this.el).select(".y.axis")
-            .transition()
-            .duration(500)
-            .call(self.yAxis.scale(self.yLogs));
-
-        self.graph.selectAll("circle")
-            .transition().duration(500)
-            // this determines the color of the circle
-            .attr("class", function(d) {
-                if (d.swimlane === "unadmin") {
-                    return d.swimlane;
-                } else {
-                    return "individualNode";
-                }
-            })
-            .attr("fill", function(d) {
-                return self.loglevel(d.level);
-            })
-            .attr("cx", function(d) {
-                return self.xScale(d.updated);
-            })
-            .attr("cy", function(d, i) {
-
-                // add multiplier to give space between
-                // multiple items reporting the same numbers
-                if (d.level === 'actualZero') {
-                    return (self.yLogs(self.sums(d)) - (i * 2));
-                } else {
-
-                    // notice the [] at the end which is calling
-                    // the key that matches d.swimlane
-
-                    return {
-
-                        // add multiplier to give space between
-                        // multiple items reporting the same numbers
-                        logs: self.yLogs(self.sums(d) - (i * 2)),
-
-                        // ping: self.ySwimLane(d.swimlane) - 15,
-                        unadmin: self.ySwimLane(d.swimlane) + self.ySwimLane.rangeBand() + 15
-                    }[d.swimlane];
-
-
-                }
-
-
-
-            })
-            .attr("r", function(d) {
-
-                // radii at fixed size for now.
-                if (d.swimlane === "logs") {
-                    return self.r(64);
-                } else {
-                    return self.r(20);
-                }
-
-            })
-            .style("opacity", function(d) {
-
-                if (d.swimlane === "unadmin") {
-                    return 1.0;
-                }
-                if (self.filter[d.level]) {
-                    return 1.0;
-                } else {
-                    return 0;
-                }
-
-            })
-            .style("visibility", function(d) {
-
-                // use visibility "hidden" to
-                // completely remove from dom to prevent
-                // tool tip hovering from still working
-                if (!self.filter[d.level]) {
-                    return "hidden";
-                } else {
-                    return "visible";
-                }
-            });
-
-    },
-
-    addModalAndHeadingIcons: function() {
-        this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
-        this.$el.find('.special-icon-post').append(this.filterButton());
-    },
-
-    filterButton: _.template('' +
-        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-left: 15px;"></i>'
-    ),
-
-    modal1: _.template(
-        // event settings modal
-        '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-
-        // header
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-        '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
-        '</div>' +
-
-        // body
-        '<div class="modal-body">' +
-        '<form class="form-horizontal" role="form">' +
-        '<div class="form-group">' +
-        '<label for="nodeAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
-        '<div class="col-sm-9">' +
-        '<div class="input-group">' +
-        '<span class="input-group-addon">' +
-        '<input type="checkbox" class="nodeAutoRefresh" checked>' +
-        '</span>' +
-        '<select class="form-control" id="nodeAutoRefreshInterval">' +
-        '<option value="5">5 seconds</option>' +
-        '<option value="15">15 seconds</option>' +
-        '<option value="30" selected>30 seconds</option>' +
-        '<option value="60">1 minute</option>' +
-        '<option value="300">5 minutes</option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</form>' +
-        '</div>' +
-
-        // footer
-        '<div class="modal-footer">' +
-        '<div class="form-group">' +
-        '<button type="button" id="eventSettingsUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    ),
-
-    modal2: _.template(
-        // event filter modal
-        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-
-        // header
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Log Severity Filters\')%></h4>' +
-        '</div>' +
-
-        // body
-        '<div class="modal-body">' +
-        '<h5><%=goldstone.contextTranslate(\'Uncheck log-type to hide from display\', \'nodeavail\')%></h5><br>' +
-        '<div id="populateEventFilters"></div>' +
-        '</div>' +
-
-        // footer
-        '<div class="modal-footer">' +
-        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.contextTranslate(\'Exit\', \'nodeavail\')%></button>' +
-        '</div>' +
-
-        '</div>' +
-        '</div>' +
-        '</div>'
-    )
-});;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var NodeReportView = GoldstoneBasePageView.extend({
+var NodeReportPageView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
@@ -10989,7 +9253,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.node_uuid = this.options.node_uuid;
 
         // invoke the 'superclass'
-        NodeReportView.__super__.instanceSpecificInit.apply(this, arguments);
+        NodeReportPageView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
@@ -11138,11 +9402,11 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Service status chart
-        this.serviceStatusChart = new ServiceStatusCollection({
+        this.serviceStatusChart = new NodeServiceStatusCollection({
             nodeName: hostName
         });
 
-        this.serviceStatusChartView = new ServiceStatusView({
+        this.serviceStatusChartView = new NodeServiceStatusView({
             collection: this.serviceStatusChart,
             el: '#node-report-main #node-report-r2',
             width: $('#node-report-main #node-report-r2').width(),
@@ -11442,149 +9706,240 @@ var NodeReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var NovaReportView = GoldstoneBasePageView.extend({
+/*
+Instantiated on nodeReportView.js similar to:
 
-    triggerChange: function(change) {
+this.serviceStatusChart = new ServiceStatusCollection({
+    nodeName: hostName
+});
 
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
-            this.vmSpawnChartView.trigger('lookbackSelectorChanged');
-            this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
-            this.memResourcesChartView.trigger('lookbackSelectorChanged');
-            this.diskResourcesChartView.trigger('lookbackSelectorChanged');
+this.serviceStatusChartView = new ServiceStatusView({
+    collection: this.serviceStatusChart,
+    el: '#node-report-main #node-report-r2',
+    width: $('#node-report-main #node-report-r2').width(),
+    globalLookback: ns.globalLookback
+});
+*/
+
+var NodeServiceStatusView = GoldstoneBaseView.extend({
+
+    defaults: {
+        margin: {
+            top: 30,
+            right: 30,
+            bottom: 60,
+            left: 70
         }
     },
 
-    renderCharts: function() {
+    instanceSpecificInit: function() {
+        this.processOptions();
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
+        this.processMargins();
+        // Appends this basic chart template, usually overwritten
+        this.render();
+        // appends spinner to el
+        this.showSpinner();
+    },
+
+    processOptions: function() {
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
+        }
+
+        this.defaults.spinnerPlace = '.spinnerPlace';
+    },
+
+    processListeners: function() {
+        this.listenTo(this.collection, 'sync', this.update);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        this.on('lookbackSelectorChanged', function() {
+            this.defaults.spinnerDisplay = 'inline';
+            $(this.el).find('#spinner').show();
+            this.collection.retrieveData();
+        });
+    },
+
+    processMargins: function() {
+        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
+        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+        NodeServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
+    },
+
+    classSelector: function(item) {
+        if (item === "running") {
+            return 'alert alert-success';
+        }
+        return 'alert alert-danger fa fa-exclamation-circle';
+    },
+
+    collectionPrep: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        allthelogs = this.collection.toJSON();
+
+        var data = allthelogs;
+        // inside 'data', the results are stored with the
+        // timestamp property in descending order.
+        // the set can be achieved from _.uniq + data.name;
+
+        var uniqServiceNames = _.uniq(_.map(data, function(item) {
+            return item.name;
+        }));
+
+
+        var novelServiceBreadcrumb = {};
+
+        _.each(uniqServiceNames, function(item) {
+            novelServiceBreadcrumb[item] = true;
+        });
+
+
+        // set a counter for the length of uniq(data.name);
+        var uniqSetSize = _.keys(uniqServiceNames).length;
+
         /*
-        Nova Api Perf Report
+        iterate through data and as novel service
+        names are located, attach the status at that
+        moment to that service name and don't reapply
+        it, as the next result is not the most recent.
         */
 
-        this.novaApiPerfChart = new ApiPerfCollection({
-            componentParam: 'nova',
-            urlBase: '/core/apiperf/summarize/'
+        var finalData = [];
+
+        for (var item in data) {
+            if (novelServiceBreadcrumb[data[item].name]) {
+                finalData.push(data[item]);
+                novelServiceBreadcrumb[data[item].name] = false;
+
+                // when finding a novel name, decrement the set length counter.
+                uniqSetSize--;
+
+                // when the counter reaches 0, the set is
+                // complete and the most recent
+                // results have been assigned to each of
+                // the items in the set.
+                if (uniqSetSize === 0) {
+                    break;
+                }
+            }
+        }
+
+        // final formatting of the results as
+        // [{'serviceName': status}...]
+        _.each(finalData, function(item, i) {
+            var resultName;
+            var resultObject = {};
+            if (item.name && item.name.indexOf('.') !== -1) {
+                resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
+            } else {
+                resultName = item.name;
+            }
+            resultObject[resultName] = item.value;
+            finalData[i] = resultObject;
         });
 
-        this.novaApiPerfChartView = new ApiPerfView({
-            chartTitle: goldstone.translate("Nova API Performance"),
-            collection: this.novaApiPerfChart,
-            height: 350,
-            el: '#nova-report-r1-c1',
-            width: $('#nova-report-r1-c1').width(),
-        });
-        
-        /*
-        VM Spawns Chart
-        */
-
-        this.vmSpawnChart = new SpawnsCollection({
-            urlBase: '/nova/hypervisor/spawns/'
-        });
-
-        this.vmSpawnChartView = new SpawnsView({
-            chartTitle: goldstone.translate("VM Spawns"),
-            collection: this.vmSpawnChart,
-            height: 350,
-            infoText: 'novaSpawns',
-            el: '#nova-report-r1-c2',
-            width: $('#nova-report-r1-c2').width(),
-            yAxisLabel: goldstone.translate('Spawn Events')
-        });
-
-        /*
-        CPU Resources Chart
-        */
-
-        this.cpuResourcesChart = new MultiMetricComboCollection({
-            metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
-        });
-
-        this.cpuResourcesChartView = new MultiMetricBarView({
-            chartTitle: goldstone.translate("CPU Resources"),
-            collection: this.cpuResourcesChart,
-            featureSet: 'cpu',
-            height: 350,
-            infoText: 'novaCpuResources',
-            el: '#nova-report-r2-c1',
-            width: $('#nova-report-r2-c1').width(),
-            yAxisLabel: goldstone.translate('Cores')
-        });
-
-        /*
-        Mem Resources Chart
-        */
-
-        this.memResourcesChart = new MultiMetricComboCollection({
-            metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
-        });
-
-        this.memResourcesChartView = new MultiMetricBarView({
-            chartTitle: goldstone.translate("Memory Resources"),
-            collection: this.memResourcesChart,
-            featureSet: 'mem',
-            height: 350,
-            infoText: 'novaMemResources',
-            el: '#nova-report-r2-c2',
-            width: $('#nova-report-r2-c2').width(),
-            yAxisLabel: goldstone.translate('MB')
-        });
-
-        /*
-        Disk Resources Chart
-        */
-
-        this.diskResourcesChart = new MultiMetricComboCollection({
-            metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
-        });
-
-        this.diskResourcesChartView = new MultiMetricBarView({
-            chartTitle: goldstone.translate("Disk Resources"),
-            collection: this.diskResourcesChart,
-            featureSet: 'disk',
-            height: 350,
-            infoText: 'novaDiskResources',
-            el: '#nova-report-r3-c1',
-            width: $('#nova-report-r3-c1').width(),
-            yAxisLabel: goldstone.translate('GB')
-        });
-
-        this.viewsToStopListening = [this.novaApiPerfChart, this.novaApiPerfChart, this.vmSpawnChart, this.vmSpawnChartView, this.cpuResourcesChart, this.cpuResourcesChartView, this.memResourcesChart, this.memResourcesChartView, this.diskResourcesChart, this.diskResourcesChartView];
+        return finalData;
 
     },
 
-    template: _.template('' +
+    update: function() {
 
-        // button selectors for metric viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#metrics/nova_report"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Compute\')%></button></a>' +
-        '<a href="#metrics/api_perf"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'API Performance\')%></button></a>' +
-        '<a href="#metrics/metric_report"><button type="button" data-title="Metric Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Metric Report\')%></button></a>' +
-        '</div><br><br>' +
+        var ns = this.defaults;
+        var self = this;
 
-        '<div id="nova-report-r1" class="row">' +
-        '<div id="nova-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="nova-report-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="nova-report-r2" class="row">' +
-        '<div id="nova-report-r2-c1" class="col-md-6"></div>' +
-        '<div id="nova-report-r2-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="nova-report-r3" class="row">' +
-        '<div id="nova-report-r3-c1" class="col-md-6"></div>' +
-        '<div id="nova-report-r3-c2" class="col-md-6"></div>' +
-        '</div>'
-    )
+        this.hideSpinner();
+
+        var allthelogs = this.collectionPrep();
+
+        if (this.checkReturnedDataSet(allthelogs) === false) {
+            return;
+        }
+
+        $(this.el).find('.mainContainer .toRemove').off();
+        $(this.el).find('.mainContainer').empty();
+
+        var nodeNames = [];
+
+        _.each(allthelogs, function(item) {
+            nodeNames.push(item);
+        });
+
+        this.sorter(nodeNames);
+
+        _.each(nodeNames, function(item, i) {
+
+            var itemKeyFull = '';
+            var itemValue = _.values(nodeNames[i])[0];
+            var itemKey = _.keys(nodeNames[i])[0];
+            if (itemKey.length > 27) {
+                itemKeyFull = _.keys(nodeNames[i])[0];
+                itemKey = itemKey.slice(0, 27) + '...';
+            }
+
+            $(self.el).find('.mainContainer').append('<div style="width: 170px;' +
+                'height: 22px; font-size:11px; margin-bottom: 0; ' +
+                ' text-align:center; padding: 3px 0;" data-toggle="tooltip" ' +
+                'data-placement="top" title="' + itemKeyFull +
+                '" class="col-xs-1 toRemove ' + this.classSelector(itemValue) +
+                '"> ' + itemKey + '</div>');
+        }, this);
+
+        $(this.el).find('.mainContainer .toRemove').on('mouseover', function() {
+            $(this).tooltip('show');
+        });
+    },
+
+    sorter: function(data) {
+
+        return data.sort(function(a, b) {
+            if (Object.keys(a) < Object.keys(b)) {
+                return -1;
+            }
+            if (Object.keys(a) > Object.keys(b)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+    },
+
+    render: function() {
+        $(this.el).append(this.template());
+        return this;
+    },
+
+    template: _.template('<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="spinnerPlace"></div>' +
+        '<div class="mainContainer"></div>')
 
 });
 ;
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -11593,47 +9948,116 @@ var NovaReportView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-var PasswordResetView = GoldstoneBaseView.extend({
+/*
+compliance/defined_search/ results structure:
 
-    initialize: function(options) {
-        this.addHandlers();
+{
+    "uuid": "4ed7499e-d0c6-4d0b-be67-0418cd4b5d60",
+    "name": "failed authorization",
+    "owner": "compliance",
+    "description": "Defined Search",
+    "query": "{ \"query\": { \"bool\": { \"must\": [ { \"match\": { \"component\": \"keystone\" } }, { \"match_phrase\": { \"openstack_message\": \"authorization failed\" } } ] } } }",
+    "protected": true,
+    "index_prefix": "logstash-*",
+    "doc_type": "syslog",
+    "timestamp_field": "@timestamp",
+    "last_start": null,
+    "last_end": null,
+    "target_interval": 0,
+    "created": null,
+    "updated": null
+}
+
+*/
+
+PredefinedSearchView = GoldstoneBaseView.extend({
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.getPredefinedSearches();
     },
 
-    addHandlers: function() {
+    getPredefinedSearches: function() {
         var self = this;
 
-        $('.login-form').on('submit', function(e) {
-            e.preventDefault();
-            self.submitRequest($(this).serialize());
+        $.get('/core/saved_search/?page_size=1000&index_prefix=logstash-*').
+        done(
+            function(result) {
+                if (result.results) {
+                    self.predefinedSearches = result.results;
+                    self.render();
+                } else {
+                    console.log('unknown result format');
+                }
+            }).
+        fail(function(result) {
+            console.log('failed defined search ', result);
         });
     },
 
-    submitRequest: function(input) {
+    populatePredefinedSearches: function(arr) {
+        var result = '';
+
+        _.each(arr, function(item) {
+            result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
+        });
+
+        return result;
+    },
+
+    processListeners: function() {
         var self = this;
 
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
+        // dropdown to reveal predefined search list
+        $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
+            var clickedUuid = $(this).data('uuid');
+            var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
 
-        $.post('/accounts/password/reset/', input, function() {})
-            .done(function(success) {
+            self.collection.urlBase = '/compliance/defined_search/' + clickedUuid + '/results/';
+            self.collection.urlGenerator();
+            var constructedUrlforViz = self.collection.url;
+            self.fetchResults(constructedUrlforViz, constructedUrlForTable);
+        });
 
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
+        // gear icon navigation to saved search settings page
+        this.$el.find('.fa-gear').click(function() {
+            window.location.href = "/#reports/logbrowser/search";
+        });
+    },
+
+    fetchResults: function(vizUrl, tableUrl) {
+        var self = this;
+        $.get(vizUrl)
+            .done(function(res) {
+                self.trigger('clickedUuidViz', [res, vizUrl]);
             })
-            .fail(function(fail) {
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
+            .fail(function(err) {
+                console.error(err);
+            });
 
-                // TODO: change this after SMTP handling is set up
-                // to reflect the proper error
-                goldstone.raiseInfo(fail.responseJSON.detail);
+        $.get(tableUrl)
+            .done(function(res) {
+                self.trigger('clickedUuidTable', [res, tableUrl]);
+            })
+            .fail(function(err) {
+                console.error(err);
             });
     },
 
+    template: _.template('' +
+        '<li role="presentation" class="dropdown">' +
+        '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
+        '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
+        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
+        '<ul class="dropdown-menu">' +
+        '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
+        '</ul>' +
+        '</li>'
+    ),
+
     render: function() {
-        this.$el.html(this.template());
+        $(this.el).html(this.template());
+        this.processListeners();
         return this;
     }
 
@@ -11984,6 +10408,692 @@ var ReportsReportView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+implemented on SavedSearchLogPageView as:
+
+    this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+
+        this.savedSearchLogView = new savedSearchLogDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+*/
+
+SavedSearchLogDataTableView = DataTableBaseView.extend({
+
+    instanceSpecificInit: function() {
+        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+
+        // initialize with serverSide dataTable defined on DataTableBaseView
+        this.drawSearchTableServerSide('#reports-result-table');
+    },
+
+    form_index_prefix: 'logstash-*',
+    form_doc_type: 'syslog',
+    form_timestamp_field: '@timestamp',
+    urlRoot: '/core/saved_search/',
+    iDisplayLengthOverride: 25,
+
+    render: function() {
+        this.$el.html(this.template());
+        $(this.el).find('.refreshed-report-container').append(this.dataTableTemplate());
+
+        // append modals for new search / update search / delete search
+        $('#create-modal-container').append(this.createModal());
+        $('#update-modal-container').append(this.updateModal());
+        $('#delete-modal-container').append(this.deleteModal());
+
+        // add event/click handlers to add/update/delete
+        this.createModalHandlers();
+        this.updateModalHandlers();
+        this.deleteModalHandlers();
+
+        return this;
+    },
+
+    createModalHandlers: function() {
+        var self = this;
+
+        // add /user/'s uuid to hidden form field to be submitted as
+        // owner of search
+        var populateOwnerUuid = function() {
+            $.ajax({
+                type: 'GET',
+                url: '/user/'
+            })
+                .done(function(res) {
+                    $('.create-form #owner').val(res.uuid);
+                })
+                .fail(function(err) {
+                    goldstone.raiseInfo(err);
+                });
+        };
+
+        // click listener on add trail plus button to reset modal form
+        $('.add-button').on('click', function() {
+            $('.create-form')[0].reset();
+            populateOwnerUuid();
+        });
+
+        // if cancelling add trail dialog, just close modal
+        $('#cancel-create-button').on('click', function() {
+            $('#create-modal').modal('hide');
+        });
+
+        // when submitting data in modal form for add swift trail
+        $('.create-form').on('submit', function(e) {
+            e.preventDefault();
+            var data = $('.create-form').serialize();
+            self.createNewSearchAjax(data);
+        });
+
+    },
+
+    createNewSearchAjax: function(data) {
+        var self = this;
+
+        $.ajax({
+            type: "POST",
+            url: self.urlRoot,
+            data: data
+        })
+            .done(function() {
+
+                var updateMessage = goldstone.contextTranslate('Creation of %s successful', 'savedsearch');
+                var successMessage = goldstone.sprintf(updateMessage, $('.create-form #new-search-name').val());
+
+                // show success message at top of screen
+                // uses sprintf string interpolation to create a properly
+                // formatted message such as "Creation of trail1 successful"
+                goldstone.raiseInfo(successMessage);
+
+            })
+            .fail(function(err) {
+                var failMessage = goldstone.contextTranslate('Failure to create %s', 'savedsearch');
+                var failureWarning = goldstone.sprintf(failMessage, $('.create-form #new-search-name').val());
+
+                // show failure message at top of screen
+                // uses sprintf string interpolation to create a properly
+                // formatted message such as "Failure to create trail1"
+                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+
+            }).always(function() {
+                // close modal
+                $('#create-modal').modal('hide');
+                // reload table
+                self.oTable.ajax.reload();
+            });
+    },
+
+    updateModalHandlers: function() {
+        var self = this;
+
+        // if cancelling update trail dialog, just close modal
+        $('#cancel-submit-update-search').on('click', function() {
+            $('#update-modal').modal('hide');
+        });
+
+        // when submitting data in modal form for updating trail
+        $('.update-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var data = $('.update-form').serialize();
+
+
+            $.ajax({
+                type: "PATCH",
+                url: self.urlRoot + $('#updateUUID').val() + "/",
+                data: data
+            })
+                .done(function() {
+
+                    var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+
+                    // success message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Update of trail1 successful"
+                    goldstone.raiseInfo(successMessage);
+
+                })
+                .fail(function(err) {
+
+                    var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+
+                    // failure message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Failure to update trail1"
+                    self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+
+                }).always(function() {
+                    // close modal and reload list
+                    $('#update-modal').modal('hide');
+                    self.oTable.ajax.reload();
+                });
+        });
+    },
+
+    deleteModalHandlers: function() {
+        var self = this;
+
+        // if cancelling delete trail dialogue, just close modal
+        $('#cancel-delete-search').on('click', function() {
+            $('#delete-modal').modal('hide');
+        });
+
+        // when submitting data in modal for delete trail
+        $('#confirm-delete').on('click', function(e) {
+            e.preventDefault();
+
+            var serializedData = $('.delete-form').serialize();
+
+            $.ajax({
+                type: "DELETE",
+                url: self.urlRoot + $('.delete-form').find('#deleteUUID').val() + "/"
+            })
+                .done(function() {
+
+                    var deletedTrailName = goldstone.contextTranslate('Deletion of %s complete', 'savedsearch');
+                    var deleteSuccess = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
+
+                    // success message
+                    // uses sprintf string interpolation to create a properly
+                    // formatted message such as "Deletion of trail1 complete"
+                    goldstone.raiseInfo(deleteSuccess);
+
+                })
+                .fail(function(err) {
+
+                    var deletedTrailName = goldstone.contextTranslate('Failure to delete %s', 'savedsearch');
+                    var deleteFailure = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
+
+                    // failure message
+                    self.dataErrorMessage(err.responseJSON ? err.responseJSON : deleteFailure);
+
+                })
+                .always(function() {
+                    // close modal and reload list
+                    $('#delete-modal').modal('hide');
+                    self.oTable.ajax.reload();
+                });
+
+        });
+
+    },
+
+    update: function() {
+
+        /*
+        update is inactive unless set up with triggers on
+        OpenTrailManagerPageView. The usual implementation is to trigger
+        update upon reaching a refresh interval, if that becomes implemented.
+        */
+
+        var oTable;
+
+        if ($.fn.dataTable.isDataTable("#reports-result-table")) {
+            oTable = $("#reports-result-table").DataTable();
+            oTable.ajax.reload();
+        }
+    },
+
+    dataTableRowGenerationHooks: function(row, data) {
+
+        var self = this;
+
+        /*
+        these hooks are activated once per row when rendering the dataTable.
+        each hook has access to the row, and the data specific to that row
+        */
+
+        // depending on logging status, grey out row
+        $(row).addClass(data.protected === true ? 'paused' : null);
+
+        // set click listeners on row symbols
+
+        $(row).on('click', '.fa-trash-o', function() {
+
+            var deleteWarningText = goldstone.contextTranslate('"%s" will be permanently deleted. Are you sure?', 'savedsearch');
+            var deleteWarningMessage = goldstone.sprintf(deleteWarningText, data.name);
+
+            // delete trail modal - pass in row data details
+            // uses sprintf string interpolation to create a properly
+            // formatted message such as "Trail1 will be permanently deleted."
+            $('#delete-modal #delete-name-span').text(deleteWarningMessage);
+
+            // fill in hidden fields for Name and UUID to be
+            // submitted via API call as form data
+            $('#delete-modal #deleteName').val(data.name);
+            $('#delete-modal #deleteUUID').val(data.uuid);
+        });
+
+        $(row).on('click', '.fa-gear', function() {
+
+            // clear modal
+            $('.update-form')[0].reset();
+
+            // update trail modal - pass in row data details
+            // name / isLogging/UUID
+            $('#update-modal #update-search-name').val(data.name);
+            $('#update-modal #update-search-description').val(data.description);
+            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #updateUUID').val('' + data.uuid);
+
+            // shut off input on protected searches
+            if (data.protected === true) {
+                $('#update-modal #update-search-name').attr('disabled', true);
+                $('#update-modal #update-search-query').attr('disabled', true);
+            } else {
+
+                // must disable when clicking non-protected or else it will
+                // persist after viewing a persisted search
+                $('#update-modal #update-search-name').attr('disabled', false);
+                $('#update-modal #update-search-query').attr('disabled', false);
+            }
+        });
+    },
+
+    // function to add additional initialization paramaters, as dataTables
+    // options can't be changed post-init without the destroy() method.
+    addOTableParams: function(options) {
+        var self = this;
+        options.createdRow = function(row, data) {
+            self.dataTableRowGenerationHooks(row, data);
+        };
+
+        return options;
+    },
+
+    oTableParamGeneratorBase: function() {
+        var self = this;
+        return {
+            "scrollX": "100%",
+            "processing": false,
+            "lengthChange": true,
+            "iDisplayLength": self.iDisplayLengthOverride ? self.iDisplayLengthOverride : 10,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "order": [
+                [0, 'desc']
+            ],
+            "columnDefs": [{
+                    "data": "name",
+                    "targets": 0,
+                    "sortable": true
+                }, {
+                    "data": "description",
+                    "targets": 1,
+                    "sortable": true
+                }, {
+                    "targets": 2,
+                    "data": null,
+
+                    // add icons to dataTable cell
+                    "render": function(data) {
+                        if (data.protected === true) {
+                            return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
+                                "<div class='saved-search-no-delete'>system search - can not delete</div>";
+                        } else {
+                            return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
+                                "<i class='fa fa-trash-o fa-2x fa-fw text-danger' data-toggle='modal' data-target='#delete-modal'></i>";
+                        }
+                    },
+                    "sortable": false
+                }, {
+                    "data": "uuid",
+                    "visible": false
+                }
+
+            ],
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
+                    self.collectionMixin.urlGenerator();
+                    // the pageSize and searchQuery are jQuery values
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
+
+                    // the paginationStart is taken from the dataTables
+                    // generated serverSide query string that will be
+                    // replaced by this.defaults.url after the required
+                    // components are parsed out of it
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "?page_size=" + pageSize +
+                        "&page=" + computeStartPage;
+
+                    // here begins the combiation of additional params
+                    // to construct the final url for the dataTable fetch
+                    if (searchQuery) {
+                        settings.url += "&_all__regexp=.*" +
+                            searchQuery + ".*";
+                    }
+
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        // generalize if sorting is implemented server-side
+                        var columnLabelHash = {
+                            0: 'name',
+                            1: 'description'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        // uncomment if sorting is in place
+                        settings.url = settings.url + "&ordering=" +
+                            ascDec + columnLabelHash[orderByColumn];
+                    }
+
+
+                    // add filter for log/event/api
+                    settings.url += self.finalUrlMods();
+
+                },
+                dataSrc: "results",
+                dataFilter: function(data) {
+                    data = self.serverSideDataPrep(data);
+                    return data;
+                }
+            }
+        };
+    },
+
+    finalUrlMods: function() {
+        return '&index_prefix=logstash-*';
+    },
+
+    serverSideDataPrep: function(data) {
+        data = JSON.parse(data);
+        var result = {
+            results: data.results,
+            recordsTotal: data.count,
+            recordsFiltered: data.count
+        };
+        result = JSON.stringify(result);
+        return result;
+    },
+
+    serverSideTableHeadings: _.template('' +
+        '<tr class="header">' +
+        '<th>Name</th>' +
+        '<th>Description</th>' +
+        '<th>Controls</th>' +
+        '</tr>'
+    ),
+
+    createModal: _.template("" +
+        '<div class="modal fade" id="create-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Create New Search\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="create-form">' +
+
+        // Search name
+        '<div class="form-group">' +
+        '<label for="new-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
+        '<input name="name" type="text" class="form-control"' +
+        'id="new-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // Search Description
+        '<div class="form-group">' +
+        '<label for="new-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="new-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
+        '</div>' +
+
+        // Search Query
+        '<div class="form-group">' +
+        '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
+        '<input name="query" type="text" class="form-control"' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // hidden owner
+        // populate with uuid via call to /user/
+        '<input name="owner" id="owner" hidden type="text">' +
+
+        // hidden index_prefix
+        '<input name="index_prefix" id="index_prefix" hidden type="text" value="<%= this.form_index_prefix  %>">' +
+
+        // hidden doc_type
+        '<input name="doc_type" id="doc_type" hidden type="text" value="<%= this.form_doc_type %>">' +
+
+        // hidden timestamp_field
+        '<input name="timestamp_field" id="timestamp_field" hidden type="text" value="<%= this.form_timestamp_field %>">' +
+
+        // submit button
+        '<button id="submit-create-button" type="submit"' +
+        ' class="btn btn-default"><%=goldstone.contextTranslate(\'Submit Search\', \'savedsearch\')%></button> ' +
+
+        // cancel button
+        '<button id="cancel-create-button" type="button"' +
+        ' class="btn btn-danger"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button>' +
+
+        '</form>' +
+
+        '</div>' + // modal body
+
+        '</div>' + // modal content
+        '</div>' + // modal dialogue
+        '</div>' // modal container
+    ),
+
+    updateModal: _.template("" +
+        '<div class="modal fade" id="update-modal" tabindex="-1" ' +
+        'role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" ' +
+        'aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Update Search Details\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="update-form">' +
+
+        // Search name
+        '<div class="form-group">' +
+        '<label for="update-search-name"><%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%></label>' +
+        '<input name="name" type="text" class="form-control"' +
+        'id="update-search-name" placeholder="<%=goldstone.contextTranslate(\'Search Name\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // Search description
+        '<div class="form-group">' +
+        '<label for="update-search-description"><%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%></label>' +
+        '<input name="description" type="text" class="form-control"' +
+        'id="update-search-description" placeholder="<%=goldstone.contextTranslate(\'Search Description\', \'savedsearch\')%>">' +
+        '</div>' +
+
+        // Search query
+        '<div class="form-group">' +
+        '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
+        '<input name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '</div>' +
+
+        // hidden UUID
+        '<input name="uuid" id="updateUUID" hidden type="text">' +
+
+        // ui submit / cancel button
+        '<button id="submit-update-search" type="submit" class="btn btn-default"><%=goldstone.contextTranslate(\'Submit\', \'savedsearch\')%></button>' +
+        ' <button id="cancel-submit-update-search" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button><br><br>' +
+
+        '</form>' +
+
+        '</div>' + // modal body
+
+        '</div>' + // modal content
+        '</div>' + // modal dialogue
+        '</div>' // modal container
+    ),
+
+    deleteModal: _.template("" +
+        '<div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title"><%=goldstone.contextTranslate(\'Delete Search Confirmation\', \'savedsearch\')%></h4>' +
+        '</div>' +
+
+        '<div class="modal-body">' +
+
+        '<form class="delete-form">' +
+
+        // hidden UUID to be submitted with delete request
+        '<input id="deleteUUID" hidden type="text">' +
+
+        // <h4> will be filled in by handler in dataTableRowGenerationHooks with
+        // warning prior to deleting a trail
+        '<h4><span id="delete-name-span"></span></h4>' +
+
+        '<button id="confirm-delete" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Confirm\', \'savedsearch\')%></button>' +
+        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.translate(\'Cancel\')%></button>' +
+        '</form>' +
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
+        '</div>'
+    )
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+SavedSearchLogPageView = GoldstoneBasePageView.extend({
+
+    renderCharts: function() {
+
+        $("select#global-lookback-range").hide();
+
+        this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true,
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+        this.savedSearchLogView = new SavedSearchLogDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+        this.viewToStopListening = [this.savedSearchLogCollection, this.savedSearchLogView];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    onClose: function() {
+        // return global lookback/refresh selectors to page
+        $("select#global-lookback-range").show();
+        $("select#global-refresh-range").show();
+        SavedSearchLogPageView.__super__.onClose.apply(this, arguments);
+    },
+
+    templateButtonSelectors: [
+        ['/#reports/logbrowser/search', 'Saved Search: Log', 'active'],
+    ],
+
+    template: _.template('' +
+
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
+
+        '<h3><%=goldstone.translate(\'Saved Search Manager\')%></h3>' +
+        '<i class="fa fa-plus-square fa-3x add-button" data-toggle="modal" data-target="#create-modal"></i><br><br>' +
+        '<div class="row">' +
+        '<div id="saved-search-viz" class="col-md-12"></div>' +
+        '</div>' +
+        '<div id="create-modal-container"></div>' +
+        '<div id="update-modal-container"></div>' +
+        '<div id="delete-modal-container"></div>'
+    )
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11997,229 +11107,141 @@ var ReportsReportView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-/*
-Instantiated on nodeReportView.js similar to:
-
-this.serviceStatusChart = new ServiceStatusCollection({
-    nodeName: hostName
-});
-
-this.serviceStatusChartView = new ServiceStatusView({
-    collection: this.serviceStatusChart,
-    el: '#node-report-main #node-report-r2',
-    width: $('#node-report-main #node-report-r2').width(),
-    globalLookback: ns.globalLookback
-});
-*/
+// this chart provides the base methods that
+// are extended into almost all other Views
 
 var ServiceStatusView = GoldstoneBaseView.extend({
 
-    defaults: {
-        margin: {
-            top: 30,
-            right: 30,
-            bottom: 60,
-            left: 70
-        }
+    setModel: function() {
+        this.model = new Backbone.Model({
+            'cinder': 'unknown',
+            'glance': 'unknown',
+            'keystone': 'unknown',
+            'neutron': 'unknown',
+            'nova': 'unknown',
+        });
     },
 
     instanceSpecificInit: function() {
+        // processes the hash of options passed in when object is instantiated
+        this.setModel();
         this.processOptions();
-        // sets page-element listeners, and/or event-listeners
         this.processListeners();
-        // creates the popular mw / mh calculations for the D3 rendering
-        this.processMargins();
-        // Appends this basic chart template, usually overwritten
         this.render();
-        // appends spinner to el
-        this.showSpinner();
-    },
-
-    processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = goldstone.translate("Response Time (s)");
-        }
-
-        this.defaults.spinnerPlace = '.spinnerPlace';
+        this.appendChartHeading();
+        this.addModalAndHeadingIcons();
+        this.setSpinner();
     },
 
     processListeners: function() {
-        this.listenTo(this.collection, 'sync', this.update);
-        this.listenTo(this.collection, 'error', this.dataErrorMessage);
-        this.on('lookbackSelectorChanged', function() {
-            this.defaults.spinnerDisplay = 'inline';
-            $(this.el).find('#spinner').show();
-            this.collection.retrieveData();
-        });
-    },
-
-    processMargins: function() {
-        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
-    },
-
-    dataErrorMessage: function(message, errorMessage) {
-        ServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
-    },
-
-    classSelector: function(item) {
-        if (item === "running") {
-            return 'alert alert-success';
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
         }
-        return 'alert alert-danger fa fa-exclamation-circle';
-    },
 
-    collectionPrep: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        allthelogs = this.collection.toJSON();
-
-        var data = allthelogs;
-        // inside 'data', the results are stored with the
-        // timestamp property in descending order.
-        // the set can be achieved from _.uniq + data.name;
-
-        var uniqServiceNames = _.uniq(_.map(data, function(item) {
-            return item.name;
-        }));
-
-
-        var novelServiceBreadcrumb = {};
-
-        _.each(uniqServiceNames, function(item) {
-            novelServiceBreadcrumb[item] = true;
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            this.getGlobalLookbackRefresh();
+            if (this.collection) {
+                this.showSpinner();
+                this.collection.urlGenerator();
+            }
         });
 
+        this.listenTo(this.model, 'change', function() {
+            this.updateChart();
+        });
+    },
 
-        // set a counter for the length of uniq(data.name);
-        var uniqSetSize = _.keys(uniqServiceNames).length;
-
+    convertStatus: function(value) {
         /*
-        iterate through data and as novel service
-        names are located, attach the status at that
-        moment to that service name and don't reapply
-        it, as the next result is not the most recent.
+        online = green
+        offline = red
+        intermittent = orange
+        unknown = grey
         */
 
-        var finalData = [];
-
-        for (var item in data) {
-            if (novelServiceBreadcrumb[data[item].name]) {
-                finalData.push(data[item]);
-                novelServiceBreadcrumb[data[item].name] = false;
-
-                // when finding a novel name, decrement the set length counter.
-                uniqSetSize--;
-
-                // when the counter reaches 0, the set is
-                // complete and the most recent
-                // results have been assigned to each of
-                // the items in the set.
-                if (uniqSetSize === 0) {
-                    break;
-                }
-            }
+        // screen out non-numbers
+        if (+value !== value) {
+            return 'unknown';
         }
-
-        // final formatting of the results as
-        // [{'serviceName': status}...]
-        _.each(finalData, function(item, i) {
-            var resultName;
-            var resultObject = {};
-            if (item.name && item.name.indexOf('.') !== -1) {
-                resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
-            } else {
-                resultName = item.name;
-            }
-            resultObject[resultName] = item.value;
-            finalData[i] = resultObject;
-        });
-
-        return finalData;
-
+        if (value > 0) {
+            return 'online';
+        } else {
+            return 'offline';
+        }
     },
 
     update: function() {
-
-        var ns = this.defaults;
         var self = this;
 
+        // grab data from collection
+        var data = this.collection.toJSON();
         this.hideSpinner();
 
-        var allthelogs = this.collectionPrep();
+        // append 'no data returned if so'
+        // or else hide spinner
+        this.checkReturnedDataSet(data);
 
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
+        // otherwise extract statuses from buckets
+        data = data[0].aggregations.per_component.buckets;
+
+        /*
+        {
+            doc_count: 75
+            key: "neutron"
         }
+        */
 
-        $(this.el).find('.mainContainer .toRemove').off();
-        $(this.el).find('.mainContainer').empty();
-
-        var nodeNames = [];
-
-        _.each(allthelogs, function(item) {
-            nodeNames.push(item);
-        });
-
-        this.sorter(nodeNames);
-
-        _.each(nodeNames, function(item, i) {
-
-            var itemKeyFull = '';
-            var itemValue = _.values(nodeNames[i])[0];
-            var itemKey = _.keys(nodeNames[i])[0];
-            if (itemKey.length > 27) {
-                itemKeyFull = _.keys(nodeNames[i])[0];
-                itemKey = itemKey.slice(0, 27) + '...';
-            }
-
-            $(self.el).find('.mainContainer').append('<div style="width: 170px;' +
-                'height: 22px; font-size:11px; margin-bottom: 0; ' +
-                ' text-align:center; padding: 3px 0;" data-toggle="tooltip" ' +
-                'data-placement="top" title="' + itemKeyFull +
-                '" class="col-xs-1 toRemove ' + this.classSelector(itemValue) +
-                '"> ' + itemKey + '</div>');
-        }, this);
-
-        $(this.el).find('.mainContainer .toRemove').on('mouseover', function() {
-            $(this).tooltip('show');
-        });
-    },
-
-    sorter: function(data) {
-
-        return data.sort(function(a, b) {
-            if (Object.keys(a) < Object.keys(b)) {
-                return -1;
-            }
-            if (Object.keys(a) > Object.keys(b)) {
-                return 1;
-            } else {
-                return 0;
-            }
+        // set model attributes based on hash of statuses
+        _.each(data, function(bucket) {
+            var value = self.convertStatus(bucket.doc_count);
+            self.model.set(bucket.key, value);
         });
 
     },
 
     render: function() {
-        $(this.el).append(this.template());
+        $(this.el).html(this.template());
+        $(this.el).find('.fill-in').html(this.statusTemplate());
         return this;
     },
 
-    template: _.template('<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="spinnerPlace"></div>' +
-        '<div class="mainContainer"></div>')
+    updateChart: function() {
+        $(this.el).find('.fill-in').html(this.statusTemplate());
+    },
+
+    statusTemplate: _.template('' +
+        '<li>' +
+        '<span class="service"><%= goldstone.translate("Cinder") %></span>' +
+        '<span class="sf"><i class=<%= this.model.get("cinder") %>>&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service"><%= goldstone.translate("Glance") %></span>' +
+        '<span class="sf"><i class=<%= this.model.get("glance") %>>&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service"><%= goldstone.translate("Keystone") %></span>' +
+        '<span class="sf"><i class=<%= this.model.get("keystone") %>>&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service"><%= goldstone.translate("Neutron") %></span>' +
+        '<span class="sf"><i class=<%= this.model.get("neutron") %>>&nbsp;</i></span>' +
+        '</li>' +
+        '<li>' +
+        '<span class="service"><%= goldstone.translate("Nova") %></span>' +
+        '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
+        '</li>'),
+
+        template: _.template('' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<ul class="service-status-table shadow-block">' +
+        '<li class="table-header">' +
+        '<span class="service"><%= goldstone.translate("Service") %></span>' +
+        '<span class="sf"><%= goldstone.translate("Status") %></span>' +
+        '</li>' +
+        '<div class="fill-in"></div>' +
+        '</ul>')
 
 });
 ;
@@ -13326,57 +12348,12 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
 var TopologyPageView = GoldstoneBasePageView.extend({
 
+    // overwritten as there is not trigger functionality to topology
     triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged') {
-            this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            this.nodeAvailChartView.trigger('lookbackSelectorChanged');
-        }
-
-        if (change === 'lookbackIntervalReached') {
-            this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            this.nodeAvailChartView.trigger('lookbackIntervalReached');
-        }
+        return true;
     },
 
     renderCharts: function() {
-
-        //---------------------------
-        // instantiate event timeline chart
-
-        this.eventTimelineChart = new EventTimelineCollection({});
-
-        this.eventTimelineChartView = new EventTimelineView({
-            collection: this.eventTimelineChart,
-            el: '#goldstone-discover-r1-c1',
-            chartTitle: goldstone.translate('Event Timeline'),
-            height: 300,
-            h: {
-                "main": 100,
-                "padding": 30,
-                "tooltipPadding": 50
-            },
-            infoText: 'eventTimeline',
-            width: $('#goldstone-discover-r1-c1').width()
-        });
-
-        //---------------------------
-        // instantiate Node Availability chart
-
-        this.nodeAvailChart = new NodeAvailCollection({});
-
-        this.nodeAvailChartView = new NodeAvailView({
-            chartTitle: goldstone.translate('Node Availability'),
-            collection: this.nodeAvailChart,
-            el: '#goldstone-discover-r1-c2',
-            height: 300,
-            h: {
-                "main": 150,
-                "swim": 50
-            },
-            infoText: 'nodeAvailability',
-            width: $('#goldstone-discover-r1-c2').width()
-        });
-
 
         //---------------------------
         // instantiate Cloud Topology chart
@@ -13389,28 +12366,20 @@ var TopologyPageView = GoldstoneBasePageView.extend({
             blueSpinnerGif: blueSpinnerGif,
             collection: this.discoverTreeCollection,
             chartTitle: goldstone.translate('Cloud Topology'),
-            el: '#goldstone-discover-r2-c1',
+            el: '#goldstone-discover-r1-c1',
             height: 600,
             infoText: 'discoverCloudTopology',
-            multiRsrcViewEl: '#goldstone-discover-r2-c2',
-            width: $('#goldstone-discover-r2-c2').width(),
+            multiRsrcViewEl: '#goldstone-discover-r1-c2',
+            width: $('#goldstone-discover-r1-c2').width(),
         });
 
     },
 
     template: _.template('' +
-
         '<div id="goldstone-discover-r1" class="row">' +
         '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-
-        '<div id="goldstone-discover-r2" class="row">' +
-        '<div id="goldstone-discover-r2-c1" class="col-md-6"></div>' +
-        '<div id="goldstone-discover-r2-c2" class="col-md-6"></div>' +
-        '</div>' +
-
-        '<div class="row"><br><br></div>'
+        '</div>' 
     )
 
 });
@@ -13650,7 +12619,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
-                    $(self.multiRsrcViewEl).find(".mainContainer").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
+                    $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
                         "serverSide": false,
@@ -14018,7 +12987,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (self.multiRsrcViewEl !== null) {
             self.multiRscsView = new MultiRscsView({
                 el: self.multiRsrcViewEl,
-                chartTitle: goldstone.translate("Resource List")
+                chartTitle: goldstone.translate("Resource List"),
+                height: self.height
             });
 
             var appendSpinnerLocation = $(self.multiRsrcViewEl);

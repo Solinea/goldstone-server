@@ -37,7 +37,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
         var self = this;
         this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
+            urlBase: '/core/logs/',
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -51,7 +51,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             height: 300,
             infoText: 'logBrowser',
             marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
@@ -59,9 +58,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logBrowserTableCollection = new LogBrowserTableCollection({
             skipFetch: true,
             specificHost: this.specificHost,
-            urlBase: '/logging/search/',
+            urlBase: '/core/logs/',
             linkedCollection: this.logBrowserVizCollection
-        });    
+        });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
@@ -71,40 +70,69 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             width: $('#log-viewer-table').width()
         });
 
+        // initial rendering of logBrowserTable:
+        this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
+        this.logBrowserTable.update();
+
+        // set up listener between viz and table to setZoomed to 'true'
+        // when user triggers a saved search
+        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
+            this.setZoomed(trueFalse);
+        });
+
+        // render predefinedSearch Dropdown
+        this.predefinedSearchModule = new PredefinedSearchView({
+            className: 'compliance-predefined-search nav nav-pills',
+            tagName: 'ul',
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            })
+        });
+
+        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
+
+        // subscribe logBrowserViz to click events on predefined
+        // search dropdown to fetch results.
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
+            // self.logBrowserTable.predefinedSearch(uuid[1]);
+            self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
+            self.logBrowserTable.predefinedSearch(uuid[1]);
+            // self.logBrowserViz.predefinedSearch(uuid[0]);
+        });
+
+        // set up a chain of events between viz and table to uddate
+        // table when updating viz.
         this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
             self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
             self.logBrowserTable.update();
         });
 
-        // check for compliance addon and render predefined search bar if present
-        if (goldstone.returnAddonPresent('compliance')) {
-            if (goldstone.compliance.PredefinedSearchView) {
-                this.predefinedSearchModule = new goldstone.compliance.PredefinedSearchView({
-                    className: 'compliance-predefined-search nav nav-pills',
-                    tagName: 'ul'
-                });
-
-                $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
-            }
-        }
-
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable];
-
-        // stopListening to predefinedSearchModule upon close, if present
-        if (this.predefinedSearchModule !== undefined) {
-            this.viewsToStopListening.push(this.predefinedSearchModule);
-        }
+        // destroy listeners and views upon page close
+        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
 
     },
 
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Browser', 'active'],
+        ['/#reports/eventbrowser', 'Event Browser'],
+        ['/#reports/apibrowser', 'API Browser'],
+    ],
+
     template: _.template('' +
 
-        // button selectors for log viewers
-        '<div class="btn-group" role="group">' +
-        '<a href="#reports/logbrowser"><button type="button" data-title="Log Browser" class="active headerBar servicesButton btn btn-default"><%=goldstone.translate(\'Log Browser\')%></button></a>' +
-        '<a href="#reports/eventbrowser"><button type="button" data-title="Event Browser" class="headerBar reportsButton btn btn-default"><%=goldstone.translate(\'Event Browser\')%></button></a>' +
-        '<a href="#reports/apibrowser"><button type="button" data-title="Api Browser" class="headerBar eventsButton btn btn-default"><%=goldstone.translate(\'Api Browser\')%></button></a>' +
-        '</div><br><br>' +
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
 
         // divs for log viewer viz on top and dataTable below
         '<div class="row">' +

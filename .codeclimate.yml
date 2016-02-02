@@ -1,3 +1,4 @@
+---
 engines:
   csslint:
     enabled: true
@@ -17,18 +18,21 @@ engines:
     enabled: true
     config:
       threshold: "B"
+
 ratings:
   paths:
-  - "goldstone/**/*"
-  - "**.py"
-  - "**.js"
+    #- "goldstone/**/*"
   - "**.css"
+  - "**.js"
+  - "**.py"
+
 exclude_paths:
-  - 'CLA/*'
-  - 'design_docs/*'
-  - 'dist/*'
-  - 'docs/*'
-  - 'rpm_packaging/*'
-  - 'utils/*'
-  - 'tests/*'
-  - 'test_data/*'
+- CLA/**/*
+- bin/**/*
+- client/js/site-lib/**/*
+- config/**/*
+- dist/**/*
+- test/**/*
+- test_data/**/*
+- goldstone/**/static/**/*
+- utils/**/*

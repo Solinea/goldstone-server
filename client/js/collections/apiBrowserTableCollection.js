@@ -36,20 +36,15 @@ var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/apiperf/search/',
+    urlBase: "/core/api-calls/",
 
     addRange: function() {
         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
     },
 
-    addPageSize: function(n) {
-        n = n || 1000;
-        return '&page_size=' + n;
-    },
-
     preProcessData: function(data) {
-        if(data && data.results) {
-            return data.results;
+        if(data) {
+            return data;
         }
     }
 });

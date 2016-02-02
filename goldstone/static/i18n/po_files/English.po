@@ -1,4 +1,4 @@
-# goldstone English.po file
+# Goldstone English.po file
 # This file is distributed under the same license as goldstone-server
 # https://www.apache.org/licenses/LICENSE-2.0
 # Alex Jacobs github.com/lexjacobs, 2015
@@ -13,7 +13,7 @@ msgstr ""
 "PO-Creation-Date: 2015-09-11 14:47-0700\n"
 "PO-Revision-Date: 2015-09-18 14:47-0700\n"
 "Last-Translator: Alex Jacobs github.com/lexjacobs\n"
-"Language-Team:\n"
+"Language-Team: Solinea Inc.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,7 +26,7 @@ msgid "Add-ons"
 msgstr ""
 
 #: addonMenuView.js
-msgid "compliance"
+msgid "Compliance"
 msgstr ""
 
 #: addonMenuView.js
@@ -45,24 +45,24 @@ msgid "myroute 2"
 msgstr ""
 
 #: addonMenuView.js
-msgid "Refresh browser and/or log in to complete addon installation process."
+msgid "Refresh browser and log out, and back in to complete addon installation process."
 msgstr ""
 
 #: apiBrowserPageView.js
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Calls vs Time"
+msgid "API Calls vs Time"
 msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Calls by Range"
+msgid "API Calls by Range"
 msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "Api Browser"
+msgid "API Browser"
 msgstr ""
 
 #: apiBrowserDataTableView.js
@@ -154,6 +154,10 @@ msgstr ""
 msgid "Interval"
 msgstr ""
 
+#: apiPerfView.js
+msgid "seconds"
+msgstr ""
+
 #: base.html
 
 #: base.html
@@ -205,7 +209,7 @@ msgid "Event Browser"
 msgstr ""
 
 #: base.html
-msgid "Api Browser"
+msgid "API Browser"
 msgstr ""
 
 #: base.html
@@ -216,6 +220,90 @@ msgstr ""
 msgid "License"
 msgstr ""
 
+#: base.html
+#. refers to site-wide settings
+msgid "Settings"
+msgstr ""
+
+#: base.html
+#. refers to a link to customer support
+msgid "Help"
+msgstr ""
+
+#: base.html
+#. link to external site
+msgid "Google Groups"
+msgstr ""
+
+#: base.html
+#. link to github repo
+msgid "Github"
+msgstr ""
+
+#: base.html
+#. logout of site
+msgid "Logout"
+msgstr ""
+
+#: base.html
+#. side-menu icon
+msgid "Dashboard"
+msgstr ""
+
+#: base.html
+#. click to open alert menu, and heading for column of alerts
+msgid "Alerts"
+msgstr ""
+
+#: base.html
+#. side-menu icon to view cloud topology graph
+msgid "Topology"
+msgstr ""
+
+#: base.html
+#. side-menu icon to collapse expanded menu
+msgid "Icons Only"
+msgstr ""
+
+#: base.html
+#. alerts menu column header for unread alerts
+msgid "Unread"
+msgstr ""
+
+#: base.html
+msgid "Service Status"
+msgstr ""
+
+#: base.html
+msgid "Service"
+msgstr ""
+
+#: base.html
+msgid "Status"
+msgstr ""
+
+#: base.html
+msgid "Cinder"
+msgstr ""
+
+#: base.html
+msgid "Glance"
+msgstr ""
+
+#: base.html
+msgid "Keystone"
+msgstr ""
+
+#: base.html
+msgid "Neutron"
+msgstr ""
+
+#: base.html
+msgid "Nova"
+msgstr ""
+
+
+
 #: chartHeaderView.js
 msgid "Set Chart Title"
 msgstr ""
@@ -223,6 +311,53 @@ msgstr ""
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr ""
+
+#: addons
+
+#: predefinedSearchView.js
+msgid "Predefined Searches"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "failed authorization"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "stack traces"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova instance creation failed"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "cinder volume created"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "database problems"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "image uploaded"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "queue failures"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova usage audits"
+msgstr ""
+
+#: predefinedSearchView.js
+msgid "nova claim request"
+msgstr ""
+
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -679,18 +814,6 @@ msgctxt "lease"
 msgid "Update Lease Details"
 msgstr ""
 
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid ""
-msgstr ""
-
-#: leasesManagerPageView.js
-
 #: leasesManagerPageView.js
 msgid "Leases Manager"
 msgstr ""
@@ -799,6 +922,28 @@ msgctxt "nodeavail"
 msgid "Exit"
 msgstr ""
 
+#: metricOverviewView.js
+
+#: metricOverview
+msgid "Metric Overview"
+msgstr ""
+
+#: metricOverview
+msgid "API"
+msgstr ""
+
+#: metricOverview
+msgid "Events"
+msgstr ""
+
+#: metricOverview
+msgid "Logs"
+msgstr ""
+
+#: metricOverview
+msgid "Count"
+msgstr ""
+
 #: metricViewerView.js
 
 #: metricViewerView.js
@@ -871,11 +1016,6 @@ msgstr ""
 
 #: metricViewerView.js
 msgid "Standard Deviation Bands"
-msgstr ""
-
-#: metricViewerView.js
-msgctxt "metricviewer"
-msgid "Lookback"
 msgstr ""
 
 #: metricViewerView.js
@@ -1015,53 +1155,6 @@ msgctxt "nodereport"
 msgid ""
 msgstr ""
 
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: nodeReportView.js
-msgctxt "nodereport"
-msgid ""
-msgstr ""
-
-#: novaReportView.js
-
 #: novaReportView.js
 msgid "Nova API Performance"
 msgstr ""
@@ -1098,6 +1191,10 @@ msgstr ""
 #: novaReportView.js
 #. Gigabytes
 msgid "GB"
+msgstr ""
+
+#: openTrailManagerPageView.js
+msgid "OpenTrail Manager"
 msgstr ""
 
 #: openTrailDataTableView.js
@@ -1705,13 +1802,10 @@ msgstr ""
 msgid "No data"
 msgstr ""
 
-#: addons
-#: opentrail
-
-#: server-generated data for addon name
-msgid "opentrail"
+#: vulnerability advisor
+msgid "Vulnerability Advisor"
 msgstr ""
 
-#: opentrail main.js
-msgid "OpenTrail Manager"
+#: vulnerability advisor
+msgid "OpenStack Vulnerabilities"
 msgstr ""

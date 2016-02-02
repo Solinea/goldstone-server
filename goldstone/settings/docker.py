@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from .base import *            # pylint: disable=W0614,W0401
 from goldstone.libs import secret_key
 
@@ -77,12 +78,13 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'INFO',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
             'formatter': 'default'
         },
         'file': {
-            'level': 'INFO',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'class': 'logging.FileHandler',
             'filename': '/tmp/goldstone.log',
             'formatter': 'default'

@@ -36,7 +36,14 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         this.urlGenerator();
     },
 
-    urlBase: '/core/events/summarize/',
+    urlBase: '/core/events/',
+
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
 
     addRange: function() {
         return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
@@ -47,42 +54,22 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + n + 's';
     },
 
+    addPageSize: function(n) {
+        return '&page_size=1';
+    },
+
     preProcessData: function(data) {
+
         var self = this;
 
         // initialize container for formatted results
         finalResult = [];
 
         // for each array index in the 'data' key
-        _.each(data.data, function(item) {
+        _.each(data.aggregations.per_interval.buckets, function(item) {
             var tempObj = {};
-
-            // adds the 'time' param based on the
-            // object keyed by timestamp
-            tempObj.time = parseInt(_.keys(item)[0], 10);
-
-            // iterate through each item in the array
-            _.each(item[tempObj.time], function(obj){
-                var key = _.keys(obj);
-                var value = _.values(obj)[0];
-
-                // copy key/value pairs to tempObj
-                tempObj[key] = value;
-            });
-
-            // initialize counter
-            var count = 0;
-            _.each(tempObj, function(val, key) {
-                // add up the values of each nested object
-                if(key !== 'time') {
-                    count += val;
-                }
-            });
-
-            // set 'count' equal to the counter
-            tempObj.count = count;
-
-            // add the tempObj to the final results array
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
             finalResult.push(tempObj);
         });
 

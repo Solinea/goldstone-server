@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import sys
+import arrow
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -24,16 +26,16 @@ from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
 from elasticsearch_dsl.query import Q, QueryString      # pylint: disable=E0611
 from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
-from goldstone.drfes.models import DailyIndexDocType as OldDailyIndexDocType
 from goldstone.drfes.new_models import DailyIndexDocType
-from goldstone.glogging.models import LogData, LogEvent
-
+from django.core.mail import send_mail
 from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+
+logger = logging.getLogger(__name__)
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX
@@ -75,90 +77,6 @@ def _hash(*args):
         result.update(str(arg))
 
     return result.hexdigest()
-
-
-#
-# Goldstone Agent Metrics and Reports
-#
-
-class MetricData(OldDailyIndexDocType):
-    """Search interface for an agent generated metric."""
-
-    INDEX_PREFIX = 'goldstone_metrics-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_metric'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='value')
-
-    @classmethod
-    def units_agg(cls):
-        """Return term units."""
-
-        return A('terms', field='unit')
-
-
-class ReportData(OldDailyIndexDocType):
-    """Report data model."""
-
-    INDEX_PREFIX = 'goldstone_reports-'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'core_report'
-
-
-class EventData(OldDailyIndexDocType):
-    """The model for logstash events data."""
-
-    # The indexes we look for start with this string.
-    INDEX_PREFIX = 'events'
-
-    # Time sorting is on this key in the log.
-    SORT = '-timestamp'
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        # Return all document types.
-        doc_type = ''
-
-
-class ApiPerfData(OldDailyIndexDocType):
-    """API performance record model."""
-
-    INDEX_PREFIX = 'api_stats-'
-    SORT = '-@timestamp'
-
-    # Field declarations.
-    response_status = Integer()
-    creation_time = Date()
-    component = String()
-    uri = String()
-    response_length = Integer()
-    response_time = Integer()
-
-    class Meta:          # pylint: disable=C0111,W0232,C1001
-        doc_type = 'api_stats'
-
-    @classmethod
-    def stats_agg(cls):
-        """Return extended statistics."""
-
-        return A('extended_stats', field='response_time')
-
-    @classmethod
-    def range_agg(cls):
-        """Return range information."""
-
-        return A('range',
-                 field='response_status',
-                 keyed=True,
-                 ranges=[{"from": 200, "to": 299},
-                         {"from": 300, "to": 399},
-                         {"from": 400, "to": 499},
-                         {"from": 500, "to": 599}])
 
 
 ######################################
@@ -382,7 +300,8 @@ class PolyResource(PolymorphicModel):
         """
 
         query = Q(QueryString(query=self.native_name))
-        return LogData.search().query(query)
+        ss = SavedSearch.objects.get(name="log query")
+        return ss.search().query(query)
 
     def events(self):
         """Return a search object for events related to this resource.
@@ -393,10 +312,9 @@ class PolyResource(PolymorphicModel):
         """
 
         # this protects our hostname from being tokenized
-        escaped_name = r'"' + self.native_name + r'"'
-
-        name_query = Q(QueryString(query=escaped_name, default_field="_all"))
-        return LogEvent.search().query(name_query)
+        query = Q(QueryString(query=self.native_name))
+        ss = SavedSearch.objects.get(name="event query")
+        return ss.search().query(query)
 
 
 ############################################
@@ -2637,7 +2555,7 @@ class SavedSearch(models.Model):
     uuid = UUIDField(version=4, auto=True, primary_key=True)
     name = models.CharField(max_length=64)
     owner = models.CharField(max_length=64)
-    description = models.CharField(max_length=1024, default='Defined Search')
+    description = models.CharField(max_length=1024, blank=True, default='')
     query = models.TextField(help_text='JSON Elasticsearch query body')
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
@@ -2658,10 +2576,12 @@ class SavedSearch(models.Model):
         """Returns an unbounded search object based on the saved query. Call
         the execute method when ready to retrieve the results."""
         import json
-        s = Search.from_dict(json.loads(self.query))
-        s.using(DailyIndexDocType._doc_type.using)
-        s.index(self.index_prefix)
-        s.doc_type(self.doc_type)
+
+        s = Search.from_dict(json.loads(self.query))\
+            .using(DailyIndexDocType._doc_type.using)\
+            .index(self.index_prefix)\
+            .doc_type(self.doc_type)
+
         return s
 
     def search_recent(self):
@@ -2672,10 +2592,8 @@ class SavedSearch(models.Model):
         """
         import arrow
 
-        s = self.search()
-
         if self.timestamp_field is None:
-            return s
+            return self.search()
 
         if self.last_end is None:
             start = arrow.get(0).datetime
@@ -2684,12 +2602,17 @@ class SavedSearch(models.Model):
 
         end = arrow.utcnow().datetime
 
-        s = self.search()
-        s = s.query('range',
-                    ** {self.timestamp_field:
-                        {'gt': start.isoformat(),
-                            'lte': end.isoformat()}})
+        s = self.search()\
+            .query('range',
+                   ** {self.timestamp_field: {'gt': start.isoformat(),
+                                              'lte': end.isoformat()}})
         return s, start, end
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return "%s owned by %s (%s)" % \
+            (self.name, self.owner, self.uuid)
 
 
 class CADFEventDocType(DailyIndexDocType):
@@ -2700,6 +2623,8 @@ class CADFEventDocType(DailyIndexDocType):
     """
 
     INDEX_DATE_FMT = 'YYYY-MM-DD'
+
+    timestamp = Date()
 
     traits = Nested(
         properties={
@@ -2717,15 +2642,18 @@ class CADFEventDocType(DailyIndexDocType):
     )
 
     class Meta:
-        doc_type = 'cadf_event'
+        doc_type = 'goldstone_event'
         index = 'events_*'
 
-    def __init__(self, event=None, meta=None, **kwargs):
+    def __init__(self, timestamp=None, event=None, **kwargs):
         if event is not None:
             kwargs = dict(
                 kwargs.items() + self._get_traits_dict(event).items())
 
-        super(CADFEventDocType, self).__init__(meta, **kwargs)
+        if timestamp is None:
+            kwargs['timestamp'] = arrow.utcnow().datetime
+
+        super(CADFEventDocType, self).__init__(**kwargs)
 
     @staticmethod
     def _get_traits_dict(e):
@@ -2735,3 +2663,99 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
+
+
+class AlertSearch(SavedSearch):
+    """
+        Model for AlertSearches, a subclass of SavedSearch that has an alert
+        notification configured to be sent out to one or more recipients.
+
+    """
+
+    class Meta:               # pylint: disable=C0111,W0232,C1001
+
+        verbose_name_plural = "saved searches with alerts"
+
+    def build_alert_template(self, hits):
+        msg_title_template = 'Alert : ' + str(self.name) + \
+                             ' triggered with ' + str(hits) +\
+                             ' hits in the last ' + str(self.target_interval) +\
+                             ' minutes.'
+
+        msg_body_template = 'There were ' + str(hits) + \
+                            ' occurrences of ' + str(self.name) +\
+                            ' in the last ' + str(self.target_interval) +\
+                            ' minutes.' + '\n' +\
+                            'This query was last updated at : ' +\
+                            str(self.updated) + '\n' +\
+                            'This query last ran from : ' +\
+                            str(self.last_start) + ' to : ' +\
+                            str(self.last_end)
+        msg_params_dict = {'title': msg_title_template,
+                           'body': msg_body_template}
+        return msg_params_dict
+
+
+class Alert(models.Model):
+    """
+        Create an alert instance object. This contains the fleshed-out
+        alert message which will be passed down to the producer interface
+        to be sent out.
+
+        This does not contain msg-params for actually sending out this alert.
+        For those details, refer to class Producer.
+    """
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+    query = models.ForeignKey(AlertSearch)
+    # alert assignee vs alert receiver, can be a person vs mailing list
+    owner = models.CharField(max_length=64, default='goldstone',
+                             help_text='alert assignee, individual entity')
+
+    msg_title = models.CharField(max_length=256, default='Alert notification')
+    msg_body = models.CharField(max_length=1024,
+                                default='This is an alert notification')
+    created = CreationDateTimeField(editable=False, blank=False, null=False)
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return "%s (%s)" % \
+            (self.msg_title, self.uuid)
+
+
+class Producer(models.Model):
+    """
+        Generic interface class for an alert producer. This contains generic
+        producer related information such as sender, receiver names, id's,
+        host, auth-params etc
+
+        Specific types like email, slack, HTTP-POST etc inherit from this
+        class with specific connection attributes
+    """
+    query = models.ForeignKey(AlertSearch)
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def send(self, alert):
+        raise NotImplementedError("Producer must implement send.")
+
+
+class EmailProducer(Producer):
+    """
+        Specific interface class to prepare and send an email.
+        Class gets all of its email contents from the parent producer class.
+        This class only contains methods specific to a mailing interface.
+    """
+
+    sender = models.CharField(max_length=64, default=settings.EMAIL_HOST_USER)
+    receiver = models.EmailField(max_length=128, blank=False)
+
+    def send(self, alert):
+
+        email_rv = send_mail(alert.msg_title, alert.msg_body,
+                             str(self.sender), list(self.receiver),
+                             fail_silently=False)
+        return email_rv

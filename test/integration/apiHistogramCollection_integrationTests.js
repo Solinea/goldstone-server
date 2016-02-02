@@ -44,7 +44,7 @@ describe('apiHistogramCollection.js spec', function() {
             expect(this.protoFetchSpy.callCount).to.equal(0);
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.testCollection.url).to.include('/core/apiperf/summarize/?@timestamp__range={');
+            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={');
 
             this.testCollection.addPageSize = function(n) {
                 n = n || 1000;
@@ -53,7 +53,7 @@ describe('apiHistogramCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(2);
-            expect(this.testCollection.url).to.include('/core/apiperf/summarize/?@timestamp__range={"gte"');
+            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={"gte"');
 
             this.testCollection.addPageNumber = function(n) {
                 n = n || 1;
@@ -62,7 +62,7 @@ describe('apiHistogramCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(3);
-            expect(this.testCollection.url).to.include('/core/apiperf/summarize/?@timestamp__range={"gte"');
+            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={"gte"');
 
             this.testCollection.addInterval = function(n) {
                 n = n || 3600;
@@ -83,61 +83,27 @@ describe('apiHistogramCollection.js spec', function() {
             $('body').append('<option id="global-lookback-range" value=60>');
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(5);
-            expect(this.testCollection.url).to.equal('/core/apiperf/summarize/?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
+            expect(this.testCollection.url).to.equal('/core/api-calls/?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
 
             this.clock.restore();
 
         });
         it('returns preProcessData', function() {
             var test1 = this.testCollection.preProcessData({
-                results: "la dee da"
+                aggregations: {
+                    per_interval: {
+                        buckets: [{
+                            key: 14344732500,
+                            doc_count: 1234
+                        }]
+                    }
+                }
+
             });
-            expect(test1).to.deep.equal([]);
-
-            var testData = {
-                "per_interval": [{
-                    "1439420700000": {
-                        "count": 5,
-                        "response_status": [{
-                            "500.0-599.0": 0
-                        }, {
-                            "400.0-499.0": 0
-                        }, {
-                            "300.0-399.0": 0
-                        }, {
-                            "200.0-299.0": 0
-                        }],
-                        "stats": {
-                            "count": 0,
-                            "min": null,
-                            "sum_of_squares": null,
-                            "max": null,
-                            "sum": null,
-                            "std_deviation": null,
-                            "std_deviation_bounds": {
-                                "upper": null,
-                                "lower": null
-                            },
-                            "variance": null,
-                            "avg": null
-                        }
-                    }
-                }, {
-                    "1439420700001": {
-                        "count": 4
-                    }
-                }]
-            };
-
-            var test2 = this.testCollection.preProcessData(testData);
-            expect(test2).to.deep.equal([{
-                time: 1439420700000,
-                count: 5
-            }, {
-                time: 1439420700001,
-                count: 4
+            expect(test1).to.deep.equal([{
+                time: 14344732500,
+                count: 1234
             }]);
-
         });
         it('checks for additonal pages', function() {
             // no reason to call fetch
@@ -174,12 +140,12 @@ describe('apiHistogramCollection.js spec', function() {
             test1 = this.testCollection.checkForAdditionalPages(data);
             expect(this.protoFetchSpy.callCount).to.equal(0);
 
-            // should call fetch
+            // should not call fetch
             data = {
                 next: 'instanceSpecific/laDeDaa'
             };
             test1 = this.testCollection.checkForAdditionalPages(data);
-            expect(this.protoFetchSpy.callCount).to.equal(1);
+            expect(this.protoFetchSpy.callCount).to.equal(0);
         });
     });
 

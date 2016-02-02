@@ -52,24 +52,27 @@ describe('goldstoneRouter.js spec', function() {
                 c: 3
             });
         });
-        it('calls routes properly', function() {
-            this.testRouter.discover();
-            this.testRouter.help();
-            this.testRouter.apiPerfReport();
-            this.testRouter.metricViewer();
-            this.testRouter.metricViewer(6);
-            this.testRouter.metricViewer(7);
-            this.testRouter.metricViewer();
-            this.testRouter.metricViewer();
-            this.testRouter.novaReport();
-            this.testRouter.topology();
-            this.testRouter.nodeReport('control-01');
-            this.testRouter.logSearch();
-            this.testRouter.eventsBrowser();
+        it('calls routes properly and triggers a re-translation of translateBaseTemplate', function() {
+            goldstone.testi18n = new I18nModel();
+            goldstone.testi18n.listenTo(this.testRouter, 'switchingView', function() {
+                goldstone.testi18n.translateBaseTemplate();
+            });
+            var tranlateSpy = sinon.spy(goldstone.testi18n, "translateBaseTemplate");
+
             this.testRouter.apiBrowser();
+            this.testRouter.apiPerfReport();
+            this.testRouter.discover();
+            this.testRouter.eventsBrowser();
+            this.testRouter.logSearch();
+            this.testRouter.nodeReport('control-01');
+            this.testRouter.redirect();
+            this.testRouter.savedSearchLog();
             this.testRouter.settings();
             this.testRouter.tenant();
-            this.testRouter.redirect();
+            this.testRouter.topology();
+
+            expect(tranlateSpy.callCount).to.equal(10);
+            tranlateSpy.restore();
         });
     });
 });

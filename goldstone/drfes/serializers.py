@@ -12,7 +12,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+from elasticsearch_dsl.result import Response
 from rest_framework.serializers import Serializer
+
+logger = logging.getLogger(__name__)
+
+
+class ElasticResponseSerializer(Serializer):
+    """Serializes an ElasticSearch response, to a dict of result and
+    aggregation data"""
+
+    def to_representation(self, instance):
+        """Return a record in a form that is suitable for rendering.
+
+        :param instance: An instance from an ES search response
+        :type instance: Result
+        :return: the response minus exclusions as a dict
+        :rtype: dict
+
+        """
+
+        assert(isinstance(instance, Response))
+        rv = {
+            'results': instance.hits.hits
+        }
+        if hasattr(instance, 'aggregations'):
+            rv['aggregations'] = instance.aggregations.to_dict()
+
+        return rv
 
 
 class ReadOnlyElasticSerializer(Serializer):
