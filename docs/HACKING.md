@@ -130,125 +130,43 @@ This will stop both the docker VM and the OpenStack VM.
 
 ## Goldstone Submodules
 
-Currently compliance is the only Goldstone submodule. The following is a general purpose primer on submodules for future reference.
+Currently compliance is the only Goldstone submodule. Here is an overall [primer] on submodules (https://git-scm.com/docs/git-submodule)
 
-## How are submodules hooked up ?
+## How are submodules hooked up?
 
-Submodules are statically linked applications that can reside inside your main project repository. The main project and the submodule act as independent repos.The submodule commit referenced by a sub-directory is stored using its SHA1 in the main directory and not by its branch name. Because of this, a submodule does not automatically upgrade.
-Also for the same reason, most of the time a submodule is in detached head state inside its containers, as it’s updated by checking out a SHA1 (regardless of whether that commit is the branch tip at that time).
-
-## To add a submodule
-
-A simple 'git submodule add <submodule-path-relative-to-main-repo> <new-submodule-dir>' helps setup a submodule in a project.
-
-Relative paths for remotes are interpreted relative to our main remote, not to our repo’s root directory. For example :
-
-Bhuvana-MacBook-Pro:git-subs Bhuvana$ ls
-main	plugin	remotes
-Bhuvana-MacBook-Pro:main Bhuvana$ git submodule add ../remotes/plugin vendor/plugins/demo
-fatal: repository '../remotes/remotes/plugin' does not exist
-Clone of '../remotes/remotes/plugin' into submodule path 'vendor/plugins/demo' failed
-Bhuvana-MacBook-Pro:main Bhuvana$ git submodule add ../plugin vendor/plugins/demo
-Cloning into 'vendor/plugins/demo'...
-done.
-
-To test if your submodule-add worked, from your main repo cat the .git/config file and check for the submodule entry.
-
-$ git status
-On branch master
-Your branch is up-to-date with 'origin/master'.
-Changes to be committed:
-  (use "git reset HEAD <file>..." to unstage)
-
-	new file:   .gitmodules
-	new file:   vendor/plugins/demo
-
-Notice the new .gitmodules file. It will be read later by the git submodule init command.
+The main project and the submodule act as independent repositories.The submodule commit referenced by a sub-directory is stored using its SHA1 in the main directory and not by its branch name.
 
 ## Add submodule status to your local diff summary
 
 Status, like logs and diffs, is limited to the main repo by default, not to submodules, which are nested repos. You can change this by adding :
 
-git config --global status.submoduleSummary true
+`git config --global status.submoduleSummary true`
 
-## To commit your newly added submodules
-
-From the main repo, type :
-
-git commit -m "A new submodule plugin demo"
-
-git push
-
-## To fetch submdoules
-
-If you fetch a tree from the top of the repo, the submodule is not pulled in along with the base directory. This is where the .gitmodules file we created comes into play.
-It holds the info which will be used by a submodule init command.
-
-$ git submodule init
-
-Now our repo becomes aware of the fact that there are submodules present in our workspace. But still no submodule yet at this point. TO actually fetch it, we need to fire this command :
-
-$ git submodule update
-
-You can also combine these two commands into one :
-
-$ git submodule update --init
-
-Alternatively, submodules can be automatically fetched and updated at the time of a repo clone itself by typing :
-
-$ git clone --recursive remotes/main colleague
-
-## To update our existing submodules with changes from other developers
-
-git checkout <branch_where_submodule_commits_exist>
-git pull
-
-It is important to note that git auto-fetches, but does not auto-update. Your local cache is up-to-date with the submodule’s remote, but the submodule’s working directory is still pointing to old contents.
-To get these changes locally, type :
-
-git submodule update
-
-## To update an existing submodule to a particular developer commit ref-point
+## To update an existing submodule to a particular developer's commit ref-point
 
 Try a git fetch to get all new data from the remote into the local cache, followed by a git log and a git checkout
 
-$ git fetch
+`$ git fetch`
 
-$ git log --oneline origin/master -10
+`$ git log --oneline origin/master -10`
 
-0e90143 demo-commit #2
-e6f5bb6 demo-commit #1
-fe64799 Fix repo name for main project companion demo repo
-89d24ad Main files (incl. subdir) for plugin, to populate its tree.
-cc88751 Initial commit
+`0e90143 demo-commit #2`
+`e6f5bb6 demo-commit #1`
+`fe64799 Fix repo name for main project companion demo repo`
+`89d24ad Main files (incl. subdir) for plugin, to populate its repo.`
+`cc88751 Initial commit`
 
-$ git checkout -q 0e90143
+`$ git checkout -q 0e90143`
 
 ## To see change-log for submodules
 
 From the main repo type :
 
-$ git diff --submodule=log
+`$ git diff --submodule=log`
 
 Alternatively you can change your git settings :
 
-git config --global diff.submodule log
-
-## Temporarily removing a submodule
-
-The git de init command ensures that the submodule is not locally known anymore (it’s gone from .git/config), so its absence from the working directory goes unnoticed. We will still have the submodule's directory but it’s emptied.
-The submodule must not have any local modifications when you do this, otherwise you’d need to --force the call. Any later subcommand of git submodule will completely ignore this submodule until you init it again,
-as the submodule won’t even be in local config. The submodule does remain defined in .gitmodules. So an init followed by an update
-(or a single update --init) will restore the submodule
-
-$ git submodule deinit vendor/plugins/demo
-
-## Permanently removing a submodule
-
-This section is applicable if you want to get rid of a submodule for good. In addition to stripping the submodule from the working directory,
-the command will update the .gitmodules file so it does not reference the submodule anymore.
-
-$ git rm vendor/plugins/demo
+`git config --global diff.submodule log`
 
 ## Best practices for using git submodules
 
@@ -266,16 +184,16 @@ because they don’t have the right submodule commit reference available to chec
 
 ### Remember the difference between auto fetch and auto updates
 
-Git auto-fetches, but does not auto-update. Your local cache is up-to-date with the submodule’s remote, but the submodule’s working directory stuck to its former contents.
+Git auto-fetches, but does not auto-update. Your local cache is up-to-date with the submodule’s remote repository, but the submodule’s working directory is stuck to its former contents, till you do a `git submodule update`.
 
 ### So always beware of Regressions
 
-If you don’t explicitly update the submodule’s working directory, your next parent-dir commit will regress the submodule. It is therefore always important to call 'git submodule update'.
+If you don’t explicitly update the submodule’s working directory, your next parent-directory commit will regress the submodule. It is therefore always important to call 'git submodule update'.
 
 ### Submodule sync
 
 There is another edge case: if the submodule’s remote URL changed since last used (perhaps one of the collaborators changed it in the .gitmodules), you have to manually update your local config to match this.
-In such a situation, before the git submodule update, you’d need to run a git submodule sync.
+In such a situation, before the git submodule update, you’d need to run a `git submodule sync.`
 
 ### All developers need to manually update submodules
 
@@ -290,23 +208,24 @@ it will happily wipe out your commit without warning, replacing it with that fro
 
 To recover from a wipe-out use git reflog
 
-> git reflog
-6b0da0d HEAD@{0}: rebase finished: returning to refs/heads/master
-6b0da0d HEAD@{1}: pull --rebase --progress --prune --recurse-submodules=on-demand origin: check
-d55ecfb HEAD@{2}: checkout: moving from fed7916169d740644dbbd9ea48e2d2cd510ce32d to master
-fed7916 HEAD@{3}: commit: more blah stuff.
-818bf20 HEAD@{4}: commit: incredible stuff I am doing, hopefully won't end up in limbo.
+`> git reflog`
+`6b0da0d HEAD@{0}: rebase finished: returning to refs/heads/master`
+`6b0da0d HEAD@{1}: pull --rebase --progress --prune --recurse-submodules=on-demand origin: check`
+`d55ecfb HEAD@{2}: checkout: moving from fed7916169d740644dbbd9ea48e2d2cd510ce32d to master`
+`fed7916 HEAD@{3}: commit: more blah stuff.`
+`818bf20 HEAD@{4}: commit: incredible stuff I am doing, hopefully won't end up in limbo.`
 ...etc...
+
 The commit fed7916 is the one I want to merge to master. For this, I simply typed:
 
-> git merge fed7916
+`> git merge fed7916`
 
 The merge should proceed smoothly if its branched from master.
 
 ### Merging submodules
 
 When git drops into conflict resolution mode, it still doesn’t update the submodule pointers, which means that when you commit the merge after resolving conflicts, you run into the same problem
-as in the previous section i.e. if you forgot to run 'git submodule update', you’ve just reverted any submodulecommits the branch you merged in might have made.
+as in the previous section i.e. if you forgot to run `git submodule update`, you’ve just reverted any submodulecommits the branch you merged in might have made.
 
 Now the two development branches or the developers need to manually merge this conflict.
 
