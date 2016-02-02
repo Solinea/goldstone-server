@@ -57,17 +57,17 @@ Add the following lines to your shell startup script (`.bashrc`, `.zshrc`, etc.)
     export PROJECT_HOME=$HOME/devel
     source /usr/local/bin/virtualenvwrapper.sh
 
-Wherever you add these flags, ensure to source it on all your open terminal windows. On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile: 
+Wherever you add these flags, ensure to source it on all your open terminal windows. On most MAC OS's the ".bashrc" file does not exist in the "~/.bashrc" path. You might be able to find equivalent files like "/etc/bash_profile" or "/etc/profile". You can also create your own "/etc/bashrc" file. If you do create your own file, add these lines to your bash_profile:
 
     if [ -f ~/.bashrc ]; then
         . ~/.bashrc
-    fi 
+    fi
 
 Open a new terminal window and confirm that these environment variables have been set.  Once satisfied, move on to creating the virtualenv:
 
     $ mkvirtualenv -a $PROJECT_HOME/goldstone-server goldstone-server
 
-If mkvirtualenv command fails, check to see if WORKON_HOME and other environmentvariables you exported earlier are set correctly. In some cases, virtualenvwrapper.sh can be located in /usr/bin instead of /usr/local/bin. Change the variables correspondingly in your settings and source them again.  
+If mkvirtualenv command fails, check to see if WORKON_HOME and other environmentvariables you exported earlier are set correctly. In some cases, virtualenvwrapper.sh can be located in /usr/bin instead of /usr/local/bin. Change the variables correspondingly in your settings and source them again.
 
 Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d#file-postactivate) script into your `$WORKON_HOME/goldstone-server/bin` folder, overwriting the original. Then:
 
@@ -126,6 +126,109 @@ To stop the development environment, either:
 
 This will stop both the docker VM and the OpenStack VM.
 
+# Git Submodules primer
+
+## Goldstone Submodules
+
+Currently compliance is the only Goldstone submodule. Here is an overall [primer] on submodules (https://git-scm.com/docs/git-submodule)
+
+## How are submodules hooked up?
+
+The main project and the submodule act as independent repositories.The submodule commit referenced by a sub-directory is stored using its SHA1 in the main directory and not by its branch name.
+
+## Add submodule status to your local diff summary
+
+Status, like logs and diffs, is limited to the main repo by default, not to submodules, which are nested repos. You can change this by adding :
+
+`git config --global status.submoduleSummary true`
+
+## To update an existing submodule to a particular developer's commit ref-point
+
+Try a git fetch to get all new data from the remote into the local cache, followed by a git log and a git checkout
+
+`$ git fetch`
+
+`$ git log --oneline origin/master -10`
+
+`0e90143 demo-commit #2`
+`e6f5bb6 demo-commit #1`
+`fe64799 Fix repo name for main project companion demo repo`
+`89d24ad Main files (incl. subdir) for plugin, to populate its repo.`
+`cc88751 Initial commit`
+
+`$ git checkout -q 0e90143`
+
+## To see change-log for submodules
+
+From the main repo type :
+
+`$ git diff --submodule=log`
+
+Alternatively you can change your git settings :
+
+`git config --global diff.submodule log`
+
+## Best practices for using git submodules
+
+### Always push both parent and submodule
+
+Because lifecycles are separate, updating a submodule inside its parent project requires two commits and two pushes.
+
+Submodules acting as almost completely independent repositories has an important caveat – you have to push changes
+from both the submodule and the parent repository to share with others.
+
+If you push changes from the submodule and not the parent repository, no one knows to use your new submodule changes.
+
+If you push changes from the parent repository and not the submodule, no one can use your new commits
+because they don’t have the right submodule commit reference available to check out.
+
+### Remember the difference between auto fetch and auto updates
+
+Git auto-fetches, but does not auto-update. Your local cache is up-to-date with the submodule’s remote repository, but the submodule’s working directory is stuck to its former contents, till you do a `git submodule update`.
+
+### So always beware of regressions
+
+If you don’t explicitly update the submodule’s working directory, your next parent-directory commit will regress the submodule. It is therefore always important to call 'git submodule update'.
+
+### Submodule sync
+
+There is another edge case: if the submodule’s remote URL changed since last used (perhaps one of the collaborators changed it in the .gitmodules), you have to manually update your local config to match this.
+In such a situation, before the git submodule update, you’d need to run a `git submodule sync.`
+
+### All developers need to manually update submodules
+
+Every time you add a submodule, change its remote’s URL, or change the referenced commit for it, all other users need to update this submodule.
+Forgetting this explicit update can result in silent regressions of the submodule’s referenced commit.
+
+### Be warned about a wipe-out of your changes
+
+Say you merge in some more changes which happen to include another submodule update. If you haven’t committed your own
+submodule change into the parent project yet, git won’t consider your new commit in the submodule as a conflict, and if you run git submodule update
+it will happily wipe out your commit without warning, replacing it with that from the branch you just merged in.
+
+To recover from a wipe-out use git reflog
+
+`> git reflog`
+`6b0da0d HEAD@{0}: rebase finished: returning to refs/heads/master`
+`6b0da0d HEAD@{1}: pull --rebase --progress --prune --recurse-submodules=on-demand origin: check`
+`d55ecfb HEAD@{2}: checkout: moving from fed7916169d740644dbbd9ea48e2d2cd510ce32d to master`
+`fed7916 HEAD@{3}: commit: more blah stuff.`
+`818bf20 HEAD@{4}: commit: incredible stuff I am doing, hopefully won't end up in limbo.`
+...etc...
+
+The commit fed7916 is the one I want to merge to master. For this, I simply typed:
+
+`> git merge fed7916`
+
+The merge should proceed smoothly if its branched from master.
+
+### Merging submodules
+
+When git drops into conflict resolution mode, it still doesn’t update the submodule pointers, which means that when you commit the merge after resolving conflicts, you run into the same problem
+as in the previous section i.e. if you forgot to run `git submodule update`, you’ve just reverted any submodulecommits the branch you merged in might have made.
+
+Now the two development branches or the developers need to manually merge this conflict.
+
 
 ## Configuring OpenStack Instance
 
@@ -164,7 +267,7 @@ After the containers have started and OpenStack has been configured to interact 
 
 A Kibana container will be automatically started as a part of docker-compose-dev.yml getting executed.
 
-The default url to access your kibana service is : 
+The default url to access your kibana service is :
 
     http://localhost:5601/
 
@@ -174,7 +277,7 @@ Upon first connection to the service, Kibana will prompt you to "Configure an in
 - The *Index name or pattern* should be set to `logstash-*`.
 - Select `@timestamp` from the *Time-field name* dropdown menu.
 - Click **Create** to save the configuration.
-- To verify index creation, check the "Indices" tab (top-left corner) on your Kibana console 
+- To verify index creation, check the "Indices" tab (top-left corner) on your Kibana console
 
 [Here](https://www.elastic.co/guide/en/kibana/current/introduction.html) is a good introduction to using Kibana.
 
@@ -198,8 +301,8 @@ This will only start linked containers, so you may not see all containers runnin
 
     bin/gsexec --container=goldstoneserver_gsappdev_run_1 --shell pkill celery
 
-When you have completed the debugging session, we recommend that you go back to using `start_dev_env.sh` so all containers are running.   
-    
+When you have completed the debugging session, we recommend that you go back to using `start_dev_env.sh` so all containers are running.
+
 
 ## Testing
 
