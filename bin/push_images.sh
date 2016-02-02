@@ -55,7 +55,7 @@ OPEN_REGISTRY_ORG=solinea
 PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 
 declare -a open_to_push=( goldstone-base goldstone-search goldstone-log goldstone-db \
-              goldstone-db-dvc goldstone-app goldstone-web goldstone-task-queue )
+              goldstone-app goldstone-web goldstone-task-queue )
 
 declare -a priv_to_push=( goldstone-app-e )
 
