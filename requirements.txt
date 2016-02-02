@@ -29,7 +29,7 @@ django-rest-swagger==0.3.4
 djangorestframework==3.1.0
 djoser==0.3.2
 drf-extensions==0.2.7
-elasticsearch-curator==3.1.0
+elasticsearch-curator==3.4.0
 elasticsearch-dsl==0.0.4
 elasticsearch==1.6.0
 fabric==1.10.2
