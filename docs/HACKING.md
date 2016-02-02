@@ -186,7 +186,7 @@ because they don’t have the right submodule commit reference available to chec
 
 Git auto-fetches, but does not auto-update. Your local cache is up-to-date with the submodule’s remote repository, but the submodule’s working directory is stuck to its former contents, till you do a `git submodule update`.
 
-### So always beware of Regressions
+### So always beware of regressions
 
 If you don’t explicitly update the submodule’s working directory, your next parent-directory commit will regress the submodule. It is therefore always important to call 'git submodule update'.
 
