@@ -154,13 +154,19 @@ var GoldstoneRouter = Backbone.Router.extend({
         location.href = "#discover";
     },
     savedSearchApi: function() {
-        this.switchView(SavedSearchApiPageView);
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'api'
+        });
     },
     savedSearchEvent: function() {
-        this.switchView(SavedSearchEventPageView);
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'event'
+        });
     },
     savedSearchLog: function() {
-        this.switchView(SavedSearchLogPageView);
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'log'
+        });
     },
     settings: function() {
         this.switchView(SettingsPageView);
