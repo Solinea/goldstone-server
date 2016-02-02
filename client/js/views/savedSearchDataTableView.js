@@ -22,7 +22,7 @@ implemented on SavedSearchLogPageView as:
         });
         this.savedSearchLogCollection.urlBase = "/core/saved_search/";
 
-        this.savedSearchLogView = new savedSearchLogDataTableView({
+        this.savedSearchLogView = new savedSearchDataTableView({
             chartTitle: goldstone.translate('Saved Searches: Log Browser'),
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
@@ -32,20 +32,20 @@ implemented on SavedSearchLogPageView as:
 
 */
 
-SavedSearchLogDataTableView = DataTableBaseView.extend({
+SavedSearchDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+        SavedSearchDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // initialize with serverSide dataTable defined on DataTableBaseView
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    form_index_prefix: 'logstash-*',
-    form_doc_type: 'syslog',
-    form_timestamp_field: '@timestamp',
-    urlRoot: '/core/saved_search/',
-    iDisplayLengthOverride: 25,
+    // form_index_prefix: 'logstash-*',
+    // form_doc_type: 'syslog',
+    // form_timestamp_field: '@timestamp',
+    // urlRoot: '/core/saved_search/',
+    // iDisplayLengthOverride: 25,
 
     render: function() {
         this.$el.html(this.template());
@@ -438,7 +438,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     },
 
     finalUrlMods: function() {
-        return '&index_prefix=logstash-*';
+        return '&index_prefix=' + this.form_index_prefix;
     },
 
     serverSideDataPrep: function(data) {

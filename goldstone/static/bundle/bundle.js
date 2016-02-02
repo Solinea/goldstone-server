@@ -1214,7 +1214,9 @@ var GoldstoneRouter = Backbone.Router.extend({
         "reports/logbrowser": "logSearch",
         "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
+        "reports/eventbrowser/search": "savedSearchEvent",
         "reports/apibrowser": "apiBrowser",
+        "reports/apibrowser/search": "savedSearchApi",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -1321,6 +1323,12 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     redirect: function() {
         location.href = "#discover";
+    },
+    savedSearchApi: function() {
+        this.switchView(SavedSearchApiPageView);
+    },
+    savedSearchEvent: function() {
+        this.switchView(SavedSearchEventPageView);
     },
     savedSearchLog: function() {
         this.switchView(SavedSearchLogPageView);
@@ -4169,9 +4177,28 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
             width: $('#api-browser-table').width()
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            }),
+            index_prefix: 'api_stats-*',
+            settings_redirect: '/#reports/apibrowser/search'
+
+        });
+
+        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     triggerChange: function(change) {
@@ -5612,10 +5639,29 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             width: $('#events-browser-table').width()
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            }),
+            index_prefix: 'events_*',
+            settings_redirect: '/#reports/eventbrowser/search'
+
+        });
+
+        this.eventsBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable, this.predefinedSearchDropdown
         ];
     },
 
@@ -9965,6 +10011,28 @@ compliance/defined_search/ results structure:
     "updated": null
 }
 
+instantiated on logSearchPageView as:
+
+    this.predefinedSearchDropdown = new PredefinedSearchView({
+        collection: new GoldstoneBaseCollection({
+            skipFetch: true,
+            urlBase: '',
+            addRange: function() {
+                return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+            },
+            addInterval: function(interval) {
+                return '&interval=' + interval + 's';
+            },
+        }),
+        index_prefix: 'logstash-*',
+        settings_redirect: '/#reports/logbrowser/search'
+
+    });
+
+    this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+    also instantiated on eventsBrowserPageView and apiBrowserPageView
+
 */
 
 PredefinedSearchView = GoldstoneBaseView.extend({
@@ -9985,28 +10053,26 @@ PredefinedSearchView = GoldstoneBaseView.extend({
     getPredefinedSearches: function() {
         var self = this;
 
-        // fallback for incompatible API return, or failed ajax call
+        // fallbacks for incompatible API return, or failed ajax call
         var failAppend = [{
             uuid: null,
             name: goldstone.translate('No predefined searches.')
         }];
-
         var serverError = [{
             uuid: null,
             name: goldstone.translate('Server error.')
         }];
 
-        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix).
-        done(
-            function(result) {
-                if (result.results) {
-                    self.predefinedSearches = result.results;
+        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix)
+            .done(
+                function(result) {
+                    if (result.results && result.results.length) {
+                        self.predefinedSearches = result.results;
+                    } else {
+                        self.predefinedSearches = failAppend;
+                    }
                     self.renderUpdatedResultList();
-                } else {
-                    self.predefinedSearches = failAppend;
-                    self.renderUpdatedResultList();
-                }
-            })
+                })
             .fail(function(result) {
                 self.predefinedSearches = serverError;
                 self.renderUpdatedResultList();
@@ -10036,7 +10102,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             var constructedUrlforViz = self.collection.url;
             self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
-        
+
     },
 
     fetchResults: function(vizUrl, tableUrl) {
@@ -10441,6 +10507,87 @@ var ReportsReportView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
+SavedSearchApiPageView = GoldstoneBasePageView.extend({
+
+    renderCharts: function() {
+
+        $("select#global-lookback-range").hide();
+
+        this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true,
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+        this.savedSearchLogView = new SavedSearchDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: API Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            form_index_prefix: 'api_stats-*',
+            form_doc_type: 'syslog',
+            form_timestamp_field: '@timestamp',
+            urlRoot: '/core/saved_search/',
+            iDisplayLengthOverride: 25,
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+        this.viewToStopListening = [this.savedSearchLogCollection, this.savedSearchLogView];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    onClose: function() {
+        // return global lookback/refresh selectors to page
+        $("select#global-lookback-range").show();
+        $("select#global-refresh-range").show();
+        SavedSearchLogPageView.__super__.onClose.apply(this, arguments);
+    },
+
+    templateButtonSelectors: [
+        ['/#reports/logbrowser/search', 'Saved Search: Log'],
+        ['/#reports/eventbrowser/search', 'Saved Search: Event'],
+        ['/#reports/apibrowser/search', 'Saved Search: API', 'active'],
+    ],
+
+    template: _.template('' +
+
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
+
+        '<h3><%=goldstone.translate(\'Saved Search Manager\')%></h3>' +
+        '<i class="fa fa-plus-square fa-3x add-button" data-toggle="modal" data-target="#create-modal"></i><br><br>' +
+        '<div class="row">' +
+        '<div id="saved-search-viz" class="col-md-12"></div>' +
+        '</div>' +
+        '<div id="create-modal-container"></div>' +
+        '<div id="update-modal-container"></div>' +
+        '<div id="delete-modal-container"></div>'
+    )
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
 implemented on SavedSearchLogPageView as:
 
@@ -10449,7 +10596,7 @@ implemented on SavedSearchLogPageView as:
         });
         this.savedSearchLogCollection.urlBase = "/core/saved_search/";
 
-        this.savedSearchLogView = new savedSearchLogDataTableView({
+        this.savedSearchLogView = new savedSearchDataTableView({
             chartTitle: goldstone.translate('Saved Searches: Log Browser'),
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
@@ -10459,20 +10606,20 @@ implemented on SavedSearchLogPageView as:
 
 */
 
-SavedSearchLogDataTableView = DataTableBaseView.extend({
+SavedSearchDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+        SavedSearchDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // initialize with serverSide dataTable defined on DataTableBaseView
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    form_index_prefix: 'logstash-*',
-    form_doc_type: 'syslog',
-    form_timestamp_field: '@timestamp',
-    urlRoot: '/core/saved_search/',
-    iDisplayLengthOverride: 25,
+    // form_index_prefix: 'logstash-*',
+    // form_doc_type: 'syslog',
+    // form_timestamp_field: '@timestamp',
+    // urlRoot: '/core/saved_search/',
+    // iDisplayLengthOverride: 25,
 
     render: function() {
         this.$el.html(this.template());
@@ -10865,7 +11012,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     },
 
     finalUrlMods: function() {
-        return '&index_prefix=logstash-*';
+        return '&index_prefix=' + this.form_index_prefix;
     },
 
     serverSideDataPrep: function(data) {
@@ -11056,6 +11203,87 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
  * limitations under the License.
  */
 
+SavedSearchEventPageView = GoldstoneBasePageView.extend({
+
+    renderCharts: function() {
+
+        $("select#global-lookback-range").hide();
+
+        this.savedSearchLogCollection = new GoldstoneBaseCollection({
+            skipFetch: true,
+        });
+        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
+        this.savedSearchLogView = new SavedSearchDataTableView({
+            chartTitle: goldstone.translate('Saved Searches: Event Browser'),
+            collectionMixin: this.savedSearchLogCollection,
+            el: "#saved-search-viz",
+            form_index_prefix: 'events_*',
+            form_doc_type: 'syslog',
+            form_timestamp_field: 'timestamp',
+            urlRoot: '/core/saved_search/',
+            iDisplayLengthOverride: 25,
+            infoIcon: 'fa-table',
+            width: $('#saved-search-viz').width()
+        });
+
+        this.viewToStopListening = [this.savedSearchLogCollection, this.savedSearchLogView];
+    },
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    onClose: function() {
+        // return global lookback/refresh selectors to page
+        $("select#global-lookback-range").show();
+        $("select#global-refresh-range").show();
+        SavedSearchLogPageView.__super__.onClose.apply(this, arguments);
+    },
+
+    templateButtonSelectors: [
+        ['/#reports/logbrowser/search', 'Saved Search: Log'],
+        ['/#reports/eventbrowser/search', 'Saved Search: Event', 'active'],
+        ['/#reports/apibrowser/search', 'Saved Search: API'],
+    ],
+
+    template: _.template('' +
+
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
+
+        '<h3><%=goldstone.translate(\'Saved Search Manager\')%></h3>' +
+        '<i class="fa fa-plus-square fa-3x add-button" data-toggle="modal" data-target="#create-modal"></i><br><br>' +
+        '<div class="row">' +
+        '<div id="saved-search-viz" class="col-md-12"></div>' +
+        '</div>' +
+        '<div id="create-modal-container"></div>' +
+        '<div id="update-modal-container"></div>' +
+        '<div id="delete-modal-container"></div>'
+    )
+
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 SavedSearchLogPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
@@ -11066,10 +11294,15 @@ SavedSearchLogPageView = GoldstoneBasePageView.extend({
             skipFetch: true,
         });
         this.savedSearchLogCollection.urlBase = "/core/saved_search/";
-        this.savedSearchLogView = new SavedSearchLogDataTableView({
+        this.savedSearchLogView = new SavedSearchDataTableView({
             chartTitle: goldstone.translate('Saved Searches: Log Browser'),
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
+            form_index_prefix: 'logstash-*',
+            form_doc_type: 'syslog',
+            form_timestamp_field: '@timestamp',
+            urlRoot: '/core/saved_search/',
+            iDisplayLengthOverride: 25,
             infoIcon: 'fa-table',
             width: $('#saved-search-viz').width()
         });
@@ -11092,6 +11325,8 @@ SavedSearchLogPageView = GoldstoneBasePageView.extend({
 
     templateButtonSelectors: [
         ['/#reports/logbrowser/search', 'Saved Search: Log', 'active'],
+        ['/#reports/eventbrowser/search', 'Saved Search: Event'],
+        ['/#reports/apibrowser/search', 'Saved Search: API'],
     ],
 
     template: _.template('' +

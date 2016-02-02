@@ -43,9 +43,28 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
             width: $('#api-browser-table').width()
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            }),
+            index_prefix: 'api_stats-*',
+            settings_redirect: '/#reports/apibrowser/search'
+
+        });
+
+        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
+        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     triggerChange: function(change) {

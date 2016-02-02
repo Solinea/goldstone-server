@@ -43,10 +43,29 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
             width: $('#events-browser-table').width()
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: new GoldstoneBaseCollection({
+                skipFetch: true,
+                urlBase: '',
+                addRange: function() {
+                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+                },
+                addInterval: function(interval) {
+                    return '&interval=' + interval + 's';
+                },
+            }),
+            index_prefix: 'events_*',
+            settings_redirect: '/#reports/eventbrowser/search'
+
+        });
+
+        this.eventsBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable, this.predefinedSearchDropdown
         ];
     },
 

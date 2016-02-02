@@ -66,12 +66,14 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.logSearch();
             this.testRouter.nodeReport('control-01');
             this.testRouter.redirect();
+            this.testRouter.savedSearchApi();
+            this.testRouter.savedSearchEvent();
             this.testRouter.savedSearchLog();
             this.testRouter.settings();
             this.testRouter.tenant();
             this.testRouter.topology();
 
-            expect(tranlateSpy.callCount).to.equal(10);
+            expect(tranlateSpy.callCount).to.equal(12);
             tranlateSpy.restore();
         });
     });

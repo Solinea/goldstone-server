@@ -34,6 +34,28 @@ compliance/defined_search/ results structure:
     "updated": null
 }
 
+instantiated on logSearchPageView as:
+
+    this.predefinedSearchDropdown = new PredefinedSearchView({
+        collection: new GoldstoneBaseCollection({
+            skipFetch: true,
+            urlBase: '',
+            addRange: function() {
+                return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+            },
+            addInterval: function(interval) {
+                return '&interval=' + interval + 's';
+            },
+        }),
+        index_prefix: 'logstash-*',
+        settings_redirect: '/#reports/logbrowser/search'
+
+    });
+
+    this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+    also instantiated on eventsBrowserPageView and apiBrowserPageView
+
 */
 
 PredefinedSearchView = GoldstoneBaseView.extend({
@@ -54,28 +76,26 @@ PredefinedSearchView = GoldstoneBaseView.extend({
     getPredefinedSearches: function() {
         var self = this;
 
-        // fallback for incompatible API return, or failed ajax call
+        // fallbacks for incompatible API return, or failed ajax call
         var failAppend = [{
             uuid: null,
             name: goldstone.translate('No predefined searches.')
         }];
-
         var serverError = [{
             uuid: null,
             name: goldstone.translate('Server error.')
         }];
 
-        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix).
-        done(
-            function(result) {
-                if (result.results) {
-                    self.predefinedSearches = result.results;
+        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix)
+            .done(
+                function(result) {
+                    if (result.results && result.results.length) {
+                        self.predefinedSearches = result.results;
+                    } else {
+                        self.predefinedSearches = failAppend;
+                    }
                     self.renderUpdatedResultList();
-                } else {
-                    self.predefinedSearches = failAppend;
-                    self.renderUpdatedResultList();
-                }
-            })
+                })
             .fail(function(result) {
                 self.predefinedSearches = serverError;
                 self.renderUpdatedResultList();
@@ -105,7 +125,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             var constructedUrlforViz = self.collection.url;
             self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
-        
+
     },
 
     fetchResults: function(vizUrl, tableUrl) {

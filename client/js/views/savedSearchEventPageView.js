@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-SavedSearchLogPageView = GoldstoneBasePageView.extend({
+SavedSearchEventPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
@@ -25,12 +25,12 @@ SavedSearchLogPageView = GoldstoneBasePageView.extend({
         });
         this.savedSearchLogCollection.urlBase = "/core/saved_search/";
         this.savedSearchLogView = new SavedSearchDataTableView({
-            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
+            chartTitle: goldstone.translate('Saved Searches: Event Browser'),
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
-            form_index_prefix: 'logstash-*',
+            form_index_prefix: 'events_*',
             form_doc_type: 'syslog',
-            form_timestamp_field: '@timestamp',
+            form_timestamp_field: 'timestamp',
             urlRoot: '/core/saved_search/',
             iDisplayLengthOverride: 25,
             infoIcon: 'fa-table',
@@ -54,8 +54,8 @@ SavedSearchLogPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser/search', 'Saved Search: Log', 'active'],
-        ['/#reports/eventbrowser/search', 'Saved Search: Event'],
+        ['/#reports/logbrowser/search', 'Saved Search: Log'],
+        ['/#reports/eventbrowser/search', 'Saved Search: Event', 'active'],
         ['/#reports/apibrowser/search', 'Saved Search: API'],
     ],
 
