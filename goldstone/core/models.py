@@ -2680,10 +2680,6 @@ class AlertSearch(SavedSearch):
 
         verbose_name_plural = "saved searches with alerts"
 
-    def return_query_results(self, query):
-        response = query.execute()
-        return response, response.hits.total
-
     def build_alert_template(self, hits):
         msg_title_template = 'Alert : ' + str(self.name) + \
                              ' triggered with ' + str(hits) +\
@@ -2757,9 +2753,6 @@ class AlertSearchSQLQuery(AlertSearch):
         except Exception as e:
             # logger.exception(str(e))
             return []
-
-    def return_query_results(self, query):
-        return query, len(query)
 
 
 class AlertSearchESQuery(AlertSearch):

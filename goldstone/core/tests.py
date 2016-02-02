@@ -204,8 +204,8 @@ class TaskTests(SimpleTestCase):
         search_mock.execute.return_value = {'hits': {'total': 1}}
         alert_search.search_recent = mock.MagicMock(
             return_value=[Search(), None, None])
-        alert_search.return_query_results = mock.MagicMock(
-            return_value=[{'Key': 'Value'}, 1])
+        # alert_search.return_query_results = mock.MagicMock(
+            # return_value=[{'Key': 'Value'}, 1])
         self.assertEqual(alert_search.search_recent.call_count, 0)
 
         # mock two producers with fk back to the the alert search

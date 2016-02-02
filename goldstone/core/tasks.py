@@ -168,14 +168,17 @@ def check_for_pending_alerts():
         # TBD : Decide if you want to distinguish the objects by type :
         # SQL vs ES and then call execute() for the latter. This implies
         # that the task should be aware of different AlertSearch objects
-        # which is not good OOP. But this overridden function that decides
+        # which is not good OOP. But an overridden function that decides
         # whether to call es.execute() or not, does not look good either.
         #
-        # if not hasattr(obj, 'db_table'):
-        #     response = s.execute()
-        #     num_hits = response.hits.total
-        #
-        response, num_hits = obj.return_query_results(s)
+        if not hasattr(obj, 'db_table'):
+            response = s.execute()
+            num_hits = response.hits.total
+        else:
+            response = s
+            num_hits = len(s)
+
+        # response, num_hits = obj.return_query_results(s)
 
         obj.last_start = start
         obj.last_end = end
