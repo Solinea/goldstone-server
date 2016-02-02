@@ -2722,11 +2722,15 @@ class AlertSearchSQLQuery(AlertSearch):
         # of all the entries in the vulnerability table.
         # dict is more useful for k,v parsing. If you care about just a list
         # simply return cursor.fetchall()
-        cursor = connection.cursor()
-        cursor.execute("SELECT * from %s", [self.db_table])
-        columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row))
-                for row in cursor.fetchall()]
+        try:
+            cursor = connection.cursor()
+            rv = cursor.execute("SELECT * from compliance_vulnerability")
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row))
+                    for row in cursor.fetchall()]
+        except Exception as e:
+            # logger.exception(str(e))
+            return []
 
     def search_recent(self):
 
@@ -2740,16 +2744,19 @@ class AlertSearchSQLQuery(AlertSearch):
 
         end = arrow.utcnow().datetime
 
-        # TBD : Cursor() exception handling ? say for connection_fail() etc
-        cursor = connection.cursor()
-        # resist the temptation to use OVERLAPS and BETWEEN operators here.
-        # You will loose out on the ability to use >= and <= operators
-        cursor.execute("SELECT * from %s WHERE %s >= %s AND %s <= %s",
-                       [self.db_table, self.db_col_filter,
-                       str(start), str(end)])
-        columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row))
-                for row in cursor.fetchall()], start, end
+        try:
+            cursor = connection.cursor()
+            # resist the temptation to use OVERLAPS and BETWEEN operators here.
+            # You will loose out on the ability to use >= and <= operators
+            cursor.execute("SELECT * from %s WHERE %s >= %s AND %s <= %s",
+                           [self.db_table, self.db_col_filter,
+                            str(start), str(end)])
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row))
+                    for row in cursor.fetchall()], start, end
+        except Exception as e:
+            # logger.exception(str(e))
+            return []
 
     def return_query_results(self, query):
         return query, len(query)
