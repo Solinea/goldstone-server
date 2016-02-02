@@ -101,7 +101,7 @@ class EmailProducerTests(SimpleTestCase):
     def test_parent_producer_send_fail(self):
         """ Calling send on the parent-producer's send:
           This should throw an exception """
-        alert_search = AlertSearch()
+        alert_search = AlertSearch(name='test_parent_producer_send')
         alert_search.save()
         producer_inst = EmailProducer(query=alert_search,
                                       sender='abc@x.com',
@@ -141,7 +141,7 @@ class EmailProducerTests(SimpleTestCase):
 
     def test_inner_send_mail_function(self):
 
-        as_obj = AlertSearch()
+        as_obj = AlertSearch(name='test_inner_email_send')
         as_obj.save()
         new_alert = Alert(owner='core',
                           created='2015-09-01T13:20:30+03:00',
