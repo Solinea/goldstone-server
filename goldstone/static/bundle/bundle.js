@@ -3779,11 +3779,49 @@ per_interval: [{
 
 var SpawnsCollection = GoldstoneBaseCollection.extend({
 
+    mockZeros: function(gte, epochNow) {
+
+        // correct for forgotten values
+        epochNow = epochNow || +new Date(); // now
+        gte = gte || (epochNow - (1000 * 60 * 60 * 15)); // 15 minutes ago
+
+        // container for timestamp slices
+        var timeSet = [];
+
+        // prepare a slice size to return in ms
+        var span = Math.floor((epochNow - gte) / 24);
+
+        // populate timeSet with timestamps spaced
+        // by the 'span' size, covering the range of
+        // timestampes defined by the function arguments
+        while (epochNow > gte) {
+            timeSet.push(epochNow);
+            epochNow -= span;
+        }
+
+        // container that will hold final results
+        var result = [];
+
+        // iterate through the timeslices to create
+        // a set of mocked zero results
+        timeSet.forEach(function(timeStamp) {
+            var tempResult = {};
+            tempResult[timeStamp] = {
+                count: 0,
+                success: []
+            };
+            result.push(tempResult);
+        });
+
+        // return final results
+        return result;
+    },
+
     preProcessData: function(data) {
         if (data && data.per_interval) {
             return data.per_interval;
         } else {
-            return [];
+            return this.mockZeros(this.gte, this.epochNow);
         }
     },
 
