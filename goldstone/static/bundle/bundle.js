@@ -10825,10 +10825,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "iDisplayLength": self.iDisplayLengthOverride ? self.iDisplayLengthOverride : 10,
             "paging": true,
-            "searching": true,
+            "searching": false,
             "ordering": true,
             "order": [
-                [0, 'desc']
+                [0, 'asc']
             ],
             "columnDefs": [{
                     "data": "name",
@@ -10894,8 +10894,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
+                    var alwaysSort = true;
+                    // for this dataTable, always add the search field
                     // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+                    if (alwaysSort || urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
 
                         // or, if something has changed, capture the
                         // column to sort by, and the sort direction
@@ -11175,6 +11177,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         var urlBase = '/core/saved_search/';
 
         $("select#global-lookback-range").hide();
+        $("select#global-refresh-range").hide();
 
         this.savedSearchLogCollection = new GoldstoneBaseCollection({
             skipFetch: true,
@@ -11197,7 +11200,8 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+            // remove sensitivity to lookback as UI will trigger refresh
+            // this.savedSearchLogView.trigger('lookbackSelectorChanged');
         }
     },
 
