@@ -66,8 +66,10 @@ RUN buildReqs=' \
   && apt-get install -y -q $preReqs \
   && mkdir -p /usr/share/nginx/html/static \
   && chown -R ${APPUSER}:staff /usr/share/nginx/html/static \
-  && chown -R ${APPUSER}:staff ${APPDIR} \
-  && su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/requirements.txt" \
+  && chown -R ${APPUSER}:staff ${APPDIR} 
+
+# purposely creating a new layer for the requirements.
+RUN su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/requirements.txt" \
   && su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/test-requirements.txt" \
   && apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
