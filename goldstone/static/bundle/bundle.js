@@ -11580,9 +11580,9 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     margin: {
         top: 55,
-        right: 70,
-        bottom: 100,
-        left: 70
+        right: 80,
+        bottom: 90,
+        left: 50
     },
 
     instanceSpecificInit: function() {
@@ -11639,13 +11639,13 @@ var SpawnsView = GoldstoneBaseView.extend({
 
         self.xAxis = d3.svg.axis()
             .scale(self.x)
-            .ticks(5)
+            .ticks(2)
             .orient("bottom");
 
         self.yAxis = d3.svg.axis()
             .scale(self.y)
             .orient("left")
-            .tickFormat(d3.format("01d"));
+            .tickFormat(d3.format("d"));
 
         self.colorArray = new GoldstoneColors().get('colorSets');
 
