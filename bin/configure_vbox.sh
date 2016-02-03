@@ -67,6 +67,7 @@ COMMON_RULE_LIST='es_9200_local,tcp,,9200,,9200
                   es_9300_local,tcp,,9300,,9300 
                   logstash_syslog_local,tcp,,5514,,5514 
                   logstash_metrics_local,udp,,5516,,5516 
+                  logstash_agent_local,tcp,,5516,,5516 
                   postgres_local,tcp,,5432,,5432 
                   redis_local,tcp,,6379,,6379
                   kibana_local,tcp,,5601,,5601
