@@ -92,6 +92,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 "info": false,
                 "paging": true,
                 "searching": true,
+                "ordering": false,
                 "columns": [{
                     "title": goldstone.contextTranslate("Tenant", "tenantsettings")
                 }, {
@@ -195,6 +196,9 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        this.$el.prepend(new ChartHeaderView({chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')}).el);
+
         this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
@@ -209,20 +213,10 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     template: _.template('' +
 
         // dataTable
-        '<div class="panel panel-primary tenant_results_panel">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Tenants\', \'tenantsettings\')%>' +
-        '</h3>' +
-        '</div>' +
-        '</div>' +
-
         '<div class="panel-body">' +
         '<table id="tenants-single-rsrc-table" class="table"></table>' +
         '</div>' +
         // end data table
-
-
-        '<div class="container">' +
 
         // popup message row
         '<div class="row">' +
@@ -266,9 +260,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         '</form>' +
         '</div>' +
 
-        // close divs for row/container
-        '</div>' +
-        '</div>'
+        '</div>' // /row
 
     )
 

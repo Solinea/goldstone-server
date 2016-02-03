@@ -102,21 +102,26 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                 "data": "@timestamp",
                 "type": "date",
                 "targets": 0,
+                "sortable": false,
                 "render": function(data, type, full, meta) {
                     return moment(data).format();
                 }
             }, {
                 "data": "syslog_severity",
-                "targets": 1
+                "targets": 1,
+                "sortable": false
             }, {
                 "data": "component",
-                "targets": 2
+                "targets": 2,
+                "sortable": false
             }, {
                 "data": "host",
-                "targets": 3
+                "targets": 3,
+                "sortable": false
             }, {
                 "data": "log_message",
-                "targets": 4
+                "targets": 4,
+                "sortable": false
             }],
             "serverSide": true,
             "ajax": {
@@ -180,7 +185,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
+                            // ascDec + columnLabelHash[orderByColumn];
                     }
 
                 },
