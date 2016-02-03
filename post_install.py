@@ -510,13 +510,13 @@ def _configure_nova(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                          "keystonecontext audit osapi_compute_app_v2"
             },
             {
-                "section": "composite:openstack_volume_api_v21",
+                "section": "composite:openstack_compute_api_v21",
                 "parameter": "keystone",
                 "value": "compute_req_id faultwrap sizelimit authtoken "
                          "keystonecontext audit osapi_compute_app_v21"
             },
             {
-                "section": "composite:openstack_volume_api_v3",
+                "section": "composite:openstack_compute_api_v3",
                 "parameter": "keystone",
                 "value": "request_id faultwrap sizelimit authtoken "
                          "keystonecontext audit osapi_compute_app_v3"
