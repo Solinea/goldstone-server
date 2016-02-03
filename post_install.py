@@ -563,6 +563,42 @@ def _configure_cinder(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                 "parameter": "control_exchange",
                 "value": "cinder"
             }
+        ],
+        "/etc/cinder/api-paste.ini": [
+            {
+                "section": "composite:openstack_volume_api_v1",
+                "parameter": "keystone",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv1"
+            },
+            {
+                "section": "composite:openstack_volume_api_v1",
+                "parameter": "keystone_nolimit",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv1"
+            },
+            {
+                "section": "composite:openstack_volume_api_v2",
+                "parameter": "keystone",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv2"
+            },
+            {
+                "section": "composite:openstack_volume_api_v2",
+                "parameter": "keystone_nolimit",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv2"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "paste.filter_factory",
+                "value": "keystonemiddleware.audit:filter_factory"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "audit_map_file",
+                "value": "/etc/cinder/cinder_api_audit_map.conf"
+            }
         ]
     }
 
@@ -579,10 +615,6 @@ def _configure_cinder(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
 
     template_dir = os.path.join(config_loc, "cinder")
     template_files = [
-        {
-            "file": "/etc/cinder/api-paste.ini",
-            "template": "api-paste.ini.template"
-        },
         {
             "file": "/etc/cinder/cinder_api_audit_map.conf",
             "template": "cinder_api_audit_map.conf.template"
