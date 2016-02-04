@@ -283,11 +283,10 @@ class AlertSearchSQLQueryModelTests(SimpleTestCase):
                              "updated":"2016-01-30 00:00:12.017634+00"}]
 
     @mock.patch('goldstone.core.models.AlertSearchSQLQuery')
-    def test_check_sql_search_call(self, asql_mock):
+    @mock.patch('django.db.connection.cursor')
+    @mock.patch('django.db.backends.postgresql_psycopg2')
+    def test_check_sql_search_call(self, asql_mock, cur_mock, mock_db):
 
-        """Test that search and search_recent calls return the right
-        results for a SQL-based query
-        """
 
         sample_db_entry = {"ossa_id": "OSSA-2014-020",
                     "link": "http://abc.com/ossa/2014020",
@@ -308,7 +307,6 @@ class AlertSearchSQLQueryModelTests(SimpleTestCase):
         sql_db_entry.name = 'name'
         sql_db_entry._state = mock.MagicMock()
         sql_db_entry.savedsearch_ptr_id = mock.MagicMock()
-        # sql_db_entry.save.return_value = None
 
         asql_mock.objects = mock.MagicMock()
         asql_mock.objects.all = mock.MagicMock()
@@ -325,14 +323,20 @@ class AlertSearchSQLQueryModelTests(SimpleTestCase):
         self.assertIsInstance(db_rv, list)
         self.assertEqual(len(db_rv), 0)
 
-        # simulate results of a search_recent call with 1 db entry
-        #db_rv, start, end = as_sql_inst.search_recent()
+        cur_mock = mock.MagicMock(spec=connection.cursor())
+
+        # mock two rows getting returned by search
+        row1 = mock.MagicMock(spec=sample_db_entry)
+        row2 = mock.MagicMock(spec=sample_db_entry)
+        cur_mock.fetchall.return_value = [row1, row2]
+
+        as_sql_inst = AlertSearchSQLQuery()
+        db_rv = as_sql_inst.search()
+        self.assertIsInstance(db_rv, list)
+
+        cur_mock.return_value = [sample_db_entry, start_time, end_time]
         db_rv = as_sql_inst.search_recent()
         self.assertIsInstance(db_rv, list)
-        # self.assertIsInstance(db_rv, dict)
-        # self.assertEqual(len(db_rv), 1)
-        # self.assertIsInstance(db_rv, dict)
-        # self.assertEqual(len(db_rv), 1)
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):
