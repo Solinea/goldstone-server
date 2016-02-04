@@ -196,6 +196,7 @@ class TaskTests(SimpleTestCase):
         alert_search._state = mock.MagicMock()
         alert_search.savedsearch_ptr_id = mock.MagicMock()
         alert_search.save.return_value = None
+        alert_search.alertsearchsqlquery = None
 
         as_mock.objects = mock.MagicMock()
         as_mock.objects.all = mock.MagicMock()
@@ -204,8 +205,6 @@ class TaskTests(SimpleTestCase):
         search_mock.execute.return_value = {'hits': {'total': 1}}
         alert_search.search_recent = mock.MagicMock(
             return_value=[Search(), None, None])
-        # alert_search.return_query_results = mock.MagicMock(
-            # return_value=[{'Key': 'Value'}, 1])
         self.assertEqual(alert_search.search_recent.call_count, 0)
 
         # mock two producers with fk back to the the alert search
@@ -279,26 +278,25 @@ class AlertSearchSQLQueryModelTests(SimpleTestCase):
                              "notes": "A",
                              "cve": "CVE-2014-3497",
                              "notice_date": "2014-06-19",
-                             "created":"2015-01-30 00:00:12.017634+00",
-                             "updated":"2016-01-30 00:00:12.017634+00"}]
+                             "created": "2015-01-30 00:00:12.017634+00",
+                             "updated": "2016-01-30 00:00:12.017634+00"}]
 
     @mock.patch('goldstone.core.models.AlertSearchSQLQuery')
     @mock.patch('django.db.connection.cursor')
     @mock.patch('django.db.backends.postgresql_psycopg2')
     def test_check_sql_search_call(self, asql_mock, cur_mock, mock_db):
 
-
         sample_db_entry = {"ossa_id": "OSSA-2014-020",
-                    "link": "http://abc.com/ossa/2014020",
-                    "processed": True,
-                    "name": "OpenStack upgrade causes Memory leak",
-                    "description": "It's a real mess",
-                    "affects": "Swift: 1.11.0 to 1.13.1",
-                    "patches": "Yet to be released",
-                    "references": "Impeccable",
-                    "notes": "A",
-                    "cve": "CVE-2014-3497",
-                    "notice_date": "2014-06-19"}
+                           "link": "http://abc.com/ossa/2014020",
+                           "processed": True,
+                           "name": "OpenStack upgrade causes Memory leak",
+                           "description": "It's a real mess",
+                           "affects": "Swift: 1.11.0 to 1.13.1",
+                           "patches": "Yet to be released",
+                           "references": "Impeccable",
+                           "notes": "A",
+                           "cve": "CVE-2014-3497",
+                           "notice_date": "2014-06-19"}
 
         start_time = '2016-01-30 00:00:12.017634+00'
         end_time = '2016-02-01 00:00:12.017634+00'
@@ -328,7 +326,7 @@ class AlertSearchSQLQueryModelTests(SimpleTestCase):
         # mock two rows getting returned by search
         row1 = mock.MagicMock(spec=sample_db_entry)
         row2 = mock.MagicMock(spec=sample_db_entry)
-        cur_mock.fetchall.return_value = [row1, row2]
+        cur_mock.fetchall = mock.MagicMock(return_value=[row1, row2])
 
         as_sql_inst = AlertSearchSQLQuery()
         db_rv = as_sql_inst.search()

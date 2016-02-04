@@ -2721,7 +2721,8 @@ class AlertSearchSQLQuery(AlertSearch):
         # simply return cursor.fetchall()
         try:
             cursor = connection.cursor()
-            cursor.execute("SELECT * FROM %(table)s", {"table": AsIs(self.db_table)})
+            cursor.execute("SELECT * FROM %(table)s",
+                           {"table": AsIs(self.db_table)})
             columns = [col[0] for col in cursor.description]
             return [dict(zip(columns, row))
                     for row in cursor.fetchall()]
