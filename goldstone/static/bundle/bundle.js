@@ -10088,6 +10088,9 @@ PredefinedSearchView = GoldstoneBaseView.extend({
     populatePredefinedSearches: function(arr) {
         var result = '';
 
+        // add 'none' as a method of returning to the default search
+        result += '<li data-uuid="null">' + goldstone.translate("None (reset to default)") + '</li>';
+
         _.each(arr, function(item) {
             result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
         });
@@ -10100,7 +10103,20 @@ PredefinedSearchView = GoldstoneBaseView.extend({
 
         // dropdown to reveal predefined search list
         this.$el.find('.dropdown-menu').on('click', 'li', function(item) {
+
             var clickedUuid = $(this).data('uuid');
+            if (clickedUuid === null) {
+
+                // append original name to predefined search dropdown title
+                // calls function that will provide accurate translation
+                // if in a different language environment
+                $('#predefined-search-title').text(self.generateDropdownName());
+            } else {
+
+                // append search name to predefined search dropdown title
+                $('#predefined-search-title').text($(this).text());
+            }
+
             var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
 
             self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
@@ -10130,10 +10146,18 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             });
     },
 
+    generateDropdownName: function() {
+
+        // enclosing in a function to handle the i18n compliant
+        // generation of the original dropdown name when resetting
+        // to the default search
+        return goldstone.translate("Predefined Searches");
+    },
+
     template: _.template('' +
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
-        '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
+        '<span id="predefined-search-title"><%= this.generateDropdownName() %></span> <span class="caret"></span>' +
         '</a>' +
         '<ul class="dropdown-menu">' +
         // populated via renderUpdatedResultList()
