@@ -72,8 +72,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     margin: {
         top: 20,
         right: 40,
-        bottom: 35,
-        left: 63
+        bottom: 80,
+        left: 70
     },
 
     // IMPORTANT: the order of the entries in the
@@ -157,7 +157,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         self.mw = self.width - self.margin.left - self.margin.right;
         self.mh = self.height - self.margin.top - self.margin.bottom;
 
-        self.svg = d3.select(this.el).append("svg")
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", self.width)
             .attr("height", self.height);
 
@@ -257,8 +257,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var zoomedStart;
         var zoomedEnd;
 
-        var leftMarginX = 64;
-        var rightMarginX = 42;
+        var leftMarginX = 67;
+        var rightMarginX = 26;
 
         var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (self.width - leftMarginX - rightMarginX)));
 
@@ -602,11 +602,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // this.trigger('chartUpdate');
     },
 
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="compliance-predefined-search-container"></div>'),
-
-    modal2: _.template(
+    filterModal: _.template(
         // event filter modal
         '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -643,7 +639,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 5px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
-        this.$el.append(this.modal2());
+        this.$el.append(this.filterModal());
         return this;
     },
 

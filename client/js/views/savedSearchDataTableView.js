@@ -22,7 +22,7 @@ implemented on SavedSearchLogPageView as:
         });
         this.savedSearchLogCollection.urlBase = "/core/saved_search/";
 
-        this.savedSearchLogView = new savedSearchLogDataTableView({
+        this.savedSearchLogView = new savedSearchDataTableView({
             chartTitle: goldstone.translate('Saved Searches: Log Browser'),
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
@@ -32,20 +32,20 @@ implemented on SavedSearchLogPageView as:
 
 */
 
-SavedSearchLogDataTableView = DataTableBaseView.extend({
+SavedSearchDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+        SavedSearchDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // initialize with serverSide dataTable defined on DataTableBaseView
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    form_index_prefix: 'logstash-*',
-    form_doc_type: 'syslog',
-    form_timestamp_field: '@timestamp',
-    urlRoot: '/core/saved_search/',
-    iDisplayLengthOverride: 25,
+    // form_index_prefix: 'logstash-*',
+    // form_doc_type: 'syslog',
+    // form_timestamp_field: '@timestamp',
+    // urlRoot: '/core/saved_search/',
+    // iDisplayLengthOverride: 25,
 
     render: function() {
         this.$el.html(this.template());
@@ -128,7 +128,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 // show failure message at top of screen
                 // uses sprintf string interpolation to create a properly
                 // formatted message such as "Failure to create trail1"
-                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+                self.dataErrorMessage(failureWarning);
 
             }).always(function() {
                 // close modal
@@ -161,7 +161,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 .done(function() {
 
                     var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
-                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
                     // uses sprintf string interpolation to create a properly
@@ -172,7 +172,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 .fail(function(err) {
 
                     var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
-                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
                     // uses sprintf string interpolation to create a properly
@@ -251,6 +251,23 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         }
     },
 
+    prettyPrint: function(input) {
+
+        var result = input;
+
+        try {
+            result = JSON.parse(input);
+            result = JSON.stringify(result, null, 2);
+        } catch (e) {
+            // return original result
+            return result;
+        }
+
+        return result;
+
+
+    },
+
     dataTableRowGenerationHooks: function(row, data) {
 
         var self = this;
@@ -290,7 +307,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
             // name / isLogging/UUID
             $('#update-modal #update-search-name').val(data.name);
             $('#update-modal #update-search-description').val(data.description);
-            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #update-search-query').val(self.prettyPrint(data.query));
             $('#update-modal #updateUUID').val('' + data.uuid);
 
             // shut off input on protected searches
@@ -438,7 +455,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     },
 
     finalUrlMods: function() {
-        return '&index_prefix=logstash-*';
+        return '&index_prefix=' + this.form_index_prefix;
     },
 
     serverSideDataPrep: function(data) {
@@ -491,8 +508,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         // Search Query
         '<div class="form-group">' +
         '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden owner
@@ -558,8 +575,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         // Search query
         '<div class="form-group">' +
         '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden UUID
@@ -594,6 +611,9 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // hidden UUID to be submitted with delete request
         '<input id="deleteUUID" hidden type="text">' +
+
+        // hidden name to be submitted with delete request
+        '<input id="deleteName" hidden type="text">' +
 
         // <h4> will be filled in by handler in dataTableRowGenerationHooks with
         // warning prior to deleting a trail
