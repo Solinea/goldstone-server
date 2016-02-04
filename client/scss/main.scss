@@ -20,6 +20,7 @@ $dark_datatable_text: #eee;
     top: 12px;
 }
 
+
 /* every font-awesome icon everywhere unless excluded */
 
 .fa:not(.fa-check):not(.fa-clock-o) {
@@ -105,14 +106,16 @@ text:not(.zoomable),
 }
 
 
-/* nodeAvail viz css */
+/* predefined search */
 
-.invisible-axis path {
-    fill: none;
-    stroke: none;
-}
-
-.swim.axis.invisible-axis .tick line {
-    fill: none;
-    stroke: none;
+.predefined-search-container {
+    .dropdown-menu {
+        padding: 13px;
+        width: 246%;
+        font-size: large;
+        cursor: hand;
+    }
+    li:hover {
+        background: #eee;
+    }
 }

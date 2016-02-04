@@ -20,7 +20,7 @@
 describe('predefinedSearchView.js', function() {
     beforeEach(function() {
         $('body').html(
-            '<div class="compliance-predefined-search-container"></div>'
+            '<div class="predefined-search-container"></div>'
         );
 
         var dData = {
@@ -60,6 +60,8 @@ describe('predefinedSearchView.js', function() {
             })
         });
 
+        $('.predefined-search-container').append(this.testView.el);
+
     });
     afterEach(function() {
         $('body').html('');
@@ -79,17 +81,37 @@ describe('predefinedSearchView.js', function() {
                 name: 'test'
             }];
             var test1 = this.testView.populatePredefinedSearches(testArr);
-            expect(test1).to.equal('<li data-uuid=1234>test</li>');
+            expect(test1).to.include('<li data-uuid=1234>test</li>');
             testArr = [{
                 uuid: 1234,
                 name: 'test'
-            },{
+            }, {
                 uuid: null,
                 name: ''
             }];
             var test2 = this.testView.populatePredefinedSearches(testArr);
-            expect(test2).to.equal('<li data-uuid=1234>test</li>' +
-                                   '<li data-uuid=null></li>');
+            expect(test2).to.include('<li data-uuid=1234>test</li>' +
+                '<li data-uuid=null></li>');
+        });
+        it('places "None" at the top of the list', function() {
+            this.testView.populatePredefinedSearches();
+            this.testView.renderUpdatedResultList();
+            expect($('.predefined-search-container').text()).to.include('Predefined Searches None (reset to default)');
+        });
+        it('appends the search name to the dropdown title', function() {
+            var testArr = [{
+                uuid: 1234,
+                name: 'test'
+            }];
+            this.testView.predefinedSearches = testArr;
+            this.testView.renderUpdatedResultList();   
+            expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
+            $('[data-uuid="1234"]').click();
+
+            // it also restores the original name after clicking on "none"
+            expect($('.predefined-search-container').text()).to.match(/test/);
+            $('[data-uuid="null"]').click();
+            expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
         });
     });
 });

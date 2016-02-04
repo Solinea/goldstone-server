@@ -92,5 +92,5 @@ module.exports = {
     ],
     complianceConcatBundle: 'goldstone/compliance/static/client-js/compliance.js',
     complianceCopyFolder: 'goldstone/compliance/static/',
-    complianceWatch: 'goldstone/compliance/static/client-dev/**/*'
+    complianceWatch: 'goldstone/compliance/static/**/*'
 };
