@@ -78,7 +78,7 @@ Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d
 
 ## Install the Development OpenStack VM
 
-Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://ab869301cdc499c198b6-69cf3576870bc238e91b4537dc60466a.ssl.cf5.rackcdn.com/RDO-kilo-20150902.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
+Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://ab869301cdc499c198b6-69cf3576870bc238e91b4537dc60466a.ssl.cf5.rackcdn.com/RDO-kilo-20160203.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
 
 ## Configure VirtualBox Networking
 
@@ -115,6 +115,39 @@ All output (database, search, task, app server, etc.) will be logged to the term
 or:
 
     $ ./bin/start_dev_env.sh > /tmp/goldstone.log 2>&1  # sends output only to file
+
+
+## Configuring OpenStack Instance
+
+Execute the following commands to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
+
+    $ cd ~/devel/goldstone-server
+    $ ./bin/start_dev_env.sh
+
+Then in another window:
+
+    $ eval $(docker-machine env default)
+    $ docker exec -it goldstoneserver_appdev_1 bash
+    (container) $ fab -f post_install.py -H 172.24.4.100 configure_stack:172.24.4.1
+
+
+It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
+
+    $ eval $(docker-machine env default)
+    $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
+
+Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
+
+
+## Logging In
+
+After the containers have started and OpenStack has been configured to interact with Goldstone, you can access the user interface with the following information:
+
+* url: **http://127.0.0.1:8000**
+* django admin username: **admin**
+* django admin password: **goldstone**
+* Goldstone admin username: **gsadmin**
+* Goldstone admin password: **goldstone**
 
 
 ## Stopping Goldstone Server
@@ -228,39 +261,6 @@ When git drops into conflict resolution mode, it still doesn’t update the subm
 as in the previous section i.e. if you forgot to run `git submodule update`, you’ve just reverted any submodulecommits the branch you merged in might have made.
 
 Now the two development branches or the developers need to manually merge this conflict.
-
-
-## Configuring OpenStack Instance
-
-Execute the following commands to configure the development OpenStack instance to ship logs and events back to Goldstone.  This only needs to be performed once:
-
-    $ cd ~/devel/goldstone-server
-    $ ./bin/start_dev_env.sh
-
-Then in another window:
-
-    $ eval $(docker-machine env default)
-    $ docker exec -it goldstoneserver_appdev_1 bash
-    (container) $ fab -f post_install.py -H 172.24.4.100 configure_stack:172.24.4.1
-
-
-It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
-
-    $ eval $(docker-machine env default)
-    $ ./bin/gsexec --shell nova boot --image cirros --flavor m1.tiny ceilo0
-
-Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
-
-
-## Logging In
-
-After the containers have started and OpenStack has been configured to interact with Goldstone, you can access the user interface with the following information:
-
-* url: **http://127.0.0.1:8000**
-* django admin username: **admin**
-* django admin password: **goldstone**
-* Goldstone admin username: **gsadmin**
-* Goldstone admin password: **goldstone**
 
 
 ## Kibana Configuration
