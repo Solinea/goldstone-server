@@ -128,7 +128,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 // show failure message at top of screen
                 // uses sprintf string interpolation to create a properly
                 // formatted message such as "Failure to create trail1"
-                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+                self.dataErrorMessage(failureWarning);
 
             }).always(function() {
                 // close modal
@@ -161,7 +161,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 .done(function() {
 
                     var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
-                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
                     // uses sprintf string interpolation to create a properly
@@ -172,7 +172,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 .fail(function(err) {
 
                     var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
-                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
                     // uses sprintf string interpolation to create a properly
