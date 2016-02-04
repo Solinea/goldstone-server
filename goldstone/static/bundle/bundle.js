@@ -4161,7 +4161,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -4215,9 +4215,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser', 'active'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
     ],
 
     template: _.template('' +
@@ -5623,7 +5623,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
+            chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -5679,9 +5679,9 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer', 'active'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
     ],
 
     template: _.template('' +
@@ -7627,7 +7627,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
             infoText: 'logBrowser',
@@ -7704,9 +7704,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser', 'active'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer', 'active'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
     ],
 
     template: _.template('' +

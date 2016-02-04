@@ -45,7 +45,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
             infoText: 'logBrowser',
@@ -122,9 +122,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser', 'active'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer', 'active'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
     ],
 
     template: _.template('' +
