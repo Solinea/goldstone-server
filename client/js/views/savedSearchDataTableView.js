@@ -251,6 +251,23 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         }
     },
 
+    prettyPrint: function(input) {
+
+        var result = input;
+
+        try {
+            result = JSON.parse(input);
+            result = JSON.stringify(result, null, 2);
+        } catch (e) {
+            // return original result
+            return result;
+        }
+
+        return result;
+
+
+    },
+
     dataTableRowGenerationHooks: function(row, data) {
 
         var self = this;
@@ -290,7 +307,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             // name / isLogging/UUID
             $('#update-modal #update-search-name').val(data.name);
             $('#update-modal #update-search-description').val(data.description);
-            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #update-search-query').val(self.prettyPrint(data.query));
             $('#update-modal #updateUUID').val('' + data.uuid);
 
             // shut off input on protected searches
