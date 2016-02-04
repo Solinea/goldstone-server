@@ -34,7 +34,8 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
-# from goldstone.compliance.models import Vulnerability
+from django.db import models
+from psycopg2.extensions import AsIs
 from django.db import connection
 
 from django.db.models.query import RawQuerySet
@@ -2720,7 +2721,7 @@ class AlertSearchSQLQuery(AlertSearch):
         # simply return cursor.fetchall()
         try:
             cursor = connection.cursor()
-            rv = cursor.execute("SELECT * from compliance_vulnerability")
+            cursor.execute("SELECT * FROM %(table)s", {"table": AsIs(self.db_table)})
             columns = [col[0] for col in cursor.description]
             return [dict(zip(columns, row))
                     for row in cursor.fetchall()]

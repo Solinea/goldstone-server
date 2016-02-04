@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import random
 from subprocess import check_call
 from django.conf import settings
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    Alert, EmailProducer, Producer
+    Alert, EmailProducer, Producer, AlertSearchSQLQuery, AlertSearchESQuery
 from celery.exceptions import RetryTaskError
 
 
@@ -171,7 +172,8 @@ def check_for_pending_alerts():
         # which is not good OOP. But an overridden function that decides
         # whether to call es.execute() or not, does not look good either.
         #
-        if not hasattr(obj, 'db_table'):
+        if not obj.alertsearchsqlquery:
+            # If this is not a alertsearchsqlquery subclass, then execute()
             response = s.execute()
             num_hits = response.hits.total
         else:
