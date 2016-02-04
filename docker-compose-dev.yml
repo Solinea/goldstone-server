@@ -19,7 +19,7 @@ gsappdev:
   env_file: ./docker/config/goldstone-dev.env
   volumes:
     - .:/home/app
-    - ./docker/goldstone-app/config:/home/app/config
+    - ./docker/goldstone-base/config:/home/app/config
   ports:
     - "8000:8000"
   links:

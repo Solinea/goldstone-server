@@ -13,57 +13,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-import random
-from subprocess import check_call
 from django.conf import settings
+import curator
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
     Alert, EmailProducer, Producer, AlertSearchSQLQuery, AlertSearchESQuery
-from celery.exceptions import RetryTaskError
-
+from goldstone.models import es_conn
 
 logger = logging.getLogger(__name__)
 
 
 @celery_app.task()
-def delete_indices(prefix,
-                   cutoff=None,
-                   es_host=settings.ES_HOST,
-                   es_port=settings.ES_PORT):
-    """Cull old indices from Elasticsearch.
-
-    Takes an index name prefix (ex: goldstone-) and a cutoff time in days
-    Returns 0 or None if no cutoff was provided.
-    """
-
-    if cutoff is not None:
-        cmd = "curator --host %s --port %s delete --prefix %s " \
-              "--older-than %d" % (es_host, es_port, prefix, cutoff)
-        return check_call(cmd.split())
-    else:
-        return "Cutoff was none, no action taken"
-
-
-@celery_app.task()
 def prune_es_indices():
-    """Prune old events_* indices."""
-    from subprocess import check_call
+    """Prune ES indices older than the age defined in
+    settings.PRUNE_OLDER_THAN."""
 
-    for prefix in settings.PRUNE_INDICES:
-        curator = ["curator",
-                   "delete",
-                   "indices",
-                   "--prefix",
-                   "%s" % prefix,
-                   "--older-than",
-                   "%d" % settings.PRUNE_OLDER_THAN,
-                   "--time-unit",
-                   "%s" % settings.PRUNE_TIME_UNITS,
-                   "--timestring",
-                   "%Y.%m.%d"]
+    curation_params = [
+        {"prefix": "events_", "time_string": "%Y-%m-%d"},
+        {"prefix": "logstash-", "time_string": "%Y.%m.%d"},
+        {"prefix": "goldstone-", "time_string": "%Y.%m.%d"},
+        {"prefix": "goldstone_metrics-", "time_string": "%Y.%m.%d"},
+        {"prefix": "api_stats-", "time_string": "%Y.%m.%d"},
+    ]
 
-    check_call(curator)
+    client = es_conn()
+    all_indices = curator.get_indices(client)
+    deleted_indices = []
+    working_list = all_indices  # we'll whittle this down with filters
+
+    for index_set in curation_params:
+
+        # filter on our prefix
+        name_filter = curator.build_filter(
+            kindOf='prefix', value=index_set['prefix'])
+
+        # filter on the datestring
+        age_filter = curator.build_filter(
+            kindOf='older_than', time_unit='days',
+            timestring=index_set['time_string'],
+            value=settings.PRUNE_OLDER_THAN)
+
+        # apply the filters to get the final list of indices to delete
+        working_list = curator.apply_filter(working_list, **name_filter)
+        working_list = curator.apply_filter(working_list, **age_filter)
+
+        if working_list is not None and len(working_list) > 0:
+            try:
+                curator.delete_indices(client, working_list)
+                deleted_indices = deleted_indices + working_list
+            except Exception:
+                logger.exception("curator.delete_indices raised an exception")
+
+        working_list = all_indices  # reset for the next loop iteration
+
+    return deleted_indices
 
 
 @celery_app.task()
