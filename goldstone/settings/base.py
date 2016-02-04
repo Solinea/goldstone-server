@@ -177,7 +177,7 @@ TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
 ALERT_QUERY_INTERVAL = crontab(minute='*/1')
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
-HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
+HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/5')
 
 CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
