@@ -4170,7 +4170,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiBrowserVizCollection = new ApiHistogramCollection({});
 
         this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
             collection: this.apiBrowserVizCollection,
             el: '#api-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -4224,9 +4224,9 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser', 'active'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
     ],
 
     template: _.template('' +
@@ -5632,7 +5632,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         this.eventsBrowserVizCollection = new EventsHistogramCollection({});
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
+            chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
             collection: this.eventsBrowserVizCollection,
             el: '#events-histogram-visualization',
             infoIcon: 'fa-tasks',
@@ -5688,9 +5688,9 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer', 'active'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
     ],
 
     template: _.template('' +
@@ -7641,7 +7641,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
             collection: this.logBrowserVizCollection,
             el: '#log-viewer-visualization',
             infoText: 'logBrowser',
@@ -7718,9 +7718,9 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser', 'active'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer', 'active'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
     ],
 
     template: _.template('' +
@@ -10102,6 +10102,9 @@ PredefinedSearchView = GoldstoneBaseView.extend({
     populatePredefinedSearches: function(arr) {
         var result = '';
 
+        // add 'none' as a method of returning to the default search
+        result += '<li data-uuid="null">' + goldstone.translate("None (reset to default)") + '</li>';
+
         _.each(arr, function(item) {
             result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
         });
@@ -10114,7 +10117,20 @@ PredefinedSearchView = GoldstoneBaseView.extend({
 
         // dropdown to reveal predefined search list
         this.$el.find('.dropdown-menu').on('click', 'li', function(item) {
+
             var clickedUuid = $(this).data('uuid');
+            if (clickedUuid === null) {
+
+                // append original name to predefined search dropdown title
+                // calls function that will provide accurate translation
+                // if in a different language environment
+                $('#predefined-search-title').text(self.generateDropdownName());
+            } else {
+
+                // append search name to predefined search dropdown title
+                $('#predefined-search-title').text($(this).text());
+            }
+
             var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
 
             self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
@@ -10144,10 +10160,18 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             });
     },
 
+    generateDropdownName: function() {
+
+        // enclosing in a function to handle the i18n compliant
+        // generation of the original dropdown name when resetting
+        // to the default search
+        return goldstone.translate("Predefined Searches");
+    },
+
     template: _.template('' +
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
-        '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
+        '<span id="predefined-search-title"><%= this.generateDropdownName() %></span> <span class="caret"></span>' +
         '</a>' +
         '<ul class="dropdown-menu">' +
         // populated via renderUpdatedResultList()
@@ -10641,7 +10665,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 // show failure message at top of screen
                 // uses sprintf string interpolation to create a properly
                 // formatted message such as "Failure to create trail1"
-                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+                self.dataErrorMessage(failureWarning);
 
             }).always(function() {
                 // close modal
@@ -10674,7 +10698,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 .done(function() {
 
                     var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
-                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
                     // uses sprintf string interpolation to create a properly
@@ -10685,7 +10709,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 .fail(function(err) {
 
                     var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
-                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
                     // uses sprintf string interpolation to create a properly
@@ -10764,6 +10788,23 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         }
     },
 
+    prettyPrint: function(input) {
+
+        var result = input;
+
+        try {
+            result = JSON.parse(input);
+            result = JSON.stringify(result, null, 2);
+        } catch (e) {
+            // return original result
+            return result;
+        }
+
+        return result;
+
+
+    },
+
     dataTableRowGenerationHooks: function(row, data) {
 
         var self = this;
@@ -10803,7 +10844,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             // name / isLogging/UUID
             $('#update-modal #update-search-name').val(data.name);
             $('#update-modal #update-search-description').val(data.description);
-            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #update-search-query').val(self.prettyPrint(data.query));
             $('#update-modal #updateUUID').val('' + data.uuid);
 
             // shut off input on protected searches
@@ -11006,8 +11047,8 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         // Search Query
         '<div class="form-group">' +
         '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden owner
@@ -11073,8 +11114,8 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         // Search query
         '<div class="form-group">' +
         '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden UUID
