@@ -78,7 +78,7 @@ Copy this [postactivate](https://gist.github.com/jxstanford/6ee6cc61143113776d0d
 
 ## Install the Development OpenStack VM
 
-Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://ab869301cdc499c198b6-69cf3576870bc238e91b4537dc60466a.ssl.cf5.rackcdn.com/RDO-kilo-20160203.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
+Though Goldstone is intended to work with any supported cloud, it is suggested that you use [this VM with RDO Kilo installed](https://ab869301cdc499c198b6-69cf3576870bc238e91b4537dc60466a.ssl.cf5.rackcdn.com/RDO-kilo-20160204.ova) Once the download has completed, import the VM into VirtualBox by double-clicking on the downloaded file.
 
 ## Configure VirtualBox Networking
 
