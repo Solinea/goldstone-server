@@ -263,7 +263,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         });
 
 
-        finalData = [];
+        var finalData = [];
 
         _.each(newData, function(item, i) {
 

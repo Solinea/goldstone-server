@@ -1953,7 +1953,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         });
 
 
-        finalData = [];
+        var finalData = [];
 
         _.each(newData, function(item, i) {
 
@@ -2780,7 +2780,7 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         var self = this;
 
         // initialize container for formatted results
-        finalResult = [];
+        var finalResult = [];
 
         // for each array index in the 'data' key
         _.each(data.aggregations.per_interval.buckets, function(item) {
@@ -2957,7 +2957,7 @@ var EventsHistogramCollection = GoldstoneBaseCollection.extend({
         var self = this;
 
         // initialize container for formatted results
-        finalResult = [];
+        var finalResult = [];
 
         // for each array index in the 'data' key
         _.each(data.aggregations.per_interval.buckets, function(item) {
@@ -3362,7 +3362,7 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     addCustom: function() {
         var result = '&syslog_severity__terms=[';
 
-        levels = this.filter || {};
+        var levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
                 result = result.concat('"', k.toLowerCase(), '",');
@@ -7250,7 +7250,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
-        finalData = [];
+        var finalData = [];
 
         // layers of nested _.each calls
         // the first one iterates through each object
@@ -13462,7 +13462,7 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
         });
 
-        finalData = [];
+        var finalData = [];
 
         // make sure to set ns.memTotal
         var key = _.keys(allthelogs[0].per_interval[1])[0];
@@ -13588,7 +13588,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
 
 
-        finalData = [];
+        var finalData = [];
 
         _.each(newData, function(item, i) {
 

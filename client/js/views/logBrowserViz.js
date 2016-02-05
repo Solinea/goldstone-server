@@ -301,7 +301,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
-        finalData = [];
+        var finalData = [];
 
         // layers of nested _.each calls
         // the first one iterates through each object

@@ -45,7 +45,7 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
     addCustom: function() {
         var result = '&syslog_severity__terms=[';
 
-        levels = this.filter || {};
+        var levels = this.filter || {};
         for (var k in levels) {
             if (levels[k]) {
                 result = result.concat('"', k.toLowerCase(), '",');
