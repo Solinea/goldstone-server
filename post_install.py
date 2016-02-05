@@ -995,7 +995,7 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
                 "value": "604800"                # one week
             },
         ],
-        "/etc/ceilometer/api-paste.ini": [
+        "/etc/ceilometer/api_paste.ini": [
             {
                 "section": "pipeline:main",
                 "parameter": "pipeline",
