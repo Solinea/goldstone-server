@@ -91,4 +91,9 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         return this.specificHost ? '&host=' + this.specificHost : '';
     },
 
+    triggerDataTableFetch: function() {
+        // hook for logBrowserViz to initiate refresh and fetch
+        this.linkedDataTable.update();
+    }
+
 });

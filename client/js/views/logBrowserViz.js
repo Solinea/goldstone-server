@@ -92,16 +92,16 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     },
 
     // will prevent updating when zoom is active
-    isZoomed: false,
+    // isZoomed: false,
 
-    predefinedSearch: function(payload) {
-        this.collection.reset();
-        this.collection.add(payload);
-        this.update();
-    },
+    // predefinedSearch: function(payload) {
+    //     this.collection.reset();
+    //     this.collection.add(payload);
+    //     this.update();
+    // },
 
     setZoomed: function(bool) {
-        this.isZoomed = bool;
+        // this.isZoomed = bool;
         this.collection.isZoomed = bool;
     },
 
@@ -113,7 +113,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     },
 
     constructUrl: function() {
-        this.collection.urlGenerator();
+        this.collection.triggerDataTableFetch();
     },
 
     processListeners: function() {
@@ -122,30 +122,29 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.listenTo(this.collection, 'sync', function() {
             self.update();
         });
-
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.listenTo(this, 'lookbackSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            this.trigger('chartUpdate');
+            // this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            this.trigger('chartUpdate');
+            // this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
-            if (self.isZoomed === true) {
-                return;
-            }
+            // if (self.isZoomed === true) {
+            //     return;
+            // }
             this.showSpinner();
             this.constructUrl();
-            this.trigger('chartUpdate');
+            // this.trigger('chartUpdate');
         });
 
     },
@@ -283,7 +282,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
         this.constructUrl();
-        this.trigger('chartUpdate');
+        // this.trigger('chartUpdate');
         return;
     },
 
@@ -599,7 +598,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
-        // this.trigger('chartUpdate');
     },
 
     filterModal: _.template(
