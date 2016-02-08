@@ -27,7 +27,9 @@ from elasticsearch_dsl.result import Response
 import mock
 from rest_framework.test import APISimpleTestCase, APITestCase
 
-from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices
+from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices, \
+    update_persistent_graph
+
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
@@ -164,6 +166,27 @@ class EmailProducerTests(SimpleTestCase):
 
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
+
+    @mock.patch('goldstone.core.tasks.es_conn')
+    @mock.patch('goldstone.cinder.utils.update_nodes')
+    def test_update_persistent_graph(self, es_conn_mock, update_cinder_mock):
+
+        # test clean slate mock
+        rv = update_persistent_graph()
+        self.assertTrue(es_conn_mock.called)
+        self.assertFalse(update_cinder_mock.called)
+
+        es_conn_mock.reset_mock()
+        update_cinder_mock = mock.MagicMock()
+        update_cinder_mock.execute.return_value = []
+        update_cinder_mock.side_effect = [Exception, None]
+
+        rv = update_persistent_graph()
+        print rv
+        self.assertTrue(es_conn_mock.called)
+        # self.assertTrue(update_cinder_mock.called)
+        print update_cinder_mock.call_count
+        # self.assertTrue(update_cinder_mock.call_count, 1)
 
     @mock.patch('goldstone.core.tasks.es_conn')
     @mock.patch('goldstone.core.tasks.curator.get_indices')

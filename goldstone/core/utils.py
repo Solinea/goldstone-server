@@ -177,8 +177,15 @@ def process_resource_type(nodetype):
     # Remove Resource graph nodes that no longer exist. First get the cloud
     # instances of the desired type, and nodes of that type in the persistent
     # resource graph.
-    actual_node_data = nodetype.clouddata()
-    persistent_nodes = nodetype.objects.all()
+    try:
+        actual_node_data = nodetype.clouddata()
+        persistent_nodes = nodetype.objects.all()
+    except Exception as e:
+        # if either of these calls throws an exception,
+        # catch it and throw an empty list for both
+        actual_node_data = []
+        persistent_nodes = []
+
 
     nodetype_native_id_key = nodetype.native_id_key()
     actual_cloud_instance_ids = set([x.get(nodetype_native_id_key)
