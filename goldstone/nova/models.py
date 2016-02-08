@@ -17,56 +17,6 @@ from goldstone.drfes.models import DailyIndexDocType
 from goldstone.models import TopologyData
 
 
-class SpawnsData(DailyIndexDocType):
-    """A model that searches a set of daily indices (intended to be
-    read-only)."""
-
-    INDEX_PREFIX = 'goldstone-'
-    SORT = '-@timestamp'
-
-    class Meta:             # pylint: disable=C1001,W0232,C0111
-        doc_type = 'nova_spawns'
-
-    @classmethod
-    def success_agg(cls):
-        """
-        Build term aggregation for success field.
-        """
-
-        return A('terms', field='success.raw', size=0, min_doc_count=0,
-                 shard_min_doc_count=0)
-
-    @classmethod
-    def _spawn_finish_query(cls, start, end, interval):
-        """Return the query for spawn finish events with term and date hist
-        agg."""
-
-        search = cls.bounded_search(start, end).query('term', event='finish')
-        search.aggs. \
-            bucket('per_interval',
-                   cls._datehist_agg(interval, start, end)). \
-            bucket('per_success', A('terms', field='success.raw', size=0,
-                                    min_doc_count=0, shard_min_doc_count=0))
-
-        return search
-
-    def get_spawn_finish(self, start, end, interval):
-        """Return the aggregated spawn finish results.
-
-        :type start: Arrow
-        :param start: start time
-        :type end: Arrow
-        :param end: end time
-        :type interval: str
-        :param interval: ES interval specification
-        :return: A dict of results
-
-        """
-
-        return self._spawn_finish_query(start, end, interval). \
-            execute().aggregations
-
-
 class AgentsData(TopologyData):
     """Return data from ES about nova agents"""
     _DOC_TYPE = 'nova_agents_list'
