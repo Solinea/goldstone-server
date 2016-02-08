@@ -61,33 +61,42 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
+                    "sortable": false,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
                     "data": "_source.host",
-                    "targets": 1
+                    "targets": 1,
+                    "sortable": false,
                 }, {
                     "data": "_source.client_ip",
-                    "targets": 2
+                    "targets": 2,
+                    "sortable": false,
                 }, {
                     "data": "_source.uri",
-                    "targets": 3
+                    "targets": 3,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_status",
-                    "targets": 4
+                    "targets": 4,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_time",
-                    "targets": 5
+                    "targets": 5,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_length",
-                    "targets": 6
+                    "targets": 6,
+                    "sortable": false,
                 }, {
                     "data": "_source.component",
-                    "targets": 7
+                    "targets": 7,
+                    "sortable": false,
                 }, {
                     "data": "_source.type",
-                    "targets": 8
+                    "targets": 8,
+                    "sortable": false,
                 }
 
             ],
@@ -135,7 +144,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         // generalize if sorting is implemented server-side
                         var columnLabelHash = {
                             0: '@timestamp',
-                            1: 'syslog_severity',
+                            1: 'host',
                             2: 'component',
                             3: 'host',
                             4: 'log_message'
@@ -154,7 +163,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
+                            // ascDec + columnLabelHash[orderByColumn];
                     }
 
 

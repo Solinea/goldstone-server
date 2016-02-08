@@ -4042,33 +4042,42 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
+                    "sortable": false,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
                     "data": "_source.host",
-                    "targets": 1
+                    "targets": 1,
+                    "sortable": false,
                 }, {
                     "data": "_source.client_ip",
-                    "targets": 2
+                    "targets": 2,
+                    "sortable": false,
                 }, {
                     "data": "_source.uri",
-                    "targets": 3
+                    "targets": 3,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_status",
-                    "targets": 4
+                    "targets": 4,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_time",
-                    "targets": 5
+                    "targets": 5,
+                    "sortable": false,
                 }, {
                     "data": "_source.response_length",
-                    "targets": 6
+                    "targets": 6,
+                    "sortable": false,
                 }, {
                     "data": "_source.component",
-                    "targets": 7
+                    "targets": 7,
+                    "sortable": false,
                 }, {
                     "data": "_source.type",
-                    "targets": 8
+                    "targets": 8,
+                    "sortable": false,
                 }
 
             ],
@@ -4116,7 +4125,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         // generalize if sorting is implemented server-side
                         var columnLabelHash = {
                             0: '@timestamp',
-                            1: 'syslog_severity',
+                            1: 'host',
                             2: 'component',
                             3: 'host',
                             4: 'log_message'
@@ -4135,7 +4144,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
+                            // ascDec + columnLabelHash[orderByColumn];
                     }
 
 
@@ -6846,21 +6855,26 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                 "data": "@timestamp",
                 "type": "date",
                 "targets": 0,
+                "sortable": false,
                 "render": function(data, type, full, meta) {
                     return moment(data).format();
                 }
             }, {
                 "data": "syslog_severity",
-                "targets": 1
+                "targets": 1,
+                "sortable": false
             }, {
                 "data": "component",
-                "targets": 2
+                "targets": 2,
+                "sortable": false
             }, {
                 "data": "host",
-                "targets": 3
+                "targets": 3,
+                "sortable": false
             }, {
                 "data": "log_message",
-                "targets": 4
+                "targets": 4,
+                "sortable": false
             }],
             "serverSide": true,
             "ajax": {
@@ -6924,7 +6938,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
+                            // ascDec + columnLabelHash[orderByColumn];
                     }
 
                 },
@@ -10904,10 +10918,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "iDisplayLength": self.iDisplayLengthOverride ? self.iDisplayLengthOverride : 10,
             "paging": true,
-            "searching": true,
+            "searching": false,
             "ordering": true,
             "order": [
-                [0, 'desc']
+                [0, 'asc']
             ],
             "columnDefs": [{
                     "data": "name",
@@ -10973,8 +10987,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
+                    var alwaysSort = true;
+                    // for this dataTable, always add the search field
                     // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+                    if (alwaysSort || urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
 
                         // or, if something has changed, capture the
                         // column to sort by, and the sort direction
@@ -11254,6 +11270,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         var urlBase = '/core/saved_search/';
 
         $("select#global-lookback-range").hide();
+        $("select#global-refresh-range").hide();
 
         this.savedSearchLogCollection = new GoldstoneBaseCollection({
             skipFetch: true,
@@ -11276,7 +11293,8 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+            // remove sensitivity to lookback as UI will trigger refresh
+            // this.savedSearchLogView.trigger('lookbackSelectorChanged');
         }
     },
 
@@ -11662,31 +11680,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<div class="container">' +
 
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
         '<h3><%= goldstone.translate("User Settings") %></h3>' +
-
-        // commented out pending definition of themes.
-        // dark/light theme selector
-
-        // '<div class="col-md-2">' +
-        // '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
-        // '<form class="theme-selector" role="form">' +
-        // '<div class="form-group">' +
-        // '<div class="col-xl-5">' +
-        // '<div class="input-group">' +
-        // '<select class="form-control" id="theme-name">' +
-        // '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
-        // '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        // '</select>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-        // '</form>' +
-        // '</div>' +
 
         // language preference
         '<div class="col-md-2">' +
@@ -11757,9 +11755,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="row"><hr>' +
         '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
         '</div>' +
-        '</div>' +
-        '</div>'
-
+        '</div>' 
 
     )
 
@@ -12374,6 +12370,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 "info": false,
                 "paging": true,
                 "searching": true,
+                "ordering": false,
                 "columns": [{
                     "title": goldstone.contextTranslate("Tenant", "tenantsettings")
                 }, {
@@ -12477,6 +12474,9 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
+
+        this.$el.prepend(new ChartHeaderView({chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')}).el);
+
         this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
@@ -12491,20 +12491,10 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     template: _.template('' +
 
         // dataTable
-        '<div class="panel panel-primary tenant_results_panel">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> <%=goldstone.contextTranslate(\'Tenants\', \'tenantsettings\')%>' +
-        '</h3>' +
-        '</div>' +
-        '</div>' +
-
         '<div class="panel-body">' +
         '<table id="tenants-single-rsrc-table" class="table"></table>' +
         '</div>' +
         // end data table
-
-
-        '<div class="container">' +
 
         // popup message row
         '<div class="row">' +
@@ -12548,9 +12538,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         '</form>' +
         '</div>' +
 
-        // close divs for row/container
-        '</div>' +
-        '</div>'
+        '</div>' // /row
 
     )
 

@@ -61,6 +61,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         var urlBase = '/core/saved_search/';
 
         $("select#global-lookback-range").hide();
+        $("select#global-refresh-range").hide();
 
         this.savedSearchLogCollection = new GoldstoneBaseCollection({
             skipFetch: true,
@@ -83,7 +84,8 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.savedSearchLogView.trigger('lookbackSelectorChanged');
+            // remove sensitivity to lookback as UI will trigger refresh
+            // this.savedSearchLogView.trigger('lookbackSelectorChanged');
         }
     },
 

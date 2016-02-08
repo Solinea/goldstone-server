@@ -51,15 +51,14 @@ fi
 
 # gather up the static files at container start if this is a dev environment
 if [[ $GS_DEV_ENV == "true" ]] ; then
-    pip install -r test-requirements.txt
     python manage.py collectstatic  --noinput
 fi
 
-#
-# this won't do anything if the django admin, goldstone tenant and cloud already
-# exist.  otherwise it will use the env vars to create missing entities.
-#
-python post_install.py
+# only do this one time
+if [ ! -f /var/tmp/post_install ] ; then
+    python post_install.py
+    touch /var/tmp/post_install
+fi
 
 echo Starting Celery.
 exec celery worker --app goldstone --queues default --beat --purge \
