@@ -26,7 +26,6 @@ from elasticsearch_dsl import String, Date, Nested
 from elasticsearch_dsl.result import Response
 import mock
 from rest_framework.test import APISimpleTestCase, APITestCase
-
 from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices, \
     update_persistent_graph
 
@@ -167,26 +166,33 @@ class EmailProducerTests(SimpleTestCase):
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
-    @mock.patch('goldstone.core.tasks.es_conn')
-    @mock.patch('goldstone.cinder.utils.update_nodes')
-    def test_update_persistent_graph(self, es_conn_mock, update_cinder_mock):
+    @mock.patch('goldstone.core.tasks.cinder_res.update_nodes')
+    @mock.patch('goldstone.core.tasks.glance_res.update_nodes')
+    def test_update_persistent_graph(self, update_cinder_mock,
+                                     update_glance_mock):
 
-        # test clean slate mock
+        # test clean slate cinder_client mock
+        update_cinder_mock.return_value = []
+
         rv = update_persistent_graph()
-        self.assertTrue(es_conn_mock.called)
-        self.assertFalse(update_cinder_mock.called)
+        self.assertTrue(update_cinder_mock.called)
+        self.assertTrue(update_cinder_mock.call_count, 1)
 
-        es_conn_mock.reset_mock()
-        update_cinder_mock = mock.MagicMock()
-        update_cinder_mock.execute.return_value = []
+        # Now test the result of cinder mock returning an exception
+        update_glance_mock.return_value = []
+        self.assertTrue(update_glance_mock.call_count, 1)
+        update_cinder_mock.reset_mock()
         update_cinder_mock.side_effect = [Exception, None]
 
         rv = update_persistent_graph()
-        print rv
-        self.assertTrue(es_conn_mock.called)
-        # self.assertTrue(update_cinder_mock.called)
-        print update_cinder_mock.call_count
-        # self.assertTrue(update_cinder_mock.call_count, 1)
+
+        self.assertTrue(update_cinder_mock.called)
+        self.assertTrue(update_cinder_mock.call_count, 4)
+
+        # verify that glance mock still gets called
+        # even when cinder throws an exception
+        self.assertTrue(update_glance_mock.called)
+        self.assertTrue(update_glance_mock.call_count, 2)
 
     @mock.patch('goldstone.core.tasks.es_conn')
     @mock.patch('goldstone.core.tasks.curator.get_indices')

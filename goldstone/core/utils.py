@@ -186,7 +186,6 @@ def process_resource_type(nodetype):
         actual_node_data = []
         persistent_nodes = []
 
-
     nodetype_native_id_key = nodetype.native_id_key()
     actual_cloud_instance_ids = set([x.get(nodetype_native_id_key)
                                      for x in actual_node_data if x])

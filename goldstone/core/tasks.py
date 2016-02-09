@@ -20,6 +20,13 @@ from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
     Alert, EmailProducer, Producer
 from goldstone.models import es_conn
+import goldstone.cinder.utils as cinder_res
+import goldstone.glance.utils as glance_res
+import goldstone.keystone.utils as keystone_res
+import goldstone.nova.utils as nova_res
+
+# import update_nodes as update_cinder_nodes
+
 from celery.exceptions import RetryTaskError
 
 logger = logging.getLogger(__name__)
@@ -82,15 +89,17 @@ def update_persistent_graph():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.cinder.utils import update_nodes as update_cinder_nodes
-    from goldstone.glance.utils import update_nodes as update_glance_nodes
-    from goldstone.keystone.utils import update_nodes as update_keystone_nodes
-    from goldstone.nova.utils import update_nodes as update_nova_nodes
 
-    update_cinder_nodes()
-    update_glance_nodes()
-    update_keystone_nodes()
-    update_nova_nodes()
+    graph_resources = [cinder_res, glance_res, keystone_res, nova_res]
+
+    for obj in graph_resources:
+        try:
+            cinder_res.update_nodes()
+            glance_res.update_nodes()
+            keystone_res.update_nodes()
+            nova_res.update_nodes()
+        except Exception as e:
+            logger.critical(str(e))
 
 
 @celery_app.task()
