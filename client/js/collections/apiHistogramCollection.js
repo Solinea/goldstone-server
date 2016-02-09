@@ -63,7 +63,7 @@ var ApiHistogramCollection = GoldstoneBaseCollection.extend({
         var self = this;
 
         // initialize container for formatted results
-        finalResult = [];
+        var finalResult = [];
 
         // for each array index in the 'data' key
         _.each(data.aggregations.per_interval.buckets, function(item) {

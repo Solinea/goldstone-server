@@ -64,23 +64,6 @@ describe('Testing the base.js file', function() {
                 expect(goldstone.time).to.have.property('toPyTs');
             });
         });
-        describe('the utility functions', function() {
-            it('date.prototype.functions', function() {
-                var a = new Date(10000000);
-                expect(a).to.be.a('date');
-                var b = +new Date(a.addSeconds(1));
-                expect(b).to.equal(10001000);
-                b = +new Date(a.addMinutes(1));
-                expect(b).to.equal(10061000);
-                b = +new Date(a.addHours(1));
-                expect(b).to.equal(13661000);
-                b = +new Date(a.addDays(1));
-                expect(b).to.equal(100061000);
-                b = +new Date(a.addWeeks(1));
-                expect(b).to.equal(704861000);
-            });
-        });
-
         describe('The time namespace', function() {
             it('should return dates with the correct formatting and order of magnitude', function() {
                 var time1 = goldstone.time.fromPyTs(42);
@@ -99,85 +82,6 @@ describe('Testing the base.js file', function() {
                 var timeTest3 = goldstone.time.toPyTs(time3);
                 expect(timeTest3).to.equal('1412376992');
             });
-        });
-    });
-
-    describe('Testing date functions', function() {
-        it('should properly compute date additions/subtractions', function() {
-            var d = new Date();
-            var dPlus = new Date(d.getTime());
-            dPlus.addSeconds(1);
-            expect(dPlus.getTime()).to.equal(d.getTime() + 1000);
-
-            d = new Date();
-            var dMinus = new Date(d.getTime());
-            dMinus.addSeconds(-1);
-            expect(dMinus.getTime()).to.equal(d.getTime() - 1000);
-
-            d = new Date();
-            dMinus = new Date(d.getTime());
-            dMinus.addSeconds(0);
-            expect(dMinus.getTime()).to.equal(d.getTime());
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addMinutes(1);
-            expect(dPlus.getTime()).to.equal(d.getTime() + (60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addMinutes(-1);
-            expect(dPlus.getTime()).to.equal(d.getTime() - (60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addMinutes(0);
-            expect(dPlus.getTime()).to.equal(d.getTime());
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addHours(1);
-            expect(dPlus.getTime()).to.equal(d.getTime() + (60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addHours(-1);
-            expect(dPlus.getTime()).to.equal(d.getTime() - (60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addHours(0);
-            expect(dPlus.getTime()).to.equal(d.getTime());
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addDays(1);
-            expect(dPlus.getTime()).to.equal(d.getTime() + (24 * 60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addDays(-1);
-            expect(dPlus.getTime()).to.equal(d.getTime() - (24 * 60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addDays(0);
-            expect(dPlus.getTime()).to.equal(d.getTime());
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addWeeks(1);
-            expect(dPlus.getTime()).to.equal(d.getTime() + (7 * 24 * 60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addWeeks(-1);
-            expect(dPlus.getTime()).to.equal(d.getTime() - (7 * 24 * 60 * 60 * 1000));
-
-            d = new Date();
-            dPlus = new Date(d.getTime());
-            dPlus.addWeeks(0);
-            expect(dPlus.getTime()).to.equal(d.getTime());
         });
     });
 });

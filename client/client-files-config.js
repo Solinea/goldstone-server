@@ -68,7 +68,7 @@ module.exports = {
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage'],
-        'goldstone/**/static/client-dev/**/*.js': ['coverage'],
+        'goldstone/**/static/client-dev/**/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
 
@@ -88,7 +88,7 @@ module.exports = {
     complianceConcatWildcards: [
         'goldstone/compliance/static/client-dev/head/*.js',
         'goldstone/compliance/static/client-dev/middle/*.js',
-        'goldstone/compliance/static/client-dev/tail/*.js',
+        'goldstone/compliance/static/client-dev/tail/*.js'
     ],
     complianceConcatBundle: 'goldstone/compliance/static/client-js/compliance.js',
     complianceCopyFolder: 'goldstone/compliance/static/',

@@ -64,7 +64,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         $("select#global-refresh-range").hide();
 
         this.savedSearchLogCollection = new GoldstoneBaseCollection({
-            skipFetch: true,
+            skipFetch: true
         });
         this.savedSearchLogCollection.urlBase = urlBase;
         this.savedSearchLogView = new SavedSearchDataTableView({

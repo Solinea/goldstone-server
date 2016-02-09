@@ -90,7 +90,7 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
         });
 
-        finalData = [];
+        var finalData = [];
 
         // make sure to set ns.memTotal
         var key = _.keys(allthelogs[0].per_interval[1])[0];
