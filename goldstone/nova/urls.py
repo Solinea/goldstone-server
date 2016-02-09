@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import url, patterns
+
+from goldstone.core.views import SavedSearchViewSet
 from .views import AgentsDataView, AggregatesDataView, AvailZonesDataView, \
     CloudpipesDataView, FlavorsDataView, FloatingIpPoolsDataView, \
     HostsDataView, HypervisorsDataView, NetworksDataView, SecGroupsDataView, \
-    ServersDataView, ServicesDataView, SpawnsAggView
+    ServersDataView, ServicesDataView
 
 # Views handled by DjangoRestFramework Views.
 urlpatterns = patterns(
@@ -46,5 +48,6 @@ urlpatterns = patterns(
 # Other views.
 urlpatterns += patterns(
     '',
-    url(r'^hypervisor/spawns/', SpawnsAggView.as_view()),
+    url(r'^hypervisor/spawns/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '21f5c6db-5a2e-41d4-9462-c3cdc03a837b'})
     )
