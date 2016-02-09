@@ -517,7 +517,7 @@ var MetricOverviewView = ChartSet.extend({
         WARNING: false,
         NOTICE: false,
         INFO: false,
-        DEBUG: false,
+        DEBUG: false
     }
 
 });

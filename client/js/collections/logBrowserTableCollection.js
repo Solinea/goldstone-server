@@ -75,6 +75,6 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
             this.epochNow = this.linkedCollection.epochNow;
         }
 
-    },
+    }
 
 });

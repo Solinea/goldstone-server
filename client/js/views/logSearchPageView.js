@@ -54,7 +54,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             infoText: 'logBrowser',
             marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.logBrowserTable = new LogBrowserDataTableView({
@@ -88,7 +88,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer', 'active'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer']
     ],
 
     template: _.template('' +

@@ -133,37 +133,7 @@ goldstone.time.toPyTs = function(t) {
 window.onerror = function(message, fileURL, lineNumber) {
     console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
-
-// convenience for date manipulation
-Date.prototype.addSeconds = function(m) {
-    "use strict";
-    this.setTime(this.getTime() + (m * 1000));
-    return this;
-};
-
-Date.prototype.addMinutes = function(m) {
-    "use strict";
-    this.setTime(this.getTime() + (m * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addHours = function(h) {
-    "use strict";
-    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addDays = function(d) {
-    "use strict";
-    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addWeeks = function(d) {
-    "use strict";
-    this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
-    return this;
-};;
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -496,12 +466,12 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         var result = '<div class="btn-group" role="group">';
         _.each(routeArray, function(route) {
-            result += '<a href="' + route[0] + '"' + ' class="' + (route[2] === 'active' ? 'active ' : '') +
+            result += '<a href="' + route[0] + '" class="' + (route[2] === 'active' ? 'active ' : '') +
                 'btn btn-default">' + goldstone.translate(route[1]) + '</a>';
         });
         result += '</div><br><br>';
         return result;
-    },
+    }
 
 });
 ;
@@ -3423,7 +3393,7 @@ var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
             this.epochNow = this.linkedCollection.epochNow;
         }
 
-    },
+    }
 
 });
 ;
@@ -3774,7 +3744,7 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
-    },
+    }
 
 
 });
@@ -3838,7 +3808,7 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
     addInterval: function() {
         n = Math.max(1, (this.globalLookback / 24));
         return '&interval=' + n + 'm';
-    },
+    }
 
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
@@ -4042,35 +4012,35 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 }, {
                     "data": "_source.host",
                     "targets": 1,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.client_ip",
                     "targets": 2,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.uri",
                     "targets": 3,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_status",
                     "targets": 4,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_time",
                     "targets": 5,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_length",
                     "targets": 6,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.component",
                     "targets": 7,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.type",
                     "targets": 8,
-                    "sortable": false,
+                    "sortable": false
                 }
 
             ],
@@ -4233,7 +4203,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
                 },
                 addInterval: function(interval) {
                     return '&interval=' + interval + 's';
-                },
+                }
             }),
             index_prefix: 'api_stats-*',
             settings_redirect: '/#reports/apibrowser/search'
@@ -4257,7 +4227,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
+        ['/#reports/apibrowser', 'API Call Viewer', 'active']
     ],
 
     template: _.template('' +
@@ -5563,7 +5533,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         'eventType': 1,
         'id': 2,
         'action': 3,
-        'outcome': 4,
+        'outcome': 4
     },
 
     // main template with placeholder for table
@@ -5721,7 +5691,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer', 'active'],
-        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer']
     ],
 
     template: _.template('' +
@@ -7601,7 +7571,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
         this.$el.append(this.filterModal());
         return this;
-    },
+    }
 
 });
 ;
@@ -7661,7 +7631,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             infoText: 'logBrowser',
             marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.logBrowserTable = new LogBrowserDataTableView({
@@ -7695,7 +7665,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer', 'active'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer']
     ],
 
     template: _.template('' +
@@ -8378,7 +8348,7 @@ var MetricOverviewView = ChartSet.extend({
         WARNING: false,
         NOTICE: false,
         INFO: false,
-        DEBUG: false,
+        DEBUG: false
     }
 
 });
@@ -9605,7 +9575,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
             marginLeft: 60,
             urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.logBrowserTableCollection = new LogBrowserTableCollection({
@@ -11181,7 +11151,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         $("select#global-refresh-range").hide();
 
         this.savedSearchLogCollection = new GoldstoneBaseCollection({
-            skipFetch: true,
+            skipFetch: true
         });
         this.savedSearchLogCollection.urlBase = urlBase;
         this.savedSearchLogView = new SavedSearchDataTableView({

@@ -47,7 +47,7 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
-    },
+    }
 
 
 });

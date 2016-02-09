@@ -133,34 +133,3 @@ goldstone.time.toPyTs = function(t) {
 window.onerror = function(message, fileURL, lineNumber) {
     console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
-
-// convenience for date manipulation
-Date.prototype.addSeconds = function(m) {
-    "use strict";
-    this.setTime(this.getTime() + (m * 1000));
-    return this;
-};
-
-Date.prototype.addMinutes = function(m) {
-    "use strict";
-    this.setTime(this.getTime() + (m * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addHours = function(h) {
-    "use strict";
-    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addDays = function(d) {
-    "use strict";
-    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
-    return this;
-};
-
-Date.prototype.addWeeks = function(d) {
-    "use strict";
-    this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
-    return this;
-};

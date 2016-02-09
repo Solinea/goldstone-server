@@ -645,6 +645,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
         this.$el.append(this.filterModal());
         return this;
-    },
+    }
 
 });
