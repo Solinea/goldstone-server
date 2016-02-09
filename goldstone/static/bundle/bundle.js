@@ -3264,6 +3264,8 @@ instantiated in logSearchPageView.js as:
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     // this.filter is set via logBrowserViz upon instantiation.
+    // predefinedUrlBase is set via predefinedSearchDropdown and set to
+    // null when clearning out saved searches
 
     isZoomed: false,
     zoomedStart: null,
@@ -3284,6 +3286,17 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     // server-side paginated fetching for the log browser below the viz
     checkForAdditionalPages: function() {
         return true;
+    },
+
+    modifyUrlBase: function(url) {
+        this.originalUrlBase = this.originalUrlBase || this.urlBase;
+
+        if(url === null) {
+            this.urlBase = this.originalUrlBase;
+        } else {
+            this.urlBase = url;
+        }
+
     },
 
     addInterval: function() {
@@ -10172,40 +10185,43 @@ PredefinedSearchView = GoldstoneBaseView.extend({
                 // calls function that will provide accurate translation
                 // if in a different language environment
                 $('#predefined-search-title').text(self.generateDropdownName());
+                self.collection.modifyUrlBase(null);
+                self.collection.triggerDataTableFetch();
             } else {
 
                 // append search name to predefined search dropdown title
                 $('#predefined-search-title').text($(this).text());
+
+                var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
+                self.collection.modifyUrlBase(constructedUrlForTable);
+                self.collection.triggerDataTableFetch();
             }
 
-            var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
 
-            self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
-            self.collection.urlGenerator();
-            var constructedUrlforViz = self.collection.url;
-            self.fetchResults(constructedUrlforViz, constructedUrlForTable);
+            // var constructedUrlforViz = self.collection.url;
+            // self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
 
     },
 
-    fetchResults: function(vizUrl, tableUrl) {
-        var self = this;
-        $.get(vizUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidViz', [res, vizUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
+    // fetchResults: function(vizUrl, tableUrl) {
+    //     var self = this;
+    //     $.get(vizUrl)
+    //         .done(function(res) {
+    //             self.trigger('clickedUuidViz', [res, vizUrl]);
+    //         })
+    //         .fail(function(err) {
+    //             console.error(err);
+    //         });
 
-        $.get(tableUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidTable', [res, tableUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
-    },
+    //     $.get(tableUrl)
+    //         .done(function(res) {
+    //             self.trigger('clickedUuidTable', [res, tableUrl]);
+    //         })
+    //         .fail(function(err) {
+    //             console.error(err);
+    //         });
+    // },
 
     generateDropdownName: function() {
 

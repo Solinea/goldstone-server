@@ -42,6 +42,8 @@ instantiated in logSearchPageView.js as:
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     // this.filter is set via logBrowserViz upon instantiation.
+    // predefinedUrlBase is set via predefinedSearchDropdown and set to
+    // null when clearning out saved searches
 
     isZoomed: false,
     zoomedStart: null,
@@ -62,6 +64,17 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     // server-side paginated fetching for the log browser below the viz
     checkForAdditionalPages: function() {
         return true;
+    },
+
+    modifyUrlBase: function(url) {
+        this.originalUrlBase = this.originalUrlBase || this.urlBase;
+
+        if(url === null) {
+            this.urlBase = this.originalUrlBase;
+        } else {
+            this.urlBase = url;
+        }
+
     },
 
     addInterval: function() {
