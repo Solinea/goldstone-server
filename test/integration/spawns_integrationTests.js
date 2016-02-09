@@ -128,7 +128,41 @@ describe('spawnsView.js spec', function() {
                 per_interval: []
             };
             this.testCollection.preProcessData(test1);
-            expect(this.mockZerosSpy.callCount).to.equal(3); // not incremented!
+            expect(this.mockZerosSpy.callCount).to.equal(4);
+
+            test1 = {
+                aggregations: {}
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(5);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {}
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(6);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {
+                        buckets: []
+                    }
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(7);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {
+                        buckets: [1]
+                    }
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(7); // not incremented!
         });
         it('should produce correct mock results', function() {
             var test1 = this.testCollection.mockZeros();
@@ -138,9 +172,9 @@ describe('spawnsView.js spec', function() {
 
             // all mocks should be equivalent
             test1.forEach(function(sample) {
-                expect(_.values(sample)[0]).to.deep.equal({
-                    count: 0,
-                    success: []
+                expect(sample.success.buckets[0]).to.deep.equal({
+                    key: "true",
+                    doc_count: 0
                 });
             });
         });
@@ -156,9 +190,13 @@ describe('spawnsView.js spec', function() {
             var test1 = this.testCollection.parse(123);
             expect(test1).to.not.deep.equal([]);
             test1 = this.testCollection.parse({
-                per_interval: 123
+                aggregations: {
+                    per_interval: {
+                        buckets: [123]
+                    }
+                }
             });
-            expect(test1).to.deep.equal(123);
+            expect(test1).to.deep.equal([123]);
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');

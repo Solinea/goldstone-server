@@ -3794,6 +3794,13 @@ per_interval: [{
 
 var SpawnsCollection = GoldstoneBaseCollection.extend({
 
+    // overwrite this, as the aggregation for this chart is idential on
+    // the additional pages. The additional pages are only relevant to the
+    // server-side paginated fetching for the log browser below the viz
+    checkForAdditionalPages: function() {
+        return true;
+    },
+
     mockZeros: function(gte, epochNow) {
 
         // correct for forgotten values
@@ -3821,10 +3828,12 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
         // a set of mocked zero results
         timeSet.forEach(function(timeStamp) {
             var tempResult = {};
-            tempResult[timeStamp] = {
-                count: 0,
-                success: []
-            };
+            tempResult.key = timeStamp;
+            tempResult.success = {};
+            tempResult.success.buckets = [{
+                key: "true",
+                doc_count: 0
+            }];
             result.push(tempResult);
         });
 
@@ -3833,8 +3842,8 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
     },
 
     preProcessData: function(data) {
-        if (data && data.per_interval) {
-            return data.per_interval;
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets && data.aggregations.per_interval.buckets.length) {
+            return data.aggregations.per_interval.buckets;
         } else {
             return this.mockZeros(this.gte, this.epochNow);
         }
@@ -3846,10 +3855,13 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
     addInterval: function() {
         n = Math.max(1, (this.globalLookback / 24));
         return '&interval=' + n + 'm';
+    },
+    addPageSize: function(n) {
+        return '&page_size=1';
     }
 
     // creates a url similar to:
-    // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
+    // http://localhost:8000/nova/hypervisor/spawns/?@timestamp__range={%22gte%22:1455045641089,%22lte%22:1455049241089}&interval=2.5m&page_size=1
 
 });
 ;
@@ -11793,41 +11805,58 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     dataPrep: function(data) {
 
-        /*
-        this is where the fetched JSON payload is transformed into a
-        dataset than can be consumed by the D3 charts
-        each chart may have its own perculiarities
-
-        IMPORTANT:
-        the order of items that are 'push'ed into the
-        result array matters. After 'eventTime', the items
-        will be stacked on the graph from the bottom of
-        the graph upward. Or another way of saying it is
-        the first item listed will be first one to be rendered
-        from the x-axis of the graph going upward.
-        */
-
-        var uniqTimestamps;
         var result = [];
 
         // Spawns Resources chart data prep
+
+
         /*
-            {"1429032900000":
-                {"count":1,
-                "success":
-                    [
-                        {"true":1}
-                    ]
+        "aggregations": {
+            "per_interval": {
+                "buckets": [{
+                    {
+                        "success": {
+                            "buckets": [{
+                                "key": "true",
+                                "doc_count": 3
+                            }],
+                            "sum_other_doc_count": 0,
+                            "doc_count_error_upper_bound": 0
+                        },
+                        "key_as_string": "2016-02-09T18:30:00.000Z",
+                        "key": 1455042600000,
+                        "doc_count": 3
+                    }]
                 }
             }
-            */
+        }
+        */
 
-        _.each(data, function(item) {
-            var logTime = _.keys(item)[0];
-            var success = _.pluck(item[logTime].success, 'true');
-            success = success[0] || 0;
-            var failure = _.pluck(item[logTime].success, 'false');
-            failure = failure[0] || 0;
+        _.each(data, function(timeStamp) {
+            var success;
+            var failure;
+
+            var logTime = timeStamp.key;
+            if (timeStamp.success === undefined || timeStamp.success.buckets === undefined) {
+                success = 0;
+            } else {
+                success = _.filter(timeStamp.success.buckets, function(bucket) {
+                    return bucket.key === "true";
+                }).map(function(item) {
+                    return item.doc_count;
+                });
+            }
+
+            if (timeStamp.failure === undefined || timeStamp.failure.buckets === undefined) {
+                failure = 0;
+            } else {
+                failure = _.filter(timeStamp.failure.buckets, function(bucket) {
+                    return bucket.key === "true";
+                }).map(function(item) {
+                    return item.doc_count;
+                });
+            }
+
             result.push({
                 "eventTime": logTime,
                 "Success": success,

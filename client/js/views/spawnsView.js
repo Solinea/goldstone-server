@@ -114,41 +114,58 @@ var SpawnsView = GoldstoneBaseView.extend({
 
     dataPrep: function(data) {
 
-        /*
-        this is where the fetched JSON payload is transformed into a
-        dataset than can be consumed by the D3 charts
-        each chart may have its own perculiarities
-
-        IMPORTANT:
-        the order of items that are 'push'ed into the
-        result array matters. After 'eventTime', the items
-        will be stacked on the graph from the bottom of
-        the graph upward. Or another way of saying it is
-        the first item listed will be first one to be rendered
-        from the x-axis of the graph going upward.
-        */
-
-        var uniqTimestamps;
         var result = [];
 
         // Spawns Resources chart data prep
+
+
         /*
-            {"1429032900000":
-                {"count":1,
-                "success":
-                    [
-                        {"true":1}
-                    ]
+        "aggregations": {
+            "per_interval": {
+                "buckets": [{
+                    {
+                        "success": {
+                            "buckets": [{
+                                "key": "true",
+                                "doc_count": 3
+                            }],
+                            "sum_other_doc_count": 0,
+                            "doc_count_error_upper_bound": 0
+                        },
+                        "key_as_string": "2016-02-09T18:30:00.000Z",
+                        "key": 1455042600000,
+                        "doc_count": 3
+                    }]
                 }
             }
-            */
+        }
+        */
 
-        _.each(data, function(item) {
-            var logTime = _.keys(item)[0];
-            var success = _.pluck(item[logTime].success, 'true');
-            success = success[0] || 0;
-            var failure = _.pluck(item[logTime].success, 'false');
-            failure = failure[0] || 0;
+        _.each(data, function(timeStamp) {
+            var success;
+            var failure;
+
+            var logTime = timeStamp.key;
+            if (timeStamp.success === undefined || timeStamp.success.buckets === undefined) {
+                success = 0;
+            } else {
+                success = _.filter(timeStamp.success.buckets, function(bucket) {
+                    return bucket.key === "true";
+                }).map(function(item) {
+                    return item.doc_count;
+                });
+            }
+
+            if (timeStamp.failure === undefined || timeStamp.failure.buckets === undefined) {
+                failure = 0;
+            } else {
+                failure = _.filter(timeStamp.failure.buckets, function(bucket) {
+                    return bucket.key === "true";
+                }).map(function(item) {
+                    return item.doc_count;
+                });
+            }
+
             result.push({
                 "eventTime": logTime,
                 "Success": success,
