@@ -3241,31 +3241,21 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 /*
 instantiated in logSearchPageView.js as:
 
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new LogBrowserCollection({
             urlBase: '/core/logs/',
+            skipFetch: true,
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
             specificHost: this.specificHost,
         });
-
-        this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.logBrowserVizCollection,
-            el: '#log-viewer-visualization',
-            height: 300,
-            infoText: 'logBrowser',
-            marginLeft: 60,
-            width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
-        });
 */
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
-    // this.filter is set via logBrowserViz upon instantiation.
-    // predefinedUrlBase is set via predefinedSearchDropdown and set to
-    // null when clearning out saved searches
+    // "this.filter" is set via logBrowserViz upon instantiation.
+    // "this.modifyUrlBase" is used to modify the urlBase when a
+    // predefinedSearchDropdown search is triggered
 
     isZoomed: false,
     zoomedStart: null,
@@ -3281,22 +3271,25 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     },
 
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
     checkForAdditionalPages: function() {
+
+        // additional pages are not relevant, as only the
+        // results/aggregations will be used.
         return true;
     },
 
     modifyUrlBase: function(url) {
+
+        // allows predefinedSearchView to alter the urlBase and set it
+        // back to the original value by passing null.
+
         this.originalUrlBase = this.originalUrlBase || this.urlBase;
 
-        if(url === null) {
+        if (url === null) {
             this.urlBase = this.originalUrlBase;
         } else {
             this.urlBase = url;
         }
-
     },
 
     addInterval: function() {
@@ -3323,6 +3316,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     addCustom: function(custom) {
 
+        // adds parmaters that match the selected severity filters
         var result = '&syslog_severity__terms=[';
 
         var levels = this.filter || {};
@@ -6789,7 +6783,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     },
 
     processListeners: function() {
-        return;
+        // overwriting to remove any chance of sensitivity to inherited
+        // listeners of lookback/refresh
     },
 
     processListenersForServerSide: function() {
@@ -6798,46 +6793,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         // logBrowserViz view.
     },
 
-    // predefinedSearchUrl: null,
-
-    // predefinedSearch: function(uuid) {
-    //     var self = this;
-
-    //     // turn off refresh range as a signal to the user that refreshes
-    //     // will no longer be occuring without changing the lookback
-    //     // or refresh. setZoomed will block the action of the cached refresh
-    //     $('#global-refresh-range').val(-1);
-    //     this.trigger('setZoomed', true);
-
-    //     // the presence of a predefinedSearchUrl will take precidence
-    //     // when creating a fetch url in the ajax.beforeSend routine.
-    //     this.predefinedSearchUrl = uuid;
-    //     oTable = $("#reports-result-table").DataTable();
-    //     oTable.ajax.reload(function() {
-    //         setTimeout(function() {
-
-    //             // manually retrigger column auto adjust which was not firing
-    //             oTable.columns.adjust().draw();
-    //         }, 10);
-
-    //     });
-    // },
-
     update: function() {
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload(function() {
-                return true;
-                /*setTimeout(function() {
-
-                    // manually retrigger column auto adjust which was not firing
-                    // draw will kick off additional call to server fyi
-                    oTable.columns.adjust().draw();
-                }, 1000);*/
-
-            });
+            oTable.ajax.reload();
         }
     },
 
@@ -7023,43 +6984,40 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-            this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
-
-            // specificHost applies to this chart when instantiated
-            // on a node report page to scope it to that node
+        this.logSearchObserverCollection = new LogBrowserCollection({
+            urlBase: '/core/logs/',
+            skipFetch: true,
             specificHost: this.specificHost,
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.logBrowserVizCollection,
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
+            collection: this.logSearchObserverCollection,
             el: '#log-viewer-visualization',
-            height: 300,
-            infoText: 'searchLogAnalysis',
-            marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
+            infoText: 'logBrowser',
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
 
-        this.logBrowserTableCollection = new GoldstoneBaseCollection({
-            skipFetch: true
-        });    
-        this.logBrowserTableCollection.urlBase = "/logging/search/";
-        this.logBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
-
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-            collectionMixin: this.logBrowserTableCollection,
+            collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
-            infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
         });
 
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.logSearchObserverCollection,
+            index_prefix: 'logstash-*',
+            settings_redirect: '/#reports/logbrowser/search'
+        });
 
+        this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+        this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
+        this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
+        this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 */
 
 var LogBrowserViz = GoldstoneBaseView.extend({
@@ -7086,17 +7044,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         DEBUG: true
     },
 
-    // will prevent updating when zoom is active
-    // isZoomed: false,
-
-    // predefinedSearch: function(payload) {
-    //     this.collection.reset();
-    //     this.collection.add(payload);
-    //     this.update();
-    // },
-
     setZoomed: function(bool) {
-        // this.isZoomed = bool;
+        // state being tracked in the collection
         this.collection.isZoomed = bool;
     },
 
@@ -7108,12 +7057,15 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     },
 
     constructUrl: function() {
+        // triggers the ajax call in the server-side dataTable
         this.collection.triggerDataTableFetch();
     },
 
     processListeners: function() {
         var self = this;
 
+        // only renders via d3 when the server-side dataTable ajax
+        // returns and 'sync' is triggered
         this.listenTo(this.collection, 'sync', function() {
             self.update();
         });
@@ -7132,6 +7084,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
+
             // since refresh was changed via val() without select()
             // background timer will keep running and lookback will
             // continue to be triggered, so ignore if zoomed
@@ -7216,6 +7169,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     specialInit: function() {
         var self = this;
 
+        // sets up filter for state tracking in logBrowserCollection
         this.collection.filter = this.filter;
 
         // ZOOM IN
@@ -7276,8 +7230,10 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         var $gls = $('.global-refresh-selector select');
         if ($gls.length) {
-            // change() required to mimic user enacted change and 
-            // shut off pageView timer that triggers lookbackIntervalReached
+
+            // setting value via val() will not fire change() event
+            // which will prevent an unneeded ajax call from being made
+            // due to listeners on the lookback selector
             if (parseInt($gls.val(), 10) > 0) {
                 $gls.val(-1);
             }
@@ -7676,7 +7632,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.logBrowserViz.trigger(change);
-        // this.logBrowserTable.trigger(change);
     },
 
     render: function() {
@@ -7687,9 +7642,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     renderCharts: function() {
         var self = this;
 
+        // this is the single collection that holds state about
+        // zoom/filter/lookback/predefinedSearch/specificHost when
+        // url generation occurs in the dataTable
         this.logSearchObserverCollection = new LogBrowserCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
+
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
             specificHost: this.specificHost,
@@ -7705,75 +7664,31 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
 
-        // this.logBrowserTableCollection = new LogBrowserTableCollection({
-        //     skipFetch: true,
-        //     specificHost: this.specificHost,
-        //     urlBase: '/core/logs/',
-        //     linkedCollection: this.logBrowserVizCollection
-        // });
-
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
             collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
-            infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
         });
-
-        // initial rendering of logBrowserTable:
-        // this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
-        // this.logBrowserTable.update();
-
-        // set up listener between viz and table to setZoomed to 'true'
-        // when user triggers a saved search
-        // this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
-        //     this.setZoomed(trueFalse);
-        // });
 
         // render predefinedSearch Dropdown
         this.predefinedSearchDropdown = new PredefinedSearchView({
             collection: this.logSearchObserverCollection,
-            // collection: new GoldstoneBaseCollection({
-            //     skipFetch: true,
-            //     urlBase: '',
-            //     addRange: function() {
-            //         return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-            //     },
-            //     addInterval: function(interval) {
-            //         return '&interval=' + interval + 's';
-            //     },
-            // }),
             index_prefix: 'logstash-*',
             settings_redirect: '/#reports/logbrowser/search'
         });
 
         this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
-
+        // create linkage from the master collection back to the viz'
         this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
         this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
         this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
-        // subscribe logBrowserViz to click events on predefined
-        // search dropdown to fetch results.
-        // this.listenTo(this.predefinedSearchDropdown, 'clickedUuidViz', function(uuid) {
-            // self.logBrowserTable.predefinedSearch(uuid[1]);
-            // self.logBrowserViz.predefinedSearch(uuid[0]);
-        // });
-        // this.listenTo(this.predefinedSearchDropdown, 'clickedUuidTable', function(uuid) {
-            // self.logBrowserTable.predefinedSearch(uuid[1]);
-            // self.logBrowserViz.predefinedSearch(uuid[0]);
-        // });
-
-        // set up a chain of events between viz and table to uddate
-        // table when updating viz.
-        // this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
-        //     self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
-        //     self.logBrowserTable.update();
-        // });
-
+        // TODO: delete logBrowserTableCollection
+        
         // destroy listeners and views upon page close
-        this.viewsToStopListening = [this.logSearchObserverCollection, /*this.logBrowserVizCollection,*/ this.logBrowserViz, /*this.logBrowserTableCollection,*/ this.logBrowserTable, this.predefinedSearchDropdown];
+        this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
 
     },
 
@@ -10093,26 +10008,16 @@ compliance/defined_search/ results structure:
 
 instantiated on logSearchPageView as:
 
+    // render predefinedSearch Dropdown
     this.predefinedSearchDropdown = new PredefinedSearchView({
-        collection: new GoldstoneBaseCollection({
-            skipFetch: true,
-            urlBase: '',
-            addRange: function() {
-                return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-            },
-            addInterval: function(interval) {
-                return '&interval=' + interval + 's';
-            },
-        }),
+        collection: this.logSearchObserverCollection,
         index_prefix: 'logstash-*',
         settings_redirect: '/#reports/logbrowser/search'
-
     });
 
     this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
     also instantiated on eventsBrowserPageView and apiBrowserPageView
-
 */
 
 PredefinedSearchView = GoldstoneBaseView.extend({
@@ -10197,31 +10102,9 @@ PredefinedSearchView = GoldstoneBaseView.extend({
                 self.collection.triggerDataTableFetch();
             }
 
-
-            // var constructedUrlforViz = self.collection.url;
-            // self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
 
     },
-
-    // fetchResults: function(vizUrl, tableUrl) {
-    //     var self = this;
-    //     $.get(vizUrl)
-    //         .done(function(res) {
-    //             self.trigger('clickedUuidViz', [res, vizUrl]);
-    //         })
-    //         .fail(function(err) {
-    //             console.error(err);
-    //         });
-
-    //     $.get(tableUrl)
-    //         .done(function(res) {
-    //             self.trigger('clickedUuidTable', [res, tableUrl]);
-    //         })
-    //         .fail(function(err) {
-    //             console.error(err);
-    //         });
-    // },
 
     generateDropdownName: function() {
 

@@ -37,7 +37,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     },
 
     processListeners: function() {
-        return;
+        // overwriting to remove any chance of sensitivity to inherited
+        // listeners of lookback/refresh
     },
 
     processListenersForServerSide: function() {
@@ -46,46 +47,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         // logBrowserViz view.
     },
 
-    // predefinedSearchUrl: null,
-
-    // predefinedSearch: function(uuid) {
-    //     var self = this;
-
-    //     // turn off refresh range as a signal to the user that refreshes
-    //     // will no longer be occuring without changing the lookback
-    //     // or refresh. setZoomed will block the action of the cached refresh
-    //     $('#global-refresh-range').val(-1);
-    //     this.trigger('setZoomed', true);
-
-    //     // the presence of a predefinedSearchUrl will take precidence
-    //     // when creating a fetch url in the ajax.beforeSend routine.
-    //     this.predefinedSearchUrl = uuid;
-    //     oTable = $("#reports-result-table").DataTable();
-    //     oTable.ajax.reload(function() {
-    //         setTimeout(function() {
-
-    //             // manually retrigger column auto adjust which was not firing
-    //             oTable.columns.adjust().draw();
-    //         }, 10);
-
-    //     });
-    // },
-
     update: function() {
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload(function() {
-                return true;
-                /*setTimeout(function() {
-
-                    // manually retrigger column auto adjust which was not firing
-                    // draw will kick off additional call to server fyi
-                    oTable.columns.adjust().draw();
-                }, 1000);*/
-
-            });
+            oTable.ajax.reload();
         }
     },
 
