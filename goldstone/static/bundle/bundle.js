@@ -6756,6 +6756,10 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
+    processListeners: function() {
+        return;
+    },
+
     processListenersForServerSide: function() {
         // overwriting to remove sensitivity to global
         // refresh/lookback which is being listened to by the 
@@ -6788,16 +6792,19 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     // },
 
     update: function() {
+        console.log('in update');
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
             oTable.ajax.reload(function() {
-                setTimeout(function() {
+                return true;
+                /*setTimeout(function() {
 
                     // manually retrigger column auto adjust which was not firing
+                    // draw will kick off additional call to server fyi
                     oTable.columns.adjust().draw();
-                }, 10);
+                }, 1000);*/
 
             });
         }
@@ -7085,23 +7092,23 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            // this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            // this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
-            // if (self.isZoomed === true) {
-            //     return;
-            // }
+            // since refresh was changed via val() without select()
+            // background timer will keep running and lookback will
+            // continue to be triggered, so ignore if zoomed
+            if(this.collection.isZoomed === true) {
+                return;
+            }
             this.showSpinner();
             this.constructUrl();
-            // this.trigger('chartUpdate');
         });
 
     },
@@ -7205,11 +7212,6 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.showSpinner();
         self.setZoomed(true);
 
-        var $gls = $('.global-refresh-selector select');
-        if ($gls.length) {
-            $('.global-refresh-selector select').val(-1);
-        }
-
         var zoomedStart;
         var zoomedEnd;
 
@@ -7238,8 +7240,17 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedStart = zoomedStart;
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
+
+        var $gls = $('.global-refresh-selector select');
+        if ($gls.length) {
+            // change() required to mimic user enacted change and 
+            // shut off pageView timer that triggers lookbackIntervalReached
+            if (parseInt($gls.val(), 10) > 0) {
+                $gls.val(-1);
+            }
+        }
+
         this.constructUrl();
-        // this.trigger('chartUpdate');
         return;
     },
 
@@ -7626,6 +7637,7 @@ in the top also affect the table on the bottom via a 'trigger'.
 var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
+        console.log('LogSearchPageView trigger ', change);
         this.logBrowserViz.trigger(change);
         // this.logBrowserTable.trigger(change);
     },

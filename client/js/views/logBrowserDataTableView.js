@@ -36,6 +36,10 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
+    processListeners: function() {
+        return;
+    },
+
     processListenersForServerSide: function() {
         // overwriting to remove sensitivity to global
         // refresh/lookback which is being listened to by the 
@@ -68,16 +72,19 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     // },
 
     update: function() {
+        console.log('in update');
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
             oTable.ajax.reload(function() {
-                setTimeout(function() {
+                return true;
+                /*setTimeout(function() {
 
                     // manually retrigger column auto adjust which was not firing
+                    // draw will kick off additional call to server fyi
                     oTable.columns.adjust().draw();
-                }, 10);
+                }, 1000);*/
 
             });
         }

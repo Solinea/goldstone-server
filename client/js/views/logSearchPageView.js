@@ -24,6 +24,7 @@ in the top also affect the table on the bottom via a 'trigger'.
 var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
+        console.log('LogSearchPageView trigger ', change);
         this.logBrowserViz.trigger(change);
         // this.logBrowserTable.trigger(change);
     },
