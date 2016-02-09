@@ -97,7 +97,7 @@ module.exports = function(grunt) {
             },
             // Single-run configuration for development
             single: {
-                singleRun: true,
+                singleRun: true
             }
         },
 
@@ -191,7 +191,7 @@ module.exports = function(grunt) {
         // configure grunt-concat for JavaScript file combining
         concat: {
             options: {
-                separator: ';\n',
+                separator: ';\n'
             },
             lib: {
                 nonull: true,
@@ -241,7 +241,7 @@ module.exports = function(grunt) {
                 src: [clientIncludeOrder.poSourceFiles],
                 dest: clientIncludeOrder.poJsonDest
             }
-        },
+        }
 
     });
 

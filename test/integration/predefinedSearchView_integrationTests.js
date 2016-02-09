@@ -45,22 +45,28 @@ describe('predefinedSearchView.js', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        this.testCollection = new LogBrowserCollection({
+            urlBase: '/blah/de/blah/',
+            skipFetch: true
+        });
+
         this.testView = new PredefinedSearchView({
             className: 'compliance-predefined-search nav nav-pills',
             tagName: 'ul',
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                },
-            })
+            collection: this.testCollection
         });
 
         $('.predefined-search-container').append(this.testView.el);
+
+        this.testDataTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.testCollection,
+            el: '#log-viewer-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.testCollection.linkedDataTable = this.testDataTable;
+
 
     });
     afterEach(function() {
@@ -104,7 +110,7 @@ describe('predefinedSearchView.js', function() {
                 name: 'test'
             }];
             this.testView.predefinedSearches = testArr;
-            this.testView.renderUpdatedResultList();   
+            this.testView.renderUpdatedResultList();
             expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
             $('[data-uuid="1234"]').click();
 

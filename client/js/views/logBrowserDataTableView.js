@@ -36,53 +36,23 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    processListenersForServerSide: function() {
-        // overwriting so that dataTable only renders as a result of actions
-        // from viz above
+    processListeners: function() {
+        // overwriting to remove any chance of sensitivity to inherited
+        // listeners of lookback/refresh
     },
 
-    predefinedSearchUrl: null,
-
-    predefinedSearch: function(uuid) {
-        var self = this;
-
-        // turn off refresh range as a signal to the user that refreshes
-        // will no longer be occuring without changing the lookback
-        // or refresh. setZoomed will block the action of the cached refresh
-        $('#global-refresh-range').val(-1);
-        this.trigger('setZoomed', true);
-
-        // the presence of a predefinedSearchUrl will take precidence
-        // when creating a fetch url in the ajax.beforeSend routine.
-        this.predefinedSearchUrl = uuid;
-        oTable = $("#reports-result-table").DataTable();
-        oTable.ajax.reload(function() {
-            setTimeout(function() {
-
-                // manually retrigger column auto adjust which was not firing
-                oTable.columns.adjust().draw();
-            }, 10);
-
-        });
+    processListenersForServerSide: function() {
+        // overwriting to remove sensitivity to global
+        // refresh/lookback which is being listened to by the 
+        // logBrowserViz view.
     },
 
     update: function() {
         var oTable;
 
-        // clear out the saved search url so next time the viz is
-        // triggered it will not return the previously saved url
-        this.predefinedSearchUrl = null;
-
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
             oTable = $("#reports-result-table").DataTable();
-            oTable.ajax.reload(function() {
-                setTimeout(function() {
-
-                    // manually retrigger column auto adjust which was not firing
-                    oTable.columns.adjust().draw();
-                }, 10);
-
-            });
+            oTable.ajax.reload();
         }
     },
 
@@ -145,9 +115,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
-                    // if a predefined search url has been set
-                    // use that instead of the generated url
-                    settings.url = (self.predefinedSearchUrl ? self.predefinedSearchUrl + '?' : self.collectionMixin.url + '&') + "page_size=" + pageSize +
+
+                    settings.url = self.collectionMixin.url + '&page_size=' + pageSize +
                         "&page=" + computeStartPage;
 
                     // here begins the combiation of additional params
@@ -185,7 +154,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                            // ascDec + columnLabelHash[orderByColumn];
+                        // ascDec + columnLabelHash[orderByColumn];
                     }
 
                 },
@@ -199,6 +168,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     },
 
     serverSideDataPrep: function(data) {
+        var self = this;
         data = JSON.parse(data);
 
         _.each(data.results, function(item) {
@@ -211,6 +181,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             item.log_message = item._source.log_message || '';
             item.host = item._source.host || '';
         });
+
+        // send data to collection to be rendered via logBrowserViz
+        // when the 'sync' event is triggered
+        self.collectionMixin.reset();
+        self.collectionMixin.add(data);
+        self.collectionMixin.trigger('sync');
 
         var result = {
             results: data.results,

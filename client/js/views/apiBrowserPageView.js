@@ -53,7 +53,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
                 },
                 addInterval: function(interval) {
                     return '&interval=' + interval + 's';
-                },
+                }
             }),
             index_prefix: 'api_stats-*',
             settings_redirect: '/#reports/apibrowser/search'
@@ -77,7 +77,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
+        ['/#reports/apibrowser', 'API Call Viewer', 'active']
     ],
 
     template: _.template('' +

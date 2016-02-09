@@ -337,7 +337,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
             marginLeft: 60,
             urlRoot: "/logging/summarize/?",
             width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.logBrowserTableCollection = new LogBrowserTableCollection({

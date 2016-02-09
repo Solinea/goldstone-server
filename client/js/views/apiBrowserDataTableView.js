@@ -68,35 +68,35 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 }, {
                     "data": "_source.host",
                     "targets": 1,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.client_ip",
                     "targets": 2,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.uri",
                     "targets": 3,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_status",
                     "targets": 4,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_time",
                     "targets": 5,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.response_length",
                     "targets": 6,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.component",
                     "targets": 7,
-                    "sortable": false,
+                    "sortable": false
                 }, {
                     "data": "_source.type",
                     "targets": 8,
-                    "sortable": false,
+                    "sortable": false
                 }
 
             ],

@@ -321,7 +321,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         'eventType': 1,
         'id': 2,
         'action': 3,
-        'outcome': 4,
+        'outcome': 4
     },
 
     // main template with placeholder for table

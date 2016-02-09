@@ -36,26 +36,16 @@ compliance/defined_search/ results structure:
 
 instantiated on logSearchPageView as:
 
+    // render predefinedSearch Dropdown
     this.predefinedSearchDropdown = new PredefinedSearchView({
-        collection: new GoldstoneBaseCollection({
-            skipFetch: true,
-            urlBase: '',
-            addRange: function() {
-                return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-            },
-            addInterval: function(interval) {
-                return '&interval=' + interval + 's';
-            },
-        }),
+        collection: this.logSearchObserverCollection,
         index_prefix: 'logstash-*',
         settings_redirect: '/#reports/logbrowser/search'
-
     });
 
     this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
     also instantiated on eventsBrowserPageView and apiBrowserPageView
-
 */
 
 PredefinedSearchView = GoldstoneBaseView.extend({
@@ -128,39 +118,20 @@ PredefinedSearchView = GoldstoneBaseView.extend({
                 // calls function that will provide accurate translation
                 // if in a different language environment
                 $('#predefined-search-title').text(self.generateDropdownName());
+                self.collection.modifyUrlBase(null);
+                self.collection.triggerDataTableFetch();
             } else {
 
                 // append search name to predefined search dropdown title
                 $('#predefined-search-title').text($(this).text());
+
+                var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
+                self.collection.modifyUrlBase(constructedUrlForTable);
+                self.collection.triggerDataTableFetch();
             }
 
-            var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
-
-            self.collection.urlBase = '/core/saved_search/' + clickedUuid + '/results/';
-            self.collection.urlGenerator();
-            var constructedUrlforViz = self.collection.url;
-            self.fetchResults(constructedUrlforViz, constructedUrlForTable);
         });
 
-    },
-
-    fetchResults: function(vizUrl, tableUrl) {
-        var self = this;
-        $.get(vizUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidViz', [res, vizUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
-
-        $.get(tableUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidTable', [res, tableUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
     },
 
     generateDropdownName: function() {

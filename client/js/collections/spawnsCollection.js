@@ -95,7 +95,7 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
     addInterval: function() {
         n = Math.max(1, (this.globalLookback / 24));
         return '&interval=' + n + 'm';
-    },
+    }
 
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
