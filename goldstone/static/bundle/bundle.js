@@ -3263,6 +3263,8 @@ instantiated in logSearchPageView.js as:
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
+    // this.filter is set via logBrowserViz upon instantiation.
+
     isZoomed: false,
     zoomedStart: null,
     zoomedEnd: null,
@@ -3307,10 +3309,27 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function(custom) {
-        
+
+        var result = '&syslog_severity__terms=[';
+
+        var levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toLowerCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node
-        return this.specificHost ? '&host=' + this.specificHost : '';
+        if (this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
     },
 
     triggerDataTableFetch: function() {
@@ -6792,7 +6811,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     // },
 
     update: function() {
-        console.log('in update');
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
@@ -7104,7 +7122,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             // since refresh was changed via val() without select()
             // background timer will keep running and lookback will
             // continue to be triggered, so ignore if zoomed
-            if(this.collection.isZoomed === true) {
+            if (this.collection.isZoomed === true) {
                 return;
             }
             this.showSpinner();
@@ -7184,6 +7202,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
     specialInit: function() {
         var self = this;
+
+        this.collection.filter = this.filter;
 
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
@@ -7538,7 +7558,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             self.filter[checkboxId] = !self.filter[checkboxId];
-            self.update();
+            self.collection.filter = self.filter;
+
+            // after changing filter, do not have d3 re-render,
+            // but have dataTable refetch ajax
+            // with filter params incluced
+            self.constructUrl();
         });
 
         this.redraw();
@@ -7637,7 +7662,6 @@ in the top also affect the table on the bottom via a 'trigger'.
 var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        console.log('LogSearchPageView trigger ', change);
         this.logBrowserViz.trigger(change);
         // this.logBrowserTable.trigger(change);
     },

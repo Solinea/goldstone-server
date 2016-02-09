@@ -140,7 +140,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             // since refresh was changed via val() without select()
             // background timer will keep running and lookback will
             // continue to be triggered, so ignore if zoomed
-            if(this.collection.isZoomed === true) {
+            if (this.collection.isZoomed === true) {
                 return;
             }
             this.showSpinner();
@@ -220,6 +220,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
     specialInit: function() {
         var self = this;
+
+        this.collection.filter = this.filter;
 
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
@@ -574,7 +576,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             self.filter[checkboxId] = !self.filter[checkboxId];
-            self.update();
+            self.collection.filter = self.filter;
+
+            // after changing filter, do not have d3 re-render,
+            // but have dataTable refetch ajax
+            // with filter params incluced
+            self.constructUrl();
         });
 
         this.redraw();

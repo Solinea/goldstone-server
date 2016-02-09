@@ -41,6 +41,8 @@ instantiated in logSearchPageView.js as:
 
 var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
+    // this.filter is set via logBrowserViz upon instantiation.
+
     isZoomed: false,
     zoomedStart: null,
     zoomedEnd: null,
@@ -85,10 +87,27 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addCustom: function(custom) {
-        
+
+        var result = '&syslog_severity__terms=[';
+
+        var levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toLowerCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node
-        return this.specificHost ? '&host=' + this.specificHost : '';
+        if (this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
     },
 
     triggerDataTableFetch: function() {

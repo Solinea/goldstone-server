@@ -72,7 +72,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     // },
 
     update: function() {
-        console.log('in update');
         var oTable;
 
         if ($.fn.dataTable.isDataTable("#reports-result-table")) {
