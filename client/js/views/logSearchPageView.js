@@ -33,8 +33,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        var self = this;
-
+        
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable

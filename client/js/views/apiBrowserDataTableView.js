@@ -163,7 +163,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                            // ascDec + columnLabelHash[orderByColumn];
+                        // ascDec + columnLabelHash[orderByColumn];
                     }
 
 
@@ -178,13 +178,38 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        // returning inside the 'parse' function adds to collection
+        // and triggers 'sync'
+        return finalResult;
+    },
+
     serverSideDataPrep: function(data) {
+        var self = this;
         data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        self.collectionMixin.reset();
+        self.collectionMixin.add(self.prepDataForViz(data));
+        self.collectionMixin.trigger('sync');
+
         result = JSON.stringify(result);
         return result;
     },

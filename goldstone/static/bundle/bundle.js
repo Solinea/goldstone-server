@@ -4168,7 +4168,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                            // ascDec + columnLabelHash[orderByColumn];
+                        // ascDec + columnLabelHash[orderByColumn];
                     }
 
 
@@ -4183,13 +4183,38 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        // returning inside the 'parse' function adds to collection
+        // and triggers 'sync'
+        return finalResult;
+    },
+
     serverSideDataPrep: function(data) {
+        var self = this;
         data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        self.collectionMixin.reset();
+        self.collectionMixin.add(self.prepDataForViz(data));
+        self.collectionMixin.trigger('sync');
+
         result = JSON.stringify(result);
         return result;
     },
@@ -4227,62 +4252,54 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
 var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
     renderCharts: function() {
 
-        this.apiBrowserVizCollection = new ApiHistogramCollection({});
+        this.apiSearchObserverCollection = new LogBrowserCollection({
+            urlBase: '/core/api-calls/',
+            skipFetch: true
+        });
 
         this.apiBrowserView = new ApiBrowserView({
             chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
-            collection: this.apiBrowserVizCollection,
+            collection: this.apiSearchObserverCollection,
             el: '#api-histogram-visualization',
-            infoIcon: 'fa-tasks',
+            marginLeft: 60,
             width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
-            marginLeft: 60
-        });
-
-        // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
-            skipFetch: true
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
-            collectionMixin: this.apiBrowserTableCollection,
+            collectionMixin: this.apiSearchObserverCollection,
             el: '#api-browser-table',
-            infoIcon: 'fa-table',
             width: $('#api-browser-table').width()
         });
 
         // render predefinedSearch Dropdown
         this.predefinedSearchDropdown = new PredefinedSearchView({
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                }
-            }),
+            collection: this.apiSearchObserverCollection,
             index_prefix: 'api_stats-*',
             settings_redirect: '/#reports/apibrowser/search'
-
         });
 
         this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
+        // create linkages from the master collection back to the viz'
+        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
+        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+
+        // TODO: delete apiBrowserTableCollection 
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable, this.predefinedSearchDropdown];
-    },
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.apiBrowserView.trigger('lookbackSelectorChanged');
-            this.apiBrowserTable.trigger('lookbackSelectorChanged');
-        }
+        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     templateButtonSelectors: [
@@ -4325,6 +4342,22 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
  */
 
 var ApiBrowserView = ChartSet.extend({
+
+    processListeners: function() {
+        var self = this;
+        
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            self.showSpinner();
+            self.collection.triggerDataTableFetch();
+        });
+    },
+
 });
 ;
 /**
@@ -7671,8 +7704,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        var self = this;
-
+        
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable

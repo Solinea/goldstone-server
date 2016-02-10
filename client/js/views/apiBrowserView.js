@@ -15,4 +15,20 @@
  */
 
 var ApiBrowserView = ChartSet.extend({
+
+    processListeners: function() {
+        var self = this;
+        
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            self.showSpinner();
+            self.collection.triggerDataTableFetch();
+        });
+    },
+
 });
