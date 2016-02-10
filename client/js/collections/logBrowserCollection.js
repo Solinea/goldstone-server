@@ -92,9 +92,9 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + computedInterval + 's';
     },
 
-    addCustom: function(custom) {
-
-        // adds parmaters that match the selected severity filters
+    addFilterIfPresent: function() {
+        console.log('in addFilterIfPresent');
+        // adds parmaters that matcXh the selected severity filters
         var result = '&syslog_severity__terms=[';
 
         var levels = this.filter || {};
@@ -107,6 +107,17 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
         result = result.slice(0, result.indexOf(',]'));
         result += "]";
+        return result;
+    },
+
+    addCustom: function(custom) {
+
+        var result = '';
+
+        if (this.hasOwnProperty('filter')) {
+            console.log('filter: ', this);
+            result += this.addFilterIfPresent();
+        }
 
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node
