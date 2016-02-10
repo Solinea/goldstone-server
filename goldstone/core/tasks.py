@@ -25,10 +25,6 @@ import goldstone.glance.utils as glance_res
 import goldstone.keystone.utils as keystone_res
 import goldstone.nova.utils as nova_res
 
-# import update_nodes as update_cinder_nodes
-
-from celery.exceptions import RetryTaskError
-
 logger = logging.getLogger(__name__)
 
 
@@ -94,12 +90,9 @@ def update_persistent_graph():
 
     for obj in graph_resources:
         try:
-            cinder_res.update_nodes()
-            glance_res.update_nodes()
-            keystone_res.update_nodes()
-            nova_res.update_nodes()
+            obj.update_nodes()
         except Exception as e:
-            logger.critical(str(e))
+            logger.exception(str(e))
 
 
 @celery_app.task()

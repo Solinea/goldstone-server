@@ -168,15 +168,17 @@ class TaskTests(SimpleTestCase):
 
     @mock.patch('goldstone.core.tasks.cinder_res.update_nodes')
     @mock.patch('goldstone.core.tasks.glance_res.update_nodes')
+    @mock.patch('goldstone.core.tasks.nova_res.update_nodes')
+    @mock.patch('goldstone.core.tasks.keystone_res.update_nodes')
     def test_update_persistent_graph(self, update_cinder_mock,
-                                     update_glance_mock):
+                                     update_glance_mock, update_nova_mock,
+                                     update_keystone_mock):
 
         # test clean slate cinder_client mock
         update_cinder_mock.return_value = []
 
         rv = update_persistent_graph()
         self.assertTrue(update_cinder_mock.called)
-        self.assertTrue(update_cinder_mock.call_count, 1)
 
         # Now test the result of cinder mock returning an exception
         update_glance_mock.return_value = []
@@ -187,12 +189,13 @@ class TaskTests(SimpleTestCase):
         rv = update_persistent_graph()
 
         self.assertTrue(update_cinder_mock.called)
-        self.assertTrue(update_cinder_mock.call_count, 4)
 
-        # verify that glance mock still gets called
+        # verify that glance, nova & keystone mocks get called
         # even when cinder throws an exception
         self.assertTrue(update_glance_mock.called)
-        self.assertTrue(update_glance_mock.call_count, 2)
+        self.assertTrue(update_nova_mock.called)
+        self.assertTrue(update_keystone_mock.called)
+
 
     @mock.patch('goldstone.core.tasks.es_conn')
     @mock.patch('goldstone.core.tasks.curator.get_indices')
