@@ -60,27 +60,6 @@ describe('Testing the base.js file', function() {
                 expect(goldstone).to.have.property('raiseInfo');
                 expect(goldstone).to.have.property('raiseAlert');
                 expect(goldstone).to.have.property('uuid');
-                expect(goldstone.time).to.have.property('fromPyTs');
-                expect(goldstone.time).to.have.property('toPyTs');
-            });
-        });
-        describe('The time namespace', function() {
-            it('should return dates with the correct formatting and order of magnitude', function() {
-                var time1 = goldstone.time.fromPyTs(42);
-                var time2 = goldstone.time.fromPyTs('42');
-                expect(time1 * 1).to.equal(42000);
-                expect(time2 * 1).to.equal(42000);
-
-                time1 = goldstone.time.toPyTs(42000);
-                expect(time1 * 1).to.equal(42);
-
-                var testDate = new Date();
-                time2 = goldstone.time.toPyTs(testDate);
-                expect(time2 * 1).to.equal(Math.round((testDate * 1) / 1000)).toString();
-
-                var time3 = new Date(1412376991712);
-                var timeTest3 = goldstone.time.toPyTs(time3);
-                expect(timeTest3).to.equal('1412376992');
             });
         });
     });

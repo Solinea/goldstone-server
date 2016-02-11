@@ -107,29 +107,6 @@ goldstone.uuid = function() {
         s4() + '-' + s4() + s4() + s4();
 };
 
-goldstone.time = goldstone.time || {};
-
-goldstone.time.fromPyTs = function(t) {
-    "use strict";
-
-    if (typeof t === 'number') {
-        return new Date(Math.round(t) * 1000);
-    } else {
-        return new Date(Math.round(Number(t) * 1000));
-    }
-};
-
-goldstone.time.toPyTs = function(t) {
-    "use strict";
-
-    // TODO decide whether toPyTs should only handle date objects.  Handling numbers may cause unexpected results.
-    if (typeof t === 'number') {
-        return String(Math.round(t / 1000));
-    } else if (Object.prototype.toString.call(t) === '[object Date]') {
-        return String(Math.round(t.getTime() / 1000));
-    }
-};
-
 window.onerror = function(message, fileURL, lineNumber) {
     console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
