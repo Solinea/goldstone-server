@@ -29,7 +29,24 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
             skipFetch: true
         });
 
-        this.apiBrowserView = new ApiBrowserView({
+        this.apiBrowserView = new ChartSet({
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
             chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
             collection: this.apiSearchObserverCollection,
             el: '#api-histogram-visualization',
