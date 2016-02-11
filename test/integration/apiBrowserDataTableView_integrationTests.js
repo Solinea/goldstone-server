@@ -38,18 +38,14 @@ describe('apiBrowserDataTableView.js', function() {
 
         // instantiated only for access to url generation functions
         this.apiBrowserTableCollection = new GoldstoneBaseCollection({
-            skipFetch: true
+            skipFetch: true,
+            urlBase: "/core/apiperf/search/"
         });
-        this.apiBrowserTableCollection.urlBase = "/core/apiperf/search/";
-        this.apiBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
 
         this.testView = new ApiBrowserDataTableView({
-            el: '.events-browser-table',
             chartTitle: 'Events Browser',
             collectionMixin: this.apiBrowserTableCollection,
-            infoIcon: 'fa-table',
+            el: '.events-browser-table',
             width: 300
         });
 
@@ -66,12 +62,10 @@ describe('apiBrowserDataTableView.js', function() {
 
     describe('testing methods', function() {
         it('serverSideDataPrep', function() {
-            var test1 = this.testView.serverSideDataPrep(
-                JSON.stringify({
-                    results: [1, 2, 3],
-                    count: 42,
-                })
-            );
+            var test1 = this.testView.serverSideDataPrep({
+                results: [1, 2, 3],
+                count: 42,
+            });
 
             expect(test1).to.equal(
                 JSON.stringify({
@@ -81,8 +75,8 @@ describe('apiBrowserDataTableView.js', function() {
                 })
             );
 
-        // sanity check
-        this.testView.update();
+            // sanity check
+            this.testView.update();
         });
     });
 });

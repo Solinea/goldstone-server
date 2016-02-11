@@ -3286,7 +3286,6 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
     },
 
     addFilterIfPresent: function() {
-        console.log('in addFilterIfPresent');
         // adds parmaters that matcXh the selected severity filters
         var result = '&syslog_severity__terms=[';
 
@@ -3308,7 +3307,6 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         var result = '';
 
         if (this.hasOwnProperty('filter')) {
-            console.log('filter: ', this);
             result += this.addFilterIfPresent();
         }
 
@@ -4177,6 +4175,12 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // apiViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -4201,20 +4205,21 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         return finalResult;
     },
 
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
-        var self = this;
-        data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
-
-        // send data to collection to be rendered via apiBrowserView
-        // when the 'sync' event is triggered
-        self.collectionMixin.reset();
-        self.collectionMixin.add(self.prepDataForViz(data));
-        self.collectionMixin.trigger('sync');
 
         result = JSON.stringify(result);
         return result;
@@ -6971,6 +6976,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // logViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -6978,9 +6989,17 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via logBrowserViz
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(data);
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
         var self = this;
-        data = JSON.parse(data);
 
         _.each(data.results, function(item) {
 
@@ -6993,11 +7012,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             item.host = item._source.host || '';
         });
 
-        // send data to collection to be rendered via logBrowserViz
-        // when the 'sync' event is triggered
-        self.collectionMixin.reset();
-        self.collectionMixin.add(data);
-        self.collectionMixin.trigger('sync');
 
         var result = {
             results: data.results,

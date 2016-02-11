@@ -171,6 +171,12 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // apiViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -195,20 +201,21 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         return finalResult;
     },
 
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
-        var self = this;
-        data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
-
-        // send data to collection to be rendered via apiBrowserView
-        // when the 'sync' event is triggered
-        self.collectionMixin.reset();
-        self.collectionMixin.add(self.prepDataForViz(data));
-        self.collectionMixin.trigger('sync');
 
         result = JSON.stringify(result);
         return result;
