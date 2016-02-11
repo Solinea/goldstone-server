@@ -196,8 +196,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             finalResult.push(tempObj);
         });
 
-        // returning inside the 'parse' function adds to collection
-        // and triggers 'sync'
         return finalResult;
     },
 
