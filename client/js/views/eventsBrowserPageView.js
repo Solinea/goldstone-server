@@ -82,8 +82,6 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         this.eventsSearchObserverCollection.linkedDataTable = this.eventsBrowserTable;
         this.eventsSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
-        // TODO: delete eventsBrowserTableCollection
-
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [

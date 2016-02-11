@@ -2629,138 +2629,6 @@ var InfoButtonText = GoldstoneBaseModel.extend({
  */
 
 /*
-
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
-
-this.eventsBrowserTable = new EventsBrowserDataTableView({
-    chartTitle: 'Events Browser',
-    collection: this.eventsBrowserTableCollection,
-    el: '#events-browser-table',
-    infoIcon: 'fa-table',
-    width: $('#events-browser-table').width()
-});
-
-*/
-
-// define collection and link to model
-var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: "/core/api-calls/",
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    preProcessData: function(data) {
-        if(data) {
-            return data;
-        }
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
-
-this.eventsBrowserView = new ChartSet({
-    chartTitle: 'Events Histogram',
-    collection: this.eventsBrowserVizCollection,
-    el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
-    width: $('#events-histogram-visualization').width(),
-    yAxisLabel: 'Number of Events'
-});
- */
-
-// define collection and link to model
-
-var ApiHistogramCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/api-calls/',
-
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
-    checkForAdditionalPages: function() {
-        return true;
-    },
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addInterval: function(n) {
-        n = n || this.interval;
-        return '&interval=' + n + 's';
-    },
-
-    addPageSize: function(n) {
-        return '&page_size=1';
-    },
-
-    preProcessData: function(data) {
-
-        var self = this;
-
-        // initialize container for formatted results
-        var finalResult = [];
-
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
-
-        // returning inside the 'parse' function adds to collection
-        // and triggers 'sync'
-        return finalResult;
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
@@ -2793,132 +2661,6 @@ var ApiPerfCollection = GoldstoneBaseCollection.extend({
         return '&component=' + this.componentParam;
     }
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
-
-this.eventsBrowserTable = new EventsBrowserDataTableView({
-    chartTitle: 'Events Browser',
-    collection: this.eventsBrowserTableCollection,
-    el: '#events-browser-table',
-    infoIcon: 'fa-table',
-    width: $('#events-browser-table').width()
-});
-
-*/
-
-// define collection and link to model
-var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/events/',
-
-    addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
- /*
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
-
-this.eventsBrowserView = new ChartSet({
-    chartTitle: 'Events Histogram',
-    collection: this.eventsBrowserVizCollection,
-    el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
-    width: $('#events-histogram-visualization').width(),
-    yAxisLabel: 'Number of Events'
-});
- */
-
-// define collection and link to model
-
-var EventsHistogramCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/events/',
-
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
-    checkForAdditionalPages: function() {
-        return true;
-    },
-
-    addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addInterval: function(n) {
-        n = n || this.interval;
-        return '&interval=' + n + 's';
-    },
-
-    addPageSize: function(n) {
-        return '&page_size=1';
-    },
-
-    preProcessData: function(data) {
-
-        var self = this;
-
-        // initialize container for formatted results
-        var finalResult = [];
-
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
-
-        // returning inside the 'parse' function adds to collection
-        // and triggers 'sync'
-        return finalResult;
-    }
 });
 ;
 /**
@@ -3165,87 +2907,6 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
         ]
     }
 
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-/*
-instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
-
-    this.logBrowserTableCollection = new LogBrowserTableCollection({
-        skipFetch: true,
-        specificHost: this.specificHost,
-        urlBase: '/core/logs/',
-        linkedCollection: this.logBrowserVizCollection
-    });    
-
-    this.logBrowserTable = new LogBrowserDataTableView({
-        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-        collectionMixin: this.logBrowserTableCollection,
-        el: '#log-viewer-table',
-        infoIcon: 'fa-table',
-        width: $('#log-viewer-table').width()
-    });
-
-*/
-
-var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addCustom: function() {
-        var result = '&syslog_severity__terms=[';
-
-        var levels = this.filter || {};
-        for (var k in levels) {
-            if (levels[k]) {
-                result = result.concat('"', k.toLowerCase(), '",');
-            }
-        }
-        result += "]";
-
-        result = result.slice(0, result.indexOf(',]'));
-        result += "]";
-
-        if(this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
-    },
-
-    computeLookbackAndInterval: function() {
-
-        // compute epochNow, globalLookback, globalRefresh
-        // this.getGlobalLookbackRefresh();
-        if (this.linkedCollection.isZoomed) {
-            this.gte = this.linkedCollection.zoomedStart;
-            this.epochNow = this.linkedCollection.zoomedEnd;
-        } else {
-            this.gte = this.linkedCollection.gte;
-            this.epochNow = this.linkedCollection.epochNow;
-        }
-
-    }
 
 });
 ;
@@ -4293,8 +3954,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
         this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
         this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
-
-        // TODO: delete apiBrowserTableCollection 
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
@@ -5806,8 +5465,6 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         this.eventsSearchObserverCollection.linkedDataTable = this.eventsBrowserTable;
         this.eventsSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
-        // TODO: delete eventsBrowserTableCollection
-
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
@@ -6060,7 +5717,7 @@ var EventsReportView = GoldstoneBaseView.extend({
                             ascDec = '-';
                         }
 
-                        // TODO: uncomment when ordering is in place.
+                        // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
                         //     ascDec + columnLabelHash[orderByColumn];
                     }
@@ -7791,8 +7448,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
         this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
         this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
-
-        // TODO: delete logBrowserTableCollection
         
         // destroy listeners and views upon page close
         this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
@@ -9715,7 +9370,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
-        this.logBrowserTableCollection = new LogBrowserTableCollection({
+        this.logBrowserTableCollection = new SearchObserverCollection({
             skipFetch: true,
             specificHost: this.specificHost,
             urlBase: '/logging/search/',

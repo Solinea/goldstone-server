@@ -17,7 +17,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests - goldstoneBaseCollection.js
 
-describe('apiBrowserTableCollection.js spec', function() {
+describe('searchObserverCollection.js spec', function() {
     beforeEach(function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
@@ -26,8 +26,8 @@ describe('apiBrowserTableCollection.js spec', function() {
             "Content-Type": "application/json"
         }, 'OK']);
 
-        this.testCollection = new ApiBrowserTableCollection({});
-        this.protoFetchSpy = sinon.spy(ApiBrowserTableCollection.prototype, "fetch");
+        this.testCollection = new SearchObserverCollection({});
+        this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
     });
     afterEach(function() {
         this.server.restore();
@@ -44,7 +44,7 @@ describe('apiBrowserTableCollection.js spec', function() {
             expect(this.protoFetchSpy.callCount).to.equal(0);
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(1);
-            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={');
+            expect(this.testCollection.url).to.include('instanceSpecific?@timestamp__range={"gte":');
 
             this.testCollection.addPageSize = function(n) {
                 n = n || 1000;
@@ -53,7 +53,7 @@ describe('apiBrowserTableCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(2);
-            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={"gte"');
+            expect(this.testCollection.url).to.include('instanceSpecific?@timestamp__range={"gte":');
 
             this.testCollection.addPageNumber = function(n) {
                 n = n || 1;
@@ -62,7 +62,7 @@ describe('apiBrowserTableCollection.js spec', function() {
 
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(3);
-            expect(this.testCollection.url).to.include('/core/api-calls/?@timestamp__range={"gte"');
+            expect(this.testCollection.url).to.include('instanceSpecific?@timestamp__range={"gte":');
 
             this.testCollection.addInterval = function(n) {
                 n = n || 3600;
@@ -83,7 +83,7 @@ describe('apiBrowserTableCollection.js spec', function() {
             $('body').append('<option id="global-lookback-range" value=60>');
             this.testCollection.urlGenerator();
             expect(this.protoFetchSpy.callCount).to.equal(5);
-            expect(this.testCollection.url).to.equal('/core/api-calls/?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
+            expect(this.testCollection.url).to.equal('instanceSpecific?timestamp__range={"gte":0,"lte":3600000}&interval=150s&page=1&page_size=1000');
 
             this.clock.restore();
 
@@ -135,8 +135,10 @@ describe('apiBrowserTableCollection.js spec', function() {
             data = {
                 next: 'instanceSpecific/laDeDaa'
             };
+
+            // additional page checks overwritten, should equal 0
             test1 = this.testCollection.checkForAdditionalPages(data);
-            expect(this.protoFetchSpy.callCount).to.equal(1);
+            expect(this.protoFetchSpy.callCount).to.equal(0);
         });
     });
 

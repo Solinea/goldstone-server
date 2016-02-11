@@ -76,8 +76,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
         this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
-        // TODO: delete apiBrowserTableCollection 
-
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
