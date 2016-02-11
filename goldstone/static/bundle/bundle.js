@@ -1615,7 +1615,8 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yAxis = d3.svg.axis()
             .scale(this.y)
             .ticks(5)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
     },
 
     callXAxis: function() {
@@ -7018,6 +7019,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     )
 });
 ;
+
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7202,7 +7204,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         self.yAxis = d3.svg.axis()
             .scale(self.y)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
 
         self.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);

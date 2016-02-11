@@ -293,7 +293,8 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yAxis = d3.svg.axis()
             .scale(this.y)
             .ticks(5)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
     },
 
     callXAxis: function() {
