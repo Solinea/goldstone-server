@@ -17,7 +17,7 @@ from django.conf import settings
 from goldstone.core import resource
 from goldstone.test_utils import Setup
 
-from .models import Image, Network, Project, Server, Interface, Volume
+from .models import Image, NeutronNetwork, Project, Server, Interface, Volume
 from .tests import load_persistent_rg
 from .views import TopologyView
 
@@ -41,7 +41,7 @@ NODES = [(Image, "a"),
          (Interface, "0"),
          (Project, "p0"),
          (Server, "abc"),
-         (Network, "n0"),
+         (NeutronNetwork, "n0"),
          (Image, "0003"),
          (Server, "abcd"),
          (Volume, "v0"),
@@ -68,7 +68,7 @@ EDGES = [((Image, "a"),
           (Interface, "0"),
           {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
          ((Project, "p0"),
-          (Network, "n0"),
+          (NeutronNetwork, "n0"),
           {TYPE: TOPOLOGICALLY_OWNS, MIN: 1, MAX: 1}),
          ((Project, "p0"),
           (Image, "0003"),
@@ -255,10 +255,10 @@ class TopologyViewTests(Setup):
                       "resource_list_url":
                       "/nova/servers/?region=None&zone=None",
                       'children': None},
-                     {'label': Network().label(),
-                      "resourcetype": Network.resourcetype(),
-                      "integration": Network.integration(),
-                      "resource_list_url": Network.resource_list_url(),
+                     {'label': NeutronNetwork().label(),
+                      "resourcetype": NeutronNetwork.resourcetype(),
+                      "integration": NeutronNetwork.integration(),
+                      "resource_list_url": NeutronNetwork.resource_list_url(),
                       'children': None},
                      {'label': Image().label(),
                       "resourcetype": Image.resourcetype(),

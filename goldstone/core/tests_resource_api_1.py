@@ -26,7 +26,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, \
     HTTP_401_UNAUTHORIZED
 
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
-    Aggregate, Server, Project, Network, Limits
+    Aggregate, Server, Project, NeutronNetwork, Limits
 from goldstone.core import resource
 from goldstone.core.resource import Types, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
@@ -112,8 +112,8 @@ class CoreResourceTypes(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),
@@ -554,8 +554,8 @@ class CoreResourceTypesDetail(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),

@@ -31,7 +31,7 @@ from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices, \
 
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
-    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, Addon
+    Aggregate, Hypervisor, NeutronPort, Cloudpipe, NeutronNetwork, Project, Server, Addon
 from . import tasks
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
@@ -45,8 +45,8 @@ from elasticsearch_dsl import Search
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
-NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server, Addon]
+NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, NeutronPort,
+              Hypervisor, Project, NeutronNetwork, Server, Addon]
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
@@ -166,13 +166,18 @@ class EmailProducerTests(SimpleTestCase):
 class TaskTests(SimpleTestCase):
     """Test task hooks."""
 
-    @mock.patch('goldstone.core.tasks.cinder_res.update_nodes')
-    @mock.patch('goldstone.core.tasks.glance_res.update_nodes')
-    @mock.patch('goldstone.core.tasks.nova_res.update_nodes')
-    @mock.patch('goldstone.core.tasks.keystone_res.update_nodes')
-    def test_update_persistent_graph(self, update_cinder_mock,
-                                     update_glance_mock, update_nova_mock,
+    @mock.patch('goldstone.core.tasks.update_cinder_nodes')
+    @mock.patch('goldstone.core.tasks.update_glance_nodes')
+    @mock.patch('goldstone.core.tasks.update_nova_nodes')
+    @mock.patch('goldstone.core.tasks.update_keystone_nodes')
+    def test_update_persistent_graph(self,
+                                     update_cinder_mock,
+                                     update_glance_mock,
+                                     update_nova_mock,
                                      update_keystone_mock):
+
+        rv = update_persistent_graph()
+        self.assertEqual(rv, None)
 
         # test clean slate cinder_client mock
         update_cinder_mock.return_value = []
@@ -195,7 +200,6 @@ class TaskTests(SimpleTestCase):
         self.assertTrue(update_glance_mock.called)
         self.assertTrue(update_nova_mock.called)
         self.assertTrue(update_keystone_mock.called)
-
 
     @mock.patch('goldstone.core.tasks.es_conn')
     @mock.patch('goldstone.core.tasks.curator.get_indices')
@@ -782,7 +786,7 @@ class UpdateEdges(SimpleTestCase):
         NODES = [(Host, "deadbeef"),
                  (Image, "deadbeef"),
                  (Cloudpipe, "deadbeef"),
-                 (Port, "deadbeef")]
+                 (NeutronPort, "deadbeef")]
 
         load_persistent_rg(NODES, [])
 
@@ -793,7 +797,7 @@ class UpdateEdges(SimpleTestCase):
 
         # Modify the non-candidate destination nodes' attributes so they have
         # the desired match key and value.
-        for target_type in [Image, Cloudpipe, Port]:
+        for target_type in [Image, Cloudpipe, NeutronPort]:
             for row in target_type.objects.all():
                 row.cloud_attributes = {"hosts": "fred",
                                         "hypervisor_hostname": "fred"}
@@ -819,8 +823,8 @@ class UpdateEdges(SimpleTestCase):
                  (Image, "cad"),
                  (Cloudpipe, "deadbeef"),
                  (Project, "cad"),
-                 (Port, "cad"),
-                 (Network, "cad")]
+                 (NeutronPort, "cad"),
+                 (NeutronNetwork, "cad")]
 
         load_persistent_rg(NODES, [])
 
@@ -831,7 +835,7 @@ class UpdateEdges(SimpleTestCase):
 
         # Modify the candidate destination nodes' attributes so they
         # all have id keys.
-        for target_type in [Image, Cloudpipe, Port, Network, Host]:
+        for target_type in [Image, Cloudpipe, NeutronPort, NeutronNetwork, Host]:
             for row in target_type.objects.all():
                 row.cloud_attributes = {"id": row.native_id}
                 row.save()
@@ -852,12 +856,12 @@ class UpdateEdges(SimpleTestCase):
         self.assertEqual(len(edge), 1)
         #
         # Port destination.
-        dest = Port.objects.all()[0]
+        dest = NeutronPort.objects.all()[0]
         edge = [x for x in node.edges if x[0] == dest.uuid]
         self.assertEqual(len(edge), 1)
         #
         # Network destinations.
-        dest = [x.uuid for x in Network.objects.all()]
+        dest = [x.uuid for x in NeutronNetwork.objects.all()]
         edges = [x for x in node.edges if x[0] in dest]
         self.assertEqual(len(edges), 2)
 

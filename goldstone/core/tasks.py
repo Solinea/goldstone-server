@@ -18,12 +18,13 @@ import curator
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    Alert, EmailProducer, Producer
+    Alert, EmailProducer
 from goldstone.models import es_conn
-import goldstone.cinder.utils as cinder_res
-import goldstone.glance.utils as glance_res
-import goldstone.keystone.utils as keystone_res
-import goldstone.nova.utils as nova_res
+from goldstone.cinder.utils import update_nodes as update_cinder_nodes
+from goldstone.glance.utils import update_nodes as update_glance_nodes
+from goldstone.keystone.utils import update_nodes as update_keystone_nodes
+from goldstone.nova.utils import update_nodes as update_nova_nodes
+from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
 logger = logging.getLogger(__name__)
 
@@ -86,13 +87,17 @@ def update_persistent_graph():
 
     """
 
-    graph_resources = [cinder_res, glance_res, keystone_res, nova_res]
+    graph_resource_funcs = [update_cinder_nodes,
+                            update_glance_nodes,
+                            update_keystone_nodes,
+                            update_nova_nodes,
+                            update_neutron_nodes]
 
-    for obj in graph_resources:
+    for f in graph_resource_funcs:
         try:
-            obj.update_nodes()
+            f()
         except Exception as e:
-            logger.exception(str(e))
+            logger.exception(e)
 
 
 @celery_app.task()

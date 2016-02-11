@@ -18,9 +18,33 @@ def get_client(session=None):
     """Get a neutron v2 client from a keystone session."""
 
     from goldstone.keystone.utils import get_session
-    from neutronclient import client
+    from neutronclient.v2_0 import client
 
     if session is None:
         session = get_session()
 
-    return client.Client('2.0', session=session)
+    return client.Client(session=session)
+
+
+def update_nodes():
+    """Update the Resource graph's Neutron nodes and edges from the current
+    OpenStack cloud state.
+
+    Nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    """
+    from goldstone.core.models import NeutronAgent, NeutronExtension, \
+        NeutronSubnetPool, NeutronRouter, NeutronNetwork, NeutronSubnet, \
+        NeutronFloatingIP, NeutronPort, NeutronSecurityGroup, NeutronQuota, \
+        NeutronSecurityGroupRule
+
+    from goldstone.core.utils import process_resource_type
+
+    for entry in [NeutronAgent, NeutronExtension,NeutronSubnetPool,
+                  NeutronRouter, NeutronNetwork, NeutronSubnet,
+                  NeutronFloatingIP, NeutronPort, NeutronSecurityGroup,
+                  NeutronQuota, NeutronSecurityGroupRule]:
+        process_resource_type(entry)

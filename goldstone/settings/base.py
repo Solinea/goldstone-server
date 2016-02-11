@@ -204,6 +204,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'discover_neutron_topology': {
+        'task': 'goldstone.neutron.tasks.discover_neutron_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
     'update_persistent_graph': {
         'task': 'goldstone.core.tasks.update_persistent_graph',
         'schedule': TOPOLOGY_QUERY_INTERVAL

@@ -19,15 +19,15 @@ from django.test import SimpleTestCase
 
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
-    Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
+    Hypervisor, NeutronPort, Cloudpipe, NeutronNetwork, Project, Server, AvailabilityZone, \
     Flavor, Interface, Keypair, User, Credential, Group
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
-NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server, User, Credential, Group]
+NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, NeutronPort,
+              Hypervisor, Project, NeutronNetwork, Server, User, Credential, Group]
 
 # Aliases to make the code less verbose
 TO = settings.R_ATTRIBUTE.TO
@@ -595,7 +595,7 @@ class ResourceTypesTests(SimpleTestCase):
         do_tezt(Interface,
                 INTERFACE,
                 partial(dictassign, INTERFACE, "mac_addr"),
-                Port,
+                NeutronPort,
                 PORT,
                 partial(dictassign, PORT, "mac_address"))
 

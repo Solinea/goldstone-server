@@ -183,6 +183,7 @@ def process_resource_type(nodetype):
     except Exception as e:
         # if either of these calls throws an exception,
         # catch it and throw an empty list for both
+        logger.exception(e)
         actual_node_data = []
         persistent_nodes = []
 
