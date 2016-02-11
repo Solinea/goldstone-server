@@ -47,9 +47,9 @@ def discover_neutron_topology():
                             AgentData(),
                             client.list_agents())
     _update_neutron_records("extensions",
-                             reg,
-                             ExtensionData(),
-                             client.list_extensions())
+                            reg,
+                            ExtensionData(),
+                            client.list_extensions())
     _update_neutron_records("floatingips",
                             reg,
                             FloatingIPData(),

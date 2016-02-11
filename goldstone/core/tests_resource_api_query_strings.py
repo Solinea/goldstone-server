@@ -261,7 +261,7 @@ class CoreResources(Setup):
                {u'label': u'networks',
                 u'resourcetype': u'networks',
                 u'unique_id':
-                u"<class 'goldstone.core.models.Network'>"},
+                u"<class 'goldstone.core.models.NeutronNetwork'>"},
                },
               {u'native_id': u'n1234',
                u'native_name': u'network 0',
@@ -269,7 +269,7 @@ class CoreResources(Setup):
                {u'label': u'networks',
                 u'resourcetype': u'networks',
                 u'unique_id':
-                u"<class 'goldstone.core.models.Network'>"},
+                u"<class 'goldstone.core.models.NeutronNetwork'>"},
                },
               ],
              10],
@@ -315,7 +315,7 @@ class CoreResources(Setup):
                {u'label': u'networks',
                 u'resourcetype': u'networks',
                 u'unique_id':
-                u"<class 'goldstone.core.models.Network'>"},
+                u"<class 'goldstone.core.models.NeutronNetwork'>"},
                },
               ],
              2]

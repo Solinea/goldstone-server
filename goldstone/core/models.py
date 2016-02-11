@@ -1621,17 +1621,6 @@ class Interface(PolyResource):
         return "mac_addr"
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: NeutronPort,
-                 MATCHING_FN:
-                 lambda f, t: f.get("mac_addr") and
-                 f.get("mac_addr") == t["mac_address"],
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                ]
-
-    @classmethod
     def integration(cls):
 
         return "nova"
@@ -2090,10 +2079,6 @@ class Neutron(PolyResource):
     def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
-
-        # AgentData, ExtensionData, SubnetPoolData, RouterData, \
-        # NetworkData, SubnetData, FloatingIPData, PortData, SecurityGroupData, \
-        # SecurityGroupRuleData, QuotaData
         return [{TO: NeutronAgent,
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
@@ -2151,17 +2136,12 @@ class Neutron(PolyResource):
         return "neutron"
 
 
-def _neutron_clouddata(cls, entries):
+def _neutron_clouddata(cls, name, native_id):
     """Helper function to extract clouddata info from neutron client calls"""
-    result = []
 
-    for entry in entries:
-        # Add the name of the resource type.
-        entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-        result.append(entry)
-
-    return result
+    return [{"name": name,
+             cls.native_id_key(): native_id,
+             cls.resource_type_name_key(): cls.unique_class_id()}]
 
 
 class NeutronAgent(PolyResource):
@@ -2169,9 +2149,7 @@ class NeutronAgent(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_agents().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "agents", "agents")
 
     @classmethod
     def integration(cls):
@@ -2189,9 +2167,7 @@ class NeutronExtension(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_extensions().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "extensions", "extensions")
 
     @classmethod
     def integration(cls):
@@ -2209,9 +2185,7 @@ class NeutronQuota(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_quotas().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "quotas", "quotas")
 
     @classmethod
     def integration(cls):
@@ -2229,17 +2203,8 @@ class NeutronSecurityGroupRule(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_security_group_rules().values()[0]
-        return _neutron_clouddata(cls, entries)
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: NeutronSecurityGroup,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
-                ]
+        return _neutron_clouddata(cls, "security group rules",
+                                  "security group rules")
 
     @classmethod
     def integration(cls):
@@ -2257,9 +2222,8 @@ class NeutronSecurityGroup(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_security_groups().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "security groups",
+                                  "security groups")
 
     @classmethod
     def integration(cls):
@@ -2277,19 +2241,7 @@ class NeutronPort(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_ports().values()[0]
-        return _neutron_clouddata(cls, entries)
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: NeutronFloatingIP,
-                 EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
-                {TO: NeutronSecurityGroup,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
-                ]
+        return _neutron_clouddata(cls, "ports", "ports")
 
     @classmethod
     def integration(cls):
@@ -2307,9 +2259,7 @@ class NeutronFloatingIP(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_floatingips().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "floating IPs", "floating IPs")
 
     @classmethod
     def integration(cls):
@@ -2327,17 +2277,7 @@ class NeutronSubnet(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_subnets().values()[0]
-        return _neutron_clouddata(cls, entries)
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: NeutronNetwork,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
-                ]
+        return _neutron_clouddata(cls, "subnets", "subnets")
 
     @classmethod
     def integration(cls):
@@ -2355,9 +2295,7 @@ class NeutronSubnetPool(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_subnetpools().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "subnet pools", "subnet pools")
 
     @classmethod
     def integration(cls):
@@ -2375,9 +2313,7 @@ class NeutronNetwork(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_networks().values()[0]
-        return _neutron_clouddata(cls, entries)
+        return _neutron_clouddata(cls, "networks", "networks")
 
     @classmethod
     def integration(cls):
@@ -2395,20 +2331,7 @@ class NeutronRouter(PolyResource):
 
     @classmethod
     def clouddata(cls):
-        client = get_neutron_client()
-        entries = client.list_routers().values()[0]
-        return _neutron_clouddata(cls, entries)
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: NeutronNetwork,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                {TO: NeutronPort,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}},
-                ]
+        return _neutron_clouddata(cls, "routers", "routers")
 
     @classmethod
     def integration(cls):

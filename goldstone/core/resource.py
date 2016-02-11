@@ -27,7 +27,8 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Volume, Limits, NeutronQuota, NeutronSecurityGroupRule, \
     NeutronSecurityGroup, NeutronPort, NeutronFloatingIP, NeutronSubnet, \
     NeutronNetwork, NeutronRouter, Addon, PolyResource, Cinder, Glance, Nova, \
-    Neutron, Keystone, Transfer
+    Neutron, Keystone, Transfer, NeutronAgent, NeutronSubnetPool, \
+    NeutronExtension
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
@@ -38,7 +39,8 @@ RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   NeutronQuota, NeutronSecurityGroupRule,
                   NeutronSecurityGroup, NeutronPort, NeutronFloatingIP,
                   NeutronSubnet, NeutronNetwork, NeutronRouter, Cinder, Glance,
-                  Nova, Neutron, Keystone, Transfer]
+                  Nova, Neutron, Keystone, Transfer, NeutronAgent,
+                  NeutronSubnetPool, NeutronExtension]
 
 # Aliases to make the Resource Graph definitions less verbose.
 TO = settings.R_ATTRIBUTE.TO

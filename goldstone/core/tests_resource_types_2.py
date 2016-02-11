@@ -436,8 +436,8 @@ class ResourceAddonTypes(Setup):
         # imports the desired test models file.
         DATA = [{"name": "core.test_addons_nomodels",
                  "version": "42",
-                 "manufacturer": "Lynbrook Senior High School",
-                 "url_root": "lynbrook"},
+                 "manufacturer": "Hyperion",
+                 "url_root": "hyperion"},
                 ]
 
         # Load up the Addon table.

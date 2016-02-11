@@ -375,7 +375,7 @@ class CoreResources(Setup):
                            {u'label': u'networks',
                             u'resourcetype': u'networks',
                             u'unique_id':
-                            u"<class 'goldstone.core.models.Network'>"},
+                            u"<class 'goldstone.core.models.NeutronNetwork'>"},
                            },
                           {u'native_id': u'a1',
                            u'native_name': u'availabilityzone 0',
@@ -392,7 +392,7 @@ class CoreResources(Setup):
                            {u'label': u'networks',
                             u'resourcetype': u'networks',
                             u'unique_id':
-                            u"<class 'goldstone.core.models.Network'>"},
+                            u"<class 'goldstone.core.models.NeutronNetwork'>"},
                            },
                           {u'native_id': u'123456',
                            u'native_name': u'host 2',
@@ -498,6 +498,8 @@ class CoreResources(Setup):
         # Test the result's nodes, sans UUIDs.
         for entry in content["nodes"]:
             del entry["uuid"]
+
+        self.maxDiff = None
 
         self.assertItemsEqual(content["nodes"], EXPECTED_NODES)
 

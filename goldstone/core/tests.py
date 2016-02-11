@@ -31,12 +31,13 @@ from goldstone.core.tasks import check_for_pending_alerts, prune_es_indices, \
 
 from goldstone.test_utils import Setup
 from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
-    Aggregate, Hypervisor, NeutronPort, Cloudpipe, NeutronNetwork, Project, Server, Addon
-from . import tasks
+    Aggregate, Hypervisor, NeutronPort, Cloudpipe, NeutronNetwork, Project, \
+    Server, Addon
+
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
 from goldstone.core.models import SavedSearch, CADFEventDocType, \
-    AlertSearch, Alert, EmailProducer
+    AlertSearch, Alert, EmailProducer, _hash, _neutron_clouddata
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
 from elasticsearch_dsl import Search
@@ -45,8 +46,8 @@ from elasticsearch_dsl import Search
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
-NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, NeutronPort,
-              Hypervisor, Project, NeutronNetwork, Server, Addon]
+NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe,
+              NeutronPort, Hypervisor, Project, NeutronNetwork, Server, Addon]
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
@@ -91,6 +92,33 @@ def load_persistent_rg(startnodes, startedges):
         # Save it in the row.
         fromnode.edges = edges
         fromnode.save()
+
+
+class ModelFunctionTests(TestCase):
+    """Test functions in core.models"""
+
+    def test_hash(self):
+        """Function always return a 64 char string"""
+
+        objs = [None, 'a', '1', 1, 1.5, object, [], {}]
+
+        for o in objs:
+            h = _hash(o)
+            self.assertEqual(len(h), 64)
+
+        self.assertEqual(len(_hash(objs)), 64)
+
+    def test_neutron_clouddata(self):
+        """Function returns a list with a single dict inside"""
+
+        EXPECTED = [{
+            'type_name': "<class 'goldstone.core.models.NeutronNetwork'>",
+            'name': 'net1',
+            'id': 'net1_id'}]
+
+        result = _neutron_clouddata(NeutronNetwork, "net1", "net1_id")
+
+        self.assertEqual(result, EXPECTED)
 
 
 class EmailProducerTests(SimpleTestCase):
@@ -835,7 +863,8 @@ class UpdateEdges(SimpleTestCase):
 
         # Modify the candidate destination nodes' attributes so they
         # all have id keys.
-        for target_type in [Image, Cloudpipe, NeutronPort, NeutronNetwork, Host]:
+        for target_type in [Image, Cloudpipe, NeutronPort, NeutronNetwork,
+                            Host]:
             for row in target_type.objects.all():
                 row.cloud_attributes = {"id": row.native_id}
                 row.save()

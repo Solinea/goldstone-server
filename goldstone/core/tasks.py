@@ -117,56 +117,6 @@ def expire_auth_tokens():
 
 
 @celery_app.task()
-def log_event_search():
-    """Check to see if any SavedSearch objects owned by the event system need
-        to be executed.  If so, run them and create events for matching
-        results."""
-
-    owner = 'events'
-    indices = 'logstash-*'
-
-    # TODO need IDs for these things, else pycadf will gen a UUID.
-    event_initiator = resource.Resource(typeURI="service/oss/monitoring",
-                                        name="log_event_search")
-
-    event_observer = event_initiator
-
-    event_target = resource.Resource(typeURI="service/oss/monitoring",
-                                     name="logging_service")
-
-    # limit our searches to those owned by us, and concerned with logs
-    saved_searches = SavedSearch.objects.filter(
-        owner=owner, index_prefix=indices)
-
-    # stub out the event
-    e = event.Event(
-        eventType=cadftype.EVENTTYPE_MONITOR,
-        action='monitor',
-        outcome=cadftaxonomy.OUTCOME_SUCCESS,
-        name="goldstone.events.tasks.log_event_search")
-    e.initiator = event_initiator
-    e.observer = event_observer
-    e.target = event_target
-
-    for obj in saved_searches:
-        # execute the search, and assuming no error, update the last_ times
-        s, start, end = obj.search_recent()
-        response = s.execute()
-        if response.hits.total > 0:
-            met = metric.Metric(metricId=obj.uuid, unit="count", name=obj.name)
-            meas = measurement.Measurement(result=response.hits.total,
-                                           metric=met)
-            e.add_measurement(meas)
-
-        obj.last_start = start
-        obj.last_end = end
-        obj.save()
-
-    cadf = CADFEventDocType(event=e)
-    return cadf.save()
-
-
-@celery_app.task()
 def check_for_pending_alerts():
     """
      Run an AlertSearch query to check for any pending alerts to be fired.

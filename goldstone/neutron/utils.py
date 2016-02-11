@@ -43,7 +43,7 @@ def update_nodes():
 
     from goldstone.core.utils import process_resource_type
 
-    for entry in [NeutronAgent, NeutronExtension,NeutronSubnetPool,
+    for entry in [NeutronAgent, NeutronExtension, NeutronSubnetPool,
                   NeutronRouter, NeutronNetwork, NeutronSubnet,
                   NeutronFloatingIP, NeutronPort, NeutronSecurityGroup,
                   NeutronQuota, NeutronSecurityGroupRule]:
