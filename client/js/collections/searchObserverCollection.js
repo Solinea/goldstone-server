@@ -19,7 +19,7 @@
 /*
 instantiated in logSearchPageView.js as:
 
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
 
@@ -29,7 +29,7 @@ instantiated in logSearchPageView.js as:
         });
 */
 
-var LogBrowserCollection = GoldstoneBaseCollection.extend({
+var SearchObserverCollection = GoldstoneBaseCollection.extend({
 
     // "this.filter" is set via logBrowserViz upon instantiation.
     // "this.modifyUrlBase" is used to modify the urlBase when a
@@ -113,6 +113,7 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
         var result = '';
 
+        // "this.filter" is set via logBrowserViz upon instantiation.
         if (this.hasOwnProperty('filter')) {
             result += this.addFilterIfPresent();
         }

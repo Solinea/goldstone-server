@@ -37,7 +37,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
 

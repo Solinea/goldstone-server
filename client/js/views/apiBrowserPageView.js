@@ -24,7 +24,7 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
-        this.apiSearchObserverCollection = new LogBrowserCollection({
+        this.apiSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/api-calls/',
             skipFetch: true
         });

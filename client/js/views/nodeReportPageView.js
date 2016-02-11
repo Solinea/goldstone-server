@@ -320,7 +320,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
         // });
 
         var self = this;
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        this.logBrowserVizCollection = new SearchObserverCollection({
             urlBase: '/logging/summarize/',
 
             // specificHost applies to this chart when instantiated

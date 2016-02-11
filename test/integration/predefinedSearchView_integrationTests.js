@@ -45,7 +45,7 @@ describe('predefinedSearchView.js', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testCollection = new LogBrowserCollection({
+        this.testCollection = new SearchObserverCollection({
             urlBase: '/blah/de/blah/',
             skipFetch: true
         });

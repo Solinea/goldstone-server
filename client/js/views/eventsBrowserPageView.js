@@ -24,7 +24,7 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
 
-        this.eventsSearchObserverCollection = new LogBrowserCollection({
+        this.eventsSearchObserverCollection = new SearchObserverCollection({
 
             // overwriting to call timestamp instead of "@timestamp"
             addRange: function() {

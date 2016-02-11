@@ -20,7 +20,7 @@ http://datatables.net/reference/api/
 
 instantiated on eventsBrowserPageView as:
 
-this.eventsSearchObserverCollection = new LogBrowserCollection({
+this.eventsSearchObserverCollection = new SearchObserverCollection({
 
     // overwriting to call timestamp instead of "@timestamp"
     addRange: function() {

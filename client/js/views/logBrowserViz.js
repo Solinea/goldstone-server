@@ -29,7 +29,7 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
             specificHost: this.specificHost,

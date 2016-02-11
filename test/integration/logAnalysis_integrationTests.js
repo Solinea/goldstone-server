@@ -35,13 +35,13 @@ describe('logAnalysis.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(LogBrowserCollection.prototype, "fetch");
+        this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
 
         var testEnd = (+new Date());
         var testStart = (testEnd - (15 * 60 * 1000));
 
 
-        this.testCollection = new LogBrowserCollection({
+        this.testCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true
         });
