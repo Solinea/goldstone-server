@@ -233,6 +233,19 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
+                    // missing values will generate a dataTables error
+                    // so fill in with empty string
+                    _.each(filteredFirstTsData, function(record) {
+                        _.each(columns, function(col) {
+
+                            // if the data record is
+                            // missing that column attribute...
+                            if (!record[col.title]) {
+                                record[col.title] = '';
+                            }
+                        });
+                    });
+
                     $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
@@ -280,7 +293,17 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
                 }
             } else {
-                goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
+
+                // if dataTable previously initialized, just clear and 
+                // append 'no data returned' message.
+                // but if never initialized, just raise alert for 'no data'
+                var loc = '#multi-rsrc-table';
+                if ($.fn.dataTable.isDataTable(loc)) {
+                    oTable = $(loc).DataTable();
+                    oTable.clear().draw();
+                } else {
+                    goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
+                }
             }
 
         }).fail(function(error) {
