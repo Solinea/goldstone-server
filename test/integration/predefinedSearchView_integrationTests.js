@@ -119,5 +119,60 @@ describe('predefinedSearchView.js', function() {
             $('[data-uuid="null"]').click();
             expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
         });
+        it('filters out undesired saved searches from the dropdown list', function() {
+            var test1 = this.testView.pruneSearchList([]);
+            expect(test1).to.deep.equal([]);
+
+            test1 = this.testView.pruneSearchList();
+            expect(test1).to.equal();
+
+            test1 = this.testView.pruneSearchList(['a', 'b', 'c']);
+            expect(test1).to.deep.equal(['a', 'b', 'c']);
+
+            var bannedSearchList = {
+                'pistachio': true
+            };
+            test1 = this.testView.pruneSearchList([{
+                'name': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'pistachio',
+                'hopeToSee': 'nope'
+            }], bannedSearchList);
+            expect(test1).to.deep.equal([{
+                'name': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'vanilla',
+                'hopeToSee': 'yep'
+            }]);
+
+            bannedSearchList = {
+                'pistachio': true
+            };
+            test1 = this.testView.pruneSearchList([{
+                'nameFake': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'pistachio',
+                'hopeToSee': 'yep'
+            }], bannedSearchList);
+            expect(test1).to.deep.equal([{
+                'nameFake': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'pistachio',
+                'hopeToSee': 'yep'
+            }]);
+        });
     });
 });
