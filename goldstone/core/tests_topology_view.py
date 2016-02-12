@@ -258,7 +258,7 @@ class TopologyViewTests(Setup):
                      {'label': NeutronNetwork().label(),
                       "resourcetype": NeutronNetwork.resourcetype(),
                       "integration": NeutronNetwork.integration(),
-                      "resource_list_url": NeutronNetwork.resource_list_url(),
+                      "resource_list_url": "/neutron/networks/?region=None",
                       'children': None},
                      {'label': Image().label(),
                       "resourcetype": Image.resourcetype(),

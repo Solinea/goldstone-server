@@ -2159,7 +2159,12 @@ class NeutronAgent(PolyResource):
     @classmethod
     def resourcetype(cls):
 
-        return "agent"
+        return "agents"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-agents") + "/?region={region}"
 
 
 class NeutronExtension(PolyResource):
@@ -2179,6 +2184,11 @@ class NeutronExtension(PolyResource):
 
         return "extensions"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-extensions") + "/?region={region}"
+
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
@@ -2197,6 +2207,11 @@ class NeutronQuota(PolyResource):
 
         return "quotas"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-quotas") + "/?region={region}"
+
 
 class NeutronSecurityGroupRule(PolyResource):
     """An OpenStack Security Rules."""
@@ -2214,7 +2229,12 @@ class NeutronSecurityGroupRule(PolyResource):
     @classmethod
     def resourcetype(cls):
 
-        return "security rules"
+        return "security group rules"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-security-group-rules") + "/?region={region}"
 
 
 class NeutronSecurityGroup(PolyResource):
@@ -2235,6 +2255,11 @@ class NeutronSecurityGroup(PolyResource):
 
         return "security groups"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-security-groups") + "/?region={region}"
+
 
 class NeutronPort(PolyResource):
     """An OpenStack Port."""
@@ -2252,6 +2277,11 @@ class NeutronPort(PolyResource):
     def resourcetype(cls):
 
         return "ports"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-ports") + "/?region={region}"
 
 
 class NeutronFloatingIP(PolyResource):
@@ -2271,6 +2301,11 @@ class NeutronFloatingIP(PolyResource):
 
         return "floating ip addresses"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-floating-ips") + "/?region={region}"
+
 
 class NeutronSubnet(PolyResource):
     """An OpenStack subnet."""
@@ -2288,6 +2323,11 @@ class NeutronSubnet(PolyResource):
     def resourcetype(cls):
 
         return "subnets"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-subnets") + "/?region={region}"
 
 
 class NeutronSubnetPool(PolyResource):
@@ -2307,6 +2347,11 @@ class NeutronSubnetPool(PolyResource):
 
         return "subnet pools"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-subnet-pools") + "/?region={region}"
+
 
 class NeutronNetwork(PolyResource):
     """An OpenStack network."""
@@ -2325,6 +2370,11 @@ class NeutronNetwork(PolyResource):
 
         return "networks"
 
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-networks") + "/?region={region}"
+
 
 class NeutronRouter(PolyResource):
     """An OpenStack router."""
@@ -2342,6 +2392,11 @@ class NeutronRouter(PolyResource):
     def resourcetype(cls):
 
         return "routers"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-routers") + "/?region={region}"
 
 
 class SavedSearch(models.Model):

@@ -351,12 +351,12 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Neutron'>"},
-                    {u'resourcetype': u'agent',
+                    {u'resourcetype': u'agents',
                      u'unique_id':
                          u"<class 'goldstone.core.models.NeutronAgent'>",
                      u'integration': u'neutron',
                      u'present': False,
-                     u'label': u'agent'},
+                     u'label': u'agents'},
                     {u'resourcetype': u'extensions',
                      u'unique_id':
                          u"<class 'goldstone.core.models.NeutronExtension'>",
@@ -376,13 +376,13 @@ class CoreResourceTypes(Setup):
                      u'integration': u'neutron',
                      u'present': False,
                      u'label': u'security groups'},
-                    {u'resourcetype': u'security rules',
+                    {u'resourcetype': u'security group rules',
                      u'unique_id':
                          u"<class 'goldstone.core.models."
                          u"NeutronSecurityGroupRule'>",
                      u'integration': u'neutron',
                      u'present': False,
-                     u'label': u'security rules'}
+                     u'label': u'security group rules'}
                     ]
 
         # This code is for ticket #105611698. Coming into this test, the
@@ -430,6 +430,7 @@ class CoreResourceTypes(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
+        self.maxDiff = None
         content = json.loads(response.content)["nodes"]
         self.assertItemsEqual(content, EXPECTED)
 
