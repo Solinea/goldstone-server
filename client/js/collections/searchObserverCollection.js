@@ -19,7 +19,7 @@
 /*
 instantiated in logSearchPageView.js as:
 
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
 
@@ -29,7 +29,7 @@ instantiated in logSearchPageView.js as:
         });
 */
 
-var LogBrowserCollection = GoldstoneBaseCollection.extend({
+var SearchObserverCollection = GoldstoneBaseCollection.extend({
 
     // "this.filter" is set via logBrowserViz upon instantiation.
     // "this.modifyUrlBase" is used to modify the urlBase when a
@@ -92,9 +92,8 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + computedInterval + 's';
     },
 
-    addCustom: function(custom) {
-
-        // adds parmaters that match the selected severity filters
+    addFilterIfPresent: function() {
+        // adds parmaters that matcXh the selected severity filters
         var result = '&syslog_severity__terms=[';
 
         var levels = this.filter || {};
@@ -107,6 +106,17 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
         result = result.slice(0, result.indexOf(',]'));
         result += "]";
+        return result;
+    },
+
+    addCustom: function(custom) {
+
+        var result = '';
+
+        // "this.filter" is set via logBrowserViz upon instantiation.
+        if (this.hasOwnProperty('filter')) {
+            result += this.addFilterIfPresent();
+        }
 
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node

@@ -163,7 +163,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                            // ascDec + columnLabelHash[orderByColumn];
+                        // ascDec + columnLabelHash[orderByColumn];
                     }
 
 
@@ -171,6 +171,12 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // apiViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -178,13 +184,37 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        return finalResult;
+    },
+
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
-        data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
+
         result = JSON.stringify(result);
         return result;
     },

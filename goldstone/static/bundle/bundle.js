@@ -107,29 +107,6 @@ goldstone.uuid = function() {
         s4() + '-' + s4() + s4() + s4();
 };
 
-goldstone.time = goldstone.time || {};
-
-goldstone.time.fromPyTs = function(t) {
-    "use strict";
-
-    if (typeof t === 'number') {
-        return new Date(Math.round(t) * 1000);
-    } else {
-        return new Date(Math.round(Number(t) * 1000));
-    }
-};
-
-goldstone.time.toPyTs = function(t) {
-    "use strict";
-
-    // TODO decide whether toPyTs should only handle date objects.  Handling numbers may cause unexpected results.
-    if (typeof t === 'number') {
-        return String(Math.round(t / 1000));
-    } else if (Object.prototype.toString.call(t) === '[object Date]') {
-        return String(Math.round(t.getTime() / 1000));
-    }
-};
-
 window.onerror = function(message, fileURL, lineNumber) {
     console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
@@ -1615,7 +1592,8 @@ var ChartSet = GoldstoneBaseView.extend({
         this.yAxis = d3.svg.axis()
             .scale(this.y)
             .ticks(5)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
     },
 
     callXAxis: function() {
@@ -2651,138 +2629,6 @@ var InfoButtonText = GoldstoneBaseModel.extend({
  */
 
 /*
-
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
-
-this.eventsBrowserTable = new EventsBrowserDataTableView({
-    chartTitle: 'Events Browser',
-    collection: this.eventsBrowserTableCollection,
-    el: '#events-browser-table',
-    infoIcon: 'fa-table',
-    width: $('#events-browser-table').width()
-});
-
-*/
-
-// define collection and link to model
-var ApiBrowserTableCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: "/core/api-calls/",
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    preProcessData: function(data) {
-        if(data) {
-            return data;
-        }
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
-
-this.eventsBrowserView = new ChartSet({
-    chartTitle: 'Events Histogram',
-    collection: this.eventsBrowserVizCollection,
-    el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
-    width: $('#events-histogram-visualization').width(),
-    yAxisLabel: 'Number of Events'
-});
- */
-
-// define collection and link to model
-
-var ApiHistogramCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/api-calls/',
-
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
-    checkForAdditionalPages: function() {
-        return true;
-    },
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addInterval: function(n) {
-        n = n || this.interval;
-        return '&interval=' + n + 's';
-    },
-
-    addPageSize: function(n) {
-        return '&page_size=1';
-    },
-
-    preProcessData: function(data) {
-
-        var self = this;
-
-        // initialize container for formatted results
-        var finalResult = [];
-
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
-
-        // returning inside the 'parse' function adds to collection
-        // and triggers 'sync'
-        return finalResult;
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
@@ -2815,132 +2661,6 @@ var ApiPerfCollection = GoldstoneBaseCollection.extend({
         return '&component=' + this.componentParam;
     }
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserTableCollection = new EventsBrowserTableCollection({});
-
-this.eventsBrowserTable = new EventsBrowserDataTableView({
-    chartTitle: 'Events Browser',
-    collection: this.eventsBrowserTableCollection,
-    el: '#events-browser-table',
-    infoIcon: 'fa-table',
-    width: $('#events-browser-table').width()
-});
-
-*/
-
-// define collection and link to model
-var EventsBrowserTableCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/events/',
-
-    addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
- /*
-instantiated on eventsBrowserPageView as:
-
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
-
-this.eventsBrowserView = new ChartSet({
-    chartTitle: 'Events Histogram',
-    collection: this.eventsBrowserVizCollection,
-    el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
-    width: $('#events-histogram-visualization').width(),
-    yAxisLabel: 'Number of Events'
-});
- */
-
-// define collection and link to model
-
-var EventsHistogramCollection = GoldstoneBaseCollection.extend({
-    instanceSpecificInit: function() {
-        this.urlGenerator();
-    },
-
-    urlBase: '/core/events/',
-
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
-    checkForAdditionalPages: function() {
-        return true;
-    },
-
-    addRange: function() {
-        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addInterval: function(n) {
-        n = n || this.interval;
-        return '&interval=' + n + 's';
-    },
-
-    addPageSize: function(n) {
-        return '&page_size=1';
-    },
-
-    preProcessData: function(data) {
-
-        var self = this;
-
-        // initialize container for formatted results
-        var finalResult = [];
-
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
-
-        // returning inside the 'parse' function adds to collection
-        // and triggers 'sync'
-        return finalResult;
-    }
 });
 ;
 /**
@@ -3187,213 +2907,6 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
         ]
     }
 
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-/*
-instantiated in logSearchPageView.js as:
-
-        this.logSearchObserverCollection = new LogBrowserCollection({
-            urlBase: '/core/logs/',
-            skipFetch: true,
-
-            // specificHost applies to this chart when instantiated
-            // on a node report page to scope it to that node
-            specificHost: this.specificHost,
-        });
-*/
-
-var LogBrowserCollection = GoldstoneBaseCollection.extend({
-
-    // "this.filter" is set via logBrowserViz upon instantiation.
-    // "this.modifyUrlBase" is used to modify the urlBase when a
-    // predefinedSearchDropdown search is triggered
-
-    isZoomed: false,
-    zoomedStart: null,
-    zoomedEnd: null,
-
-    addRange: function() {
-
-        if (this.isZoomed) {
-            return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
-        } else {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        }
-
-    },
-
-    checkForAdditionalPages: function() {
-
-        // additional pages are not relevant, as only the
-        // results/aggregations will be used.
-        return true;
-    },
-
-    modifyUrlBase: function(url) {
-
-        // allows predefinedSearchView to alter the urlBase and set it
-        // back to the original value by passing null.
-
-        this.originalUrlBase = this.originalUrlBase || this.urlBase;
-
-        if (url === null) {
-            this.urlBase = this.originalUrlBase;
-        } else {
-            this.urlBase = url;
-        }
-    },
-
-    addInterval: function() {
-        var computedInterval;
-        var start;
-        var end;
-
-        if (this.isZoomed) {
-            start = this.zoomedStart;
-            end = this.zoomedEnd;
-        } else {
-            start = this.gte;
-            end = this.epochNow;
-        }
-
-        // interval ratio of 1/20th the time span in seconds.
-        computedInterval = ((end - start) / 20000);
-        // ensure a minimum of 0.5second interval
-        computedInterval = Math.max(0.5, computedInterval);
-        // round to 3 decimal places
-        computedInterval = Math.round(computedInterval * 1000) / 1000;
-        return '&interval=' + computedInterval + 's';
-    },
-
-    addCustom: function(custom) {
-
-        // adds parmaters that match the selected severity filters
-        var result = '&syslog_severity__terms=[';
-
-        var levels = this.filter || {};
-        for (var k in levels) {
-            if (levels[k]) {
-                result = result.concat('"', k.toLowerCase(), '",');
-            }
-        }
-        result += "]";
-
-        result = result.slice(0, result.indexOf(',]'));
-        result += "]";
-
-        // specificHost applies to this chart when instantiated
-        // on a node report page to scope it to that node
-        if (this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
-    },
-
-    triggerDataTableFetch: function() {
-        // hook for logBrowserViz to initiate refresh and fetch
-        this.linkedDataTable.update();
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-/*
-instantiated in logSearchPageView.js as a mixin, no automatic fetch happens:
-
-    this.logBrowserTableCollection = new LogBrowserTableCollection({
-        skipFetch: true,
-        specificHost: this.specificHost,
-        urlBase: '/core/logs/',
-        linkedCollection: this.logBrowserVizCollection
-    });    
-
-    this.logBrowserTable = new LogBrowserDataTableView({
-        chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-        collectionMixin: this.logBrowserTableCollection,
-        el: '#log-viewer-table',
-        infoIcon: 'fa-table',
-        width: $('#log-viewer-table').width()
-    });
-
-*/
-
-var LogBrowserTableCollection = GoldstoneBaseCollection.extend({
-
-    addRange: function() {
-        return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-    },
-
-    addCustom: function() {
-        var result = '&syslog_severity__terms=[';
-
-        var levels = this.filter || {};
-        for (var k in levels) {
-            if (levels[k]) {
-                result = result.concat('"', k.toLowerCase(), '",');
-            }
-        }
-        result += "]";
-
-        result = result.slice(0, result.indexOf(',]'));
-        result += "]";
-
-        if(this.specificHost) {
-            result += '&host=' + this.specificHost;
-        }
-
-        return result;
-    },
-
-    computeLookbackAndInterval: function() {
-
-        // compute epochNow, globalLookback, globalRefresh
-        // this.getGlobalLookbackRefresh();
-        if (this.linkedCollection.isZoomed) {
-            this.gte = this.linkedCollection.zoomedStart;
-            this.epochNow = this.linkedCollection.zoomedEnd;
-        } else {
-            this.gte = this.linkedCollection.gte;
-            this.epochNow = this.linkedCollection.epochNow;
-        }
-
-    }
 
 });
 ;
@@ -3693,6 +3206,142 @@ var ReportsReportCollection = Backbone.Collection.extend({
 
         this.fetch();
     }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+/*
+instantiated in logSearchPageView.js as:
+
+        this.logSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/logs/',
+            skipFetch: true,
+
+            // specificHost applies to this chart when instantiated
+            // on a node report page to scope it to that node
+            specificHost: this.specificHost,
+        });
+*/
+
+var SearchObserverCollection = GoldstoneBaseCollection.extend({
+
+    // "this.filter" is set via logBrowserViz upon instantiation.
+    // "this.modifyUrlBase" is used to modify the urlBase when a
+    // predefinedSearchDropdown search is triggered
+
+    isZoomed: false,
+    zoomedStart: null,
+    zoomedEnd: null,
+
+    addRange: function() {
+
+        if (this.isZoomed) {
+            return '?@timestamp__range={"gte":' + this.zoomedStart + ',"lte":' + this.zoomedEnd + '}';
+        } else {
+            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+        }
+
+    },
+
+    checkForAdditionalPages: function() {
+
+        // additional pages are not relevant, as only the
+        // results/aggregations will be used.
+        return true;
+    },
+
+    modifyUrlBase: function(url) {
+
+        // allows predefinedSearchView to alter the urlBase and set it
+        // back to the original value by passing null.
+
+        this.originalUrlBase = this.originalUrlBase || this.urlBase;
+
+        if (url === null) {
+            this.urlBase = this.originalUrlBase;
+        } else {
+            this.urlBase = url;
+        }
+    },
+
+    addInterval: function() {
+        var computedInterval;
+        var start;
+        var end;
+
+        if (this.isZoomed) {
+            start = this.zoomedStart;
+            end = this.zoomedEnd;
+        } else {
+            start = this.gte;
+            end = this.epochNow;
+        }
+
+        // interval ratio of 1/20th the time span in seconds.
+        computedInterval = ((end - start) / 20000);
+        // ensure a minimum of 0.5second interval
+        computedInterval = Math.max(0.5, computedInterval);
+        // round to 3 decimal places
+        computedInterval = Math.round(computedInterval * 1000) / 1000;
+        return '&interval=' + computedInterval + 's';
+    },
+
+    addFilterIfPresent: function() {
+        // adds parmaters that matcXh the selected severity filters
+        var result = '&syslog_severity__terms=[';
+
+        var levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toLowerCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+        return result;
+    },
+
+    addCustom: function(custom) {
+
+        var result = '';
+
+        // "this.filter" is set via logBrowserViz upon instantiation.
+        if (this.hasOwnProperty('filter')) {
+            result += this.addFilterIfPresent();
+        }
+
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        if (this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
+    },
+
+    triggerDataTableFetch: function() {
+        // hook for logBrowserViz to initiate refresh and fetch
+        this.linkedDataTable.update();
+    }
+
 });
 ;
 /**
@@ -4157,7 +3806,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
                         // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
-                            // ascDec + columnLabelHash[orderByColumn];
+                        // ascDec + columnLabelHash[orderByColumn];
                     }
 
 
@@ -4165,6 +3814,12 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // apiViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -4172,13 +3827,37 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        return finalResult;
+    },
+
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via apiBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
-        data = JSON.parse(data);
         var result = {
             results: data.results,
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
+
         result = JSON.stringify(result);
         return result;
     },
@@ -4216,62 +3895,69 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
 
 var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
     renderCharts: function() {
 
-        this.apiBrowserVizCollection = new ApiHistogramCollection({});
-
-        this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
-            collection: this.apiBrowserVizCollection,
-            el: '#api-histogram-visualization',
-            infoIcon: 'fa-tasks',
-            width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
-            marginLeft: 60
+        this.apiSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/api-calls/',
+            skipFetch: true
         });
 
-        // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
-            skipFetch: true
+        this.apiBrowserView = new ChartSet({
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
+            collection: this.apiSearchObserverCollection,
+            el: '#api-histogram-visualization',
+            marginLeft: 60,
+            width: $('#api-histogram-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
-            collectionMixin: this.apiBrowserTableCollection,
+            collectionMixin: this.apiSearchObserverCollection,
             el: '#api-browser-table',
-            infoIcon: 'fa-table',
             width: $('#api-browser-table').width()
         });
 
         // render predefinedSearch Dropdown
         this.predefinedSearchDropdown = new PredefinedSearchView({
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                }
-            }),
+            collection: this.apiSearchObserverCollection,
             index_prefix: 'api_stats-*',
             settings_redirect: '/#reports/apibrowser/search'
-
         });
 
         this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
+        // create linkages from the master collection back to the viz'
+        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
+        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable, this.predefinedSearchDropdown];
-    },
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.apiBrowserView.trigger('lookbackSelectorChanged');
-            this.apiBrowserTable.trigger('lookbackSelectorChanged');
-        }
+        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     templateButtonSelectors: [
@@ -4295,25 +3981,6 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
         '</div>'
     )
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-var ApiBrowserView = ChartSet.extend({
 });
 ;
 /**
@@ -5282,13 +4949,39 @@ http://datatables.net/reference/api/
 
 instantiated on eventsBrowserPageView as:
 
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+this.eventsSearchObserverCollection = new SearchObserverCollection({
+
+    // overwriting to call timestamp instead of "@timestamp"
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    urlBase: '/core/events/',
+    skipFetch: true
+});
 
 this.eventsBrowserView = new ChartSet({
-    chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
-    collection: this.eventsBrowserVizCollection,
+
+    // overwrite processListeners
+    processListeners: function() {
+        var self = this;
+
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            self.showSpinner();
+            self.collection.triggerDataTableFetch();
+        });
+    },
+
+    chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
+    collection: this.eventsSearchObserverCollection,
     el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
+    marginLeft: 60,
     width: $('#events-histogram-visualization').width(),
     yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
 });
@@ -5366,7 +5059,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.cachedSearch = searchQuery;
 
                     // convert strings to numbers for both
-                    self.cachedPageSize = parseInt(pageSize, 10); 
+                    self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
 
                     // capture which column was clicked
@@ -5421,6 +5114,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // eventViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
                     data = self.serverSideDataPrep(data);
 
                     // add to JavaScript engine event loop to be handled
@@ -5433,7 +5131,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     // make the 'throw-away' version identical to the
                     // currently rendered table for better UX
-                    if(self.mockForAjaxReturn) {
+                    if (self.mockForAjaxReturn) {
                         return JSON.stringify(
                             self.mockForAjaxReturn
                         );
@@ -5459,6 +5157,30 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
+    },
+
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        return finalResult;
+    },
+
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via eventBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
     },
 
     createNewDataTableFromResults: function(headings, results) {
@@ -5491,7 +5213,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     serverSideDataPrep: function(data) {
-        data = JSON.parse(data);
         var result = {
 
             // run results through pre-processing step
@@ -5510,10 +5231,10 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     extractUniqAndDataSet: function(data) {
         var self = this;
-        
+
         // strip object down to things in 'traits' and then
         // flatten object before returning it to the dataPrep function
-        
+
         var result = data.map(function(record) {
             return record._source.traits;
         });
@@ -5639,7 +5360,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             // firefox puts the cursor at the beginning of the search box
             // after re-focus. Use the native 'input' element method
             // setSelectionRange to force cursor position to end of input box
-            if($('input')[0].setSelectionRange) {
+            if ($('input')[0].setSelectionRange) {
                 var len = $('input.form-control').val().length * 2; // ensure end
                 $('input.form-control')[0].setSelectionRange(len, len);
             } else {
@@ -5678,64 +5399,77 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
 var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.eventsBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
     renderCharts: function() {
 
-        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+        this.eventsSearchObserverCollection = new SearchObserverCollection({
+
+            // overwriting to call timestamp instead of "@timestamp"
+            addRange: function() {
+                return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+            },
+
+            urlBase: '/core/events/',
+            skipFetch: true
+        });
 
         this.eventsBrowserView = new ChartSet({
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
             chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
-            collection: this.eventsBrowserVizCollection,
+            collection: this.eventsSearchObserverCollection,
             el: '#events-histogram-visualization',
-            infoIcon: 'fa-tasks',
             marginLeft: 60,
             width: $('#events-histogram-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
-        // for access to url generation functions
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({
-            skipFetch: true
-        });
-
         this.eventsBrowserTable = new EventsBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
-            collectionMixin: this.eventsBrowserTableCollection,
+            collectionMixin: this.eventsSearchObserverCollection,
             el: '#events-browser-table',
-            infoIcon: 'fa-table',
             width: $('#events-browser-table').width()
         });
 
         // render predefinedSearch Dropdown
         this.predefinedSearchDropdown = new PredefinedSearchView({
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                },
-            }),
+            collection: this.eventsSearchObserverCollection,
             index_prefix: 'events_*',
             settings_redirect: '/#reports/eventbrowser/search'
-
         });
 
         this.eventsBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
+        // create linkages from the master collection back to the viz'
+        this.eventsSearchObserverCollection.linkedViz = this.eventsBrowserView;
+        this.eventsSearchObserverCollection.linkedDataTable = this.eventsBrowserTable;
+        this.eventsSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable, this.predefinedSearchDropdown
+            this.eventsSearchObserverCollection, this.eventsBrowserView, this.eventsBrowserTable, this.predefinedSearchDropdown
         ];
-    },
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.eventsBrowserView.trigger('lookbackSelectorChanged');
-            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
-        }
     },
 
     templateButtonSelectors: [
@@ -5983,7 +5717,7 @@ var EventsReportView = GoldstoneBaseView.extend({
                             ascDec = '-';
                         }
 
-                        // TODO: uncomment when ordering is in place.
+                        // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
                         //     ascDec + columnLabelHash[orderByColumn];
                     }
@@ -6926,6 +6660,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // logViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -6933,9 +6673,17 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via logBrowserViz
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(data);
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
         var self = this;
-        data = JSON.parse(data);
 
         _.each(data.results, function(item) {
 
@@ -6948,11 +6696,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             item.host = item._source.host || '';
         });
 
-        // send data to collection to be rendered via logBrowserViz
-        // when the 'sync' event is triggered
-        self.collectionMixin.reset();
-        self.collectionMixin.add(data);
-        self.collectionMixin.trigger('sync');
 
         var result = {
             results: data.results,
@@ -6974,6 +6717,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     )
 });
 ;
+
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7004,7 +6748,7 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
             specificHost: this.specificHost,
@@ -7158,7 +6902,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         self.yAxis = d3.svg.axis()
             .scale(self.y)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
 
         self.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
@@ -7660,12 +7405,11 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        var self = this;
-
+        
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable
-        this.logSearchObserverCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true,
 
@@ -7704,8 +7448,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
         this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
         this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
-
-        // TODO: delete logBrowserTableCollection
         
         // destroy listeners and views upon page close
         this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
@@ -9608,7 +9350,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
         // });
 
         var self = this;
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        this.logBrowserVizCollection = new SearchObserverCollection({
             urlBase: '/logging/summarize/',
 
             // specificHost applies to this chart when instantiated
@@ -9628,7 +9370,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
-        this.logBrowserTableCollection = new LogBrowserTableCollection({
+        this.logBrowserTableCollection = new SearchObserverCollection({
             skipFetch: true,
             specificHost: this.specificHost,
             urlBase: '/logging/search/',
@@ -10055,6 +9797,25 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         this.getPredefinedSearches();
     },
 
+    // do not render these searches in any of the dropdown lists
+    bannedSearchList: {
+        'service status': true,
+        'api call query': true,
+        'event query': true,
+        'log query': true
+    },
+
+    pruneSearchList: function(list, filterSet) {
+        filterSet = filterSet || {};
+
+        if (Array.isArray(list)) {
+            list = list.filter(function(search) {
+                return filterSet[search.name] !== true;
+            });
+        }
+        return list;
+    },
+
     getPredefinedSearches: function() {
         var self = this;
 
@@ -10072,7 +9833,8 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             .done(
                 function(result) {
                     if (result.results && result.results.length) {
-                        self.predefinedSearches = result.results;
+                        // prune out eponymous and non-user searches
+                        self.predefinedSearches = self.pruneSearchList(result.results, self.bannedSearchList);
                     } else {
                         self.predefinedSearches = failAppend;
                     }
@@ -10088,7 +9850,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         var result = '';
 
         // add 'none' as a method of returning to the default search
-        result += '<li data-uuid="null">' + goldstone.translate("None (reset to default)") + '</li>';
+        result += '<li data-uuid="null">' + goldstone.translate("None (reset)") + '</li>';
 
         _.each(arr, function(item) {
             result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
@@ -10518,20 +10280,30 @@ var ReportsReportView = GoldstoneBaseView.extend({
  */
 
 /*
-implemented on SavedSearchLogPageView as:
+implemented on SavedSearchPageView as:
+
+    var fsa = this.featureSetAttributes;
+        var fs = this.featureSet;
+        var urlBase = '/core/saved_search/';
+
+    $("select#global-lookback-range").hide();
+    $("select#global-refresh-range").hide();
 
     this.savedSearchLogCollection = new GoldstoneBaseCollection({
-            skipFetch: true
-        });
-        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
-
-        this.savedSearchLogView = new savedSearchDataTableView({
-            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
-            collectionMixin: this.savedSearchLogCollection,
-            el: "#saved-search-viz",
-            infoIcon: 'fa-table',
-            width: $('#saved-search-viz').width()
-        });
+        skipFetch: true
+    });
+    this.savedSearchLogCollection.urlBase = urlBase;
+    this.savedSearchLogView = new SavedSearchDataTableView({
+        chartTitle: goldstone.translate(fsa[fs].chartTitle),
+        collectionMixin: this.savedSearchLogCollection,
+        el: "#saved-search-viz",
+        form_index_prefix: fsa[fs].form_index_prefix,
+        form_doc_type: 'syslog',
+        form_timestamp_field: fsa[fs].form_timestamp_field,
+        urlRoot: urlBase,
+        iDisplayLengthOverride: 25,
+        width: $('#saved-search-viz').width()
+    });
 
 */
 
@@ -10544,9 +10316,9 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    // form_index_prefix: 'logstash-*',
-    // form_doc_type: 'syslog',
-    // form_timestamp_field: '@timestamp',
+    // form_index_prefix: 'logstash-*' || 'api_stats-*' || 'events_*',
+    // form_doc_type: 'syslog' || api_stats || blank,
+    // form_timestamp_field: '@timestamp' || 'timestamp',
     // urlRoot: '/core/saved_search/',
     // iDisplayLengthOverride: 25,
 
@@ -11161,6 +10933,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
     featureSetAttributes: {
         'api': {
             chartTitle: 'Saved Searches: API Browser',
+            form_doc_type: 'api_stats',
             form_index_prefix: 'api_stats-*',
             form_timestamp_field: '@timestamp',
             templateButtonSelectors: [
@@ -11171,6 +10944,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         },
         'event': {
             chartTitle: 'Saved Searches: Event Browser',
+            form_doc_type: null,
             form_index_prefix: 'events_*',
             form_timestamp_field: 'timestamp',
             templateButtonSelectors: [
@@ -11181,6 +10955,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         },
         'log': {
             chartTitle: 'Saved Searches: Log Browser',
+            form_doc_type: 'syslog',
             form_index_prefix: 'logstash-*',
             form_timestamp_field: '@timestamp',
             templateButtonSelectors: [
@@ -11209,7 +10984,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
             form_index_prefix: fsa[fs].form_index_prefix,
-            form_doc_type: 'syslog',
+            form_doc_type: fsa[fs].form_doc_type,
             form_timestamp_field: fsa[fs].form_timestamp_field,
             urlRoot: urlBase,
             iDisplayLengthOverride: 25,

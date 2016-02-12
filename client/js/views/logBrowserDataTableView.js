@@ -160,6 +160,12 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // logViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
+                    // process data for dataTable consumption
                     data = self.serverSideDataPrep(data);
                     return data;
                 }
@@ -167,9 +173,17 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
         };
     },
 
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via logBrowserViz
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(data);
+        this.collectionMixin.trigger('sync');
+    },
+
     serverSideDataPrep: function(data) {
         var self = this;
-        data = JSON.parse(data);
 
         _.each(data.results, function(item) {
 
@@ -182,11 +196,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             item.host = item._source.host || '';
         });
 
-        // send data to collection to be rendered via logBrowserViz
-        // when the 'sync' event is triggered
-        self.collectionMixin.reset();
-        self.collectionMixin.add(data);
-        self.collectionMixin.trigger('sync');
 
         var result = {
             results: data.results,

@@ -2411,8 +2411,12 @@ class SavedSearch(models.Model):
     query = models.TextField(help_text='JSON Elasticsearch query body')
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
+    hidden = models.BooleanField(blank=True, default=False,
+                                 help_text='True if this search should not be'
+                                           'presented via the view')
     index_prefix = models.CharField(max_length=64)
-    doc_type = models.CharField(max_length=64)
+    doc_type = models.CharField(max_length=64, blank=True, null=True,
+                                default=None)
     timestamp_field = models.CharField(max_length=64, null=True)
     last_start = models.DateTimeField(blank=True, null=True)
     last_end = models.DateTimeField(blank=True, null=True)
@@ -2431,8 +2435,10 @@ class SavedSearch(models.Model):
 
         s = Search.from_dict(json.loads(self.query))\
             .using(DailyIndexDocType._doc_type.using)\
-            .index(self.index_prefix)\
-            .doc_type(self.doc_type)
+            .index(self.index_prefix)
+
+        if self.doc_type is not None:
+            s = s.doc_type(self.doc_type)
 
         return s
 

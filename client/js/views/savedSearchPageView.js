@@ -24,6 +24,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
     featureSetAttributes: {
         'api': {
             chartTitle: 'Saved Searches: API Browser',
+            form_doc_type: 'api_stats',
             form_index_prefix: 'api_stats-*',
             form_timestamp_field: '@timestamp',
             templateButtonSelectors: [
@@ -34,6 +35,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         },
         'event': {
             chartTitle: 'Saved Searches: Event Browser',
+            form_doc_type: null,
             form_index_prefix: 'events_*',
             form_timestamp_field: 'timestamp',
             templateButtonSelectors: [
@@ -44,6 +46,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
         },
         'log': {
             chartTitle: 'Saved Searches: Log Browser',
+            form_doc_type: 'syslog',
             form_index_prefix: 'logstash-*',
             form_timestamp_field: '@timestamp',
             templateButtonSelectors: [
@@ -72,7 +75,7 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
             collectionMixin: this.savedSearchLogCollection,
             el: "#saved-search-viz",
             form_index_prefix: fsa[fs].form_index_prefix,
-            form_doc_type: 'syslog',
+            form_doc_type: fsa[fs].form_doc_type,
             form_timestamp_field: fsa[fs].form_timestamp_field,
             urlRoot: urlBase,
             iDisplayLengthOverride: 25,

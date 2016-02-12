@@ -220,7 +220,7 @@ var EventsReportView = GoldstoneBaseView.extend({
                             ascDec = '-';
                         }
 
-                        // TODO: uncomment when ordering is in place.
+                        // uncomment when ordering is in place.
                         // settings.url = settings.url + "&ordering=" +
                         //     ascDec + columnLabelHash[orderByColumn];
                     }

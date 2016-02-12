@@ -320,7 +320,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
         // });
 
         var self = this;
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        this.logBrowserVizCollection = new SearchObserverCollection({
             urlBase: '/logging/summarize/',
 
             // specificHost applies to this chart when instantiated
@@ -340,7 +340,7 @@ var NodeReportPageView = GoldstoneBasePageView.extend({
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
-        this.logBrowserTableCollection = new LogBrowserTableCollection({
+        this.logBrowserTableCollection = new SearchObserverCollection({
             skipFetch: true,
             specificHost: this.specificHost,
             urlBase: '/logging/search/',

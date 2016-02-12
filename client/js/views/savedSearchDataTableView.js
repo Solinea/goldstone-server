@@ -15,20 +15,30 @@
  */
 
 /*
-implemented on SavedSearchLogPageView as:
+implemented on SavedSearchPageView as:
+
+    var fsa = this.featureSetAttributes;
+        var fs = this.featureSet;
+        var urlBase = '/core/saved_search/';
+
+    $("select#global-lookback-range").hide();
+    $("select#global-refresh-range").hide();
 
     this.savedSearchLogCollection = new GoldstoneBaseCollection({
-            skipFetch: true
-        });
-        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
-
-        this.savedSearchLogView = new savedSearchDataTableView({
-            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
-            collectionMixin: this.savedSearchLogCollection,
-            el: "#saved-search-viz",
-            infoIcon: 'fa-table',
-            width: $('#saved-search-viz').width()
-        });
+        skipFetch: true
+    });
+    this.savedSearchLogCollection.urlBase = urlBase;
+    this.savedSearchLogView = new SavedSearchDataTableView({
+        chartTitle: goldstone.translate(fsa[fs].chartTitle),
+        collectionMixin: this.savedSearchLogCollection,
+        el: "#saved-search-viz",
+        form_index_prefix: fsa[fs].form_index_prefix,
+        form_doc_type: 'syslog',
+        form_timestamp_field: fsa[fs].form_timestamp_field,
+        urlRoot: urlBase,
+        iDisplayLengthOverride: 25,
+        width: $('#saved-search-viz').width()
+    });
 
 */
 
@@ -41,9 +51,9 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    // form_index_prefix: 'logstash-*',
-    // form_doc_type: 'syslog',
-    // form_timestamp_field: '@timestamp',
+    // form_index_prefix: 'logstash-*' || 'api_stats-*' || 'events_*',
+    // form_doc_type: 'syslog' || api_stats || blank,
+    // form_timestamp_field: '@timestamp' || 'timestamp',
     // urlRoot: '/core/saved_search/',
     // iDisplayLengthOverride: 25,
 
