@@ -35,7 +35,7 @@ var TopologyPageView = GoldstoneBasePageView.extend({
             collection: this.discoverTreeCollection,
             chartTitle: goldstone.translate('Cloud Topology'),
             el: '#goldstone-discover-r1-c1',
-            height: 600,
+            height: 700,
             infoText: 'discoverCloudTopology',
             multiRsrcViewEl: '#goldstone-discover-r1-c2',
             width: $('#goldstone-discover-r1-c2').width(),

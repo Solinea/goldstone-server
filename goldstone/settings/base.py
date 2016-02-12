@@ -204,6 +204,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'discover_neutron_topology': {
+        'task': 'goldstone.neutron.tasks.discover_neutron_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
     'update_persistent_graph': {
         'task': 'goldstone.core.tasks.update_persistent_graph',
         'schedule': TOPOLOGY_QUERY_INTERVAL
@@ -211,10 +215,6 @@ CELERYBEAT_SCHEDULE = {
     'expire_auth_tokens': {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
         'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
-    },
-    'log_event_search': {
-        'task': 'goldstone.core.tasks.log_event_search',
-        'schedule': crontab(minute='*/1')
     },
     'check_for_pending_alerts': {
         'task': 'goldstone.core.tasks.check_for_pending_alerts',

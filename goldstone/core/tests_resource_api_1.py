@@ -26,7 +26,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND, \
     HTTP_401_UNAUTHORIZED
 
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
-    Aggregate, Server, Project, Network, Limits
+    Aggregate, Server, Project, NeutronNetwork, Limits
 from goldstone.core import resource
 from goldstone.core.resource import Types, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
@@ -112,8 +112,8 @@ class CoreResourceTypes(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),
@@ -130,12 +130,6 @@ class CoreResourceTypes(Setup):
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Region'>"},
-                    {u'label': u'floating ip pools',
-                     u'resourcetype': u'floating ip pools',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.FloatingIPPool'>"},
                     {u'label': u'groups',
                      u'resourcetype': u'groups',
                      u'integration': u'keystone',
@@ -146,17 +140,12 @@ class CoreResourceTypes(Setup):
                      u'integration': u'nova',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Flavor'>"},
-                    {u'label': u'lb virtual ips',
-                     u'resourcetype': u'lb virtual ips',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.LBVIP'>"},
                     {u'label': u'floating ip addresses',
                      u'resourcetype': u'floating ip addresses',
                      u'integration': u'neutron',
                      u'present': False,
                      u'unique_id':
-                     u"<class 'goldstone.core.models.FloatingIP'>"},
+                     u"<class 'goldstone.core.models.NeutronFloatingIP'>"},
                     {u'label': u'hypervisors',
                      u'resourcetype': u'hypervisors',
                      u'integration': u'nova',
@@ -173,27 +162,17 @@ class CoreResourceTypes(Setup):
                      u'integration': u'keystone',
                      u'present': True,
                      u'unique_id': u"<class 'goldstone.core.models.Project'>"},
-                    {u'label': u'fixed ip addresses',
-                     u'resourcetype': u'fixed ip addresses',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.FixedIP'>"},
                     {u'label': u'routers',
                      u'resourcetype': u'routers',
                      u'integration': u'neutron',
                      u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.Router'>"},
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronRouter'>"},
                     {u'label': u'users',
                      u'resourcetype': u'users',
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.User'>"},
-                    {u'label': u'remote groups',
-                     u'resourcetype': u'remote groups',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.RemoteGroup'>"},
                     {u'label': u'limits',
                      u'resourcetype': u'limits',
                      u'integration': u'nova',
@@ -204,7 +183,8 @@ class CoreResourceTypes(Setup):
                      u'resourcetype': u'ports',
                      u'integration': u'neutron',
                      u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.Port'>"},
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronPort'>"},
                     {u'label': u'volume types',
                      u'resourcetype': u'volume types',
                      u'integration': u'cinder',
@@ -215,7 +195,8 @@ class CoreResourceTypes(Setup):
                      u'resourcetype': u'networks',
                      u'integration': u'neutron',
                      u'present': True,
-                     u'unique_id': u"<class 'goldstone.core.models.Network'>"},
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronNetwork'>"},
                     {u'label': u'limits',
                      u'resourcetype': u'limits',
                      u'integration': u'cinder',
@@ -236,45 +217,23 @@ class CoreResourceTypes(Setup):
                      u'resourcetype': u'subnets',
                      u'integration': u'neutron',
                      u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.Subnet'>"},
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronSubnet'>"},
                     {u'label': u'volumes',
                      u'resourcetype': u'volumes',
                      u'integration': u'cinder',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Volume'>"},
-                    {u'label': u'lb pools',
-                     u'resourcetype': u'lb pools',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id': u"<class 'goldstone.core.models.LBPool'>"},
                     {u'label': u'domains',
                      u'resourcetype': u'domains',
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Domain'>"},
-                    {u'label': u'metering labels',
-                     u'resourcetype': u'metering labels',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.MeteringLabel'>"},
-                    {u'label': u'metering label rules',
-                     u'resourcetype': u'metering label rules',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.MeteringLabelRule'>"},
                     {u'label': u'tokens',
                      u'resourcetype': u'tokens',
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Token'>"},
-                    {u'label': u'security rules',
-                     u'resourcetype': u'security rules',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.SecurityRules'>"},
                     {u'label': u'keypairs',
                      u'resourcetype': u'keypairs',
                      u'integration': u'nova',
@@ -302,12 +261,6 @@ class CoreResourceTypes(Setup):
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id': u"<class 'goldstone.core.models.Service'>"},
-                    {u'label': u'lb members',
-                     u'resourcetype': u'lb members',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.LBMember'>"},
                     {u'label': u'snapshots',
                      u'resourcetype': u'snapshots',
                      u'integration': u'cinder',
@@ -338,24 +291,12 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Credential'>"},
-                    {u'label': u'security groups',
-                     u'resourcetype': u'security groups',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.SecurityGroup'>"},
                     {u'label': u'endpoints',
                      u'resourcetype': u'endpoints',
                      u'integration': u'keystone',
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Endpoint'>"},
-                    {u'label': u'health monitors',
-                     u'resourcetype': u'health monitors',
-                     u'integration': u'neutron',
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.HealthMonitor'>"},
                     {u'label': u'qos specs',
                      u'resourcetype': u'qos specs',
                      u'integration': u'cinder',
@@ -410,6 +351,38 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.Neutron'>"},
+                    {u'resourcetype': u'agents',
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronAgent'>",
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'label': u'agents'},
+                    {u'resourcetype': u'extensions',
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronExtension'>",
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'label': u'extensions'},
+                    {u'resourcetype': u'subnet pools',
+                     u'unique_id':
+                         u"<class 'goldstone.core.models.NeutronSubnetPool'>",
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'label': u'subnet pools'},
+                    {u'resourcetype': u'security groups',
+                     u'unique_id':
+                         u"<class 'goldstone.core.models."
+                         u"NeutronSecurityGroup'>",
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'label': u'security groups'},
+                    {u'resourcetype': u'security group rules',
+                     u'unique_id':
+                         u"<class 'goldstone.core.models."
+                         u"NeutronSecurityGroupRule'>",
+                     u'integration': u'neutron',
+                     u'present': False,
+                     u'label': u'security group rules'}
                     ]
 
         # This code is for ticket #105611698. Coming into this test, the
@@ -457,6 +430,7 @@ class CoreResourceTypes(Setup):
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
+        self.maxDiff = None
         content = json.loads(response.content)["nodes"]
         self.assertItemsEqual(content, EXPECTED)
 
@@ -554,8 +528,8 @@ class CoreResourceTypesDetail(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),

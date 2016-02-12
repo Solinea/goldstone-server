@@ -18,9 +18,13 @@ import curator
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    Alert, EmailProducer, Producer
+    Alert, EmailProducer
 from goldstone.models import es_conn
-from celery.exceptions import RetryTaskError
+from goldstone.cinder.utils import update_nodes as update_cinder_nodes
+from goldstone.glance.utils import update_nodes as update_glance_nodes
+from goldstone.keystone.utils import update_nodes as update_keystone_nodes
+from goldstone.nova.utils import update_nodes as update_nova_nodes
+from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
 logger = logging.getLogger(__name__)
 
@@ -82,15 +86,18 @@ def update_persistent_graph():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.cinder.utils import update_nodes as update_cinder_nodes
-    from goldstone.glance.utils import update_nodes as update_glance_nodes
-    from goldstone.keystone.utils import update_nodes as update_keystone_nodes
-    from goldstone.nova.utils import update_nodes as update_nova_nodes
 
-    update_cinder_nodes()
-    update_glance_nodes()
-    update_keystone_nodes()
-    update_nova_nodes()
+    graph_resource_funcs = [update_cinder_nodes,
+                            update_glance_nodes,
+                            update_keystone_nodes,
+                            update_nova_nodes,
+                            update_neutron_nodes]
+
+    for f in graph_resource_funcs:
+        try:
+            f()
+        except Exception as e:
+            logger.exception(e)
 
 
 @celery_app.task()
@@ -107,56 +114,6 @@ def expire_auth_tokens():
     from rest_framework.authtoken.models import Token
 
     Token.objects.all().delete()
-
-
-@celery_app.task()
-def log_event_search():
-    """Check to see if any SavedSearch objects owned by the event system need
-        to be executed.  If so, run them and create events for matching
-        results."""
-
-    owner = 'events'
-    indices = 'logstash-*'
-
-    # TODO need IDs for these things, else pycadf will gen a UUID.
-    event_initiator = resource.Resource(typeURI="service/oss/monitoring",
-                                        name="log_event_search")
-
-    event_observer = event_initiator
-
-    event_target = resource.Resource(typeURI="service/oss/monitoring",
-                                     name="logging_service")
-
-    # limit our searches to those owned by us, and concerned with logs
-    saved_searches = SavedSearch.objects.filter(
-        owner=owner, index_prefix=indices)
-
-    # stub out the event
-    e = event.Event(
-        eventType=cadftype.EVENTTYPE_MONITOR,
-        action='monitor',
-        outcome=cadftaxonomy.OUTCOME_SUCCESS,
-        name="goldstone.events.tasks.log_event_search")
-    e.initiator = event_initiator
-    e.observer = event_observer
-    e.target = event_target
-
-    for obj in saved_searches:
-        # execute the search, and assuming no error, update the last_ times
-        s, start, end = obj.search_recent()
-        response = s.execute()
-        if response.hits.total > 0:
-            met = metric.Metric(metricId=obj.uuid, unit="count", name=obj.name)
-            meas = measurement.Measurement(result=response.hits.total,
-                                           metric=met)
-            e.add_measurement(meas)
-
-        obj.last_start = start
-        obj.last_end = end
-        obj.save()
-
-    cadf = CADFEventDocType(event=e)
-    return cadf.save()
 
 
 @celery_app.task()
