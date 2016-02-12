@@ -659,6 +659,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // these params will be omitted from the returned data before
         // rendering as a data table in 'resource list'
 
+        neutron: [
+            'region',
+            'security_group_rules',
+            'external_gateway_info'
+        ],
+
         nova: ['@timestamp',
             'metadata',
             'region',
