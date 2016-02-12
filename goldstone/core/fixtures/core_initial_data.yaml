@@ -277,7 +277,7 @@
       doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
-      hidden: true
+      hidden: false
       query: '{
     "size": 0,
    "query": {
