@@ -329,6 +329,10 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         $(location).text(': ' + text);
     },
 
+    kebabCase: function(name) {
+        return name.split(' ').join('-');
+    },
+
     processTree: function(json) {
         // not used in zoomablePartitionView
         // but must keep for old collapsable tree style viz
@@ -425,8 +429,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             .append("g")
             .attr("class", function(d) {
 
+                // main cloud won't have a resouce type, but needs
+                // the cloud icon
+                d.resourcetype = d.resourcetype || "cloud";
+
+                // kebab-case-the-class-name
+                d.resourcetype = self.kebabCase(d.resourcetype);
                 // append icon based on resourcetype, mapped to the d3.map
-                return "icon main " + (d.resourcetype || "cloud") + "-icon";
+                return "icon main " + d.resourcetype + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
 
@@ -434,21 +444,21 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         d3.map({
             icon_backup: ['backups', 'snapshots'],
             icon_cloud: ['cloud'],
-            icon_endpoint: ['endpoints', 'internal', 'public', 'admin'],
+            icon_endpoint: ['endpoints', 'internal', 'public', 'admin', 'floating-ip-addresses', 'ports'],
             icon_host: ['host', 'hosts', 'hypervisors',
                 'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder', 'region', 'regions'
             ],
             icon_image: ['images'],
-            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons'],
+            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons', 'subnets'],
             icon_role: ['roles'],
-            icon_service: ['service', 'services'],
-            icon_tenant: ['tenants'],
-            icon_types: ['types'],
+            icon_service: ['services', 'security-group-rules', 'routers'],
+            icon_tenant: ['tenants', 'security-groups'],
+            icon_types: ['volume-types', 'subnet-pools', 'extensions'],
             icon_user: ['users'],
-            icon_volume: ['volume', 'volumes'],
+            icon_volume: ['quotas'],
             icon_vol_transfer: ['agents', 'transfers'],
             icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks', 'zones'
+                'flavors', 'floating-ip-pools', 'networks', 'subnets', 'zones'
             ]
 
         }).forEach(function(icon, classes) {

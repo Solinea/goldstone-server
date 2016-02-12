@@ -38,7 +38,9 @@ describe('eventsReportView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testCollection = new GoldstoneBaseCollection({urlBase: "/go/team/"});
+        this.testCollection = new GoldstoneBaseCollection({
+            urlBase: "/go/team/"
+        });
 
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
@@ -199,6 +201,28 @@ describe('eventsReportView.js spec', function() {
         });
         it('loads leaf data', function() {
             // this.testView.loadLeafData('test');
+        });
+        it('kebab-cases', function() {
+            var test1 = this.testView.kebabCase('');
+            expect(test1).to.equal('');
+
+            test1 = this.testView.kebabCase('hello');
+            expect(test1).to.equal('hello');
+
+            test1 = this.testView.kebabCase('hello there');
+            expect(test1).to.equal('hello-there');
+
+            test1 = this.testView.kebabCase(' hello there');
+            expect(test1).to.equal('-hello-there');
+
+            test1 = this.testView.kebabCase(' hello there ');
+            expect(test1).to.equal('-hello-there-');
+
+            test1 = this.testView.kebabCase(' hello  there ');
+            expect(test1).to.equal('-hello--there-');
+
+            test1 = this.testView.kebabCase('now there are five words');
+            expect(test1).to.equal('now-there-are-five-words');
         });
     });
 });
