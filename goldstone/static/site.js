@@ -49,11 +49,11 @@ $(document).ready(function() {
     });
 
     $('.user-control').click(function() {
-        $('.menu-wrapper').slideToggle();
+        $('.menu-wrapper').slideToggle('fast');
     });
 
     $('.user-control').mouseleave(function() {
-        $('.menu-wrapper').slideUp();
+        $('.menu-wrapper').slideUp('fast');
     });
 
     $('.remove-btn').click(function() {
