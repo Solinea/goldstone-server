@@ -23,7 +23,9 @@ govern the expanding menu actions.
 $(document).ready(function() {
 
     // trigger: 'hover' will dismiss when mousing-out
-    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
+    });
 
     $('.menu-toggle').click(function() {
         $('.tab-content').removeClass('open');
@@ -112,7 +114,7 @@ $(document).ready(function() {
     and JS:
 
     <i class="setting-btn">&nbsp;</i>
-    
+
     $('.setting-btn').click(function() {
         $('.modal').fadeIn();
     });
