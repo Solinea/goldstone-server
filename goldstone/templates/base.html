@@ -204,8 +204,8 @@ limitations under the License.
         <!-- when changing the client lib files, adjust siteLibLoadOrder.js -->
 
         <script src="{% static 'bundle/libs.js' %}"></script>
-        <script src="{% static 'bundle/bundle.js' %}"></script>
         <script type="text/javascript" src="/static/site.js"></script>
+        <script src="{% static 'bundle/bundle.js' %}"></script>
         <!-- append addon script tags here -->
         {% if compliance_installed %}
             <script src="{% static 'client-js/compliance.js' %}"></script>
