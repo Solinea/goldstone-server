@@ -9830,7 +9830,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         var result = '';
 
         // add 'none' as a method of returning to the default search
-        result += '<li data-uuid="null">' + goldstone.translate("None (reset to default)") + '</li>';
+        result += '<li data-uuid="null">' + goldstone.translate("None (reset)") + '</li>';
 
         _.each(arr, function(item) {
             result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';

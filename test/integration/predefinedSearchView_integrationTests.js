@@ -102,7 +102,7 @@ describe('predefinedSearchView.js', function() {
         it('places "None" at the top of the list', function() {
             this.testView.populatePredefinedSearches();
             this.testView.renderUpdatedResultList();
-            expect($('.predefined-search-container').text()).to.include('Predefined Searches None (reset to default)');
+            expect($('.predefined-search-container').text()).to.include('Predefined Searches None (reset)');
         });
         it('appends the search name to the dropdown title', function() {
             var testArr = [{
