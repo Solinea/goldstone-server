@@ -448,7 +448,7 @@ class SavedSearchViewSet(ModelViewSet):
                        'updated', 'target_interval', 'description')
 
     def get_queryset(self):
-        return self.query_model.objects.all()
+        return self.query_model.objects.filter(hidden=False)
 
     @detail_route()
     def results(self, request, uuid=None):       # pylint: disable=W0613,R0201

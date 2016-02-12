@@ -114,7 +114,6 @@
       name: event query
       owner: core
       index_prefix: events_*
-      doc_type: ''  # all doc types
       timestamp_field: 'timestamp'
       protected: true
       query: '{
@@ -278,6 +277,7 @@
       doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
+      hidden: true
       query: '{
     "size": 0,
    "query": {
