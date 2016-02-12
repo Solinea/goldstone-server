@@ -9797,6 +9797,25 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         this.getPredefinedSearches();
     },
 
+    // do not render these searches in any of the dropdown lists
+    bannedSearchList: {
+        'service status': true,
+        'api call query': true,
+        'event query': true,
+        'log query': true
+    },
+
+    pruneSearchList: function(list, filterSet) {
+        filterSet = filterSet || {};
+
+        if (Array.isArray(list)) {
+            list = list.filter(function(search) {
+                return filterSet[search.name] !== true;
+            });
+        }
+        return list;
+    },
+
     getPredefinedSearches: function() {
         var self = this;
 
@@ -9814,7 +9833,8 @@ PredefinedSearchView = GoldstoneBaseView.extend({
             .done(
                 function(result) {
                     if (result.results && result.results.length) {
-                        self.predefinedSearches = result.results;
+                        // prune out eponymous and non-user searches
+                        self.predefinedSearches = self.pruneSearchList(result.results, self.bannedSearchList);
                     } else {
                         self.predefinedSearches = failAppend;
                     }
