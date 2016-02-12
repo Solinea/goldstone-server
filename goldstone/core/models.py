@@ -2582,8 +2582,8 @@ class SavedSearch(models.Model):
         import json
 
         s = Search.from_dict(json.loads(self.query))\
-                .using(DailyIndexDocType._doc_type.using)\
-                .index(self.index_prefix)
+            .using(DailyIndexDocType._doc_type.using)\
+            .index(self.index_prefix)
 
         if self.doc_type is not None:
             s = s.doc_type(self.doc_type)

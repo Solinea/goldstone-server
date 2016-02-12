@@ -144,7 +144,7 @@ class GetPostTests(SearchSetup):
         # table's initial data. We verify the result count, the next and
         # previous keys, and each row's keys.  We don't verify the contents
         # of each defined search.
-        expected_rows = SavedSearch.objects.all().count()
+        expected_rows = SavedSearch.objects.filter(hidden=False).count()
         if expected_rows > 10:
             expected_rows = 10
         expected_keys = ['created', 'name', 'protected', 'query', 'updated',
@@ -176,7 +176,7 @@ class GetPostTests(SearchSetup):
         """Good GET request using pages."""
 
         # We'll ask for the last page of single-entry pages.
-        expected_rows = SavedSearch.objects.all().count()
+        expected_rows = SavedSearch.objects.filter(hidden=False).count()
         if expected_rows > 10:
             expected_rows = 10
 
@@ -206,7 +206,7 @@ class GetPostTests(SearchSetup):
         """Good GET request for one search."""
 
         # Select one row from the pre-defined searches.
-        row = SavedSearch.objects.all()[0]
+        row = SavedSearch.objects.filter(hidden=False)[0]
 
         token = create_and_login()
 
