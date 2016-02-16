@@ -22,97 +22,81 @@ govern the expanding menu actions.
 
 $(document).ready(function() {
 
+    // tooltips for side-menu bar icons
     // trigger: 'hover' will dismiss when mousing-out
-    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
+    });
 
+    // when clicking the 'expand' arrow
     $('.menu-toggle').click(function() {
+
+        // close alert menu
         $('.tab-content').removeClass('open');
-        if ($('.sidebar').hasClass('expand-menu')) {
-            $('.sidebar').removeClass('expand-menu');
-        } else {
-            $('.sidebar').addClass('expand-menu');
-        }
+
+        // expand/contract side menu
+        $('.sidebar').toggleClass('expand-menu');
+
+        // flip direction of expand icon
         $(this).find('.expand').toggleClass('open');
 
-        if ($(window).width() < 767) {
-            $('.content').toggleClass('open');
-            $('.footer').toggleClass('open');
-        } else {
-            if ($('.content').hasClass('open')) {
-                $('.content').removeClass('open');
-                $('.footer').removeClass('open');
-            } else {
-                $('.content').addClass('open');
-                $('.footer').addClass('open');
-            }
-        }
+        // toggle menu slide-out for content and footer
+        $('.content').toggleClass('open');
+        $('.footer').toggleClass('open');
     });
 
+    // icon / username top-right menu functionality 
     $('.user-control').click(function() {
-        $('.menu-wrapper').slideToggle();
+        $('.menu-wrapper').slideToggle('fast');
     });
-
     $('.user-control').mouseleave(function() {
-        $('.menu-wrapper').slideUp();
+        $('.menu-wrapper').slideUp('fast');
     });
 
+    // listener for alert divs visible in side alerts menu
     $('.remove-btn').click(function() {
         $(this).parent().remove();
     });
 
-    if ($('.btn-grp').length) {
-        var ind;
-        $('.btn-grp').on('click', 'li', function() {
-            ind = $(this).index() - 1;
+    $('.tab-links li').click(function() {
 
-            if ($(window).width() < 767) {
-                $('body').find('.sidebar').removeClass('expand-menu');
-            }
-            if (!$(this).hasClass('menu-toggle')) {
-                if ($(this).hasClass('active')) {
-                    $('.tab-content').find('.tab').hide();
-                    $('.tab-content').removeClass('open');
-                    $('.tab-content').removeClass('open');
-                    $('.tab-content').find('.tab').eq(ind).hide();
+        // for tabs inside side alerts menu
+        if ($(this).text() == 'Unread') {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().show();
+        } else {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().hide();
+        }
+    });
 
-                } else {
-                    $('.btn-grp li').removeClass('active');
-                    $('.tab-content').find('.tab').hide();
-                    $('.tab-content').removeClass('open');
-                    $(this).addClass('active');
+    // listeners for sidebar menu icon visual classes
+    $('.btn-grp').on('click', 'li', function() {
 
-                    if (ind === 0) {
-                        $('.tab-content').addClass('open');
-                        $('.tab-content').find('.tab').eq(ind).show();
-                    }
-                }
-            }
+        // don't change current tab highlighting when
+        // clicking alert or expand buttons
+        if ($(this).hasClass('menu-toggle')) {
+            return;
+        }
+        if ($(this).hasClass('alerts-tab')) {
+            $('.tab-content').toggleClass('open');
+            $('.tab-content').find('.tab').show();
+            return;
+        }
 
-        });
-
-        $('.tab-links li').click(function() {
-            if ($(this).text() == 'Unread') {
-                $('.active').removeClass('active');
-                $(this).addClass('active');
-                $(this).parent().next().show();
-            } else {
-                $('.active').removeClass('active');
-                $(this).addClass('active');
-                $(this).parent().next().hide();
-            }
-
-
-        });
-    }
-
-
+        // otherwise add icon styling
+        $('.btn-grp li').removeClass('active active-page');
+        $(this).addClass('active active-page');
+    });
 
     /*
     if using slideUX designed modal use this combo of HTML
     and JS:
 
     <i class="setting-btn">&nbsp;</i>
-    
+
     $('.setting-btn').click(function() {
         $('.modal').fadeIn();
     });
