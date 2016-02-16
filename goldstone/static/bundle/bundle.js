@@ -4875,8 +4875,8 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
             featureSet: 'disk',
             height: 350,
             infoText: 'novaDiskResources',
-            el: '#discover-view-r2-c3',
-            width: $('#discover-view-r2-c3').width(),
+            el: '#discover-view-r3-c1',
+            width: $('#discover-view-r3-c1').width(),
             yAxisLabel: goldstone.translate('GB')
         });
 
@@ -4893,8 +4893,8 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
             collection: this.vmSpawnChart,
             height: 350,
             infoText: 'novaSpawns',
-            el: '#discover-view-r2-c4',
-            width: $('#discover-view-r2-c4').width(),
+            el: '#discover-view-r3-c2',
+            width: $('#discover-view-r3-c2').width(),
             yAxisLabel: goldstone.translate('Spawn Events')
         });
 
@@ -4918,10 +4918,12 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         // '<div class="row">' +
         '<h4>Resource Usage</h4>' +
         '<div id="discover-view-r2" class="row">' +
-        '<div id="discover-view-r2-c1" class="col-md-3"></div>' +
-        '<div id="discover-view-r2-c2" class="col-md-3"></div>' +
-        '<div id="discover-view-r2-c3" class="col-md-3"></div>' +
-        '<div id="discover-view-r2-c4" class="col-md-3"></div>' +
+        '<div id="discover-view-r2-c1" class="col-md-6"></div>' +
+        '<div id="discover-view-r2-c2" class="col-md-6"></div>' +
+        '</div>' +
+        '<div id="discover-view-r3" class="row">' +
+        '<div id="discover-view-r3-c1" class="col-md-6"></div>' +
+        '<div id="discover-view-r3-c2" class="col-md-6"></div>' +
         '</div>'
     )
 
