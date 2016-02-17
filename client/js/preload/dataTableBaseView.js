@@ -324,7 +324,6 @@ var DataTableBaseView = GoldstoneBaseView.extend({
         } else {
             return result[1];
         }
-        return result;
     },
 
     getSortAscDesc: function(input) {
