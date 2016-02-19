@@ -76,7 +76,6 @@ INSTALLED_APPS = (
     'goldstone.core',
     'goldstone.drfes',
     'goldstone.glance',
-    'goldstone.addons',
     'goldstone.keystone',
     'goldstone.neutron',
     'goldstone.nova',

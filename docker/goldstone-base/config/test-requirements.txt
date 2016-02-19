@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-tox==2.1.1
+coverage==3.7.1
+django-nose
+flower==0.8.2
+mkdocs
+mock==1.0.1
 pep8==1.5.7
 pyflakes==0.7.3
 pylint==1.5.0
-coverage==3.7.1
 selenium==2.40.0
 sphinx
-mock==1.0.1
-flower==0.8.2
-fake-factory
-mkdocs
-django-nose
