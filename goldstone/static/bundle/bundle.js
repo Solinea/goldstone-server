@@ -13653,9 +13653,24 @@ goldstone.init = function() {
 
 
     // append username to header
-    $.get('/user/', function(item) {
+    $.get('/user/', function() {}).done(function(item) {
         var userInfo = item.email;
         $('.username').text(userInfo);
+
+        // redirect to tenant settings page if os_* fields
+        // not already populated
+        if (item.os_auth_url !== undefined &&
+            item.os_name !== undefined &&
+            item.os_password !== undefined &&
+            item.os_username !== undefined) {
+
+            if (item.os_auth_url === "" ||
+                item.os_name === "" ||
+                item.os_password === "" ||
+                item.os_username === "") {
+                location.href = "/#settings/tenants";
+            }
+        }
     });
 
     // instantiate translation data that can be set on settingsPageView.
