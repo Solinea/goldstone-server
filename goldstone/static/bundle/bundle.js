@@ -17,98 +17,196 @@
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
 
-// tools for raising alerts
-goldstone.raiseError = function(message) {
-    "use strict";
-    goldstone.raiseDanger(message);
-};
+// adds a number of methods:
+var extendingGoldstone = {
 
-goldstone.raiseDanger = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-danger", message);
-};
+    // tools for raising alerts
+    raiseError: function(message) {
+        "use strict";
+        this.raiseDanger(message);
+    },
 
-goldstone.raiseWarning = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-warning", message);
-};
+    raiseDanger: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-danger", message);
+    },
 
-goldstone.raiseSuccess = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-success", message);
-};
+    raiseWarning: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-warning", message);
+    },
 
-goldstone.raiseInfo = function(message, persist) {
-    "use strict";
+    raiseSuccess: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-success", message);
+    },
 
-    if (persist === true) {
-        goldstone.raiseAlert(".alert-info", message, true);
-    } else {
-        goldstone.raiseAlert(".alert-info", message);
+    raiseInfo: function(message, persist) {
+        "use strict";
+
+        if (persist === true) {
+            this.raiseAlert(".alert-info", message, true);
+        } else {
+            this.raiseAlert(".alert-info", message);
+        }
+
+    },
+
+    raiseAlert: function(selector, message, persist) {
+        "use strict";
+
+        if (message && message.length > 200) {
+            message = message.slice(0, 200) + '...';
+        }
+
+        if (persist) {
+            $(selector).html(message);
+        } else {
+            // commenting out the ability to dismiss the alert, which destroys the
+            // element and prevents additional renderings.
+
+            // $(selector).html(message + '<a href="#" class="close"
+            // data-dismiss="alert">&times;</a>');
+            $(selector).html(message + '<a href="#" class="close" data-dismiss="alert"></a>');
+        }
+
+        var alertWidth = $(selector).parent().width();
+
+        $(selector).fadeIn("slow").css({
+            'position': 'absolute',
+            'width': alertWidth,
+            'z-index': 10
+        });
+
+        if (!persist) {
+            window.setTimeout(function() {
+                $(selector).fadeOut("slow");
+            }, 4000);
+        }
+
+    },
+
+    returnAddonPresent: function(checkName) {
+        var addonList = JSON.parse(localStorage.getItem('addons'));
+        var result = false;
+        _.each(addonList, function(item) {
+            if (item.name && item.name === checkName) {
+                result = true;
+            }
+        });
+        return result;
+    },
+
+    uuid: function() {
+        "use strict";
+
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
     }
-
 };
 
-goldstone.raiseAlert = function(selector, message, persist) {
-    "use strict";
+_.extend(goldstone, extendingGoldstone);
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-    if (message && message.length > 200) {
-        message = message.slice(0, 200) + '...';
-    }
+/*
+jQuery listeners to be instantiated after base.html template load.
+Registering clicks on the menus and handling css changes that
+govern the expanding menu actions.
+*/
 
-    if (persist) {
-        $(selector).html(message);
-    } else {
-        // commenting out the ability to dismiss the alert, which destroys the
-        // element and prevents additional renderings.
 
-        // $(selector).html(message + '<a href="#" class="close"
-        // data-dismiss="alert">&times;</a>');
-        $(selector).html(message + '<a href="#" class="close" data-dismiss="alert"></a>');
-    }
+goldstone.setBaseTemplateListeners = function() {
 
-    var alertWidth = $(selector).parent().width();
-
-    $(selector).fadeIn("slow").css({
-        'position': 'absolute',
-        'width': alertWidth,
-        'z-index': 10
+    // tooltips for side-menu bar icons
+    // trigger: 'hover' will dismiss when mousing-out
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
     });
 
-    if (!persist) {
-        window.setTimeout(function() {
-            $(selector).fadeOut("slow");
-        }, 4000);
-    }
+    // when clicking the 'expand' arrow
+    $('.menu-toggle').click(function() {
 
-};
+        // close alert menu
+        $('.tab-content').removeClass('open');
 
-goldstone.returnAddonPresent = function(checkName) {
-    var addonList = JSON.parse(localStorage.getItem('addons'));
-    var result = false;
-    _.each(addonList, function(item) {
-        if(item.name && item.name === checkName) {
-            result = true;
+        // expand/contract side menu
+        $('.sidebar').toggleClass('expand-menu');
+
+        // flip direction of expand icon
+        $(this).find('.expand').toggleClass('open');
+
+        // toggle menu slide-out for content and footer
+        $('.content').toggleClass('open');
+        $('.footer').toggleClass('open');
+    });
+
+    // icon / username top-right menu functionality 
+    $('.user-control').click(function() {
+        $('.menu-wrapper').slideToggle('fast');
+    });
+    $('.user-control').mouseleave(function() {
+        $('.menu-wrapper').slideUp('fast');
+    });
+
+    // listener for alert divs visible in side alerts menu
+    $('.remove-btn').click(function() {
+        $(this).parent().remove();
+    });
+
+    $('.tab-links li').click(function() {
+
+        // for tabs inside side alerts menu
+        if ($(this).text() == 'Unread') {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().show();
+        } else {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().hide();
         }
     });
-    return result;
-};
 
-goldstone.uuid = function() {
-    "use strict";
+    // listeners for sidebar menu icon visual classes
+    $('.btn-grp').on('click', 'li', function() {
 
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-    }
+        // don't change current tab highlighting when
+        // clicking alert or expand buttons
+        if ($(this).hasClass('menu-toggle')) {
+            return;
+        }
+        if ($(this).hasClass('alerts-tab')) {
+            $('.tab-content').toggleClass('open');
+            $('.tab-content').find('.tab').show();
+            return;
+        }
 
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
-};
+        // otherwise add icon styling
+        $('.btn-grp li').removeClass('active active-page');
+        $(this).addClass('active active-page');
+    });
 
-window.onerror = function(message, fileURL, lineNumber) {
-    console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
 ;
 /**
@@ -13513,3 +13611,81 @@ var UtilizationNetView = UtilizationCpuView.extend({
     }
 
 });
+;
+/**
+ * Copyright 2016 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+goldstone.init = function() {
+
+    // defined in setBaseTemplateListeners.js
+    goldstone.setBaseTemplateListeners();
+
+    /*
+    authLogoutIcon encapsulates the initialization of the $(document)
+    listener for ajaxSend events and uses xhr.setRequestHeader to append
+    the Auth token on all subsequent api calls. It also serves to handle
+    401 auth errors, removing any existing token, and redirecting to
+    the login page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
+    router.html. Following that, only if there is a token
+    present (expired or not), it will use css to show/hide the logout
+    icon in the top-right corner of the page.
+    finally, authLogoutIcon prunes old unused keys in localStorage
+    */
+
+    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+
+    goldstone.authLogoutIcon = new LogoutIcon();
+
+
+    // append username to header
+    $.get('/user/', function(item) {
+        var userInfo = item.email;
+        $('.username').text(userInfo);
+    });
+
+    // instantiate translation data that can be set on settingsPageView.
+    // Settings page drop-downs will trigger userPrefsView
+    // to persist preferance, and triggers i18nModel to
+    // set selected language.
+    goldstone.i18n = new I18nModel();
+
+    // instantiate object that will manage user prefs / theme
+    goldstone.userPrefsView = new UserPrefsView();
+
+    // define the router
+    goldstone.gsRouter = new GoldstoneRouter();
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
+    });
+
+    // contains the machinery for appending/maintaining
+    // 'add-ons' dropdown menu
+    goldstone.addonMenuView = new AddonMenuView({
+        el: ".addon-menu-view-container"
+    });
+
+    // append global selectors to page
+    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+    $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+    // start the backbone router that will handle /# calls
+    Backbone.history.start();
+
+};
