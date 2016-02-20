@@ -11453,6 +11453,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             url: url,
             data: data
         }).done(function(success) {
+            $('.username').text($('#inputEmail').val());
             self.dataErrorMessage(message);
         })
             .fail(function(fail) {
@@ -11665,7 +11666,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="row"><hr>' +
         '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
         '</div>' +
-        '</div>' 
+        '</div>'
 
     )
 
