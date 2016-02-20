@@ -23,14 +23,14 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
 from goldstone.tenants.models import Tenant, Cloud
 from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
-    CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid, \
+    CONTENT_MISSING_USERNAME, TEST_USER_1, check_response_without_uuid, \
     BAD_TOKEN
 
 # Test content.
-EXPECTED_CONTENT = {"username": TEST_USER[0],
+EXPECTED_CONTENT = {"username": TEST_USER_1[0],
                     "first_name": '',
                     "last_name": '',
-                    "email": TEST_USER[1],
+                    "email": TEST_USER_1[1],
                     "tenant_admin": False,
                     "is_superuser": False,
                     "default_tenant_admin": False}
@@ -155,7 +155,7 @@ class GetPut(Setup):
         # required by djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "first_name": "Dirk"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -187,7 +187,7 @@ class GetPut(Setup):
         # required by djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "first_name": "Dirk",
                         "last_name": "Diggler"}),
             content_type="application/json",
@@ -295,7 +295,7 @@ class GetPut(Setup):
         # djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "os_username": "B minus",
                         "os_password": "12344321",
                         "tenant_name": "$20k"}),   # tenant_name won't change.
@@ -430,7 +430,7 @@ class GetPutTenantAdmin(Setup):
         # djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "os_bloodtype": "B minus",
                         "tenant_taxes": "$20k"}),
             content_type="application/json",
@@ -481,7 +481,7 @@ class GetPutTenantAdmin(Setup):
         # UserView/PUT.
         response = self.client.put(
             USER_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "os_username": "B minus",
                         "os_password": "12344321",
                         "tenant_name": "$20k"}),   # tenant_name won't change.

@@ -42,7 +42,8 @@ CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
 AUTHORIZATION_PAYLOAD = "Token %s"
 
 # Test data
-TEST_USER = ("fred", "fred@fred.com", "meh")
+TEST_USER_1 = ("fred", "fred@fred.com", "meh")
+TEST_USER_2 = ("ginger", "ginger@ginger.com", "hem")
 BAD_TOKEN = '4' * 40
 BAD_UUID = '4' * 32
 
@@ -91,7 +92,8 @@ def login(username, password):
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-def create_and_login(is_superuser=False, tenant=None):
+def create_and_login(is_superuser=False, tenant=None,
+                     user_template=TEST_USER_1):
     """Create a user and log her in.
 
     :keyword is_superuser: Set the is_superuser flag in the User record?
@@ -99,13 +101,15 @@ def create_and_login(is_superuser=False, tenant=None):
     :type is_superuser: bool
     :keyword tenant: If not None, make the user a tenant_admin of this tenant
     :type tenant: Tenant
+    :keyword user: Details of the user to create
+    :type user: dict
     :return: The authorization token's value
     :rtype: str
 
     """
 
     # Create a user
-    user = get_user_model().objects.create_user(*TEST_USER)
+    user = get_user_model().objects.create_user(*user_template)
 
     user.is_superuser = is_superuser
     user.is_staff = is_superuser
@@ -116,7 +120,7 @@ def create_and_login(is_superuser=False, tenant=None):
 
     user.save()
 
-    return login(TEST_USER[0], TEST_USER[2])
+    return login(user_template[0], user_template[2])
 
 
 def check_response_without_uuid(response, expected_status_code,
