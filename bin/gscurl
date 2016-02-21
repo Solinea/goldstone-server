@@ -27,6 +27,8 @@ GS_PASS=${GS_PASS:-goldstone}
 
 GS_AUTH_TOKEN=$(curl -s -X POST -d "username=${GS_USER}&password=${GS_PASS}" http://localhost:8000/accounts/login/ | sed -e 's/{"auth_token":"\(.*\)".*/\1/')
 
+echo "Auth token = $GS_AUTH_TOKEN"
+
 if [[ $1 == '-p' || $1 == '--pretty' ]] ; then
     shift
     curl -s -H "Authorization: Token $GS_AUTH_TOKEN" $@ | python -m json.tool
