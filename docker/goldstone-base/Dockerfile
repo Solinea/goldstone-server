@@ -30,10 +30,6 @@ ENV DJANGO_ADMIN_EMAIL="root@localhost" \
     DJANGO_ADMIN_PASSWORD="goldstone" \
     GOLDSTONE_PASSWORD="goldstone" \
     GOLDSTONE_TENANT_ADMIN_PASSWORD="goldstone" \
-    OS_AUTH_URL="http://openstack-keystone:5000/v2.0/" \
-    OS_TENANT_NAME="admin" \
-    OS_USERNAME="admin" \
-    OS_PASSWORD="solinea" \
     POSTGRES_PASSWORD="goldstone"
 
 # Not to be modified unless directed
