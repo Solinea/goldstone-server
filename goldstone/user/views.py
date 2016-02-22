@@ -20,7 +20,7 @@ from djoser import views as djoser_views
 from rest_framework.serializers import ModelSerializer
 from rest_framework.fields import CharField
 
-from goldstone.tenants.models import Tenant
+from goldstone.tenants.models import Tenant, Cloud
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,14 @@ class UserSerializer(ModelSerializer):
                         setattr(row, field_name, validated_data[api_name])
 
                 row.save()
+            else:
+                # cloud doesn't exist, create one
+                cloud = Cloud(tenant_name=validated_data["os_name"],
+                              username=validated_data["os_username"],
+                              password=validated_data["os_password"],
+                              auth_url=validated_data["os_auth_url"],
+                              tenant=instance.tenant)
+                cloud.save()
 
         return instance
 
