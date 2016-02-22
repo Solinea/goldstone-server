@@ -91,9 +91,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 $form.find('[name="os_password"]').val(result.os_password);
                 $form.find('[name="os_username"]').val(result.os_username);
 
-                // in case of landing on this page via is_superuser === true,
-                // OpenStack settings are not a valid target for updating.
-                // Check for this via presence of the OpenStack tenant name
+                // OpenStack settings can not be updated by !tenant_admin
                 if (!result.tenant_admin) {
 
                     // disable all form fields and update button
