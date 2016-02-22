@@ -26,6 +26,7 @@ module.exports = {
 
     clientWildcards: [
         'client/js/preload/base.js',
+        'client/js/preload/setBaseTemplateListeners.js',
         'client/js/preload/goldstoneBaseModel.js',
         'client/js/preload/goldstoneBaseView.js',
         'client/js/preload/goldstoneBasePageView.js',
@@ -36,7 +37,8 @@ module.exports = {
         'client/js/preload/utilizationCpuView.js',
         'client/js/models/*.js',
         'client/js/collections/*.js',
-        'client/js/views/*.js'
+        'client/js/views/*.js',
+        'client/js/preload/init.js'
     ],
 
     // discrete order of 3rd party lib files to be concatenated into

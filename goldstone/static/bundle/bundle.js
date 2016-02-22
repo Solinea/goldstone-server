@@ -17,98 +17,196 @@
 // create a project namespace and utility for creating descendants
 var goldstone = goldstone || {};
 
-// tools for raising alerts
-goldstone.raiseError = function(message) {
-    "use strict";
-    goldstone.raiseDanger(message);
-};
+// adds a number of methods:
+var extendingGoldstone = {
 
-goldstone.raiseDanger = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-danger", message);
-};
+    // tools for raising alerts
+    raiseError: function(message) {
+        "use strict";
+        this.raiseDanger(message);
+    },
 
-goldstone.raiseWarning = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-warning", message);
-};
+    raiseDanger: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-danger", message);
+    },
 
-goldstone.raiseSuccess = function(message) {
-    "use strict";
-    goldstone.raiseAlert(".alert-success", message);
-};
+    raiseWarning: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-warning", message);
+    },
 
-goldstone.raiseInfo = function(message, persist) {
-    "use strict";
+    raiseSuccess: function(message) {
+        "use strict";
+        this.raiseAlert(".alert-success", message);
+    },
 
-    if (persist === true) {
-        goldstone.raiseAlert(".alert-info", message, true);
-    } else {
-        goldstone.raiseAlert(".alert-info", message);
+    raiseInfo: function(message, persist) {
+        "use strict";
+
+        if (persist === true) {
+            this.raiseAlert(".alert-info", message, true);
+        } else {
+            this.raiseAlert(".alert-info", message);
+        }
+
+    },
+
+    raiseAlert: function(selector, message, persist) {
+        "use strict";
+
+        if (message && message.length > 200) {
+            message = message.slice(0, 200) + '...';
+        }
+
+        if (persist) {
+            $(selector).html(message);
+        } else {
+            // commenting out the ability to dismiss the alert, which destroys the
+            // element and prevents additional renderings.
+
+            // $(selector).html(message + '<a href="#" class="close"
+            // data-dismiss="alert">&times;</a>');
+            $(selector).html(message + '<a href="#" class="close" data-dismiss="alert"></a>');
+        }
+
+        var alertWidth = $(selector).parent().width();
+
+        $(selector).fadeIn("slow").css({
+            'position': 'absolute',
+            'width': alertWidth,
+            'z-index': 10
+        });
+
+        if (!persist) {
+            window.setTimeout(function() {
+                $(selector).fadeOut("slow");
+            }, 4000);
+        }
+
+    },
+
+    returnAddonPresent: function(checkName) {
+        var addonList = JSON.parse(localStorage.getItem('addons'));
+        var result = false;
+        _.each(addonList, function(item) {
+            if (item.name && item.name === checkName) {
+                result = true;
+            }
+        });
+        return result;
+    },
+
+    uuid: function() {
+        "use strict";
+
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
     }
-
 };
 
-goldstone.raiseAlert = function(selector, message, persist) {
-    "use strict";
+_.extend(goldstone, extendingGoldstone);
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-    if (message && message.length > 200) {
-        message = message.slice(0, 200) + '...';
-    }
+/*
+jQuery listeners to be instantiated after base.html template load.
+Registering clicks on the menus and handling css changes that
+govern the expanding menu actions.
+*/
 
-    if (persist) {
-        $(selector).html(message);
-    } else {
-        // commenting out the ability to dismiss the alert, which destroys the
-        // element and prevents additional renderings.
 
-        // $(selector).html(message + '<a href="#" class="close"
-        // data-dismiss="alert">&times;</a>');
-        $(selector).html(message + '<a href="#" class="close" data-dismiss="alert"></a>');
-    }
+goldstone.setBaseTemplateListeners = function() {
 
-    var alertWidth = $(selector).parent().width();
-
-    $(selector).fadeIn("slow").css({
-        'position': 'absolute',
-        'width': alertWidth,
-        'z-index': 10
+    // tooltips for side-menu bar icons
+    // trigger: 'hover' will dismiss when mousing-out
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
     });
 
-    if (!persist) {
-        window.setTimeout(function() {
-            $(selector).fadeOut("slow");
-        }, 4000);
-    }
+    // when clicking the 'expand' arrow
+    $('.menu-toggle').click(function() {
 
-};
+        // close alert menu
+        $('.tab-content').removeClass('open');
 
-goldstone.returnAddonPresent = function(checkName) {
-    var addonList = JSON.parse(localStorage.getItem('addons'));
-    var result = false;
-    _.each(addonList, function(item) {
-        if(item.name && item.name === checkName) {
-            result = true;
+        // expand/contract side menu
+        $('.sidebar').toggleClass('expand-menu');
+
+        // flip direction of expand icon
+        $(this).find('.expand').toggleClass('open');
+
+        // toggle menu slide-out for content and footer
+        $('.content').toggleClass('open');
+        $('.footer').toggleClass('open');
+    });
+
+    // icon / username top-right menu functionality 
+    $('.user-control').click(function() {
+        $('.menu-wrapper').slideToggle('fast');
+    });
+    $('.user-control').mouseleave(function() {
+        $('.menu-wrapper').slideUp('fast');
+    });
+
+    // listener for alert divs visible in side alerts menu
+    $('.remove-btn').click(function() {
+        $(this).parent().remove();
+    });
+
+    $('.tab-links li').click(function() {
+
+        // for tabs inside side alerts menu
+        if ($(this).text() === 'Unread') {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().show();
+        } else {
+            $('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).parent().next().hide();
         }
     });
-    return result;
-};
 
-goldstone.uuid = function() {
-    "use strict";
+    // listeners for sidebar menu icon visual classes
+    $('.btn-grp').on('click', 'li', function() {
 
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-    }
+        // don't change current tab highlighting when
+        // clicking alert or expand buttons
+        if ($(this).hasClass('menu-toggle')) {
+            return;
+        }
+        if ($(this).hasClass('alerts-tab')) {
+            $('.tab-content').toggleClass('open');
+            $('.tab-content').find('.tab').show();
+            return;
+        }
 
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
-};
+        // otherwise add icon styling
+        $('.btn-grp li').removeClass('active active-page');
+        $(this).addClass('active active-page');
+    });
 
-window.onerror = function(message, fileURL, lineNumber) {
-    console.log(message + ': ' + fileURL + ': ' + lineNumber);
 };
 ;
 /**
@@ -899,7 +997,7 @@ var DataTableBaseView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof (tableData[0]) === "object") {
+        if (typeof(tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -1090,6 +1188,52 @@ var DataTableBaseView = GoldstoneBaseView.extend({
             this.update();
         });
     },
+
+    /*
+     * start
+     * serverSide dataTable url calculation param functions
+     */
+
+    getPageSize: function(input) {
+        var result = input.match(/&length=(\d{1,})/)[1];
+        return result;
+    },
+
+    getSearchQuery: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/&search\[value\]=(.*?)&/)[1];
+        return result;
+    },
+
+    getPaginationStart: function(input) {
+        var result = input.match(/start=(\d{1,})&/)[1];
+        return result;
+    },
+
+    getSortByColumnNumber: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/order\[0\]\[column\]=(\d{1,})/);
+        if (result === null) {
+            return 0;
+        } else {
+            return result[1];
+        }
+    },
+
+    getSortAscDesc: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/order\[0\]\[dir\]=(.*?)&/);
+        if (result === null) {
+            return 'desc';
+        } else {
+            return result[1];
+        }
+    },
+
+    /*
+     * end
+     * serverSide dataTable url calculation param functions
+     */
 
     // specify <tr>'s' and <th>'s on subclass
     serverSideTableHeadings: _.template(''),
@@ -3696,7 +3840,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": true,
+            "ordering": false,
             "order": [
                 [0, 'desc']
             ],
@@ -3747,23 +3891,17 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.collectionMixin.urlGenerator();
-                    // the pageSize and searchQuery are jQuery values
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
 
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
-
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
@@ -3778,39 +3916,21 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: '@timestamp',
-                            1: 'host',
-                            2: 'component',
-                            3: 'host',
-                            4: 'log_message'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment when ordering is in place.
-                        // settings.url = settings.url + "&ordering=" +
-                        // ascDec + columnLabelHash[orderByColumn];
-                    }
-
-
-
+                    // uncomment for ordering by column
+                    /*
+                    var columnLabelHash = {
+                        0: '@timestamp',
+                        1: 'host',
+                        2: 'component',
+                        3: 'host',
+                        4: 'log_message'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    */
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -5043,19 +5163,16 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     self.collectionMixin.urlGenerator();
 
-                    // the pageSize and searchQuery are jQuery values and 
-                    // will be stored as strings, even if numerical
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
-
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
                     // cache values for next serverside deferred rendering
                     self.cachedSearch = searchQuery;
@@ -5063,10 +5180,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     // convert strings to numbers for both
                     self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
-
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
@@ -5081,36 +5194,20 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // if no interesting sort, ignore it
-                    /*if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: '@timestamp',
-                            1: 'syslog_severity',
-                            2: 'component',
-                            3: 'host',
-                            4: 'log_message'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment when ordering is in place.
-                        // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
-                    }
+                    // uncomment for ordering by column
+                    /*
+                    var columnLabelHash = {
+                        0: '@timestamp',
+                        1: 'syslog_severity',
+                        2: 'component',
+                        3: 'host',
+                        4: 'log_message'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
                     */
 
                 },
@@ -6566,7 +6663,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": true,
+            "ordering": false,
             "order": [
                 [0, 'desc']
             ],
@@ -6599,26 +6696,22 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.collectionMixin.urlGenerator();
-                    // the pageSize and searchQuery are jQuery values
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
 
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
-
-
-                    settings.url = self.collectionMixin.url + '&page_size=' + pageSize +
+                    // the url that will be fetched is now about to be
+                    // replaced with the urlGen'd url before adding on
+                    // the parsed components
+                    settings.url = self.collectionMixin.url + "&page_size=" + pageSize +
                         "&page=" + computeStartPage;
 
                     // here begins the combiation of additional params
@@ -6628,37 +6721,21 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: '@timestamp',
-                            1: 'syslog_severity',
-                            2: 'component',
-                            3: 'host',
-                            4: 'log_message'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment when ordering is in place.
-                        // settings.url = settings.url + "&ordering=" +
-                        // ascDec + columnLabelHash[orderByColumn];
-                    }
-
+                    // uncomment for ordering by column
+                    /*
+                    var columnLabelHash = {
+                        0: '@timestamp',
+                        1: 'syslog_severity',
+                        2: 'component',
+                        3: 'host',
+                        4: 'log_message'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    */
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -9046,6 +9123,99 @@ var MultiRscsView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
+var NewPasswordView = GoldstoneBaseView.extend({
+
+    initialize: function(options) {
+        this.getUidToken();
+        this.addHandlers();
+    },
+
+    getUidToken: function() {
+        this.uidToken = window.location.search.slice(1);
+    },
+
+    addHandlers: function() {
+        var self = this;
+
+        $('.login-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var $password = $('#password');
+            var $confirm_password = $('#confirm_password');
+
+            if ($password.val() !== $confirm_password.val()) {
+                goldstone.raiseWarning("Passwords don't match.");
+            } else {
+
+                // options.uidToken is passed in when the view is
+                // instantiated via goldstoneRouter.js
+
+                self.submitRequest(self.uidToken + '&' + $(this).serialize());
+            }
+        });
+    },
+
+    clearFields: function() {
+        // clear input fields
+        $('#password').val('');
+        $('#confirm_password').val('');
+    },
+
+    submitRequest: function(input) {
+        var self = this;
+
+        // Upon clicking the submit button, the serialized user input is sent
+        // via $.post to check the credentials. If successful, invoke "done"
+        // if not, invoke "fail"
+
+        $.post('/accounts/password/reset/confirm/', input, function() {})
+            .done(function(success) {
+
+                // clear input fields
+                self.clearFields();
+
+                // and add a success message to the top of the screen
+                goldstone.raiseInfo('Password changed. Redirecting to login.');
+
+
+                setTimeout(function() {
+                    location.href = '/login/';
+
+                }, 2000);
+
+            })
+            .fail(function(fail) {
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                if (fail.non_field_errors) {
+                    goldstone.raiseWarning(fail.non_field_errors);
+                } else {
+                    // clear input fields
+                    self.clearFields();
+                    goldstone.raiseWarning('Password reset failed.');
+                }
+
+            });
+    }
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 var NodeReportPageView = GoldstoneBasePageView.extend({
 
     defaults: {},
@@ -9731,6 +9901,66 @@ var NodeServiceStatusView = GoldstoneBaseView.extend({
     template: _.template('<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="spinnerPlace"></div>' +
         '<div class="mainContainer"></div>')
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var PasswordResetView = GoldstoneBaseView.extend({
+
+    initialize: function(options) {
+        this.addHandlers();
+    },
+
+    addHandlers: function() {
+        var self = this;
+
+        $('.login-form').on('submit', function(e) {
+            e.preventDefault();
+            self.submitRequest($(this).serialize());
+        });
+    },
+
+    submitRequest: function(input) {
+        var self = this;
+
+        // Upon clicking the submit button, the serialized user input is sent
+        // via $.post to check the credentials. If successful, invoke "done"
+        // if not, invoke "fail"
+
+        $.post('/accounts/password/reset/', input, function() {})
+            .done(function(success) {
+
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
+            })
+            .fail(function(fail) {
+                
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                goldstone.raiseInfo(fail.responseJSON.detail);
+            });
+    },
+
+    render: function() {
+        this.$el.html(this.template());
+        return this;
+    }
 
 });
 ;
@@ -10658,23 +10888,17 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.collectionMixin.urlGenerator();
-                    // the pageSize and searchQuery are jQuery values
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
 
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
-
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
@@ -10689,40 +10913,19 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    var alwaysSort = true;
-                    // for this dataTable, always add the search field
-                    // if no interesting sort, ignore it
-                    if (alwaysSort || urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: 'name',
-                            1: 'description'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment if sorting is in place
-                        settings.url = settings.url + "&ordering=" +
-                            ascDec + columnLabelHash[orderByColumn];
-                    }
-
+                    // uncomment for ordering by column
+                    var columnLabelHash = {
+                        0: 'name',
+                        1: 'description'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
 
                     // add filter for log/event/api
                     settings.url += self.finalUrlMods();
-
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -11248,6 +11451,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             url: url,
             data: data
         }).done(function(success) {
+            $('.username').text($('#inputEmail').val());
             self.dataErrorMessage(message);
         })
             .fail(function(fail) {
@@ -11460,7 +11664,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="row"><hr>' +
         '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
         '</div>' +
-        '</div>' 
+        '</div>'
 
     )
 
@@ -12036,12 +12240,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             // prevens page jump upon pressing submit button
             e.preventDefault();
 
-            // if there is no selected tenant, prevent ability to submit form
-            if ($('#formTenantId').text() === '') {
-                self.dataErrorMessage(goldstone.contextTranslate("Must select tenant from list above", "tenantsettings"));
-                return;
-            }
-
             // trim inputs to prevent leading/trailing spaces
             self.trimInputField('[name="name"]');
             self.trimInputField('[name="owner"]');
@@ -12069,68 +12267,19 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         });
     },
 
-    drawDataTable: function(json) {
-
-        var self = this;
-
-        // make a dataTable
-        var location = '#tenants-single-rsrc-table';
-        var oTable;
-        var keys = Object.keys(json);
-        var data = _.map(keys, function(k) {
-            var item = json[k];
-            return [item.name, item.owner, item.owner_contact, item.uuid];
-        });
-
-        if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(location).DataTable();
-            oTable.clear().rows.add(data).draw();
-        } else {
-            var oTableParams = {
-                "data": data,
-                "autoWidth": true,
-                "info": false,
-                "paging": true,
-                "searching": true,
-                "ordering": false,
-                "columns": [{
-                    "title": goldstone.contextTranslate("Tenant", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Owner Username", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Owner Contact", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Tenant ID", "tenantsettings")
-                }]
-            };
-            oTable = $(location).DataTable(oTableParams);
-        }
-
-        // IMPORTANT: failure to remove click listeners before appending new ones
-        // will continue to create additional listeners and memory leaks.
-        $("#tenants-single-rsrc-table tbody").off();
-
-        // add click listeners to pass data values to Update Tenant Settings form.
-        $("#tenants-single-rsrc-table tbody").on('click', 'tr', function() {
-            var row = oTable.row(this).data();
-
-            $(self.el).find('[name="name"]').val(row[0]);
-            $(self.el).find('[name="owner"]').val(row[1]);
-            $(self.el).find('[name="owner_contact"]').val(row[2]);
-            $(self.el).find('#formTenantId').text(row[3]);
-
-            self.clearDataErrorMessage();
-        });
-    },
-
     getTenantAndOSSettings: function() {
         var self = this;
 
         $.get('/tenants/')
             .done(function(result) {
-
                 if (result.results) {
-                    self.drawDataTable(result.results);
+                    result = result.results[0];
+                    var $form = $('.tenant-settings-form');
+                    $form.find('[name="name"]').val(result.name);
+                    $form.find('[name="owner"]').val(result.owner);
+                    $form.find('[name="os_name"]').val(result.owner_contact);
+                    $form.find('#formTenantId').text(result.uuid);
+
                 }
             })
             .fail(function(fail) {
@@ -12146,10 +12295,8 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 $form.find('[name="os_password"]').val(result.os_password);
                 $form.find('[name="os_username"]').val(result.os_username);
 
-                // in case of landing on this page via is_superuser === true,
-                // OpenStack settings are not a valid target for updating.
-                // Check for this via presence of the OpenStack tenant name
-                if(result.os_name === undefined) {
+                // OpenStack settings can not be updated by !tenant_admin
+                if (!result.tenant_admin) {
 
                     // disable all form fields and update button
                     $form.find('input').attr('disabled', 'true');
@@ -12197,9 +12344,10 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
         this.$el.html(this.template());
 
-        this.$el.prepend(new ChartHeaderView({chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')}).el);
+        this.$el.prepend(new ChartHeaderView({
+            chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')
+        }).el);
 
-        this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
 
@@ -12211,12 +12359,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-
-        // dataTable
-        '<div class="panel-body">' +
-        '<table id="tenants-single-rsrc-table" class="table"></table>' +
-        '</div>' +
-        // end data table
 
         // popup message row
         '<div class="row">' +
@@ -13406,3 +13548,93 @@ var UtilizationNetView = UtilizationCpuView.extend({
     }
 
 });
+;
+/**
+ * Copyright 2016 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+goldstone.init = function() {
+
+    // defined in setBaseTemplateListeners.js
+    goldstone.setBaseTemplateListeners();
+
+    /*
+    authLogoutIcon encapsulates the initialization of the $(document)
+    listener for ajaxSend events and uses xhr.setRequestHeader to append
+    the Auth token on all subsequent api calls. It also serves to handle
+    401 auth errors, removing any existing token, and redirecting to
+    the login page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
+    router.html. Following that, only if there is a token
+    present (expired or not), it will use css to show/hide the logout
+    icon in the top-right corner of the page.
+    finally, authLogoutIcon prunes old unused keys in localStorage
+    */
+
+    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+
+    goldstone.authLogoutIcon = new LogoutIcon();
+
+
+    // append username to header
+    $.get('/user/', function() {}).done(function(item) {
+        var userInfo = item.email;
+        $('.username').text(userInfo);
+
+        // redirect to tenant settings page if os_* fields
+        // not already populated
+        if (item.tenant_admin === true) {
+            if (!item.os_auth_url ||
+                !item.os_name ||
+                !item.os_password ||
+                !item.os_username) {
+                goldstone.raiseError('Add OpenStack settings');
+                location.href = "/#settings/tenants";
+            }
+        }
+    });
+
+    // instantiate translation data that can be set on settingsPageView.
+    // Settings page drop-downs will trigger userPrefsView
+    // to persist preferance, and triggers i18nModel to
+    // set selected language.
+    goldstone.i18n = new I18nModel();
+
+    // instantiate object that will manage user prefs / theme
+    goldstone.userPrefsView = new UserPrefsView();
+
+    // define the router
+    goldstone.gsRouter = new GoldstoneRouter();
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
+    });
+
+    // contains the machinery for appending/maintaining
+    // 'add-ons' dropdown menu
+    goldstone.addonMenuView = new AddonMenuView({
+        el: ".addon-menu-view-container"
+    });
+
+    // append global selectors to page
+    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+    $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+    // start the backbone router that will handle /# calls
+    Backbone.history.start();
+
+};

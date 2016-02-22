@@ -20,7 +20,8 @@ Registering clicks on the menus and handling css changes that
 govern the expanding menu actions.
 */
 
-$(document).ready(function() {
+
+goldstone.setBaseTemplateListeners = function() {
 
     // tooltips for side-menu bar icons
     // trigger: 'hover' will dismiss when mousing-out
@@ -61,7 +62,7 @@ $(document).ready(function() {
     $('.tab-links li').click(function() {
 
         // for tabs inside side alerts menu
-        if ($(this).text() == 'Unread') {
+        if ($(this).text() === 'Unread') {
             $('.active').removeClass('active');
             $(this).addClass('active');
             $(this).parent().next().show();
@@ -91,22 +92,4 @@ $(document).ready(function() {
         $(this).addClass('active active-page');
     });
 
-    /*
-    if using slideUX designed modal use this combo of HTML
-    and JS:
-
-    <i class="setting-btn">&nbsp;</i>
-
-    $('.setting-btn').click(function() {
-        $('.modal').fadeIn();
-    });
-
-    <div class="modal shadow-block">
-        <i class="close-btn">&nbsp;</i>
-    </div>
-
-    $('.close-btn').click(function() {
-        $('.modal').fadeOut();
-    });
-    */
-});
+};

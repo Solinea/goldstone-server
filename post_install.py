@@ -68,12 +68,11 @@ def cloud_init(gs_tenant,
 
     # Ask for user for two of the necessary attributes if they're not
     # defined.
-    if stack_tenant is None:
-        stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
-                              default='admin')
-    if stack_user is None:
-        stack_user = prompt(cyan("Enter Openstack user name: "),
-                            default='admin')
+    if stack_tenant is None or stack_user is None or stack_auth_url is None \
+            or stack_password is None:
+        fastprint("\nSkipping cloud setup.")
+        return None
+
     try:
         # Note: There's a db unique constraint on (tenant, tenant_name, and
         # username).
@@ -81,26 +80,16 @@ def cloud_init(gs_tenant,
                           tenant_name=stack_tenant,
                           username=stack_user)
     except ObjectDoesNotExist:
-        # The row doesn't exist, so we have to create it. To do that, we
-        # need two more pieces of information.
-        if stack_password is None:
-            stack_password = prompt(
-                cyan("Enter Openstack user password: "))
 
-        if stack_auth_url is None:
-            stack_auth_url = \
-                prompt(cyan("Enter OpenStack auth URL "
-                            "(eg: http://10.10.10.10:5000/v2.0/): "))
+        if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
+            # The user shouldn't have included the version segment, but
+            # did anyway. Remove it.
+            version_index = re.search(AUTH_URL_VERSION_LIKELY,
+                                      stack_auth_url)
+            stack_auth_url = stack_auth_url[:version_index.start()]
 
-            if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
-                # The user shouldn't have included the version segment, but
-                # did anyway. Remove it.
-                version_index = re.search(AUTH_URL_VERSION_LIKELY,
-                                          stack_auth_url)
-                stack_auth_url = stack_auth_url[:version_index.start()]
-
-            # Append our version number to the base URL.
-            stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
+        # Append our version number to the base URL.
+        stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
         # Create the row!
         Cloud.objects.create(tenant=gs_tenant,
@@ -257,11 +246,11 @@ def docker_install():
     gs_tenant_admin = 'gsadmin'
     gs_tenant_admin_password = os.environ.get(
         'GOLDSTONE_TENANT_ADMIN_PASSWORD', 'goldstone')
-    stack_tenant = os.environ.get('OS_TENANT_NAME', 'admin')
-    stack_user = os.environ.get('OS_USERNAME', 'admin')
-    stack_password = os.environ.get('OS_PASSWORD', 'solinea')
+    stack_tenant = os.environ.get('OS_TENANT_NAME')
+    stack_user = os.environ.get('OS_USERNAME')
+    stack_password = os.environ.get('OS_PASSWORD')
     stack_auth_url = os.environ.get(
-        'OS_AUTH_URL', 'http://172.24.4.100:5000/v2.0/')
+        'OS_AUTH_URL')
 
     print(green("Setting up Django admin account."))
     django_admin_init(
