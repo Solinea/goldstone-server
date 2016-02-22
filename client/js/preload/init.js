@@ -44,15 +44,11 @@ goldstone.init = function() {
 
         // redirect to tenant settings page if os_* fields
         // not already populated
-        if (item.os_auth_url !== undefined &&
-            item.os_name !== undefined &&
-            item.os_password !== undefined &&
-            item.os_username !== undefined) {
-
-            if (item.os_auth_url === "" ||
-                item.os_name === "" ||
-                item.os_password === "" ||
-                item.os_username === "") {
+        if (item.tenant_admin === true) {
+            if (!item.os_auth_url ||
+                !item.os_name ||
+                !item.os_password ||
+                !item.os_username) {
                 goldstone.raiseError('Add OpenStack settings');
                 location.href = "/#settings/tenants";
             }
