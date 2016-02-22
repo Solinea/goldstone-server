@@ -53,6 +53,7 @@ goldstone.init = function() {
                 item.os_name === "" ||
                 item.os_password === "" ||
                 item.os_username === "") {
+                goldstone.raiseError('Add OpenStack settings');
                 location.href = "/#settings/tenants";
             }
         }
