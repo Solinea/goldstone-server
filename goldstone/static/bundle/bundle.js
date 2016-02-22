@@ -177,7 +177,7 @@ goldstone.setBaseTemplateListeners = function() {
     $('.tab-links li').click(function() {
 
         // for tabs inside side alerts menu
-        if ($(this).text() == 'Unread') {
+        if ($(this).text() === 'Unread') {
             $('.active').removeClass('active');
             $(this).addClass('active');
             $(this).parent().next().show();
@@ -9950,11 +9950,9 @@ var PasswordResetView = GoldstoneBaseView.extend({
                 goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
             })
             .fail(function(fail) {
+                
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-
-                // TODO: change this after SMTP handling is set up
-                // to reflect the proper error
                 goldstone.raiseInfo(fail.responseJSON.detail);
             });
     },

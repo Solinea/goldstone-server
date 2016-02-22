@@ -44,11 +44,9 @@ var PasswordResetView = GoldstoneBaseView.extend({
                 goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
             })
             .fail(function(fail) {
+                
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-
-                // TODO: change this after SMTP handling is set up
-                // to reflect the proper error
                 goldstone.raiseInfo(fail.responseJSON.detail);
             });
     },

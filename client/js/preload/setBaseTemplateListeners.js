@@ -62,7 +62,7 @@ goldstone.setBaseTemplateListeners = function() {
     $('.tab-links li').click(function() {
 
         // for tabs inside side alerts menu
-        if ($(this).text() == 'Unread') {
+        if ($(this).text() === 'Unread') {
             $('.active').removeClass('active');
             $(this).addClass('active');
             $(this).parent().next().show();
