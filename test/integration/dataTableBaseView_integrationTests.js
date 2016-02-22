@@ -124,5 +124,38 @@ describe('dataTableBaseView.js', function() {
             this.testView.drawSearchTableServerSide();
             expect($('.reports-info-container').length).to.equal(0);
         });
+        it('extracts values from dataTable generated urls', function() {
+
+            // actual dataTables generated URL
+            var testUrl = "http://localhost:8000/?draw=1&columns%5B0%5D%5Bdata%5D=name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=expiration&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=true&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=1&order%5B0%5D%5Bdir%5D=asc&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1455752321100#discover";
+
+            var test1 = this.testView.getPageSize(testUrl);
+            var test2 = this.testView.getSearchQuery(testUrl);
+            var test3 = this.testView.getPaginationStart(testUrl);
+            var test4 = this.testView.getSortByColumnNumber(testUrl);
+            var test5 = this.testView.getSortAscDesc(testUrl);
+
+            expect(test1).to.equal('10');
+            expect(test2).to.equal('');
+            expect(test3).to.equal('0');
+            expect(test4).to.equal('1');
+            expect(test5).to.equal('asc');
+
+            testUrl = "=0&length=10&search%5Bvalue%5D=blammo&search%5Bregex%5D=false&_=1455752321100#discover";
+            var test6 = this.testView.getSearchQuery(testUrl);
+            expect(test6).to.equal('blammo');
+        });
+        it('handles url exceptions', function() {
+            var testUrl = "&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1455752321100#discover";
+
+            // not present in string
+            var test1 = this.testView.getSortByColumnNumber(testUrl);
+            // not present in string
+            var test2 = this.testView.getSortAscDesc(testUrl);
+
+            // returning fallbacks
+            expect(test1).to.equal(0);
+            expect(test2).to.equal('desc');
+        });
     });
 });

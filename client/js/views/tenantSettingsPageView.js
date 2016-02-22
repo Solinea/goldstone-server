@@ -36,12 +36,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             // prevens page jump upon pressing submit button
             e.preventDefault();
 
-            // if there is no selected tenant, prevent ability to submit form
-            if ($('#formTenantId').text() === '') {
-                self.dataErrorMessage(goldstone.contextTranslate("Must select tenant from list above", "tenantsettings"));
-                return;
-            }
-
             // trim inputs to prevent leading/trailing spaces
             self.trimInputField('[name="name"]');
             self.trimInputField('[name="owner"]');
@@ -69,68 +63,19 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         });
     },
 
-    drawDataTable: function(json) {
-
-        var self = this;
-
-        // make a dataTable
-        var location = '#tenants-single-rsrc-table';
-        var oTable;
-        var keys = Object.keys(json);
-        var data = _.map(keys, function(k) {
-            var item = json[k];
-            return [item.name, item.owner, item.owner_contact, item.uuid];
-        });
-
-        if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(location).DataTable();
-            oTable.clear().rows.add(data).draw();
-        } else {
-            var oTableParams = {
-                "data": data,
-                "autoWidth": true,
-                "info": false,
-                "paging": true,
-                "searching": true,
-                "ordering": false,
-                "columns": [{
-                    "title": goldstone.contextTranslate("Tenant", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Owner Username", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Owner Contact", "tenantsettings")
-                }, {
-                    "title": goldstone.contextTranslate("Tenant ID", "tenantsettings")
-                }]
-            };
-            oTable = $(location).DataTable(oTableParams);
-        }
-
-        // IMPORTANT: failure to remove click listeners before appending new ones
-        // will continue to create additional listeners and memory leaks.
-        $("#tenants-single-rsrc-table tbody").off();
-
-        // add click listeners to pass data values to Update Tenant Settings form.
-        $("#tenants-single-rsrc-table tbody").on('click', 'tr', function() {
-            var row = oTable.row(this).data();
-
-            $(self.el).find('[name="name"]').val(row[0]);
-            $(self.el).find('[name="owner"]').val(row[1]);
-            $(self.el).find('[name="owner_contact"]').val(row[2]);
-            $(self.el).find('#formTenantId').text(row[3]);
-
-            self.clearDataErrorMessage();
-        });
-    },
-
     getTenantAndOSSettings: function() {
         var self = this;
 
         $.get('/tenants/')
             .done(function(result) {
-
                 if (result.results) {
-                    self.drawDataTable(result.results);
+                    result = result.results[0];
+                    var $form = $('.tenant-settings-form');
+                    $form.find('[name="name"]').val(result.name);
+                    $form.find('[name="owner"]').val(result.owner);
+                    $form.find('[name="os_name"]').val(result.owner_contact);
+                    $form.find('#formTenantId').text(result.uuid);
+
                 }
             })
             .fail(function(fail) {
@@ -146,10 +91,8 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 $form.find('[name="os_password"]').val(result.os_password);
                 $form.find('[name="os_username"]').val(result.os_username);
 
-                // in case of landing on this page via is_superuser === true,
-                // OpenStack settings are not a valid target for updating.
-                // Check for this via presence of the OpenStack tenant name
-                if(result.os_name === undefined) {
+                // OpenStack settings can not be updated by !tenant_admin
+                if (!result.tenant_admin) {
 
                     // disable all form fields and update button
                     $form.find('input').attr('disabled', 'true');
@@ -197,9 +140,10 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
         this.$el.html(this.template());
 
-        this.$el.prepend(new ChartHeaderView({chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')}).el);
+        this.$el.prepend(new ChartHeaderView({
+            chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')
+        }).el);
 
-        this.dataErrorMessage(goldstone.contextTranslate('Click row above to edit', 'tenantsettings'));
         return this;
     },
 
@@ -211,12 +155,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-
-        // dataTable
-        '<div class="panel-body">' +
-        '<table id="tenants-single-rsrc-table" class="table"></table>' +
-        '</div>' +
-        // end data table
 
         // popup message row
         '<div class="row">' +

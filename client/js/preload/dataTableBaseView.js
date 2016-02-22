@@ -103,7 +103,7 @@ var DataTableBaseView = GoldstoneBaseView.extend({
         // initialize array that will be returned after processing
         var finalResults = [];
 
-        if (typeof (tableData[0]) === "object") {
+        if (typeof(tableData[0]) === "object") {
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -294,6 +294,52 @@ var DataTableBaseView = GoldstoneBaseView.extend({
             this.update();
         });
     },
+
+    /*
+     * start
+     * serverSide dataTable url calculation param functions
+     */
+
+    getPageSize: function(input) {
+        var result = input.match(/&length=(\d{1,})/)[1];
+        return result;
+    },
+
+    getSearchQuery: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/&search\[value\]=(.*?)&/)[1];
+        return result;
+    },
+
+    getPaginationStart: function(input) {
+        var result = input.match(/start=(\d{1,})&/)[1];
+        return result;
+    },
+
+    getSortByColumnNumber: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/order\[0\]\[column\]=(\d{1,})/);
+        if (result === null) {
+            return 0;
+        } else {
+            return result[1];
+        }
+    },
+
+    getSortAscDesc: function(input) {
+        input = decodeURI(input);
+        var result = input.match(/order\[0\]\[dir\]=(.*?)&/);
+        if (result === null) {
+            return 'desc';
+        } else {
+            return result[1];
+        }
+    },
+
+    /*
+     * end
+     * serverSide dataTable url calculation param functions
+     */
 
     // specify <tr>'s' and <th>'s on subclass
     serverSideTableHeadings: _.template(''),
