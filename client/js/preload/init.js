@@ -55,14 +55,15 @@ goldstone.init = function() {
         }
     });
 
+    // instantiate object that will manage user prefs
+    goldstone.userPrefsView = new UserPrefsView();
+    
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-    // instantiate object that will manage user prefs / theme
-    goldstone.userPrefsView = new UserPrefsView();
 
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();

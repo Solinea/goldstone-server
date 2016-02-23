@@ -2596,38 +2596,30 @@ var I18nModel = Backbone.Model.extend({
 
     checkCurrentLanguage: function() {
 
-        // first determine which lanaguage .po files are installed
+        // first determine which language .po files are installed
         var existingPos = _.keys(goldstone.i18nJSON);
 
         // if there is a currently selected language in localStorage,
         // use that to set the current .domain, or set to the
         // English default if none found.
-        var userPrefs = localStorage.getItem('userPrefs');
+        var lang = goldstone.userPrefsView.getUserPrefKey('i18n');
 
-        // set current language
-        if (userPrefs !== null) {
-            var lang = JSON.parse(userPrefs).i18n;
+        // check if language is set && the po exists
+        if (lang !== undefined && existingPos.indexOf(lang) > -1) {
+            this.setCurrentLanguage(lang);
 
-            // check if language is set && the po exists
-            if (lang !== undefined && existingPos.indexOf(lang) > -1) {
-                this.setCurrentLanguage(lang);
-                return;
-            }
+            // and exit function
+            return;
+        } else {
+            // if lang preference hasn't been set yet,
+            // or lang set in localStorage does not have a .po file,
+            // just default to 'English' and set the
+            // localStorage item to 'English'
+            this.setCurrentLanguage('English');
+
+            goldstone.userPrefsView.setUserPrefKey('i18n', 'English');
+            return;
         }
-
-        // if lang preference hasn't been set yet,
-        // or lang set in localStorage does not have a .po file,
-        // just default to 'English' and set the
-        // localStorage item to 'English'
-        this.setCurrentLanguage('English');
-        userPrefs = JSON.parse(userPrefs);
-
-        // in case of initial load, userPrefs will be null
-        userPrefs = userPrefs || {};
-        userPrefs.i18n = 'English';
-        localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
-
-        return;
     },
 
     setCurrentLanguage: function(language) {
@@ -2639,6 +2631,9 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
+            
+            // persists language selection
+            goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
             // .domain is used by the dgettext calls throughout
             // the site to determine which language set to
@@ -11480,7 +11475,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-
         $('#global-lookback-range').hide();
         $('#global-refresh-range').hide();
 
@@ -11494,8 +11488,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     renderLanguageChoices: function() {
-
-        // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
             $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
@@ -11526,11 +11518,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         // get current user prefs
         var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
-
-        // set dropdown for theme selection to current theme preference
-        if (userTheme && userTheme.theme) {
-            $('#theme-name').val(userTheme.theme);
-        }
 
         // set dropdown for language selection to
         // current language preference
@@ -11570,23 +11557,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
 
-        // add listener to theme selection drop-down
-        // userPrefsView is instantiated in router.html
-        $('#theme-name').on('change', function() {
-            var theme = $('#theme-name').val();
-            if (theme === 'dark') {
-                goldstone.userPrefsView.trigger('darkThemeSelected');
-            }
-            if (theme === 'light') {
-                goldstone.userPrefsView.trigger('lightThemeSelected');
-            }
-        });
-
         // add listener to language selection drop-down
-        // userPrefsView is instantiated in router.html
+        // goldstone.userPrefsView is instantiated in init.js
         $('#language-name').on('change', function() {
             var language = $('#language-name').val();
-            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+            goldstone.i18n.trigger('setLanguage', language);
 
             // for this page only, re-render content upon language page
             // to reflect translatable fields immediately
@@ -13250,41 +13225,6 @@ var UserPrefsView = Backbone.View.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.initLocalStorageUserPrefs();
-        this.setUpListeners();
-        this.applyUserPrefs();
-    },
-
-    setUpListeners: function() {
-        var self = this;
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'lightThemeSelected', function() {
-
-            self.applyLightTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'light';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'darkThemeSelected', function() {
-
-            self.applyDarkTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'dark';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
-            self.getUserPrefs();
-            self.defaults.userPrefs.i18n = selection;
-            self.setUserPrefs();
-            goldstone.i18n.trigger('setLanguage', selection);
-        });
     },
 
     initLocalStorageUserPrefs: function() {
@@ -13294,6 +13234,7 @@ var UserPrefsView = Backbone.View.extend({
     },
 
     getUserPrefs: function() {
+        this.initLocalStorageUserPrefs();
         this.defaults.userPrefs = JSON.parse(localStorage.getItem('userPrefs'));
 
         // cannot add property to null, so make sure this exists
@@ -13302,28 +13243,21 @@ var UserPrefsView = Backbone.View.extend({
         }
     },
 
+    // called by external views
+    getUserPrefKey: function(key) {
+        this.getUserPrefs();
+        return this.defaults.userPrefs[key];
+    },
+
+    // called by external views
+    setUserPrefKey: function(key, val) {
+        this.getUserPrefs();
+        this.defaults.userPrefs[key] = val;
+        this.setUserPrefs();
+    },
+
     setUserPrefs: function() {
         localStorage.setItem('userPrefs', JSON.stringify(this.defaults.userPrefs));
-    },
-
-    applyUserPrefs: function() {
-        this.getUserPrefs();
-        if (this.defaults.userPrefs && this.defaults.userPrefs.theme) {
-            if (this.defaults.userPrefs.theme === 'light') {
-                this.applyLightTheme();
-            }
-            if (this.defaults.userPrefs.theme === 'dark') {
-                this.applyDarkTheme();
-            }
-        }
-    },
-
-    applyDarkTheme: function() {
-        $('link[href="/static/css/client/scss/styleLight.css"]').attr('href', '/static/css/client/scss/styleDark.css');
-    },
-
-    applyLightTheme: function() {
-        $('link[href="/static/css/client/scss/styleDark.css"]').attr('href', '/static/css/client/scss/styleLight.css');
     }
 });
 ;
@@ -13622,14 +13556,15 @@ goldstone.init = function() {
         }
     });
 
+    // instantiate object that will manage user prefs
+    goldstone.userPrefsView = new UserPrefsView();
+    
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-    // instantiate object that will manage user prefs / theme
-    goldstone.userPrefsView = new UserPrefsView();
 
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
