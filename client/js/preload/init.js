@@ -84,7 +84,7 @@ goldstone.init = function() {
     goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
         lookbackValues: {
             lookback: [
-                [15, 'lookback 15m', 'selected'],
+                [15, 'lookback 15m'],
                 [60, 'lookback 1h'],
                 [360, 'lookback 6h'],
                 [1440, 'lookback 1d'],
@@ -92,11 +92,13 @@ goldstone.init = function() {
                 [10080, 'lookback 7d']
             ],
             refresh: [
-                [30, 'refresh 30s', 'selected'],
+                [30, 'refresh 30s'],
                 [60, 'refresh 1m'],
                 [300, 'refresh 5m'],
                 [-1, 'refresh off']
-            ]
+            ],
+            selectedLookback: 15,
+            selectedRefresh: 30
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);

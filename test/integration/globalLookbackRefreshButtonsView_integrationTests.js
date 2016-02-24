@@ -103,14 +103,16 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                 lookbackValues: {
                     lookback: [
                         [10, 'ten'],
-                        [20, 'twenty', 'selected'],
+                        [20, 'twenty'],
                         [30, 'thirty']
                     ],
                     refresh: [
                         [20, 'twenty'],
                         [40, 'forty'],
-                        [60, 'sixty', 'selected']
-                    ]
+                        [60, 'sixty']
+                    ],
+                    selectedLookback: 20,
+                    selectedRefresh: 60
                 }
             });
             expect($('#global-lookback-range').val()).to.equal('20');

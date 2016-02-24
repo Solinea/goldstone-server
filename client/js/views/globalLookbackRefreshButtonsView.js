@@ -21,7 +21,7 @@ To instantiate lookback selectors with varying values:
 goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
     lookbackValues: {
         lookback: [
-            [15, 'lookback 15m', 'selected'],
+            [15, 'lookback 15m'],
             [60, 'lookback 1h'],
             [360, 'lookback 6h'],
             [1440, 'lookback 1d'],
@@ -29,14 +29,20 @@ goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView(
             [10080, 'lookback 7d']
         ],
         refresh: [
-            [30, 'refresh 30s', 'selected'],
+            [30, 'refresh 30s'],
             [60, 'refresh 1m'],
             [300, 'refresh 5m'],
             [-1, 'refresh off']
-        ]
+        ],
+        selectedLookback: 60,
+        selectedRefresh: 60
     }
 });
 $(selector).append(goldstone.globalLookbackRefreshSelectors.el);
+
+Use selectedLookback back and selectedRefresh to set initial values, if desired.
+If omitted, selector will default to the first value in the list.
+
 
 *****************************
 *****************************
@@ -64,18 +70,9 @@ refresh:
 var GlobalLookbackRefreshButtonsView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-        var self = this;
         this.processOptions();
         this.render();
-
-        this.$el.find('#global-refresh-range').on('change', function() {
-            self.trigger('globalRefreshChange');
-            self.trigger('globalSelectorChange');
-        });
-        this.$el.find('#global-lookback-range').on('change', function() {
-            self.trigger('globalLookbackChange');
-            self.trigger('globalSelectorChange');
-        });
+        this.processListeners();
     },
 
     render: function() {
@@ -83,34 +80,69 @@ var GlobalLookbackRefreshButtonsView = GoldstoneBaseView.extend({
         return this;
     },
 
+    renderDropdownContent: function(dropdownValues, initValue) {
+        var result = '';
+        _.each(dropdownValues, function(item) {
+            result += '<option class="i18n" data-i18n="' + item[1] + '" value="' + item[0] + '"';
+
+            // check for passed in start value
+            if (item[0] === initValue) {
+                result += ' selected';
+            }
+            result += '>' + item[1] + '</option>';
+        });
+        return result;
+    },
+
+    // TODO: make a getter/setter function so that other views that need to change these values can do so in a centralized way
+    // such as logViewer when it changes the selectors
+
+
     customLookback: function() {
         if (this.lookbackValues && this.lookbackValues.lookback && this.lookbackValues.lookback.length) {
-            console.log('has lookback');
-            result = '';
-            _.each(this.lookbackValues.lookback, function(item) {
-                result += '<option class="i18n" data-i18n="' + item[1] + '" value="' + item[0] + '"';
-                if (item[2] && item[2] === 'selected') {
-                    result += ' selected';
-                }
-                result += '>' + item[1] + '</option>';
-            });
-            return result;
+            var values = this.lookbackValues;
+            var initialLookback = values.selectedLookback;
+
+            // check for persisted initial value
+            var storedLookback = goldstone.userPrefsView.getUserPrefKey('lookback');
+            if (storedLookback) {
+                initialLookback = storedLookback; 
+            }
+            return this.renderDropdownContent(values.lookback, parseInt(initialLookback, 10));
         }
     },
 
     customRefresh: function() {
         if (this.lookbackValues && this.lookbackValues.refresh && this.lookbackValues.refresh.length) {
-            console.log('has refresh');
-            result = '';
-            _.each(this.lookbackValues.refresh, function(item) {
-                result += '<option class="i18n" data-i18n="' + item[1] + '" value="' + item[0] + '"';
-                if (item[2] && item[2] === 'selected') {
-                    result += ' selected';
-                }
-                result += '>' + item[1] + '</option>';
-            });
-            return result;
+            var values = this.lookbackValues;
+            var initialRefresh = values.selectedRefresh;
+
+            // check for persisted initial value
+            var storedRefresh = goldstone.userPrefsView.getUserPrefKey('refresh');
+            if (storedRefresh) {
+                initialRefresh = storedRefresh; 
+            }
+            return this.renderDropdownContent(values.refresh, parseInt(initialRefresh, 10));
         }
+    },
+
+    // persist value of changed selector
+    storeValue: function(selector, value) {
+        goldstone.userPrefsView.setUserPrefKey(selector, value);
+    },
+
+    processListeners: function() {
+        var self = this;
+        this.$el.find('#global-lookback-range').on('change', function() {
+            self.trigger('globalLookbackChange');
+            self.trigger('globalSelectorChange');
+            self.storeValue('lookback', $(this).val());
+        });
+        this.$el.find('#global-refresh-range').on('change', function() {
+            self.trigger('globalRefreshChange');
+            self.trigger('globalSelectorChange');
+            self.storeValue('refresh', $(this).val());
+        });
     },
 
     template: _.template('' +
