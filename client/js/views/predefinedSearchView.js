@@ -34,35 +34,89 @@ compliance/defined_search/ results structure:
     "updated": null
 }
 
+instantiated on logSearchPageView as:
+
+    // render predefinedSearch Dropdown
+    this.predefinedSearchDropdown = new PredefinedSearchView({
+        collection: this.logSearchObserverCollection,
+        index_prefix: 'logstash-*',
+        settings_redirect: '/#reports/logbrowser/search'
+    });
+
+    this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+    also instantiated on eventsBrowserPageView and apiBrowserPageView
 */
 
 PredefinedSearchView = GoldstoneBaseView.extend({
 
+    // bootstrap classes for dropdown menu heading
+    className: 'nav nav-pills predefined-search-container',
+
     instanceSpecificInit: function() {
+        // index_prefix and settings_redirect defined on instantiation
         this.processOptions();
+        this.render();
+
+        // adds listeners to <li> elements inside dropdown container
+        this.processListeners();
         this.getPredefinedSearches();
+    },
+
+    // do not render these searches in any of the dropdown lists
+    bannedSearchList: {
+        'service status': true,
+        'api call query': true,
+        'event query': true,
+        'log query': true
+    },
+
+    pruneSearchList: function(list, filterSet) {
+        filterSet = filterSet || {};
+
+        if (Array.isArray(list)) {
+            list = list.filter(function(search) {
+                return filterSet[search.name] !== true;
+            });
+        }
+        return list;
     },
 
     getPredefinedSearches: function() {
         var self = this;
 
-        $.get('/core/saved_search/?page_size=1000&index_prefix=logstash-*').
-        done(
-            function(result) {
-                if (result.results) {
-                    self.predefinedSearches = result.results;
-                    self.render();
-                } else {
-                    console.log('unknown result format');
-                }
-            }).
-        fail(function(result) {
-            console.log('failed defined search ', result);
-        });
+        // fallbacks for incompatible API return, or failed ajax call
+        var failAppend = [{
+            uuid: null,
+            name: goldstone.translate('No predefined searches.')
+        }];
+        var serverError = [{
+            uuid: null,
+            name: goldstone.translate('Server error.')
+        }];
+
+        $.get('/core/saved_search/?page_size=1000&index_prefix=' + this.index_prefix)
+            .done(
+                function(result) {
+                    if (result.results && result.results.length) {
+                        // prune out eponymous and non-user searches
+                        self.predefinedSearches = self.pruneSearchList(result.results, self.bannedSearchList);
+                    } else {
+                        self.predefinedSearches = failAppend;
+                    }
+                    self.renderUpdatedResultList();
+                })
+            .fail(function(result) {
+                self.predefinedSearches = serverError;
+                self.renderUpdatedResultList();
+            });
     },
 
     populatePredefinedSearches: function(arr) {
         var result = '';
+
+        // add 'none' as a method of returning to the default search
+        result += '<li data-uuid="null">' + goldstone.translate("None (reset)") + '</li>';
 
         _.each(arr, function(item) {
             result += '<li data-uuid=' + item.uuid + '>' + goldstone.translate(item.name) + '</li>';
@@ -75,56 +129,60 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         var self = this;
 
         // dropdown to reveal predefined search list
-        $('.compliance-predefined-search-container .dropdown-menu').on('click', 'li', function(item) {
+        this.$el.find('.dropdown-menu').on('click', 'li', function(item) {
+
             var clickedUuid = $(this).data('uuid');
-            var constructedUrlForTable = '/compliance/defined_search/' + clickedUuid + '/results/';
+            if (clickedUuid === null) {
 
-            self.collection.urlBase = '/compliance/defined_search/' + clickedUuid + '/results/';
-            self.collection.urlGenerator();
-            var constructedUrlforViz = self.collection.url;
-            self.fetchResults(constructedUrlforViz, constructedUrlForTable);
+                // append original name to predefined search dropdown title
+                // calls function that will provide accurate translation
+                // if in a different language environment
+                $('#predefined-search-title').text(self.generateDropdownName());
+                self.collection.modifyUrlBase(null);
+                self.collection.triggerDataTableFetch();
+            } else {
+
+                // append search name to predefined search dropdown title
+                $('#predefined-search-title').text($(this).text());
+
+                var constructedUrlForTable = '/core/saved_search/' + clickedUuid + '/results/';
+                self.collection.modifyUrlBase(constructedUrlForTable);
+                self.collection.triggerDataTableFetch();
+            }
+
         });
 
-        // gear icon navigation to saved search settings page
-        this.$el.find('.fa-gear').click(function() {
-            window.location.href = "/#reports/logbrowser/search";
-        });
     },
 
-    fetchResults: function(vizUrl, tableUrl) {
-        var self = this;
-        $.get(vizUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidViz', [res, vizUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
+    generateDropdownName: function() {
 
-        $.get(tableUrl)
-            .done(function(res) {
-                self.trigger('clickedUuidTable', [res, tableUrl]);
-            })
-            .fail(function(err) {
-                console.error(err);
-            });
+        // enclosing in a function to handle the i18n compliant
+        // generation of the original dropdown name when resetting
+        // to the default search
+        return goldstone.translate("Predefined Searches");
     },
 
     template: _.template('' +
         '<li role="presentation" class="dropdown">' +
         '<a class = "droptown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">' +
-        '<%= goldstone.translate("Predefined Searches") %> <span class="caret"></span>' +
-        '</a> <i href="/#reports/logbrowser/search" style="position:absolute;top:0.2em;left:6em;" class="fa fa-gear fa-2x"></i>' +
+        '<span id="predefined-search-title"><%= this.generateDropdownName() %></span> <span class="caret"></span>' +
+        '</a>' +
         '<ul class="dropdown-menu">' +
-        '<%= this.populatePredefinedSearches(this.predefinedSearches) %>' +
+        // populated via renderUpdatedResultList()
         '</ul>' +
-        '</li>'
+        '</li>' +
+        '<a href=<%= this.settings_redirect %>><i class="setting-btn">&nbsp</i></a>'
     ),
+
+    updatedResultList: _.template('<%= this.populatePredefinedSearches(this.predefinedSearches) %>'),
 
     render: function() {
         $(this.el).html(this.template());
-        this.processListeners();
         return this;
+    },
+
+    renderUpdatedResultList: function() {
+        this.$el.find('.dropdown-menu').html(this.updatedResultList());
     }
 
 });

@@ -96,7 +96,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
 
 
-        finalData = [];
+        var finalData = [];
 
         _.each(newData, function(item, i) {
 

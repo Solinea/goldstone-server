@@ -43,7 +43,9 @@ var GoldstoneRouter = Backbone.Router.extend({
         "reports/logbrowser": "logSearch",
         "reports/logbrowser/search": "savedSearchLog",
         "reports/eventbrowser": "eventsBrowser",
+        "reports/eventbrowser/search": "savedSearchEvent",
         "reports/apibrowser": "apiBrowser",
+        "reports/apibrowser/search": "savedSearchApi",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -151,8 +153,20 @@ var GoldstoneRouter = Backbone.Router.extend({
     redirect: function() {
         location.href = "#discover";
     },
+    savedSearchApi: function() {
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'api'
+        });
+    },
+    savedSearchEvent: function() {
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'event'
+        });
+    },
     savedSearchLog: function() {
-        this.switchView(SavedSearchLogPageView);
+        this.switchView(SavedSearchPageView, {
+            featureSet: 'log'
+        });
     },
     settings: function() {
         this.switchView(SettingsPageView);

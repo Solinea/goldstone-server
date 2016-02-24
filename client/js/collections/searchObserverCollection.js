@@ -19,27 +19,21 @@
 /*
 instantiated in logSearchPageView.js as:
 
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
+            skipFetch: true,
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
             specificHost: this.specificHost,
         });
-
-        this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.logBrowserVizCollection,
-            el: '#log-viewer-visualization',
-            height: 300,
-            infoText: 'logBrowser',
-            marginLeft: 60,
-            width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
-        });
 */
 
-var LogBrowserCollection = GoldstoneBaseCollection.extend({
+var SearchObserverCollection = GoldstoneBaseCollection.extend({
+
+    // "this.filter" is set via logBrowserViz upon instantiation.
+    // "this.modifyUrlBase" is used to modify the urlBase when a
+    // predefinedSearchDropdown search is triggered
 
     isZoomed: false,
     zoomedStart: null,
@@ -55,11 +49,25 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
 
     },
 
-    // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
     checkForAdditionalPages: function() {
+
+        // additional pages are not relevant, as only the
+        // results/aggregations will be used.
         return true;
+    },
+
+    modifyUrlBase: function(url) {
+
+        // allows predefinedSearchView to alter the urlBase and set it
+        // back to the original value by passing null.
+
+        this.originalUrlBase = this.originalUrlBase || this.urlBase;
+
+        if (url === null) {
+            this.urlBase = this.originalUrlBase;
+        } else {
+            this.urlBase = url;
+        }
     },
 
     addInterval: function() {
@@ -84,11 +92,44 @@ var LogBrowserCollection = GoldstoneBaseCollection.extend({
         return '&interval=' + computedInterval + 's';
     },
 
+    addFilterIfPresent: function() {
+        // adds parmaters that matcXh the selected severity filters
+        var result = '&syslog_severity__terms=[';
+
+        var levels = this.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                result = result.concat('"', k.toLowerCase(), '",');
+            }
+        }
+        result += "]";
+
+        result = result.slice(0, result.indexOf(',]'));
+        result += "]";
+        return result;
+    },
+
     addCustom: function(custom) {
-        
+
+        var result = '';
+
+        // "this.filter" is set via logBrowserViz upon instantiation.
+        if (this.hasOwnProperty('filter')) {
+            result += this.addFilterIfPresent();
+        }
+
         // specificHost applies to this chart when instantiated
         // on a node report page to scope it to that node
-        return this.specificHost ? '&host=' + this.specificHost : '';
+        if (this.specificHost) {
+            result += '&host=' + this.specificHost;
+        }
+
+        return result;
     },
+
+    triggerDataTableFetch: function() {
+        // hook for logBrowserViz to initiate refresh and fetch
+        this.linkedDataTable.update();
+    }
 
 });

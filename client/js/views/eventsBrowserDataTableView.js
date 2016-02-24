@@ -20,13 +20,39 @@ http://datatables.net/reference/api/
 
 instantiated on eventsBrowserPageView as:
 
-this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+this.eventsSearchObserverCollection = new SearchObserverCollection({
+
+    // overwriting to call timestamp instead of "@timestamp"
+    addRange: function() {
+        return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+    },
+
+    urlBase: '/core/events/',
+    skipFetch: true
+});
 
 this.eventsBrowserView = new ChartSet({
-    chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
-    collection: this.eventsBrowserVizCollection,
+
+    // overwrite processListeners
+    processListeners: function() {
+        var self = this;
+
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this, 'lookbackSelectorChanged', function() {
+            self.showSpinner();
+            self.collection.triggerDataTableFetch();
+        });
+    },
+
+    chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
+    collection: this.eventsSearchObserverCollection,
     el: '#events-histogram-visualization',
-    infoIcon: 'fa-tasks',
+    marginLeft: 60,
     width: $('#events-histogram-visualization').width(),
     yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
 });
@@ -86,30 +112,23 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     self.collectionMixin.urlGenerator();
 
-                    // the pageSize and searchQuery are jQuery values and 
-                    // will be stored as strings, even if numerical
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
-
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
                     // cache values for next serverside deferred rendering
                     self.cachedSearch = searchQuery;
 
                     // convert strings to numbers for both
-                    self.cachedPageSize = parseInt(pageSize, 10); 
+                    self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
-
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
@@ -124,41 +143,30 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // if no interesting sort, ignore it
-                    /*if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: '@timestamp',
-                            1: 'syslog_severity',
-                            2: 'component',
-                            3: 'host',
-                            4: 'log_message'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment when ordering is in place.
-                        // settings.url = settings.url + "&ordering=" +
-                        //     ascDec + columnLabelHash[orderByColumn];
-                    }
+                    // uncomment for ordering by column
+                    /*
+                    var columnLabelHash = {
+                        0: '@timestamp',
+                        1: 'syslog_severity',
+                        2: 'component',
+                        3: 'host',
+                        4: 'log_message'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
                     */
 
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
+                    data = JSON.parse(data);
+
+                    // eventViz will handle rendering of aggregations
+                    self.sendAggregationsToViz(data);
+
                     data = self.serverSideDataPrep(data);
 
                     // add to JavaScript engine event loop to be handled
@@ -171,7 +179,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     // make the 'throw-away' version identical to the
                     // currently rendered table for better UX
-                    if(self.mockForAjaxReturn) {
+                    if (self.mockForAjaxReturn) {
                         return JSON.stringify(
                             self.mockForAjaxReturn
                         );
@@ -197,6 +205,30 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
+    },
+
+    prepDataForViz: function(data) {
+        // initialize container for formatted results
+        var finalResult = [];
+
+        // for each array index in the 'data' key
+        _.each(data.aggregations.per_interval.buckets, function(item) {
+            var tempObj = {};
+            tempObj.time = item.key;
+            tempObj.count = item.doc_count;
+            finalResult.push(tempObj);
+        });
+
+        return finalResult;
+    },
+
+    sendAggregationsToViz: function(data) {
+
+        // send data to collection to be rendered via eventBrowserView
+        // when the 'sync' event is triggered
+        this.collectionMixin.reset();
+        this.collectionMixin.add(this.prepDataForViz(data));
+        this.collectionMixin.trigger('sync');
     },
 
     createNewDataTableFromResults: function(headings, results) {
@@ -229,7 +261,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     serverSideDataPrep: function(data) {
-        data = JSON.parse(data);
         var result = {
 
             // run results through pre-processing step
@@ -248,10 +279,10 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     extractUniqAndDataSet: function(data) {
         var self = this;
-        
+
         // strip object down to things in 'traits' and then
         // flatten object before returning it to the dataPrep function
-        
+
         var result = data.map(function(record) {
             return record._source.traits;
         });
@@ -321,7 +352,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         'eventType': 1,
         'id': 2,
         'action': 3,
-        'outcome': 4,
+        'outcome': 4
     },
 
     // main template with placeholder for table
@@ -377,7 +408,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             // firefox puts the cursor at the beginning of the search box
             // after re-focus. Use the native 'input' element method
             // setSelectionRange to force cursor position to end of input box
-            if($('input')[0].setSelectionRange) {
+            if ($('input')[0].setSelectionRange) {
                 var len = $('input.form-control').val().length * 2; // ensure end
                 $('input.form-control')[0].setSelectionRange(len, len);
             } else {

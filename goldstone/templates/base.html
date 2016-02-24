@@ -15,13 +15,17 @@ limitations under the License.
 {% load custom_filters %}
 <html>
     <head>
+
         <script>
         // if user isn't logged in, redirect to login page without loading anything
         var token = localStorage.getItem('userToken');
         if(token === undefined || token === null) {
             location.href = 'login/';
         }
+        // assign "ajax-loader-solinea-blue" spinner gif
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
         </script>
+
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,29 +90,29 @@ limitations under the License.
             <div class="sidebar clearfix">
                 <ul class="btn-grp">
                     <a href="#discover">
-                        <li class="active-page" data-toggle="tooltip" data-placement="right" title="" data-original-title="Dashboard">
+                         <li class="dashboard-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Dashboard">
                             <span class="btn-icon-block"><i class="icon dashboard-icon">&nbsp;</i></span>
                             <span data-i18n="Dashboard" class="btn-txt i18n">Dashboard</span>
                         </li>
                     </a>
-                        <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Alerts">
+                        <li class="alerts-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Alerts">
                             <span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>
                             <span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>
                         </li>
                     <a href="#metrics/api_perf">
-                        <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Metrics">
+                         <li class="metrics-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Metrics">
                             <span class="btn-icon-block"><i class="icon metrics">&nbsp;</i></span>
                             <span data-i18n="Metrics" class="btn-txt i18n">Metrics</span>
                         </li>
                     </a>
                     <a href="#reports/logbrowser">
-                        <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Reports">
+                         <li class="reports-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Reports">
                             <span class="btn-icon-block"><i class="icon reports">&nbsp;</i></span>
                             <span data-i18n="Reports" class="btn-txt i18n">Reports</span>
                         </li>
                     </a>
                     <a href="#metrics/topology">
-                        <li data-toggle="tooltip" data-placement="right" title="" data-original-title="Topology">
+                     <li class="topology-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Topology">
                             <span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>
                             <span data-i18n="Topology" class="btn-txt i18n">Topology</span>
                         </li>
@@ -182,7 +186,7 @@ limitations under the License.
                     <!-- <div class="container"> -->
 
                     <div class="row">
-                        <span class="version">Version: 0.8.4-SNAPSHOT</span>
+                        <span class="version">Version: 0.9.0-SNAPSHOT</span>
 
                         <span class="copyright"><strong><span class="i18n" data-i18n="Copyright">Copyright</span> 2014-2016</strong> <a href="http://www.solinea.com/">Solinea, Inc.</a></span>
 
@@ -205,80 +209,25 @@ limitations under the License.
 
         <script src="{% static 'bundle/libs.js' %}"></script>
         <script src="{% static 'bundle/bundle.js' %}"></script>
-        <script type="text/javascript" src="/static/site.js"></script>
         <!-- append addon script tags here -->
         {% if compliance_installed %}
             <script src="{% static 'client-js/compliance.js' %}"></script>
         {% endif %}
         <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
-        <!-- django is loading router.html which extends this html template and -->
-        <!-- fills in block localjs with a number of post-dom-ready function calls -->
-        {% block localjs %}
-            <script>
-            // assign "ajax-loader-solinea-blue" spinner gif
-            var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-            $(function () {
 
-            /*
-            authLogoutIcon encapsulates the initialization of the $(document)
-            listener for ajaxSend events and uses xhr.setRequestHeader to append
-            the Auth token on all subsequent api calls. It also serves to handle
-            401 auth errors, removing any existing token, and redirecting to
-            the login page.
-            authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-            router.html. Following that, only if there is a token
-            present (expired or not), it will use css to show/hide the logout
-            icon in the top-right corner of the page.
-            finally, authLogoutIcon prunes old unused keys in localStorage
-            */
-            goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+        <script>
+        $(function () {
 
-            goldstone.authLogoutIcon = new LogoutIcon();
+        // assign json object from /static/i18n/po_json/
+        // this is transformed into a Jed.js compatible initialization
+        // object in I18nModel
+        goldstone.i18nJSON = {{i18n_po_json_i18n_combined_json|to_js}};
 
-            // assign json object from /static/i18n/po_json/
-            // this is transformed into a Jed.js compatible initialization
-            // object in I18nModel
-            goldstone.i18nJSON = {{i18n_po_json_i18n_combined_json|to_js}};
-
-            // instantiate translation data that can be set on settingsPageView.
-            // Settings page drop-downs will trigger userPrefsView
-            // to persist preferance, and triggers i18nModel to
-            // set selected language.
-            goldstone.i18n = new I18nModel();
-
-            // instantiate object that will manage user prefs / theme
-            goldstone.userPrefsView = new UserPrefsView();
-
-            // define the router
-            goldstone.gsRouter = new GoldstoneRouter();
-
-            // re-translate the base template when switching pages to make sure
-            // the possibly hidden lookback/refresh selectors are translated
-            goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-                goldstone.i18n.translateBaseTemplate();
-            });
-
-            // contains the machinery for appending/maintaining
-            // 'add-ons' dropdown menu
-            goldstone.addonMenuView = new AddonMenuView({
-                el: ".addon-menu-view-container"
-            });
-
-            // append global selectors to page
-            goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
-            $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
-
-            // append username to header
-            $.get('/user/', function(item) {
-                var userInfo = item.email;
-                $('.username').text(userInfo);
-            });
-
-            // start the backbone router that will handle /# calls
-            Backbone.history.start();
-            
-            });
-            </script>
-        {% endblock %}
+        // defined on init.js
+        goldstone.init();
+        
+        });
+        </script>
+        
     </body>
 </html>

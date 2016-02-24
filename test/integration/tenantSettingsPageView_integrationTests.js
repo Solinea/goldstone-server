@@ -59,31 +59,7 @@ describe('tenantSettingsPageView.js spec', function() {
                 uuid: "53b70960c5e10a7d3fb6c904adf17447"
             }];
 
-            this.testView.drawDataTable(testData);
-            this.testView.drawDataTable(testData);
             $('.tenant-settings-form').submit();
-        });
-        it('expects rows to be clickable and editing form to be populated', function() {
-            var testData = [{
-                name: "testtenantname",
-                owner: "testowner",
-                owner_contact: "testowner@sol.com",
-                uuid: "b6c904adf1744753b70960c5e10a7d3e"
-            },
-            {
-                name: "testtenantname2",
-                owner: "testowner2",
-                owner_contact: "testowner@sol.com2",
-                uuid: "53b70960c5e10a7d3fb6c904adf17447"
-            }];
-
-            this.testView.drawDataTable(testData);
-            $("#tenants-single-rsrc-table tbody").find('tr').first().click();
-            expect($('[name="name"]').val()).to.equal('testtenantname');
-            $("#tenants-single-rsrc-table tbody").find('tr').next().click();
-            expect($('[name="name"]').val()).to.equal('testtenantname2');
-
-
         });
     });
     describe('individual functions', function() {

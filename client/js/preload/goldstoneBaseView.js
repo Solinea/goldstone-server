@@ -302,11 +302,11 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         var result = '<div class="btn-group" role="group">';
         _.each(routeArray, function(route) {
-            result += '<a href="' + route[0] + '"' + ' class="' + (route[2] === 'active' ? 'active ' : '') +
+            result += '<a href="' + route[0] + '" class="' + (route[2] === 'active' ? 'active ' : '') +
                 'btn btn-default">' + goldstone.translate(route[1]) + '</a>';
         });
         result += '</div><br><br>';
         return result;
-    },
+    }
 
 });

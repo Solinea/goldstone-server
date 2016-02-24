@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-base:0.8.4-SNAPSHOT
+FROM solinea/goldstone-base:0.9.0-SNAPSHOT
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
@@ -30,10 +30,6 @@ ENV DJANGO_ADMIN_EMAIL="root@localhost" \
     DJANGO_ADMIN_PASSWORD="goldstone" \
     GOLDSTONE_PASSWORD="goldstone" \
     GOLDSTONE_TENANT_ADMIN_PASSWORD="goldstone" \
-    OS_AUTH_URL="http://openstack-keystone:5000/v2.0/" \
-    OS_TENANT_NAME="admin" \
-    OS_USERNAME="admin" \
-    OS_PASSWORD="solinea" \
     POSTGRES_PASSWORD="goldstone"
 
 # Not to be modified unless directed
@@ -43,14 +39,3 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
     CELERY_LOGLEVEL=info
 
 COPY goldstone-server/ ${APPDIR}/
-
-USER root
-
-RUN  su - ${APPUSER} -c '. /venv/bin/activate && pip install -r requirements.txt' \
-  && su - ${APPUSER} -c '. /venv/bin/activate && pip install -r test-requirements.txt' \
-  && apt-get remove -y $buildReqs \
-  && apt-get autoremove -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-USER ${APPUSER}

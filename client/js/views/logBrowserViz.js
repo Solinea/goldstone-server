@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -28,43 +29,40 @@ openstack syslog severity levels:
 
 /* instantiated in logSearchPageView.js as:
 
-            this.logBrowserVizCollection = new LogBrowserCollection({
-            urlBase: '/logging/summarize/',
-
-            // specificHost applies to this chart when instantiated
-            // on a node report page to scope it to that node
+        this.logSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/logs/',
+            skipFetch: true,
             specificHost: this.specificHost,
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.logBrowserVizCollection,
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
+            collection: this.logSearchObserverCollection,
             el: '#log-viewer-visualization',
-            height: 300,
-            infoText: 'searchLogAnalysis',
-            marginLeft: 60,
-            urlRoot: "/logging/summarize/?",
+            infoText: 'logBrowser',
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
         });
 
-        this.logBrowserTableCollection = new GoldstoneBaseCollection({
-            skipFetch: true
-        });    
-        this.logBrowserTableCollection.urlBase = "/logging/search/";
-        this.logBrowserTableCollection.addRange = function() {
-            return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-        };
-
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-            collectionMixin: this.logBrowserTableCollection,
+            collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
-            infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
         });
 
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.logSearchObserverCollection,
+            index_prefix: 'logstash-*',
+            settings_redirect: '/#reports/logbrowser/search'
+        });
 
+        this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+        this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
+        this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
+        this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 */
 
 var LogBrowserViz = GoldstoneBaseView.extend({
@@ -72,8 +70,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     margin: {
         top: 20,
         right: 40,
-        bottom: 35,
-        left: 63
+        bottom: 80,
+        left: 70
     },
 
     // IMPORTANT: the order of the entries in the
@@ -91,17 +89,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         DEBUG: true
     },
 
-    // will prevent updating when zoom is active
-    isZoomed: false,
-
-    predefinedSearch: function(payload) {
-        this.collection.reset();
-        this.collection.add(payload);
-        this.update();
-    },
-
     setZoomed: function(bool) {
-        this.isZoomed = bool;
+        // state being tracked in the collection
         this.collection.isZoomed = bool;
     },
 
@@ -113,39 +102,42 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     },
 
     constructUrl: function() {
-        this.collection.urlGenerator();
+        // triggers the ajax call in the server-side dataTable
+        this.collection.triggerDataTableFetch();
     },
 
     processListeners: function() {
         var self = this;
 
+        // only renders via d3 when the server-side dataTable ajax
+        // returns and 'sync' is triggered
         this.listenTo(this.collection, 'sync', function() {
             self.update();
         });
-
         this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.listenTo(this, 'lookbackSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'refreshSelectorChanged', function() {
             self.showSpinner();
             self.setZoomed(false);
             self.constructUrl();
-            this.trigger('chartUpdate');
         });
 
         this.listenTo(this, 'lookbackIntervalReached', function() {
-            if (self.isZoomed === true) {
+
+            // since refresh was changed via val() without select()
+            // background timer will keep running and lookback will
+            // continue to be triggered, so ignore if zoomed
+            if (this.collection.isZoomed === true) {
                 return;
             }
             this.showSpinner();
             this.constructUrl();
-            this.trigger('chartUpdate');
         });
 
     },
@@ -157,7 +149,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         self.mw = self.width - self.margin.left - self.margin.right;
         self.mh = self.height - self.margin.top - self.margin.bottom;
 
-        self.svg = d3.select(this.el).append("svg")
+        self.svg = d3.select(this.el).select('.panel-body').append("svg")
             .attr("width", self.width)
             .attr("height", self.height);
 
@@ -191,7 +183,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         self.yAxis = d3.svg.axis()
             .scale(self.y)
-            .orient("left");
+            .orient("left")
+            .tickFormat(d3.format("d"));
 
         self.color = d3.scale.ordinal().domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
             .range(self.colorArray.distinct.openStackSeverity8);
@@ -222,6 +215,9 @@ var LogBrowserViz = GoldstoneBaseView.extend({
     specialInit: function() {
         var self = this;
 
+        // sets up filter for state tracking in logBrowserCollection
+        this.collection.filter = this.filter;
+
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
             self.paintNewChart([self.width, 0], 4);
@@ -249,16 +245,11 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.showSpinner();
         self.setZoomed(true);
 
-        var $gls = $('.global-refresh-selector select');
-        if ($gls.length) {
-            $('.global-refresh-selector select').val(-1);
-        }
-
         var zoomedStart;
         var zoomedEnd;
 
-        var leftMarginX = 64;
-        var rightMarginX = 42;
+        var leftMarginX = 67;
+        var rightMarginX = 26;
 
         var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (self.width - leftMarginX - rightMarginX)));
 
@@ -282,8 +273,19 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         this.collection.zoomedStart = zoomedStart;
         this.collection.zoomedEnd = Math.min(+new Date(), zoomedEnd);
 
+
+        var $gls = $('.global-refresh-selector select');
+        if ($gls.length) {
+
+            // setting value via val() will not fire change() event
+            // which will prevent an unneeded ajax call from being made
+            // due to listeners on the lookback selector
+            if (parseInt($gls.val(), 10) > 0) {
+                $gls.val(-1);
+            }
+        }
+
         this.constructUrl();
-        this.trigger('chartUpdate');
         return;
     },
 
@@ -301,7 +303,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         var data = collectionDataPayload.aggregations.per_interval.buckets;
 
         // prepare empty array to return at end
-        finalData = [];
+        var finalData = [];
 
         // layers of nested _.each calls
         // the first one iterates through each object
@@ -571,7 +573,12 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             self.filter[checkboxId] = !self.filter[checkboxId];
-            self.update();
+            self.collection.filter = self.filter;
+
+            // after changing filter, do not have d3 re-render,
+            // but have dataTable refetch ajax
+            // with filter params incluced
+            self.constructUrl();
         });
 
         this.redraw();
@@ -599,14 +606,9 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .duration(500)
             .call(self.yAxis.scale(self.y));
 
-        // this.trigger('chartUpdate');
     },
 
-    template: _.template(
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="compliance-predefined-search-container"></div>'),
-
-    modal2: _.template(
+    filterModal: _.template(
         // event filter modal
         '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -643,8 +645,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 5px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
-        this.$el.append(this.modal2());
+        this.$el.append(this.filterModal());
         return this;
-    },
+    }
 
 });

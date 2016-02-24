@@ -233,6 +233,19 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
 
+                    // missing values will generate a dataTables error
+                    // so fill in with empty string
+                    _.each(filteredFirstTsData, function(record) {
+                        _.each(columns, function(col) {
+
+                            // if the data record is
+                            // missing that column attribute...
+                            if (!record[col.title]) {
+                                record[col.title] = '';
+                            }
+                        });
+                    });
+
                     $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
                         "processing": true,
@@ -280,7 +293,17 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     });
                 }
             } else {
-                goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
+
+                // if dataTable previously initialized, just clear and 
+                // append 'no data returned' message.
+                // but if never initialized, just raise alert for 'no data'
+                var loc = '#multi-rsrc-table';
+                if ($.fn.dataTable.isDataTable(loc)) {
+                    oTable = $(loc).DataTable();
+                    oTable.clear().draw();
+                } else {
+                    goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
+                }
             }
 
         }).fail(function(error) {
@@ -327,6 +350,10 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // appends the name of the resource list currently being displayed
         location = location || $(this.multiRsrcViewEl).find('.title-extra');
         $(location).text(': ' + text);
+    },
+
+    kebabCase: function(name) {
+        return name.split(' ').join('-');
     },
 
     processTree: function(json) {
@@ -425,8 +452,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             .append("g")
             .attr("class", function(d) {
 
+                // main cloud won't have a resouce type, but needs
+                // the cloud icon
+                d.resourcetype = d.resourcetype || "cloud";
+
+                // kebab-case-the-class-name
+                d.resourcetype = self.kebabCase(d.resourcetype);
                 // append icon based on resourcetype, mapped to the d3.map
-                return "icon main " + (d.resourcetype || "cloud") + "-icon";
+                return "icon main " + d.resourcetype + "-icon";
             })
             .attr("transform", "scale(0.0000001)");
 
@@ -434,21 +467,21 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         d3.map({
             icon_backup: ['backups', 'snapshots'],
             icon_cloud: ['cloud'],
-            icon_endpoint: ['endpoints', 'internal', 'public', 'admin'],
+            icon_endpoint: ['endpoints', 'internal', 'public', 'admin', 'floating-ip-addresses', 'ports'],
             icon_host: ['host', 'hosts', 'hypervisors',
                 'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder', 'region', 'regions'
             ],
             icon_image: ['images'],
-            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons'],
+            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons', 'subnets'],
             icon_role: ['roles'],
-            icon_service: ['service', 'services'],
-            icon_tenant: ['tenants'],
-            icon_types: ['types'],
+            icon_service: ['services', 'security-group-rules', 'routers'],
+            icon_tenant: ['tenants', 'security-groups'],
+            icon_types: ['volume-types', 'subnet-pools', 'extensions'],
             icon_user: ['users'],
-            icon_volume: ['volume', 'volumes'],
+            icon_volume: ['quotas'],
             icon_vol_transfer: ['agents', 'transfers'],
             icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks', 'zones'
+                'flavors', 'floating-ip-pools', 'networks', 'subnets', 'zones'
             ]
 
         }).forEach(function(icon, classes) {
@@ -626,6 +659,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // these params will be omitted from the returned data before
         // rendering as a data table in 'resource list'
 
+        neutron: [
+            'region',
+            'security_group_rules',
+            'external_gateway_info'
+        ],
+
         nova: ['@timestamp',
             'metadata',
             'region',
@@ -694,7 +733,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             'snapshot_id',
             'source_volid'
         ],
-        keystone: ['@timestamp', 'links'],
+        keystone: ['@timestamp', 'links', 'interface'],
         glance: ['@timestamp',
             'metadata',
             'region',

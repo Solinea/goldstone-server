@@ -47,10 +47,9 @@ text:not(.zoomable), .axis.label { font: 12px sans-serif; fill: #bbb; }
 
 .legend rect { opacity: 0.0; }
 
-/* nodeAvail viz css */
-.invisible-axis path { fill: none; stroke: none; }
-
-.swim.axis.invisible-axis .tick line { fill: none; stroke: none; }
+/* predefined search */
+.predefined-search-container .dropdown-menu { padding: 13px; width: 246%; font-size: large; cursor: hand; }
+.predefined-search-container li:hover { background: #eee; }
 
 .dropdown-submenu { position: relative; }
 
@@ -289,7 +288,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard h3 { font-size: 24px; color: #424242; margin: 0 -0.5em 5px; border-radius: 8px 8px 0 0; }
 
-.setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin-left: 3px; }
+.setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin: 0.3em 0 0 0.3em; }
 
 .single-block { width: 30.76%; float: left; }
 
@@ -489,43 +488,6 @@ a.logo-header { text-decoration: none; }
 
 .sub-tab-content .tabs:first-child { display: block; }
 
-/*.modal{
-	height:200px;
-	width:200px;
-	border-radius:5px;
-	background:#fafafa;
-	position:fixed;
-	top:50%;
-	left:50%;
-	transform:translate(-50%,-50%);
-	-webkit-transform:translate(-50%,-50%);
-	-ms-transform:translate(-50%,-50%);
-	-moz-transform:translate(-50%,-50%);
-	-o-transform:translate(-50%,-50%);
-	z-index:99999;
-	display: none;
-	overflow:visible;
-}
-.modal .close-btn{
-	display: inline-block;
-	cursor: pointer;
-}
-.modal .close-btn:after{
-	content:"x";
-	height:20px;
-	width:20px;
-	font-size:15px;
-	line-height:20px;
-	text-align:center;
-	background:#000;
-	color:#fff;
-	font-weight:bold;
-	border-radius:50%;
-	position:absolute;
-	right:-7px;
-	top:-7px;
-	font-style:normal;
-}*/
 ::-webkit-input-placeholder { color: rgba(255, 255, 255, 0.7); opacity: 1 !important; }
 
 :-moz-placeholder { color: rgba(255, 255, 255, 0.7); }

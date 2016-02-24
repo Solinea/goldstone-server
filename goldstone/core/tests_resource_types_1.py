@@ -19,15 +19,16 @@ from django.test import SimpleTestCase
 
 from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
-    Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, Interface, Keypair, User, Credential, Group
+    Hypervisor, NeutronPort, Cloudpipe, NeutronNetwork, Project, Server, \
+    AvailabilityZone, Flavor, Keypair, User, Credential, Group
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
-NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network, Server, User, Credential, Group]
+NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe,
+              NeutronPort, Hypervisor, Project, NeutronNetwork, Server, User,
+              Credential, Group]
 
 # Aliases to make the code less verbose
 TO = settings.R_ATTRIBUTE.TO
@@ -556,48 +557,6 @@ class ResourceTypesTests(SimpleTestCase):
                 partial(dictassign,
                         SERVER,
                         "OS-EXT-SRV-ATTR:hypervisor_hostname"))
-
-    @staticmethod
-    def test_interface_port():
-        """Test the Interface - Port entry."""
-
-        # Test data.
-        INTERFACE = {u'fixed_ips':
-                     [{u'ip_address': u'192.168.1.111',
-                       u'subnet_id': u'623ed5a0-785b-4a8a-94a1-a96dd8679f1c'}],
-                     u'mac_addr': u'fa:16:3e:00:11:22',
-                     u'net_id': u'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-                     u'port_id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
-                     u'port_state': u'ACTIVE'}
-
-        PORT = {u'admin_state_up': True,
-                u'allowed_address_pairs': [],
-                u'binding:host_id': u'rsrc-02.c2.oak.solinea.com',
-                u'binding:profile': {},
-                u'binding:vif_details': {u'ovs_hybrid_plug': True,
-                                         u'port_filter': True},
-                u'binding:vif_type': u'ovs',
-                u'binding:vnic_type': u'normal',
-                u'device_id': u'f4091091-ccb9-495a-815d-75de88f82ad2',
-                u'device_owner': u'compute:None',
-                u'extra_dhcp_opts': [],
-                u'fixed_ips':
-                [{u'ip_address': u'192.168.1.201',
-                  u'subnet_id': u'623ed5a0-785b-4a8a-94a1-a96dd8679f1c'}],
-                u'id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
-                u'mac_address': u'fa:16:3e:77:7b:9c',
-                u'name': u'',
-                u'network_id': u'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-                u'security_groups': [u'5d3c6a9f-005c-470e-9cb0-1163f9d222b5'],
-                u'status': u'ACTIVE',
-                u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14'}
-
-        do_tezt(Interface,
-                INTERFACE,
-                partial(dictassign, INTERFACE, "mac_addr"),
-                Port,
-                PORT,
-                partial(dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
         """Test the Keypair - Server entry."""

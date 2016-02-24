@@ -72,6 +72,8 @@ describe('spawnsView.js spec', function() {
             urlPrefix: '/nova/hypervisor/spawns/'
         });
 
+        this.mockZerosSpy = sinon.spy(this.testCollection, "mockZeros");
+
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new SpawnsView({
@@ -86,6 +88,7 @@ describe('spawnsView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.mockZerosSpy.restore();
         this.server.restore();
     });
     describe('collection is constructed', function() {
@@ -103,6 +106,78 @@ describe('spawnsView.js spec', function() {
             expect(this.testCollection.length).to.equal(2);
             this.testCollection.parse(dataTest);
         });
+        it('should have a mock function', function() {
+            assert.isDefined(this.testCollection.mockZeros, 'mockZeros function has been defined');
+        });
+        it('should return normal results when they exist', function() {
+            var test1; // undefined
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(1);
+
+            test1 = [];
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(2);
+
+            test1 = [{
+                randomKey: []
+            }];
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(3);
+
+            test1 = {
+                per_interval: []
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(4);
+
+            test1 = {
+                aggregations: {}
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(5);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {}
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(6);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {
+                        buckets: []
+                    }
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(7);
+
+            test1 = {
+                aggregations: {
+                    per_interval: {
+                        buckets: [1]
+                    }
+                }
+            };
+            this.testCollection.preProcessData(test1);
+            expect(this.mockZerosSpy.callCount).to.equal(7); // not incremented!
+        });
+        it('should produce correct mock results', function() {
+            var test1 = this.testCollection.mockZeros();
+            expect(test1.length).to.equal(24);
+            test1 = this.testCollection.mockZeros(100, 1000);
+            expect(test1.length).to.be.closeTo(24, 2);
+
+            // all mocks should be equivalent
+            test1.forEach(function(sample) {
+                expect(sample.success.buckets[0]).to.deep.equal({
+                    key: "true",
+                    doc_count: 0
+                });
+            });
+        });
     });
 
     describe('view is constructed', function() {
@@ -113,11 +188,15 @@ describe('spawnsView.js spec', function() {
         });
         it('returns data.per_interval', function() {
             var test1 = this.testCollection.parse(123);
-            expect(test1).to.deep.equal([]);
+            expect(test1).to.not.deep.equal([]);
             test1 = this.testCollection.parse({
-                per_interval: 123
+                aggregations: {
+                    per_interval: {
+                        buckets: [123]
+                    }
+                }
             });
-            expect(test1).to.deep.equal(123);
+            expect(test1).to.deep.equal([123]);
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');

@@ -25,7 +25,7 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from goldstone.core.models import Host, AvailabilityZone, Hypervisor, \
-    Aggregate, Server, Project, Network, Limits, PolyResource, Image
+    Aggregate, Server, Project, NeutronNetwork, Limits, PolyResource, Image
 from goldstone.core import resource
 from goldstone.core.resource import Instances, GraphNode
 from goldstone.test_utils import Setup, create_and_login, \
@@ -231,8 +231,8 @@ class CoreResources(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),
@@ -375,7 +375,7 @@ class CoreResources(Setup):
                            {u'label': u'networks',
                             u'resourcetype': u'networks',
                             u'unique_id':
-                            u"<class 'goldstone.core.models.Network'>"},
+                            u"<class 'goldstone.core.models.NeutronNetwork'>"},
                            },
                           {u'native_id': u'a1',
                            u'native_name': u'availabilityzone 0',
@@ -392,7 +392,7 @@ class CoreResources(Setup):
                            {u'label': u'networks',
                             u'resourcetype': u'networks',
                             u'unique_id':
-                            u"<class 'goldstone.core.models.Network'>"},
+                            u"<class 'goldstone.core.models.NeutronNetwork'>"},
                            },
                           {u'native_id': u'123456',
                            u'native_name': u'host 2',
@@ -499,6 +499,8 @@ class CoreResources(Setup):
         for entry in content["nodes"]:
             del entry["uuid"]
 
+        self.maxDiff = None
+
         self.assertItemsEqual(content["nodes"], EXPECTED_NODES)
 
 
@@ -589,8 +591,8 @@ class CoreResourcesDetail(Setup):
                  (Project, "p0", "project 0", {"quality": "poor"}),
                  (Project, "p1", "project 1", {"quality": "poor"}),
                  (Project, "p2", "project 2", {"quality": "good"}),
-                 (Network, "n1234", "network 0", {"quality": "good"}),
-                 (Network, "n12345", "network 1", {"quality": "good"}),
+                 (NeutronNetwork, "n1234", "network 0", {"quality": "good"}),
+                 (NeutronNetwork, "n12345", "network 1", {"quality": "good"}),
                  (Limits, "l1234", "limits 0", {"quality": "good"}),
                  (Limits, "l12345", "limits 1", {"quality": "good"}),
                  (Limits, "l123456", "limits 2", {"quality": "good"}),

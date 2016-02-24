@@ -26,6 +26,7 @@ module.exports = {
 
     clientWildcards: [
         'client/js/preload/base.js',
+        'client/js/preload/setBaseTemplateListeners.js',
         'client/js/preload/goldstoneBaseModel.js',
         'client/js/preload/goldstoneBaseView.js',
         'client/js/preload/goldstoneBasePageView.js',
@@ -36,7 +37,8 @@ module.exports = {
         'client/js/preload/utilizationCpuView.js',
         'client/js/models/*.js',
         'client/js/collections/*.js',
-        'client/js/views/*.js'
+        'client/js/views/*.js',
+        'client/js/preload/init.js'
     ],
 
     // discrete order of 3rd party lib files to be concatenated into
@@ -68,7 +70,7 @@ module.exports = {
         'client/js/models/*.js': ['coverage'],
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage'],
-        'goldstone/**/static/client-dev/**/*.js': ['coverage'],
+        'goldstone/**/static/client-dev/**/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
 
@@ -88,9 +90,9 @@ module.exports = {
     complianceConcatWildcards: [
         'goldstone/compliance/static/client-dev/head/*.js',
         'goldstone/compliance/static/client-dev/middle/*.js',
-        'goldstone/compliance/static/client-dev/tail/*.js',
+        'goldstone/compliance/static/client-dev/tail/*.js'
     ],
     complianceConcatBundle: 'goldstone/compliance/static/client-js/compliance.js',
     complianceCopyFolder: 'goldstone/compliance/static/',
-    complianceWatch: 'goldstone/compliance/static/client-dev/**/*'
+    complianceWatch: 'goldstone/compliance/static/**/*'
 };

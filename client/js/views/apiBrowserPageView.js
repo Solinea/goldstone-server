@@ -16,49 +16,75 @@
 
 var ApiBrowserPageView = GoldstoneBasePageView.extend({
 
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
     renderCharts: function() {
 
-        this.apiBrowserVizCollection = new ApiHistogramCollection({});
-
-        this.apiBrowserView = new ApiBrowserView({
-            chartTitle: goldstone.contextTranslate('API Calls vs Time', 'apibrowserpage'),
-            collection: this.apiBrowserVizCollection,
-            el: '#api-histogram-visualization',
-            infoIcon: 'fa-tasks',
-            width: $('#api-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage'),
-            marginLeft: 60
+        this.apiSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/api-calls/',
+            skipFetch: true
         });
 
-        // instantiated only for access to url generation functions
-        this.apiBrowserTableCollection = new ApiBrowserTableCollection({
-            skipFetch: true
+        this.apiBrowserView = new ChartSet({
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
+            collection: this.apiSearchObserverCollection,
+            el: '#api-histogram-visualization',
+            marginLeft: 60,
+            width: $('#api-histogram-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
-            collectionMixin: this.apiBrowserTableCollection,
+            collectionMixin: this.apiSearchObserverCollection,
             el: '#api-browser-table',
-            infoIcon: 'fa-table',
             width: $('#api-browser-table').width()
         });
 
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.apiSearchObserverCollection,
+            index_prefix: 'api_stats-*',
+            settings_redirect: '/#reports/apibrowser/search'
+        });
+
+        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+        // create linkages from the master collection back to the viz'
+        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
+        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiBrowserVizCollection, this.apiBrowserView, this.apiBrowserTableCollection, this.apiBrowserTable];
-    },
-
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.apiBrowserView.trigger('lookbackSelectorChanged');
-            this.apiBrowserTable.trigger('lookbackSelectorChanged');
-        }
+        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser', 'active'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer', 'active']
     ],
 
     template: _.template('' +

@@ -25,7 +25,6 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.logBrowserViz.trigger(change);
-        this.logBrowserTable.trigger(change);
     },
 
     render: function() {
@@ -34,10 +33,13 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-
-        var self = this;
-        this.logBrowserVizCollection = new LogBrowserCollection({
+        
+        // this is the single collection that holds state about
+        // zoom/filter/lookback/predefinedSearch/specificHost when
+        // url generation occurs in the dataTable
+        this.logSearchObserverCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
+            skipFetch: true,
 
             // specificHost applies to this chart when instantiated
             // on a node report page to scope it to that node
@@ -45,86 +47,45 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.logBrowserVizCollection,
+            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
+            collection: this.logSearchObserverCollection,
             el: '#log-viewer-visualization',
-            height: 300,
             infoText: 'logBrowser',
-            marginLeft: 60,
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage'),
-        });
-
-        this.logBrowserTableCollection = new LogBrowserTableCollection({
-            skipFetch: true,
-            specificHost: this.specificHost,
-            urlBase: '/core/logs/',
-            linkedCollection: this.logBrowserVizCollection
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
 
         this.logBrowserTable = new LogBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-            collectionMixin: this.logBrowserTableCollection,
+            collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
-            infoIcon: 'fa-table',
             width: $('#log-viewer-table').width()
         });
 
-        // initial rendering of logBrowserTable:
-        this.logBrowserTableCollection.filter = this.logBrowserViz.filter;
-        this.logBrowserTable.update();
-
-        // set up listener between viz and table to setZoomed to 'true'
-        // when user triggers a saved search
-        this.logBrowserViz.listenTo(this.logBrowserTable, 'setZoomed', function(trueFalse) {
-            this.setZoomed(trueFalse);
-        });
-
         // render predefinedSearch Dropdown
-        this.predefinedSearchModule = new PredefinedSearchView({
-            className: 'compliance-predefined-search nav nav-pills',
-            tagName: 'ul',
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                },
-            })
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.logSearchObserverCollection,
+            index_prefix: 'logstash-*',
+            settings_redirect: '/#reports/logbrowser/search'
         });
 
-        $('.compliance-predefined-search-container').html(this.predefinedSearchModule.el);
+        this.logBrowserViz.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
-        // subscribe logBrowserViz to click events on predefined
-        // search dropdown to fetch results.
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidViz', function(uuid) {
-            // self.logBrowserTable.predefinedSearch(uuid[1]);
-            self.logBrowserViz.predefinedSearch(uuid[0]);
-        });
-        this.listenTo(this.predefinedSearchModule, 'clickedUuidTable', function(uuid) {
-            self.logBrowserTable.predefinedSearch(uuid[1]);
-            // self.logBrowserViz.predefinedSearch(uuid[0]);
-        });
-
-        // set up a chain of events between viz and table to uddate
-        // table when updating viz.
-        this.listenTo(this.logBrowserViz, 'chartUpdate', function() {
-            self.logBrowserTableCollection.filter = self.logBrowserViz.filter;
-            self.logBrowserTable.update();
-        });
-
+        // create linkage from the master collection back to the viz'
+        this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
+        this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
+        this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+        
         // destroy listeners and views upon page close
-        this.viewsToStopListening = [this.logBrowserVizCollection, this.logBrowserViz, this.logBrowserTableCollection, this.logBrowserTable, this.predefinedSearchModule];
+        this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
 
     },
 
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser', 'active'],
-        ['/#reports/eventbrowser', 'Event Browser'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer', 'active'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer']
     ],
 
     template: _.template('' +

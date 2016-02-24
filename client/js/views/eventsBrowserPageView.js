@@ -16,50 +16,83 @@
 
 var EventsBrowserPageView = GoldstoneBasePageView.extend({
 
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.eventsBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
     renderCharts: function() {
 
-        this.eventsBrowserVizCollection = new EventsHistogramCollection({});
+        this.eventsSearchObserverCollection = new SearchObserverCollection({
+
+            // overwriting to call timestamp instead of "@timestamp"
+            addRange: function() {
+                return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
+            },
+
+            urlBase: '/core/events/',
+            skipFetch: true
+        });
 
         this.eventsBrowserView = new ChartSet({
-            chartTitle: goldstone.contextTranslate('Events vs Time', 'eventsbrowser'),
-            collection: this.eventsBrowserVizCollection,
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
+            chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
+            collection: this.eventsSearchObserverCollection,
             el: '#events-histogram-visualization',
-            infoIcon: 'fa-tasks',
+            marginLeft: 60,
             width: $('#events-histogram-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
         });
 
-        // for access to url generation functions
-        this.eventsBrowserTableCollection = new EventsBrowserTableCollection({
-            skipFetch: true
-        });
-
         this.eventsBrowserTable = new EventsBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
-            collectionMixin: this.eventsBrowserTableCollection,
+            collectionMixin: this.eventsSearchObserverCollection,
             el: '#events-browser-table',
-            infoIcon: 'fa-table',
             width: $('#events-browser-table').width()
         });
+
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.eventsSearchObserverCollection,
+            index_prefix: 'events_*',
+            settings_redirect: '/#reports/eventbrowser/search'
+        });
+
+        this.eventsBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+        // create linkages from the master collection back to the viz'
+        this.eventsSearchObserverCollection.linkedViz = this.eventsBrowserView;
+        this.eventsSearchObserverCollection.linkedDataTable = this.eventsBrowserTable;
+        this.eventsSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
         this.viewsToStopListening = [
-            this.eventsBrowserVizCollection, this.eventsBrowserView, this.eventsBrowserTableCollection, this.eventsBrowserTable
+            this.eventsSearchObserverCollection, this.eventsBrowserView, this.eventsBrowserTable, this.predefinedSearchDropdown
         ];
     },
 
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.eventsBrowserView.trigger('lookbackSelectorChanged');
-            this.eventsBrowserTable.trigger('lookbackSelectorChanged');
-        }
-    },
-
     templateButtonSelectors: [
-        ['/#reports/logbrowser', 'Log Browser'],
-        ['/#reports/eventbrowser', 'Event Browser', 'active'],
-        ['/#reports/apibrowser', 'API Browser'],
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer', 'active'],
+        ['/#reports/apibrowser', 'API Call Viewer']
     ],
 
     template: _.template('' +

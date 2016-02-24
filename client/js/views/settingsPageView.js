@@ -52,6 +52,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             url: url,
             data: data
         }).done(function(success) {
+            $('.username').text($('#inputEmail').val());
             self.dataErrorMessage(message);
         })
             .fail(function(fail) {
@@ -189,31 +190,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
-        '<div class="container">' +
 
         // theme switcher
         '<div class="row col-md-offset-2">' +
 
         '<h3><%= goldstone.translate("User Settings") %></h3>' +
-
-        // commented out pending definition of themes.
-        // dark/light theme selector
-
-        // '<div class="col-md-2">' +
-        // '<h5><%=goldstone.translate("Theme Settings")%></h5>' +
-        // '<form class="theme-selector" role="form">' +
-        // '<div class="form-group">' +
-        // '<div class="col-xl-5">' +
-        // '<div class="input-group">' +
-        // '<select class="form-control" id="theme-name">' +
-        // '<option value="light"><%=goldstone.contextTranslate(\'Light\', \'settingspage\')%></option>' +
-        // '<option value="dark"><%=goldstone.contextTranslate(\'Dark\', \'settingspage\')%></option>' +
-        // '</select>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-        // '</form>' +
-        // '</div>' +
 
         // language preference
         '<div class="col-md-2">' +
@@ -284,9 +265,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="row"><hr>' +
         '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
         '</div>' +
-        '</div>' +
         '</div>'
-
 
     )
 

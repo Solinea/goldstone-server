@@ -15,37 +15,47 @@
  */
 
 /*
-implemented on SavedSearchLogPageView as:
+implemented on SavedSearchPageView as:
+
+    var fsa = this.featureSetAttributes;
+        var fs = this.featureSet;
+        var urlBase = '/core/saved_search/';
+
+    $("select#global-lookback-range").hide();
+    $("select#global-refresh-range").hide();
 
     this.savedSearchLogCollection = new GoldstoneBaseCollection({
-            skipFetch: true
-        });
-        this.savedSearchLogCollection.urlBase = "/core/saved_search/";
-
-        this.savedSearchLogView = new savedSearchLogDataTableView({
-            chartTitle: goldstone.translate('Saved Searches: Log Browser'),
-            collectionMixin: this.savedSearchLogCollection,
-            el: "#saved-search-viz",
-            infoIcon: 'fa-table',
-            width: $('#saved-search-viz').width()
-        });
+        skipFetch: true
+    });
+    this.savedSearchLogCollection.urlBase = urlBase;
+    this.savedSearchLogView = new SavedSearchDataTableView({
+        chartTitle: goldstone.translate(fsa[fs].chartTitle),
+        collectionMixin: this.savedSearchLogCollection,
+        el: "#saved-search-viz",
+        form_index_prefix: fsa[fs].form_index_prefix,
+        form_doc_type: 'syslog',
+        form_timestamp_field: fsa[fs].form_timestamp_field,
+        urlRoot: urlBase,
+        iDisplayLengthOverride: 25,
+        width: $('#saved-search-viz').width()
+    });
 
 */
 
-SavedSearchLogDataTableView = DataTableBaseView.extend({
+SavedSearchDataTableView = DataTableBaseView.extend({
 
     instanceSpecificInit: function() {
-        SavedSearchLogDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
+        SavedSearchDataTableView.__super__.instanceSpecificInit.apply(this, arguments);
 
         // initialize with serverSide dataTable defined on DataTableBaseView
         this.drawSearchTableServerSide('#reports-result-table');
     },
 
-    form_index_prefix: 'logstash-*',
-    form_doc_type: 'syslog',
-    form_timestamp_field: '@timestamp',
-    urlRoot: '/core/saved_search/',
-    iDisplayLengthOverride: 25,
+    // form_index_prefix: 'logstash-*' || 'api_stats-*' || 'events_*',
+    // form_doc_type: 'syslog' || api_stats || blank,
+    // form_timestamp_field: '@timestamp' || 'timestamp',
+    // urlRoot: '/core/saved_search/',
+    // iDisplayLengthOverride: 25,
 
     render: function() {
         this.$el.html(this.template());
@@ -128,7 +138,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 // show failure message at top of screen
                 // uses sprintf string interpolation to create a properly
                 // formatted message such as "Failure to create trail1"
-                self.dataErrorMessage(err.responseJSON ? err.responseJSON : failureWarning);
+                self.dataErrorMessage(failureWarning);
 
             }).always(function() {
                 // close modal
@@ -161,7 +171,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 .done(function() {
 
                     var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
-                    var successMessage = goldstone.sprintf(updateMessage, $('.update-search-form #updateTrailName').val());
+                    var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
                     // uses sprintf string interpolation to create a properly
@@ -172,7 +182,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                 .fail(function(err) {
 
                     var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
-                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #updateTrailName').val());
+                    var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
                     // uses sprintf string interpolation to create a properly
@@ -251,6 +261,23 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         }
     },
 
+    prettyPrint: function(input) {
+
+        var result = input;
+
+        try {
+            result = JSON.parse(input);
+            result = JSON.stringify(result, null, 2);
+        } catch (e) {
+            // return original result
+            return result;
+        }
+
+        return result;
+
+
+    },
+
     dataTableRowGenerationHooks: function(row, data) {
 
         var self = this;
@@ -290,7 +317,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
             // name / isLogging/UUID
             $('#update-modal #update-search-name').val(data.name);
             $('#update-modal #update-search-description').val(data.description);
-            $('#update-modal #update-search-query').val('' + data.query);
+            $('#update-modal #update-search-query').val(self.prettyPrint(data.query));
             $('#update-modal #updateUUID').val('' + data.uuid);
 
             // shut off input on protected searches
@@ -326,10 +353,10 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "iDisplayLength": self.iDisplayLengthOverride ? self.iDisplayLengthOverride : 10,
             "paging": true,
-            "searching": true,
+            "searching": false,
             "ordering": true,
             "order": [
-                [0, 'desc']
+                [0, 'asc']
             ],
             "columnDefs": [{
                     "data": "name",
@@ -364,23 +391,17 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.collectionMixin.urlGenerator();
-                    // the pageSize and searchQuery are jQuery values
-                    var pageSize = $(self.el).find('select.form-control').val();
-                    var searchQuery = $(self.el).find('input.form-control').val();
 
-                    // the paginationStart is taken from the dataTables
-                    // generated serverSide query string that will be
-                    // replaced by this.defaults.url after the required
-                    // components are parsed out of it
-                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    // extraction methods defined on dataTableBaseView
+                    // for the dataTables generated url string that will
+                    //  be replaced by self.collectionMixin.url after
+                    // the required components are parsed out of it
+                    var pageSize = self.getPageSize(settings.url);
+                    var searchQuery = self.getSearchQuery(settings.url);
+                    var paginationStart = self.getPaginationStart(settings.url);
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
-
-                    // capture which column was clicked
-                    // and which direction the sort is called for
-
-                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+                    var sortByColumnNumber = self.getSortByColumnNumber(settings.url);
+                    var sortAscDesc = self.getSortAscDesc(settings.url);
 
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
@@ -395,38 +416,19 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-
-                        // or, if something has changed, capture the
-                        // column to sort by, and the sort direction
-
-                        // generalize if sorting is implemented server-side
-                        var columnLabelHash = {
-                            0: 'name',
-                            1: 'description'
-                        };
-
-                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
-
-                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
-
-                        var ascDec;
-                        if (orderByDirection === 'asc') {
-                            ascDec = '';
-                        } else {
-                            ascDec = '-';
-                        }
-
-                        // uncomment if sorting is in place
-                        settings.url = settings.url + "&ordering=" +
-                            ascDec + columnLabelHash[orderByColumn];
-                    }
-
+                    // uncomment for ordering by column
+                    var columnLabelHash = {
+                        0: 'name',
+                        1: 'description'
+                    };
+                    var ascDec = {
+                        asc: '',
+                        'desc': '-'
+                    };
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
 
                     // add filter for log/event/api
                     settings.url += self.finalUrlMods();
-
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -438,7 +440,7 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
     },
 
     finalUrlMods: function() {
-        return '&index_prefix=logstash-*';
+        return '&index_prefix=' + this.form_index_prefix;
     },
 
     serverSideDataPrep: function(data) {
@@ -491,8 +493,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         // Search Query
         '<div class="form-group">' +
         '<label for="new-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="new-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden owner
@@ -558,8 +560,8 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
         // Search query
         '<div class="form-group">' +
         '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
-        '<input name="query" type="text" class="form-control"' +
-        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required>' +
+        '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden UUID
@@ -594,6 +596,9 @@ SavedSearchLogDataTableView = DataTableBaseView.extend({
 
         // hidden UUID to be submitted with delete request
         '<input id="deleteUUID" hidden type="text">' +
+
+        // hidden name to be submitted with delete request
+        '<input id="deleteName" hidden type="text">' +
 
         // <h4> will be filled in by handler in dataTableRowGenerationHooks with
         // warning prior to deleting a trail

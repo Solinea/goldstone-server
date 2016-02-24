@@ -68,12 +68,11 @@ def cloud_init(gs_tenant,
 
     # Ask for user for two of the necessary attributes if they're not
     # defined.
-    if stack_tenant is None:
-        stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
-                              default='admin')
-    if stack_user is None:
-        stack_user = prompt(cyan("Enter Openstack user name: "),
-                            default='admin')
+    if stack_tenant is None or stack_user is None or stack_auth_url is None \
+            or stack_password is None:
+        fastprint("\nSkipping cloud setup.")
+        return None
+
     try:
         # Note: There's a db unique constraint on (tenant, tenant_name, and
         # username).
@@ -81,26 +80,16 @@ def cloud_init(gs_tenant,
                           tenant_name=stack_tenant,
                           username=stack_user)
     except ObjectDoesNotExist:
-        # The row doesn't exist, so we have to create it. To do that, we
-        # need two more pieces of information.
-        if stack_password is None:
-            stack_password = prompt(
-                cyan("Enter Openstack user password: "))
 
-        if stack_auth_url is None:
-            stack_auth_url = \
-                prompt(cyan("Enter OpenStack auth URL "
-                            "(eg: http://10.10.10.10:5000/v2.0/): "))
+        if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
+            # The user shouldn't have included the version segment, but
+            # did anyway. Remove it.
+            version_index = re.search(AUTH_URL_VERSION_LIKELY,
+                                      stack_auth_url)
+            stack_auth_url = stack_auth_url[:version_index.start()]
 
-            if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
-                # The user shouldn't have included the version segment, but
-                # did anyway. Remove it.
-                version_index = re.search(AUTH_URL_VERSION_LIKELY,
-                                          stack_auth_url)
-                stack_auth_url = stack_auth_url[:version_index.start()]
-
-            # Append our version number to the base URL.
-            stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
+        # Append our version number to the base URL.
+        stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
         # Create the row!
         Cloud.objects.create(tenant=gs_tenant,
@@ -257,11 +246,11 @@ def docker_install():
     gs_tenant_admin = 'gsadmin'
     gs_tenant_admin_password = os.environ.get(
         'GOLDSTONE_TENANT_ADMIN_PASSWORD', 'goldstone')
-    stack_tenant = os.environ.get('OS_TENANT_NAME', 'admin')
-    stack_user = os.environ.get('OS_USERNAME', 'admin')
-    stack_password = os.environ.get('OS_PASSWORD', 'solinea')
+    stack_tenant = os.environ.get('OS_TENANT_NAME')
+    stack_user = os.environ.get('OS_USERNAME')
+    stack_password = os.environ.get('OS_PASSWORD')
     stack_auth_url = os.environ.get(
-        'OS_AUTH_URL', 'http://172.24.4.100:5000/v2.0/')
+        'OS_AUTH_URL')
 
     print(green("Setting up Django admin account."))
     django_admin_init(
@@ -305,7 +294,7 @@ def _set_single_value_configs(file_name, edits_list):
         print(green("\tEditing %s" % file_name))
 
         for config_entry in edits_list:
-            cmd = "crudini --existing=file --set %s %s %s %s" % \
+            cmd = "crudini --existing=file --set %s %s %s '%s'" % \
                   (file_name, config_entry['section'],
                    config_entry['parameter'], config_entry['value'])
             run(cmd)
@@ -495,6 +484,42 @@ def _configure_nova(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                 "parameter": "notify_on_state_change",
                 "value": "vm_and_task_state"
             },
+        ],
+        "/etc/nova/api-paste.ini": [
+            {
+                "section": "composite:openstack_compute_api_v2",
+                "parameter": "keystone",
+                "value": "compute_req_id faultwrap sizelimit authtoken "
+                         "keystonecontext ratelimit audit osapi_compute_app_v2"
+            },
+            {
+                "section": "composite:openstack_compute_api_v2",
+                "parameter": "keystone_nolimit",
+                "value": "compute_req_id faultwrap sizelimit authtoken "
+                         "keystonecontext audit osapi_compute_app_v2"
+            },
+            {
+                "section": "composite:openstack_compute_api_v21",
+                "parameter": "keystone",
+                "value": "compute_req_id faultwrap sizelimit authtoken "
+                         "keystonecontext audit osapi_compute_app_v21"
+            },
+            {
+                "section": "composite:openstack_compute_api_v3",
+                "parameter": "keystone",
+                "value": "request_id faultwrap sizelimit authtoken "
+                         "keystonecontext audit osapi_compute_app_v3"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "paste.filter_factory",
+                "value": "keystonemiddleware.audit:filter_factory"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "audit_map_file",
+                "value": "/etc/nova/nova_api_audit_map.conf"
+            }
         ]
     }
 
@@ -511,10 +536,6 @@ def _configure_nova(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
 
     template_dir = os.path.join(config_loc, "nova")
     template_files = [
-        {
-            "file": "/etc/nova/api-paste.ini",
-            "template": "api-paste.ini.template"
-        },
         {
             "file": "/etc/nova/nova_api_audit_map.conf",
             "template": "nova_api_audit_map.conf.template"
@@ -563,6 +584,42 @@ def _configure_cinder(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                 "parameter": "control_exchange",
                 "value": "cinder"
             }
+        ],
+        "/etc/cinder/api-paste.ini": [
+            {
+                "section": "composite:openstack_volume_api_v1",
+                "parameter": "keystone",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv1"
+            },
+            {
+                "section": "composite:openstack_volume_api_v1",
+                "parameter": "keystone_nolimit",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv1"
+            },
+            {
+                "section": "composite:openstack_volume_api_v2",
+                "parameter": "keystone",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv2"
+            },
+            {
+                "section": "composite:openstack_volume_api_v2",
+                "parameter": "keystone_nolimit",
+                "value": "request_id faultwrap sizelimit osprofiler authtoken "
+                         "keystonecontext audit apiv2"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "paste.filter_factory",
+                "value": "keystonemiddleware.audit:filter_factory"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "audit_map_file",
+                "value": "/etc/cinder/cinder_api_audit_map.conf"
+            }
         ]
     }
 
@@ -579,10 +636,6 @@ def _configure_cinder(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
 
     template_dir = os.path.join(config_loc, "cinder")
     template_files = [
-        {
-            "file": "/etc/cinder/api-paste.ini",
-            "template": "api-paste.ini.template"
-        },
         {
             "file": "/etc/cinder/cinder_api_audit_map.conf",
             "template": "cinder_api_audit_map.conf.template"
@@ -686,6 +739,35 @@ def _configure_neutron(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                 "parameter": "verbose",
                 "value": str(True)
             }
+        ],
+        "/etc/neutron/api-paste.ini": [
+            {
+                "section": "composite:neutronapi_v2_0",
+                "parameter": "use",
+                "value": "call:neutron.auth:pipeline_factory"
+            },
+            {
+                "section": "composite:neutronapi_v2_0",
+                "parameter": "noauth",
+                "value": "request_id catch_errors extensions "
+                         "neutronapiapp_v2_0"
+            },
+            {
+                "section": "composite:neutronapi_v2_0",
+                "parameter": "keystone",
+                "value": "request_id catch_errors authtoken keystonecontext "
+                         "audit extensions neutronapiapp_v2_0"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "paste.filter_factory",
+                "value": "keystonemiddleware.audit:filter_factory"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "audit_map_file",
+                "value": "/etc/neutron/neutron_api_audit_map.conf"
+            },
         ]
     }
 
@@ -702,10 +784,6 @@ def _configure_neutron(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
 
     template_dir = os.path.join(config_loc, "neutron")
     template_files = [
-        {
-            "file": "/etc/neutron/api-paste.ini",
-            "template": "api-paste.ini.template"
-        },
         {
             "file": "/etc/neutron/neutron_api_audit_map.conf",
             "template": "neutron_api_audit_map.conf.template"
@@ -764,6 +842,11 @@ def _configure_glance(backup_postfix, restart='yes', config_loc=PROD_CONFIG):
                 "section": "DEFAULT",
                 "parameter": "verbose",
                 "value": str(True)
+            },
+            {
+                "section": "paste_deploy",
+                "parameter": "config_file",
+                "value": "/etc/glance/glance-api-paste.ini"
             }
         ],
         "/etc/glance/glance-registry.conf": [
@@ -900,6 +983,23 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
                 "parameter": "time_to_live",
                 "value": "604800"                # one week
             },
+        ],
+        "/etc/ceilometer/api_paste.ini": [
+            {
+                "section": "pipeline:main",
+                "parameter": "pipeline",
+                "value": "request_id authtoken audit api-server"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "paste.filter_factory",
+                "value": "keystonemiddleware.audit:filter_factory"
+            },
+            {
+                "section": "filter:audit",
+                "parameter": "audit_map_file",
+                "value": "/etc/ceilometer/ceilometer_api_audit_map.conf"
+            },
         ]
     }
 
@@ -920,10 +1020,6 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
         {
             "file": "/etc/ceilometer/event_definitions.yaml",
             "template": "event_definitions.yaml.template"
-        },
-        {
-            "file": "/etc/ceilometer/api_paste.ini",
-            "template": "api_paste.ini.template"
         },
     ]
 
@@ -950,18 +1046,6 @@ def _configure_rsyslog(backup_postfix, goldstone_addr, restart='yes',
     """
 
     # config lines that accept single values per line
-    single_value_edits = {}
-
-    # config lines that accept multiple values per line
-    multi_value_edits = {
-        "/etc/neutron/neutron.conf": [
-            {
-                "section": "DEFAULT",
-                "parameter": "notification_driver",
-                "value": "neutron.openstack.common.notifier.rpc_notifier"
-            }
-        ]
-    }
 
     template_dir = os.path.join(config_loc, "rsyslog")
 
@@ -977,8 +1061,8 @@ def _configure_rsyslog(backup_postfix, goldstone_addr, restart='yes',
         }
     ]
 
-    _configure_service('Rsyslog', backup_postfix, single_value_edits,
-                       multi_value_edits, template_dir, template_files)
+    _configure_service('Rsyslog', backup_postfix, {},
+                       {}, template_dir, template_files)
 
     if restart == 'yes':
         print(green("\nRestarting Rsyslog service."))

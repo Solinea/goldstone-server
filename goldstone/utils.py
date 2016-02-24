@@ -54,7 +54,10 @@ def get_cloud():
     """
     from goldstone.tenants.models import Cloud
 
-    return Cloud.objects.all()[0]
+    try:
+        return Cloud.objects.all()[0]
+    except IndexError:
+        raise GoldstoneAuthError("Cloud connection not configured")
 
 
 def django_admin_only(wrapped_function):

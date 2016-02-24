@@ -18,14 +18,14 @@ This module contains all views for the OpenStack Nova application.
 # limitations under the License.
 from __future__ import unicode_literals
 
-from rest_framework.response import Response
-from goldstone.drfes.views import DateHistogramAggView
-from goldstone.nova.serializers import SpawnsAggSerializer
+import logging
 
-from .models import SpawnsData, AgentsData, AggregatesData, AvailZonesData, \
+from .models import AgentsData, AggregatesData, AvailZonesData, \
     CloudpipesData, NetworksData, SecGroupsData, ServersData, ServicesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData
 from goldstone.core.utils import JsonReadOnlyView
+
+logger = logging.getLogger(__name__)
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
@@ -281,54 +281,3 @@ class ServicesDataView(JsonReadOnlyView):
     model = ServicesData
     key = 'services'
     zone_key = 'zone'
-
-
-# Our API documentation extracts this docstring, hence the use of markup.
-class SpawnsAggView(DateHistogramAggView):
-    """Return aggregated data about nova spawns.
-
-    ---
-
-    GET:
-        parameters:
-           - name: interval
-             description: The desired time interval, as n(s|m|h|w). E.g., 1d
-                          or 3m.
-             required: true
-             paramType: query
-           - name: "@timestamp__range"
-             description: The time range, as {'xxx':nnn}. Xxx is gte, gt, lte,
-                          or lt.  Nnn is an epoch number.  E.g.,
-                          {'gte':1430164651890}. You can also use AND, e.g.,
-                          {'gte':1430164651890, 'lt':1455160000000}
-             paramType: query
-
-    """
-
-    serializer_class = SpawnsAggSerializer
-
-    # Do not add these query parameters to the Elasticsearch query.
-    reserved_params = ['interval']
-
-    SUCCESS_AGG_NAME = 'success'
-
-    class Meta:                 # pylint: disable=C1001,W0232
-        """Meta."""
-        model = SpawnsData
-
-    def get(self, request):
-        from elasticsearch.exceptions import NotFoundError
-
-        try:
-            search = self._get_search(request).query('term', event='finish')
-        except NotFoundError:
-            # Elasticsearch has no nova spawns, so return zero results instead
-            # of an exception.
-            return Response([])
-
-        search.aggs[self.AGG_NAME].bucket(
-            self.SUCCESS_AGG_NAME, self.Meta.model.success_agg())
-
-        serializer = self.serializer_class(search.execute().aggregations)
-
-        return Response(serializer.data)

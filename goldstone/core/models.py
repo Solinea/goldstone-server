@@ -28,7 +28,6 @@ from picklefield.fields import PickledObjectField
 from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
 from django.core.mail import send_mail
-from goldstone.utils import get_cloud
 from goldstone.keystone.utils import get_client as get_keystone_client
 from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
@@ -866,43 +865,27 @@ class Project(PolyResource):
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
-                {TO: MeteringLabel,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
                 {TO: NeutronQuota,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}},
-                {TO: Network,
+                {TO: NeutronNetwork,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: USES, MIN: 0, MAX: sys.maxint}},
-                {TO: Network,
+                {TO: NeutronNetwork,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Subnet,
+                {TO: NeutronSubnet,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: LBMember,
+                {TO: NeutronPort,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: HealthMonitor,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: LBVIP,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Port,
-                 MATCHING_FN:
-                 lambda f, t: f.get("id") and f.get("id") == t.get("id"),
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: SecurityRules,
+                {TO: NeutronSecurityGroupRule,
                  MATCHING_FN:
                  lambda f, t: f.get("id") and f.get("id") == t.get("id"),
                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
@@ -1643,17 +1626,6 @@ class Interface(PolyResource):
         return "mac_addr"
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: Port,
-                 MATCHING_FN:
-                 lambda f, t: f.get("mac_addr") and
-                 f.get("mac_addr") == t["mac_address"],
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                ]
-
-    @classmethod
     def integration(cls):
 
         return "nova"
@@ -2112,11 +2084,43 @@ class Neutron(PolyResource):
     def type_outgoing_edges(cls):      # pylint: disable=R0201
         """Return the edges leaving this type."""
 
-        return [{TO: MeteringLabelRule,
+        return [{TO: NeutronAgent,
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: MeteringLabel,
+                {TO: NeutronExtension,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronSubnetPool,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronRouter,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronNetwork,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronSubnet,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronFloatingIP,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronPort,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronSecurityGroup,
+                 MATCHING_FN: lambda f, t: True,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: NeutronSecurityGroupRule,
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
@@ -2124,54 +2128,6 @@ class Neutron(PolyResource):
                  MATCHING_FN: lambda f, t: True,
                  EDGE_ATTRIBUTES:
                  {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: RemoteGroup,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: SecurityRules,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: SecurityGroup,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Port,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: LBVIP,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: HealthMonitor,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: FloatingIPPool,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: FixedIP,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: LBMember,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Subnet,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Network,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Router,
-                 MATCHING_FN: lambda f, t: True,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
                 ]
 
     @classmethod
@@ -2185,8 +2141,20 @@ class Neutron(PolyResource):
         return "neutron"
 
 
-class MeteringLabelRule(PolyResource):
-    """An OpenStack Metering Label Rule."""
+def _neutron_clouddata(cls, name, native_id):
+    """Helper function to extract clouddata info from neutron client calls"""
+
+    return [{"name": name,
+             cls.native_id_key(): native_id,
+             cls.resource_type_name_key(): cls.unique_class_id()}]
+
+
+class NeutronAgent(PolyResource):
+    """An OpenStack Neutron Agent."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "agents", "agents")
 
     @classmethod
     def integration(cls):
@@ -2196,19 +2164,20 @@ class MeteringLabelRule(PolyResource):
     @classmethod
     def resourcetype(cls):
 
-        return "metering label rules"
-
-
-class MeteringLabel(PolyResource):
-    """An OpenStack Metering Label."""
+        return "agents"
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+    def resource_list_url(cls):
 
-        return [{TO: MeteringLabel,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 1, MAX: 1}},
-                ]
+        return reverse("neutron-agents") + "/?region={region}"
+
+
+class NeutronExtension(PolyResource):
+    """An OpenStack Neutron Extension."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "extensions", "extensions")
 
     @classmethod
     def integration(cls):
@@ -2218,11 +2187,20 @@ class MeteringLabel(PolyResource):
     @classmethod
     def resourcetype(cls):
 
-        return "metering labels"
+        return "extensions"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-extensions") + "/?region={region}"
 
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "quotas", "quotas")
 
     @classmethod
     def integration(cls):
@@ -2234,33 +2212,19 @@ class NeutronQuota(PolyResource):
 
         return "quotas"
 
-
-class RemoteGroup(PolyResource):
-    """An OpenStack Remote Group."""
-
     @classmethod
-    def integration(cls):
+    def resource_list_url(cls):
 
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "remote groups"
+        return reverse("neutron-quotas") + "/?region={region}"
 
 
-class SecurityRules(PolyResource):
+class NeutronSecurityGroupRule(PolyResource):
     """An OpenStack Security Rules."""
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: RemoteGroup,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: 1}},
-                {TO: SecurityGroup,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
-                ]
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "security group rules",
+                                  "security group rules")
 
     @classmethod
     def integration(cls):
@@ -2270,11 +2234,21 @@ class SecurityRules(PolyResource):
     @classmethod
     def resourcetype(cls):
 
-        return "security rules"
+        return "security group rules"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-security-group-rules") + "/?region={region}"
 
 
-class SecurityGroup(PolyResource):
+class NeutronSecurityGroup(PolyResource):
     """An OpenStack Security Group."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "security groups",
+                                  "security groups")
 
     @classmethod
     def integration(cls):
@@ -2286,45 +2260,18 @@ class SecurityGroup(PolyResource):
 
         return "security groups"
 
+    @classmethod
+    def resource_list_url(cls):
 
-class Port(PolyResource):
+        return reverse("neutron-security-groups") + "/?region={region}"
+
+
+class NeutronPort(PolyResource):
     """An OpenStack Port."""
 
     @classmethod
     def clouddata(cls):
-
-        # Get the one and only one Cloud row in the system
-        row = get_cloud()
-
-        client = get_neutron_client(row.username,
-                                    row.password,
-                                    row.tenant_name,
-                                    row.auth_url)
-
-        result = []
-
-        for entry in client.list_ports()["ports"]:
-            # Make a dict for this entry.
-            this_entry = entry.to_dict()
-
-            # Add the name of the resource type.
-            this_entry[cls.resource_type_name_key()] = cls.unique_class_id()
-
-            result.append(this_entry)
-
-        return result
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: FixedIP,
-                 EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
-                {TO: FloatingIP,
-                 EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
-                {TO: SecurityGroup,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
-                ]
+        return _neutron_clouddata(cls, "ports", "ports")
 
     @classmethod
     def integration(cls):
@@ -2336,75 +2283,18 @@ class Port(PolyResource):
 
         return "ports"
 
-
-class LBVIP(PolyResource):
-    """An OpenStack load balancer VIP address."""
-
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+    def resource_list_url(cls):
 
-        return [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: 1}},
-                {TO: Port,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                {TO: Subnet,
-                 EDGE_ATTRIBUTES: {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}},
-                {TO: LBPool,
-                 MATCHING_FN: lambda f, t: False,    # for now.
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                ]
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "lb virtual ips"
+        return reverse("neutron-ports") + "/?region={region}"
 
 
-class LBPool(PolyResource):
-    """An OpenStack load balancer pool."""
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "lb pools"
-
-
-class HealthMonitor(PolyResource):
-    """An OpenStack Health Monitor."""
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
-                ]
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "health monitors"
-
-
-class FloatingIP(PolyResource):
+class NeutronFloatingIP(PolyResource):
     """An OpenStack Floating IP address."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "floating IPs", "floating IPs")
 
     @classmethod
     def integration(cls):
@@ -2416,91 +2306,18 @@ class FloatingIP(PolyResource):
 
         return "floating ip addresses"
 
-
-class FloatingIPPool(PolyResource):
-    """An OpenStack Floating IP address pool."""
-
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
+    def resource_list_url(cls):
 
-        return [{TO: FixedIP,
-                 EDGE_ATTRIBUTES: {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}},
-                {TO: FixedIP,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: FloatingIP,
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: FloatingIP,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: FloatingIP,
-                 MATCHING_FN: lambda f, t: False,    # for now.
-                 EDGE_ATTRIBUTES:
-                 {TYPE: TOPOLOGICALLY_OWNS, MIN: 0, MAX: sys.maxint}},
-                ]
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "floating ip pools"
+        return reverse("neutron-floating-ips") + "/?region={region}"
 
 
-class FixedIP(PolyResource):
-    """An OpenStack Fixed IP address."""
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "fixed ip addresses"
-
-
-class LBMember(PolyResource):
-    """An OpenStack load balancer member."""
-
-    @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
-                {TO: Subnet,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                ]
-
-    @classmethod
-    def integration(cls):
-
-        return "neutron"
-
-    @classmethod
-    def resourcetype(cls):
-
-        return "lb members"
-
-
-class Subnet(PolyResource):
+class NeutronSubnet(PolyResource):
     """An OpenStack subnet."""
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: FixedIP,
-                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                {TO: Network,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
-                ]
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "subnets", "subnets")
 
     @classmethod
     def integration(cls):
@@ -2512,9 +2329,41 @@ class Subnet(PolyResource):
 
         return "subnets"
 
+    @classmethod
+    def resource_list_url(cls):
 
-class Network(PolyResource):
+        return reverse("neutron-subnets") + "/?region={region}"
+
+
+class NeutronSubnetPool(PolyResource):
+    """An OpenStack Neutron Subnet Pool."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "subnet pools", "subnet pools")
+
+    @classmethod
+    def integration(cls):
+
+        return "neutron"
+
+    @classmethod
+    def resourcetype(cls):
+
+        return "subnet pools"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-subnet-pools") + "/?region={region}"
+
+
+class NeutronNetwork(PolyResource):
     """An OpenStack network."""
+
+    @classmethod
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "networks", "networks")
 
     @classmethod
     def integration(cls):
@@ -2526,20 +2375,18 @@ class Network(PolyResource):
 
         return "networks"
 
+    @classmethod
+    def resource_list_url(cls):
 
-class Router(PolyResource):
+        return reverse("neutron-networks") + "/?region={region}"
+
+
+class NeutronRouter(PolyResource):
     """An OpenStack router."""
 
     @classmethod
-    def type_outgoing_edges(cls):      # pylint: disable=R0201
-        """Return the edges leaving this type."""
-
-        return [{TO: Network,
-                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                {TO: Port,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}},
-                ]
+    def clouddata(cls):
+        return _neutron_clouddata(cls, "routers", "routers")
 
     @classmethod
     def integration(cls):
@@ -2550,6 +2397,11 @@ class Router(PolyResource):
     def resourcetype(cls):
 
         return "routers"
+
+    @classmethod
+    def resource_list_url(cls):
+
+        return reverse("neutron-routers") + "/?region={region}"
 
 
 class SavedSearch(models.Model):
@@ -2564,8 +2416,12 @@ class SavedSearch(models.Model):
     query = models.TextField(help_text='JSON Elasticsearch query body')
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
+    hidden = models.BooleanField(blank=True, default=False,
+                                 help_text='True if this search should not be'
+                                           'presented via the view')
     index_prefix = models.CharField(max_length=64)
-    doc_type = models.CharField(max_length=64)
+    doc_type = models.CharField(max_length=64, blank=True, null=True,
+                                default=None)
     timestamp_field = models.CharField(max_length=64, null=True)
     last_start = models.DateTimeField(blank=True, null=True)
     last_end = models.DateTimeField(blank=True, null=True)
@@ -2584,8 +2440,10 @@ class SavedSearch(models.Model):
 
         s = Search.from_dict(json.loads(self.query))\
             .using(DailyIndexDocType._doc_type.using)\
-            .index(self.index_prefix)\
-            .doc_type(self.doc_type)
+            .index(self.index_prefix)
+
+        if self.doc_type is not None:
+            s = s.doc_type(self.doc_type)
 
         return s
 

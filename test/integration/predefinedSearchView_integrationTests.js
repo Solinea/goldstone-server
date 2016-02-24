@@ -20,7 +20,7 @@
 describe('predefinedSearchView.js', function() {
     beforeEach(function() {
         $('body').html(
-            '<div class="compliance-predefined-search-container"></div>'
+            '<div class="predefined-search-container"></div>'
         );
 
         var dData = {
@@ -45,20 +45,28 @@ describe('predefinedSearchView.js', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        this.testCollection = new SearchObserverCollection({
+            urlBase: '/blah/de/blah/',
+            skipFetch: true
+        });
+
         this.testView = new PredefinedSearchView({
             className: 'compliance-predefined-search nav nav-pills',
             tagName: 'ul',
-            collection: new GoldstoneBaseCollection({
-                skipFetch: true,
-                urlBase: '',
-                addRange: function() {
-                    return '?@timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-                },
-                addInterval: function(interval) {
-                    return '&interval=' + interval + 's';
-                },
-            })
+            collection: this.testCollection
         });
+
+        $('.predefined-search-container').append(this.testView.el);
+
+        this.testDataTable = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.testCollection,
+            el: '#log-viewer-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.testCollection.linkedDataTable = this.testDataTable;
+
 
     });
     afterEach(function() {
@@ -79,17 +87,92 @@ describe('predefinedSearchView.js', function() {
                 name: 'test'
             }];
             var test1 = this.testView.populatePredefinedSearches(testArr);
-            expect(test1).to.equal('<li data-uuid=1234>test</li>');
+            expect(test1).to.include('<li data-uuid=1234>test</li>');
             testArr = [{
                 uuid: 1234,
                 name: 'test'
-            },{
+            }, {
                 uuid: null,
                 name: ''
             }];
             var test2 = this.testView.populatePredefinedSearches(testArr);
-            expect(test2).to.equal('<li data-uuid=1234>test</li>' +
-                                   '<li data-uuid=null></li>');
+            expect(test2).to.include('<li data-uuid=1234>test</li>' +
+                '<li data-uuid=null></li>');
+        });
+        it('places "None" at the top of the list', function() {
+            this.testView.populatePredefinedSearches();
+            this.testView.renderUpdatedResultList();
+            expect($('.predefined-search-container').text()).to.include('Predefined Searches None (reset)');
+        });
+        it('appends the search name to the dropdown title', function() {
+            var testArr = [{
+                uuid: 1234,
+                name: 'test'
+            }];
+            this.testView.predefinedSearches = testArr;
+            this.testView.renderUpdatedResultList();
+            expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
+            $('[data-uuid="1234"]').click();
+
+            // it also restores the original name after clicking on "none"
+            expect($('.predefined-search-container').text()).to.match(/test/);
+            $('[data-uuid="null"]').click();
+            expect($('.predefined-search-container').text()).to.match(/Predefined Searches/);
+        });
+        it('filters out undesired saved searches from the dropdown list', function() {
+            var test1 = this.testView.pruneSearchList([]);
+            expect(test1).to.deep.equal([]);
+
+            test1 = this.testView.pruneSearchList();
+            expect(test1).to.equal();
+
+            test1 = this.testView.pruneSearchList(['a', 'b', 'c']);
+            expect(test1).to.deep.equal(['a', 'b', 'c']);
+
+            var bannedSearchList = {
+                'pistachio': true
+            };
+            test1 = this.testView.pruneSearchList([{
+                'name': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'pistachio',
+                'hopeToSee': 'nope'
+            }], bannedSearchList);
+            expect(test1).to.deep.equal([{
+                'name': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'name': 'vanilla',
+                'hopeToSee': 'yep'
+            }]);
+
+            bannedSearchList = {
+                'pistachio': true
+            };
+            test1 = this.testView.pruneSearchList([{
+                'nameFake': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'pistachio',
+                'hopeToSee': 'yep'
+            }], bannedSearchList);
+            expect(test1).to.deep.equal([{
+                'nameFake': 'chocolate',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'vanilla',
+                'hopeToSee': 'yep'
+            }, {
+                'nameFake': 'pistachio',
+                'hopeToSee': 'yep'
+            }]);
         });
     });
 });

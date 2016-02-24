@@ -20,8 +20,7 @@ class Migration(migrations.Migration):
                 ('manufacturer', models.CharField(max_length=80)),
                 ('url_root', models.CharField(help_text=b"The urlconf is rooted here. Don't use leading or trailing slashes.", unique=True, max_length=40)),
                 ('notes', models.TextField(help_text=b'Instructions, release notes, etc.', blank=True)),
-                ('installed_date', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
-                ('updated_date', django_extensions.db.fields.ModificationDateTimeField(auto_now=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
         ),
     ]

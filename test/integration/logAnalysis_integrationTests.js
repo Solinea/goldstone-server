@@ -35,14 +35,15 @@ describe('logAnalysis.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(LogBrowserCollection.prototype, "fetch");
+        this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
 
         var testEnd = (+new Date());
         var testStart = (testEnd - (15 * 60 * 1000));
 
 
-        this.testCollection = new LogBrowserCollection({
-            urlBase: '/core/logs/'
+        this.testCollection = new SearchObserverCollection({
+            urlBase: '/core/logs/',
+            skipFetch: true
         });
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
@@ -51,12 +52,20 @@ describe('logAnalysis.js spec', function() {
             chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
             collection: this.testCollection,
             el: '#log-viewer-visualization',
-            height: 300,
             infoText: 'logBrowser',
-            marginLeft: 60,
+            marginLeft: 70,
             width: $('#log-viewer-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
         });
+
+        this.testDataTableView = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.testCollection,
+            el: '#log-viewer-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.testCollection.linkedDataTable = this.testDataTableView;
 
         this.testCollection.reset();
         this.testCollection.add({
@@ -306,7 +315,7 @@ describe('logAnalysis.js spec', function() {
             expect(this.testCollection.url).to.include('&interval=');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             // should not construct url
-            this.testView.isZoomed = true;
+            this.testView.collection.isZoomed = true;
             this.testView.trigger('lookbackIntervalReached');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             this.constructUrl_spy.restore();
