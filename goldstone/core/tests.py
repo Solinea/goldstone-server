@@ -37,9 +37,15 @@ from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
 from .utils import custom_exception_handler, process_resource_type, parse
 from goldstone.drfes.new_models import DailyIndexDocType
 from goldstone.core.models import SavedSearch, CADFEventDocType, \
+<<<<<<< HEAD
+    AlertSearch, Alert, EmailProducer, AlertSearchSQLQuery, \
+    AlertSearchESQuery
+=======
     AlertSearch, Alert, EmailProducer, _hash, _neutron_clouddata
+>>>>>>> master
 from pycadf import event, cadftype, cadftaxonomy
 import uuid
+from django.db import connection
 from elasticsearch_dsl import Search
 
 # Using the latest version of django-polymorphic, a
@@ -128,7 +134,7 @@ class EmailProducerTests(SimpleTestCase):
     def test_parent_producer_send_fail(self):
         """ Calling send on the parent-producer's send:
           This should throw an exception """
-        alert_search = AlertSearch()
+        alert_search = AlertSearch(name='test_parent_producer_send')
         alert_search.save()
         producer_inst = EmailProducer(query=alert_search,
                                       sender='abc@x.com',
@@ -168,7 +174,7 @@ class EmailProducerTests(SimpleTestCase):
 
     def test_inner_send_mail_function(self):
 
-        as_obj = AlertSearch()
+        as_obj = AlertSearch(name='test_inner_email_send')
         as_obj.save()
         new_alert = Alert(owner='core',
                           created='2015-09-01T13:20:30+03:00',
@@ -333,6 +339,7 @@ class TaskTests(SimpleTestCase):
         alert_search._state = mock.MagicMock()
         alert_search.savedsearch_ptr_id = mock.MagicMock()
         alert_search.save.return_value = None
+        alert_search.alertsearchsqlquery = None
 
         as_mock.objects = mock.MagicMock()
         as_mock.objects.all = mock.MagicMock()
@@ -394,6 +401,83 @@ class AlertSearchModelTests(TestCase):
                 esmock.return_value = None
                 self.assertEqual(AlertSearch.save(), esmock.return_value)
         self.assertEqual(esmock.call_count, 1)
+
+
+class AlertSearchSQLQueryModelTests(SimpleTestCase):
+
+    """
+        Write a test to mock insertion of vulnerability data into the table
+        and test search(), search_recent() and return_query_results()
+        functionality
+    """
+    sample_vulnerability = [{"ossa_id": "OSSA-2014-020",
+                            "link": "http://abc.com/ossa/2014020",
+                             "processed": True,
+                             "name": "OpenStack upgrade causes Memory leak",
+                             "description": "It's a real mess",
+                             "affects": "Swift: 1.11.0 to 1.13.1",
+                             "patches": "I'm depending on you, son",
+                             "references": "Impeccable",
+                             "notes": "A",
+                             "cve": "CVE-2014-3497",
+                             "notice_date": "2014-06-19",
+                             "created": "2015-01-30 00:00:12.017634+00",
+                             "updated": "2016-01-30 00:00:12.017634+00"}]
+
+    @mock.patch('goldstone.core.models.AlertSearchSQLQuery')
+    @mock.patch('django.db.connection.cursor')
+    @mock.patch('django.db.backends.postgresql_psycopg2')
+    def test_check_sql_search_call(self, asql_mock, cur_mock, mock_db):
+
+        sample_db_entry = {"ossa_id": "OSSA-2014-020",
+                           "link": "http://abc.com/ossa/2014020",
+                           "processed": True,
+                           "name": "OpenStack upgrade causes Memory leak",
+                           "description": "It's a real mess",
+                           "affects": "Swift: 1.11.0 to 1.13.1",
+                           "patches": "Yet to be released",
+                           "references": "Impeccable",
+                           "notes": "A",
+                           "cve": "CVE-2014-3497",
+                           "notice_date": "2014-06-19"}
+
+        start_time = '2016-01-30 00:00:12.017634+00'
+        end_time = '2016-02-01 00:00:12.017634+00'
+
+        sql_db_entry = mock.MagicMock(spec=sample_db_entry)
+        sql_db_entry.name = 'name'
+        sql_db_entry._state = mock.MagicMock()
+        sql_db_entry.savedsearch_ptr_id = mock.MagicMock()
+
+        asql_mock.objects = mock.MagicMock()
+        asql_mock.objects.all = mock.MagicMock()
+        asql_mock.objects.all.return_value = [sql_db_entry]
+
+        cur_mock = mock.MagicMock(spec=connection.cursor())
+        cur_ec_mock = mock.MagicMock(spec=cur_mock)
+        cur_ec_mock.execute = mock.MagicMock(return_value=[sample_db_entry])
+
+        # simulate results of a search() call with 1 db entry
+        as_sql_inst = AlertSearchSQLQuery()
+        as_sql_inst.save()
+        db_rv = as_sql_inst.search()
+        self.assertIsInstance(db_rv, list)
+        self.assertEqual(len(db_rv), 0)
+
+        cur_mock = mock.MagicMock(spec=connection.cursor())
+
+        # mock two rows getting returned by search
+        row1 = mock.MagicMock(spec=sample_db_entry)
+        row2 = mock.MagicMock(spec=sample_db_entry)
+        cur_mock.fetchall = mock.MagicMock(return_value=[row1, row2])
+
+        as_sql_inst = AlertSearchSQLQuery()
+        db_rv = as_sql_inst.search()
+        self.assertIsInstance(db_rv, list)
+
+        cur_mock.return_value = [sample_db_entry, start_time, end_time]
+        db_rv = as_sql_inst.search_recent()
+        self.assertIsInstance(db_rv, list)
 
 
 class DailyIndexDocTypeTests(SimpleTestCase):

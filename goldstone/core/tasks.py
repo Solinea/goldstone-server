@@ -18,6 +18,11 @@ import curator
 from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
 from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
+<<<<<<< HEAD
+    Alert, EmailProducer, Producer, AlertSearchSQLQuery, AlertSearchESQuery
+from goldstone.models import es_conn
+import random
+=======
     Alert, EmailProducer
 from goldstone.models import es_conn
 from goldstone.cinder.utils import update_nodes as update_cinder_nodes
@@ -26,6 +31,7 @@ from goldstone.keystone.utils import update_nodes as update_keystone_nodes
 from goldstone.nova.utils import update_nodes as update_nova_nodes
 from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
+>>>>>>> master
 logger = logging.getLogger(__name__)
 
 
@@ -122,45 +128,59 @@ def check_for_pending_alerts():
      Run an AlertSearch query to check for any pending alerts to be fired.
     """
 
-    saved_alerts = AlertSearch.objects.all()
+    es_alerts = AlertSearchESQuery.objects.all()
+    sql_alerts = AlertSearchSQLQuery.objects.all()
+    saved_alert_dict = dict()
 
-    for obj in saved_alerts:
-        # execute the search, and assuming no error, update the last_ times
+    for obj in es_alerts:
         s, start, end = obj.search_recent()
         response = s.execute()
+        num_hits = response.hits.total
         obj.last_start = start
         obj.last_end = end
         obj.save()
+        if num_hits > 0:
+            saved_alert_dict[obj] = num_hits
 
-        if response.hits.total > 0:
-            # We have a non-zero match for pending alerts
-            # Go ahead and generate an instance of the alert object here.
-            # We can directly call the producer class to send an email
+    for obj in sql_alerts:
+        s, start, end = obj.search_recent()
+        num_hits = len(s)
+        obj.last_start = start
+        obj.last_end = end
+        obj.save()
+        if num_hits > 0:
+            saved_alert_dict[obj] = num_hits
 
-            msg_dict = obj.build_alert_template(hits=response.hits.total)
+    for obj,num_hits in saved_alert_dict:
 
-            # For this scheduled celery task, pick up the message template
-            # from the query object and pass it along. For all other
-            # cases, user is allowed to send custom msg_title and msg_body
-            alert_obj = Alert(query=obj, msg_title=msg_dict['title'],
-                              msg_body=msg_dict['body'])
-            alert_obj.save()
+        # We have a non-zero match for pending alerts
+        # Go ahead and generate an instance of the alert object here.
+        # We can directly call the producer class to send an email
 
-            # Filter by fk = AlertSearch obj
-            # dont throw an exception from this loop and keep retrying
-            # till all the producers in the list are exhausted
-            producer_rv_list = list()
-            for producer in EmailProducer.objects.filter(query=obj):
-                try:
-                    producer_ret = producer.send(alert_obj)
-                    ret_dict = {producer.query.name: producer_ret}
-                except Exception as e:
-                    ret_dict = {producer.query.name: e}
-                    # Uncomment the lines below if we ever want to mark
-                    # this task to be in retry state. For now, we don't
-                    # mind that this task is marked success/failure.
-                    # check_for_pending_alerts.retry(throw=False)
-                    # raise RetryTaskError(None, None)
-                producer_rv_list.append(ret_dict)
+        msg_dict = obj.build_alert_template(hits=num_hits)
 
-            return producer_rv_list
+        # For this scheduled celery task, pick up the message template
+        # from the query object and pass it along. For all other
+        # cases, user is allowed to send custom msg_title and msg_body
+        alert_obj = Alert(query=obj, msg_title=msg_dict['title'],
+                          msg_body=msg_dict['body'])
+        alert_obj.save()
+
+        # Filter by fk = AlertSearch obj
+        # dont throw an exception from this loop and keep retrying
+        # till all the producers in the list are exhausted
+        producer_rv_list = list()
+        for producer in EmailProducer.objects.filter(query=obj):
+            try:
+                producer_ret = producer.send(alert_obj)
+                ret_dict = {producer.query.name: producer_ret}
+            except Exception as e:
+                ret_dict = {producer.query.name: e}
+                # Uncomment the lines below if we ever want to mark
+                # this task to be in retry state. For now, we don't
+                # mind that this task is marked success/failure.
+                # check_for_pending_alerts.retry(throw=False)
+                # raise RetryTaskError(None, None)
+            producer_rv_list.append(ret_dict)
+
+        return producer_rv_list
