@@ -3684,6 +3684,11 @@ instantiated on router.html as:
 goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });
+
+if compliance module installed, after login, localStorage will contain:
+addons: [{
+    url_root: 'compliance'
+}]
 */
 
 var AddonMenuView = GoldstoneBaseView.extend({
@@ -7607,13 +7612,15 @@ var LoginPageView = GoldstoneBaseView.extend({
 
         $.ajax({
             type: 'get',
-            url: '/addons/'
+            url: '/compliance/'
         }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify(success));
+            localStorage.setItem('addons', JSON.stringify([{
+                url_root: 'compliance'
+            }]));
 
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         }).fail(function(fail) {
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         });
     },
 

@@ -48,13 +48,15 @@ var LoginPageView = GoldstoneBaseView.extend({
 
         $.ajax({
             type: 'get',
-            url: '/addons/'
+            url: '/compliance/'
         }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify(success));
+            localStorage.setItem('addons', JSON.stringify([{
+                url_root: 'compliance'
+            }]));
 
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         }).fail(function(fail) {
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         });
     },
 
