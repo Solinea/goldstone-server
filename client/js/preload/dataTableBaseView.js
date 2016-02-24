@@ -188,7 +188,7 @@ var DataTableBaseView = GoldstoneBaseView.extend({
     },
 
     oTableParamGenerator: function(data) {
-        result = this.oTableParamGeneratorBase(data);
+        var result = this.oTableParamGeneratorBase(data);
 
         // hook to add additional paramaters to the options hash
         result = this.addOTableParams(result);
