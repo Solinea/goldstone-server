@@ -432,6 +432,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 if (errorMessage.responseJSON.non_field_errors) {
                     message += errorMessage.responseJSON.non_field_errors;
                 }
+                if (errorMessage.responseJSON.resource_type && Array.isArray(errorMessage.responseJSON.resource_type)) {
+                    message += errorMessage.responseJSON.resource_type[0];
+                }
 
             } else {
                 message = '';
@@ -443,6 +446,12 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
                 if (errorMessage.responseText) {
                     message += ' ' + errorMessage.responseText + '.';
+                }
+                if(errorMessage.message) {
+                    message += ' ' + errorMessage.message + '.';
+                }
+                if(errorMessage.detail) {
+                    message += ' ' + errorMessage.detail + '.';
                 }
             }
         }
