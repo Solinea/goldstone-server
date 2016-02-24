@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import sys
+import socket
 from .base import *            # pylint: disable=W0614,W0401
 from goldstone.libs import secret_key
 
@@ -89,20 +90,25 @@ LOGGING = {
             'filename': '/tmp/goldstone.log',
             'formatter': 'default'
         },
+        'graypy': {
+            'class': 'graypy.GELFHandler',
+            'host': 'gslog',
+            'port': 5517,
+        },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['console'],
+            'handlers': ['console', 'graypy'],
             'propagate': False,
             'level': 'INFO',
         },
         'elasticsearch': {
             'level': 'WARN',
-            'handlers': ['console']
+            'handlers': ['console', 'graypy']
         },
         'goldstone': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console', 'graypy']
         },
     },
 }

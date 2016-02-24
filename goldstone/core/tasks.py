@@ -99,6 +99,8 @@ def update_persistent_graph():
         except Exception as e:
             logger.exception(e)
 
+    logger.info("update_persistent_graph task completed successfully")
+
 
 @celery_app.task()
 def expire_auth_tokens():

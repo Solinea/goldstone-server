@@ -1,4 +1,3 @@
-# vim:set ft=dockerfile:
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM logstash:2.1
-MAINTAINER Luke Heidecke <luke@solinea.com>
-
-COPY conf.d /logstash/conf.d
-COPY patterns /opt/logstash/patterns
-
-RUN /opt/logstash/bin/plugin install logstash-filter-translate
-RUN /opt/logstash/bin/plugin install logstash-input-http
-
-EXPOSE 5514 5515 5516 5517/udp
-
-CMD ["logstash", "-f", "/logstash/conf.d", "-w", "1"]
+#
+# accepts TCP from an alternate syslog port
+#
+input {
+    gelf {
+        port => 5517
+        type => internal
+    }
+}

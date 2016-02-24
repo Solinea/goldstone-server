@@ -26,6 +26,7 @@ gsappdev:
     - gsdb
     - gssearch
     - gstaskq
+    - gslog
   log_driver: "json-file"
   log_opt:
     max-size: "100k"
@@ -52,6 +53,7 @@ gslog:
     - "5514:5514"
     - "5515:5515"
     - "5516:5516"
+    - "5517:5517/udp"
   links:
     - gssearch
   log_driver: "json-file"
