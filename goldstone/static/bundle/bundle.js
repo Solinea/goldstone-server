@@ -6019,10 +6019,6 @@ var GlobalLookbackRefreshButtonsView = GoldstoneBaseView.extend({
         return result;
     },
 
-    // TODO: make a getter/setter function so that other views that need to change these values can do so in a centralized way
-    // such as logViewer when it changes the selectors
-
-
     customLookback: function() {
         if (this.lookbackValues && this.lookbackValues.lookback && this.lookbackValues.lookback.length) {
             var values = this.lookbackValues;
@@ -6082,8 +6078,8 @@ var GlobalLookbackRefreshButtonsView = GoldstoneBaseView.extend({
         '<select class="form-control" id="global-lookback-range">' +
         '<%= this.customLookback() %>' +
         // based on this.lookbackValues.lookback
-        // '<option value="15">lookback 15m</option>' +
-        // '<option value="60" selected>lookback 1h</option>' +
+        // '<option value="15" selected>lookback 15m</option>' +
+        // '<option value="60">lookback 1h</option>' +
         // '<option value="360">lookback 6h</option>' +
         // '<option value="1440">lookback 1d</option>' +
         '</select>' +
