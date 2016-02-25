@@ -16,10 +16,12 @@
 import logging
 import sys
 import arrow
+import jsontemplate
+import polymorphic
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import CharField, IntegerField
+from django.db.models import CharField, IntegerField, ForeignKey
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
@@ -2473,6 +2475,110 @@ class SavedSearch(models.Model):
             (self.name, self.owner, self.uuid)
 
 
+class AlertDefinition(models.Model):
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    name = models.CharField(max_length=64)
+
+    description = models.CharField(max_length=1024, blank=True, default=None)
+
+    short_template = models.TextField(
+        default='Alert: {{_alert_name}} triggered with {{_search_hits}} hits '
+                'in the last {{_search_interval}} interval')
+
+    long_template = models.TextField(
+        default='There were {{_search_hits}} matching records for the '
+                '{{_search_name}} search (id: {{_search_id}}) between '
+                '{{_start_time}} and {{_end_time}}.\n\nAlert ID: '
+                '{{_alert_id}}')
+
+    enabled = models.BooleanField(default=True)
+
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    search = ForeignKey(SavedSearch, editable=False)
+
+    owner = ForeignKey(User, editable=False)
+
+    def evaluate(self, search_result, start_time, end_time):
+
+            kv_pairs = {
+                '_alert_name': self.name,
+                '_search_hits': search_result['hits']['total'],
+                '_search_interval': self.search.target_interval,
+                '_search_name': self.search.name,
+                '_search_id': self.search.uuid,
+                '_start_time': start_time,
+                '_end_time': end_time,
+                '_alert_id': self.uuid
+            }
+
+            if kv_pairs['_search_hits'] > 0:
+
+                short = jsontemplate.expand(self.short_template, kv_pairs)
+                long = jsontemplate.expand(self.long_template, kv_pairs)
+
+                # create an alert and call all our producers with it
+                alert = Alert(short, long)
+                for producer in Producer.objects.filter(alert_def=self):
+                    producer.produce(alert)
+
+
+class Alert(models.Model):
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    short_message = models.TextField()
+
+    long_message = models.TextField()
+
+    alert_def = ForeignKey(AlertDefinition)
+
+    owner = ForeignKey(User)
+
+
+class Producer(polymorphic.Model):
+    """
+        Generic interface class for an alert producer. This contains generic
+        producer related information such as sender, receiver names, id's,
+        host, auth-params etc
+
+        Specific types like email, slack, HTTP-POST etc inherit from this
+        class with specific connection attributes
+    """
+    alert_def = models.ForeignKey(AlertDefinition)
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def produce(self, alert):
+        raise NotImplementedError("Producer subclass must implement send.")
+
+
+class EmailProducer(Producer):
+    """
+        Specific interface class to prepare and send an email.
+        Class gets all of its email contents from the parent producer class.
+        This class only contains methods specific to a mailing interface.
+    """
+
+    sender = models.EmailField(max_length=128,
+                               default=settings.EMAIL_HOST_USER)
+
+    receiver = models.EmailField(max_length=128, blank=False)
+
+    def produce(self, alert):
+
+        email_rv = send_mail(alert.msg_title, alert.msg_body,
+                             self.sender, self.receiver,
+                             fail_silently=False)
+        return email_rv
+
+
 class CADFEventDocType(DailyIndexDocType):
     """ES representation of a PyCADF event. Attempting to write traits that are
     not present in the Nested definition will result in an exception, though
@@ -2523,37 +2629,6 @@ class CADFEventDocType(DailyIndexDocType):
         return {"traits": e.as_dict()}
 
 
-class AlertSearch(SavedSearch):
-    """
-        Model for AlertSearches, a subclass of SavedSearch that has an alert
-        notification configured to be sent out to one or more recipients.
-
-    """
-
-    class Meta:               # pylint: disable=C0111,W0232,C1001
-
-        verbose_name_plural = "saved searches with alerts"
-
-    def build_alert_template(self, hits):
-        msg_title_template = 'Alert : ' + str(self.name) + \
-                             ' triggered with ' + str(hits) +\
-                             ' hits in the last ' + str(self.target_interval) +\
-                             ' minutes.'
-
-        msg_body_template = 'There were ' + str(hits) + \
-                            ' occurrences of ' + str(self.name) +\
-                            ' in the last ' + str(self.target_interval) +\
-                            ' minutes.' + '\n' +\
-                            'This query was last updated at : ' +\
-                            str(self.updated) + '\n' +\
-                            'This query last ran from : ' +\
-                            str(self.last_start) + ' to : ' +\
-                            str(self.last_end)
-        msg_params_dict = {'title': msg_title_template,
-                           'body': msg_body_template}
-        return msg_params_dict
-
-
 class Alert(models.Model):
     """
         Create an alert instance object. This contains the fleshed-out
@@ -2580,40 +2655,3 @@ class Alert(models.Model):
 
         return "%s (%s)" % \
             (self.msg_title, self.uuid)
-
-
-class Producer(models.Model):
-    """
-        Generic interface class for an alert producer. This contains generic
-        producer related information such as sender, receiver names, id's,
-        host, auth-params etc
-
-        Specific types like email, slack, HTTP-POST etc inherit from this
-        class with specific connection attributes
-    """
-    query = models.ForeignKey(AlertSearch)
-
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def send(self, alert):
-        raise NotImplementedError("Producer must implement send.")
-
-
-class EmailProducer(Producer):
-    """
-        Specific interface class to prepare and send an email.
-        Class gets all of its email contents from the parent producer class.
-        This class only contains methods specific to a mailing interface.
-    """
-
-    sender = models.CharField(max_length=64, default=settings.EMAIL_HOST_USER)
-    receiver = models.EmailField(max_length=128, blank=False)
-
-    def send(self, alert):
-
-        email_rv = send_mail(alert.msg_title, alert.msg_body,
-                             str(self.sender), list(self.receiver),
-                             fail_silently=False)
-        return email_rv
