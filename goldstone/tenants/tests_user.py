@@ -20,7 +20,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_204_NO_CONTENT
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
-    check_response_without_uuid, TEST_USER, CONTENT_PERMISSION_DENIED, \
+    check_response_without_uuid, TEST_USER_1, CONTENT_PERMISSION_DENIED, \
     BAD_TOKEN, BAD_UUID, CONTENT_NOT_BLANK_USERNAME
 from .models import Tenant
 from .tests_tenants import TENANTS_ID_URL
@@ -85,7 +85,7 @@ class TenantsIdUsers(Setup):
         # Create a normal user who's a member of the tenant, but *not* a
         # tenant_admin
         token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenant
         user.save()
 
@@ -315,8 +315,8 @@ class TenantsIdUsersId(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        user = get_user_model().objects.create_user(username=TEST_USER[0],
-                                                    password=TEST_USER[2])
+        user = get_user_model().objects.create_user(username=TEST_USER_1[0],
+                                                    password=TEST_USER_1[2])
         user.tenant = tenant
         user.tenant_admin = True
         user.save()
@@ -372,7 +372,7 @@ class TenantsIdUsersId(Setup):
         # Create a normal user who's a member of the tenant, but *not* a
         # tenant_admin
         token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenant
         user.save()
 
@@ -412,7 +412,7 @@ class TenantsIdUsersId(Setup):
 
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
 
         # Try GET, PUT, and DELETE to a nonexistent tenant.
         responses = [
@@ -485,7 +485,7 @@ class TenantsIdUsersId(Setup):
 
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
 
         # Try GETing the tenant admin.
         response = self.client.get(
@@ -705,7 +705,7 @@ class TenantsIdUsersId(Setup):
 
         # Create a tenant_admin.
         token = create_and_login(tenant=tenant)
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user = get_user_model().objects.get(username=TEST_USER_1[0])
 
         # Try DELETE on oneself.
         response = self.client.delete(

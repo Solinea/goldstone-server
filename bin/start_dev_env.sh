@@ -77,6 +77,7 @@ else
     echo "${DOCKER_VM} is already running"
 fi
 
+sleep 5
 eval "$(docker-machine env ${DOCKER_VM})"
 
 docker-compose -f docker-compose-dev.yml up

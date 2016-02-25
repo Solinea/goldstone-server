@@ -25,7 +25,7 @@ from goldstone.core.models import Alert, AlertSearch
 from goldstone.core.views import AlertViewSet
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
-    BAD_TOKEN, BAD_UUID, TEST_USER
+    BAD_TOKEN, BAD_UUID, TEST_USER_1
 
 SEARCH_URL = "/core/alert/"
 SEARCH_UUID_URL = SEARCH_URL + "%s/"
@@ -135,7 +135,7 @@ class PermissionsTest(SearchSetup):
         # user to be a tenant admin.
         token = create_and_login()
 
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant_admin = True
         user.save()
 

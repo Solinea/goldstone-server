@@ -20,7 +20,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_204_NO_CONTENT
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, check_response_without_uuid, \
-    TEST_USER, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME, \
+    TEST_USER_1, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME, \
     CONTENT_PERMISSION_DENIED, BAD_TOKEN
 from .models import Tenant
 
@@ -229,7 +229,7 @@ class Tenants(Setup):
             # Run this test with no default tenant admins. The "current" user,
             # who's a Django admin, should be used as the default tenant_admin.
             default_tenant_admins = \
-                [get_user_model().objects.get(username=TEST_USER[0])]
+                [get_user_model().objects.get(username=TEST_USER_1[0])]
         else:
             # Run this test with one or more default_tenant_admins.
             default_tenant_admins = [get_user_model().objects.create_user(
@@ -452,7 +452,7 @@ class TenantsId(Setup):
                                 status_code=HTTP_403_FORBIDDEN)
 
         # Try deleting a tenant as a tenant_admin
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenants[1]
         user.save()
 
@@ -630,7 +630,7 @@ class TenantsId(Setup):
         self.assertFalse(get_user_model().objects
                          .filter(username="Traci").exists())
         self.assertTrue(get_user_model().objects
-                        .filter(username=TEST_USER[0]).exists())
+                        .filter(username=TEST_USER_1[0]).exists())
 
     def test_delete_django_admin(self):
         """Delete a tenant, where the Django admin belongs to the tenant.
@@ -646,7 +646,7 @@ class TenantsId(Setup):
                                        owner_contact='206.867.5309')
 
         # Make the Django admin a tenant member.
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenant
         user.save()
 
@@ -672,9 +672,9 @@ class TenantsId(Setup):
         self.assertEqual(get_user_model().objects.count(), 2)
 
         self.assertTrue(get_user_model().objects
-                        .filter(username=TEST_USER[0]).exists())
+                        .filter(username=TEST_USER_1[0]).exists())
         self.assertIsNone(get_user_model().objects
-                          .get(username=TEST_USER[0]).tenant)
+                          .get(username=TEST_USER_1[0]).tenant)
         self.assertTrue(get_user_model().objects.filter(username="B").exists())
         self.assertFalse(get_user_model().objects
                          .filter(username="John").exists())
@@ -716,9 +716,9 @@ class TenantsId(Setup):
         self.assertEqual(get_user_model().objects.count(), 3)
 
         self.assertTrue(get_user_model().objects
-                        .filter(username=TEST_USER[0]).exists())
+                        .filter(username=TEST_USER_1[0]).exists())
         self.assertIsNone(get_user_model().objects
-                          .get(username=TEST_USER[0]).tenant)
+                          .get(username=TEST_USER_1[0]).tenant)
         self.assertTrue(get_user_model().objects.filter(username="B").exists())
         self.assertIsNone(get_user_model().objects.get(username="B").tenant)
         self.assertTrue(get_user_model().objects

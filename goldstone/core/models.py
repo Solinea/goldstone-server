@@ -2455,9 +2455,17 @@ class SavedSearch(models.Model):
         if self.timestamp_field is None:
             return self.search()
 
-        if self.last_end is None:
-            start = arrow.get(0).datetime
+        # if we haven't run this before, let's provide data from when the
+        # search was created
+        if self.last_end is None and self.created is None:
+            # this is probably a search primed from fixtures, let's set a
+            # reasonable start date of now.
+            start = arrow.utcnow().datetime
+        elif self.last_end is None:
+            # we have a creation time, so let's use that
+            start = self.created
         else:
+            # we can use the end time of the last successful range
             start = self.last_end
 
         end = arrow.utcnow().datetime
