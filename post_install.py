@@ -59,20 +59,15 @@ def cloud_init(gs_tenant,
     import re
     from goldstone.tenants.models import Cloud
 
-    # The OpenStack identity authorization URL has a version number segment. We
-    # use this version. It should not start with a slash.
-    AUTH_URL_VERSION = "v3/"
-
-    # This is used to detect a version segment at an authorization URL's end.
-    AUTH_URL_VERSION_LIKELY = r'\/[vV]\d'
-
-    # Ask for user for two of the necessary attributes if they're not
-    # defined.
+    # production deployments will generally have the user configure settings
+    # upon first login.
     if stack_tenant is None or stack_user is None or stack_auth_url is None \
             or stack_password is None:
         fastprint("\nSkipping cloud setup.")
         return None
 
+    # developers may want to put the connection settings in the docker env
+    # since they will redeploy often.
     try:
         # Note: There's a db unique constraint on (tenant, tenant_name, and
         # username).
@@ -80,17 +75,6 @@ def cloud_init(gs_tenant,
                           tenant_name=stack_tenant,
                           username=stack_user)
     except ObjectDoesNotExist:
-
-        if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
-            # The user shouldn't have included the version segment, but
-            # did anyway. Remove it.
-            version_index = re.search(AUTH_URL_VERSION_LIKELY,
-                                      stack_auth_url)
-            stack_auth_url = stack_auth_url[:version_index.start()]
-
-        # Append our version number to the base URL.
-        stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
-
         # Create the row!
         Cloud.objects.create(tenant=gs_tenant,
                              tenant_name=stack_tenant,
