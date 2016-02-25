@@ -24,6 +24,11 @@ instantiated on router.html as:
 goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });
+
+if compliance module installed, after login, localStorage will contain:
+addons: [{
+    url_root: 'compliance'
+}]
 */
 
 var AddonMenuView = GoldstoneBaseView.extend({

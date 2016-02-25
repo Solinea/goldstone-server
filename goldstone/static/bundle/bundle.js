@@ -432,6 +432,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 if (errorMessage.responseJSON.non_field_errors) {
                     message += errorMessage.responseJSON.non_field_errors;
                 }
+                if (errorMessage.responseJSON.resource_type && Array.isArray(errorMessage.responseJSON.resource_type)) {
+                    message += errorMessage.responseJSON.resource_type[0];
+                }
 
             } else {
                 message = '';
@@ -443,6 +446,12 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
                 if (errorMessage.responseText) {
                     message += ' ' + errorMessage.responseText + '.';
+                }
+                if(errorMessage.message) {
+                    message += ' ' + errorMessage.message + '.';
+                }
+                if(errorMessage.detail) {
+                    message += ' ' + errorMessage.detail + '.';
                 }
             }
         }
@@ -3684,6 +3693,11 @@ instantiated on router.html as:
 goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });
+
+if compliance module installed, after login, localStorage will contain:
+addons: [{
+    url_root: 'compliance'
+}]
 */
 
 var AddonMenuView = GoldstoneBaseView.extend({
@@ -7607,13 +7621,15 @@ var LoginPageView = GoldstoneBaseView.extend({
 
         $.ajax({
             type: 'get',
-            url: '/addons/'
+            url: '/compliance/'
         }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify(success));
+            localStorage.setItem('addons', JSON.stringify([{
+                url_root: 'compliance'
+            }]));
 
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         }).fail(function(fail) {
-            self.redirectPostSuccessfulAuth();    
+            self.redirectPostSuccessfulAuth();
         });
     },
 

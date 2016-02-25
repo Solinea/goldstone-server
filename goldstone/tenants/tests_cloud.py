@@ -19,7 +19,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_204_NO_CONTENT
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
-    check_response_without_uuid, TEST_USER, CONTENT_PERMISSION_DENIED, \
+    check_response_without_uuid, TEST_USER_1, CONTENT_PERMISSION_DENIED, \
     BAD_TOKEN, BAD_UUID
 from .models import Tenant, Cloud
 from .tests_tenants import TENANTS_ID_URL
@@ -95,7 +95,7 @@ class TenantsIdCloud(Setup):
         # Create a normal user who's a member of the tenant, but *not* a
         # tenant_admin
         token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenant
         user.save()
 
@@ -326,7 +326,7 @@ class TenantsIdCloudId(Setup):
         # Create a normal user who's a member of the tenant, but *not* a
         # tenant_admin
         token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
+        user = get_user_model().objects.get(username=TEST_USER_1[0])
         user.tenant = tenant
         user.save()
 

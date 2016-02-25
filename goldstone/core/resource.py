@@ -19,21 +19,20 @@ import sys
 from django.conf import settings
 import networkx
 
-from goldstone.addons.models import Addon as AddonTable
 from .models import User, Domain, Group, Token, Credential, Role, Region, \
     Endpoint, Service, Project, AvailabilityZone, Aggregate, \
     Flavor, Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server, \
     Interface, NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType, \
     Volume, Limits, NeutronQuota, NeutronSecurityGroupRule, \
     NeutronSecurityGroup, NeutronPort, NeutronFloatingIP, NeutronSubnet, \
-    NeutronNetwork, NeutronRouter, Addon, PolyResource, Cinder, Glance, Nova, \
+    NeutronNetwork, NeutronRouter, PolyResource, Cinder, Glance, Nova, \
     Neutron, Keystone, Transfer, NeutronAgent, NeutronSubnetPool, \
     NeutronExtension
 
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project, AvailabilityZone, Aggregate,
-                  Flavor, Keypair, Host, Addon, Hypervisor, Cloudpipe,
+                  Flavor, Keypair, Host, Hypervisor, Cloudpipe,
                   ServerGroup, Server, Interface, NovaLimits, Image, QuotaSet,
                   QOSSpec, Snapshot, VolumeType, Volume, Limits,
                   NeutronQuota, NeutronSecurityGroupRule,
@@ -138,33 +137,6 @@ class Types(Graph):
                 self.graph.add_edge(source_type,
                                     control_dict[TO],
                                     attr_dict=control_dict[EDGE_ATTRIBUTES])
-
-        # Now the add-on resource types.
-        for row in AddonTable.objects.all():
-            try:
-                for source_type in resource_types(row.name):
-                    self.graph.add_node(source_type)
-
-                    # If this is the add-on's root, make an edge from the Addon
-                    # type to it.
-                    if hasattr(source_type, "root"):
-                        self.graph.add_edge(Addon,
-                                            source_type,
-                                            attr_dict={TYPE: INSTANCE_OF,
-                                                       MIN: 0,
-                                                       MAX: sys.maxint})
-
-                    # Add edges from this node to others.
-                    for control_dict in source_type.type_outgoing_edges():
-                        self.graph.add_edge(
-                            source_type,
-                            control_dict[TO],
-                            attr_dict=control_dict[EDGE_ATTRIBUTES])
-
-            except Exception:         # pylint: disable=W0703
-                logger.exception("Problem adding %s to the resource type "
-                                 "graph! Skipping...", row)
-                continue
 
     @classmethod
     def get_type(cls, unique_id):

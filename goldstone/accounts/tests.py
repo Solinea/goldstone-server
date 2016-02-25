@@ -20,7 +20,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, CONTENT_BAD_TOKEN, \
     CONTENT_NO_CREDENTIALS, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, USER_URL, \
-    TEST_USER, BAD_TOKEN
+    TEST_USER_1, BAD_TOKEN
 
 # Http response content.
 CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
@@ -158,12 +158,12 @@ class Login(Setup):
         """Logging in with a bad username."""
 
         # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
+        get_user_model().objects.create_user(*TEST_USER_1)
 
         # Try logging in with a bad username.
         response = self.client.post(LOGIN_URL,
                                     {"username": "Atticus",
-                                     "password": TEST_USER[2]})
+                                     "password": TEST_USER_1[2]})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -173,11 +173,11 @@ class Login(Setup):
         """Logging in with a bad password."""
 
         # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
+        get_user_model().objects.create_user(*TEST_USER_1)
 
         # Try logging in with a bad username.
         response = self.client.post(LOGIN_URL,
-                                    {"username": TEST_USER[0],
+                                    {"username": TEST_USER_1[0],
                                      "password": "Finch"})
 
         self.assertContains(response,
@@ -197,7 +197,7 @@ class Login(Setup):
         """
 
         create_and_login()
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
     def test_login_another_logged_in(self):        # pylint: disable=R0201
         """Logging in when another user is logged in.
@@ -209,13 +209,13 @@ class Login(Setup):
         # Create user 1 and user 2. User 2 is just user 1 with the username and
         # password swapped.
         create_and_login()
-        get_user_model().objects.create_user(TEST_USER[2],
-                                             TEST_USER[1],
-                                             TEST_USER[0])
+        get_user_model().objects.create_user(TEST_USER_1[2],
+                                             TEST_USER_1[1],
+                                             TEST_USER_1[0])
 
         # Login user 1, then login user 2.
-        login(TEST_USER[0], TEST_USER[2])
-        login(TEST_USER[2], TEST_USER[0])
+        login(TEST_USER_1[0], TEST_USER_1[2])
+        login(TEST_USER_1[2], TEST_USER_1[0])
 
 
 class Logout(Setup):
@@ -263,8 +263,8 @@ class Logout(Setup):
 
         response = self.client.post(
             LOGOUT_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "password": TEST_USER[2]}),
+            json.dumps({"username": TEST_USER_1[0],
+                        "password": TEST_USER_1[2]}),
             content_type="application/json")
 
         self.assertContains(response,
@@ -313,8 +313,8 @@ class Password(Setup):
         # Now try changing the password.
         response = self.client.post(
             PASSWORD_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "current_password": TEST_USER[2],
+            json.dumps({"username": TEST_USER_1[0],
+                        "current_password": TEST_USER_1[2],
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -324,7 +324,7 @@ class Password(Setup):
 
         # Verify that we can't log in using the NEW password.
         response = self.client.post(LOGIN_URL,
-                                    {"username": TEST_USER[0],
+                                    {"username": TEST_USER_1[0],
                                      "password": "boom"})
 
         self.assertContains(response,
@@ -332,7 +332,7 @@ class Password(Setup):
                             status_code=HTTP_400_BAD_REQUEST)
 
         # We should be able to still log in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
     def test_missing_token(self):
         """The change password request doesn't have an authentication token."""
@@ -343,8 +343,8 @@ class Password(Setup):
         # Try changing the password.
         response = \
             self.client.post(PASSWORD_URL,
-                             json.dumps({"username": TEST_USER[0],
-                                         "current_password": TEST_USER[2],
+                             json.dumps({"username": TEST_USER_1[0],
+                                         "current_password": TEST_USER_1[2],
                                          "new_password": "boom"}),
                              content_type="application/json")
 
@@ -352,12 +352,12 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
         # Verify that we can't log in using the new password.
         response = self.client.post(
             LOGIN_URL,
-            {"username": TEST_USER[0], "password": "boom"})
+            {"username": TEST_USER_1[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -373,8 +373,8 @@ class Password(Setup):
         response = \
             self.client.post(
                 PASSWORD_URL,
-                json.dumps({"username": TEST_USER[0],
-                            "current_password": TEST_USER[2],
+                json.dumps({"username": TEST_USER_1[0],
+                            "current_password": TEST_USER_1[2],
                             "new_password": "boom"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
@@ -383,11 +383,11 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
         # Verify that we can't log in using the new password.
         response = self.client.post(LOGIN_URL,
-                                    {"username": TEST_USER[0],
+                                    {"username": TEST_USER_1[0],
                                      "password": "boom"})
 
         self.assertContains(response,
@@ -403,7 +403,7 @@ class Password(Setup):
         # Try changing the password.
         response = self.client.post(
             PASSWORD_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -412,12 +412,12 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
         # Verify that we can't log in using the new password.
         response = self.client.post(
             LOGIN_URL,
-            {"username": TEST_USER[0], "password": "boom"})
+            {"username": TEST_USER_1[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -432,7 +432,7 @@ class Password(Setup):
         # Try changing the password.
         response = self.client.post(
             PASSWORD_URL,
-            json.dumps({"username": TEST_USER[0],
+            json.dumps({"username": TEST_USER_1[0],
                         "current_password": "rockmeamadeus",
                         "new_password": "boom"}),
             content_type="application/json",
@@ -442,12 +442,12 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
         # Verify that we can't log in using the new password.
         response = self.client.post(
             LOGIN_URL,
-            {"username": TEST_USER[0], "password": "boom"})
+            {"username": TEST_USER_1[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -462,8 +462,8 @@ class Password(Setup):
         # Try changing the password.
         response = self.client.post(
             PASSWORD_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "current_password": TEST_USER[2]}),
+            json.dumps({"username": TEST_USER_1[0],
+                        "current_password": TEST_USER_1[2]}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -471,7 +471,7 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER_1[0], TEST_USER_1[2])
 
     def test_change_password(self):
         """Change the current user's password."""
@@ -482,7 +482,7 @@ class Password(Setup):
         # Try changing the password.
         response = self.client.post(
             PASSWORD_URL,
-            json.dumps({"current_password": TEST_USER[2],
+            json.dumps({"current_password": TEST_USER_1[2],
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -491,12 +491,12 @@ class Password(Setup):
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test logging in using the new password.
-        login(TEST_USER[0], "boom")
+        login(TEST_USER_1[0], "boom")
 
         # Verify that we can't log in using the old password.
         response = self.client.post(LOGIN_URL,
-                                    {"username": TEST_USER[0],
-                                     "password": TEST_USER[2]})
+                                    {"username": TEST_USER_1[0],
+                                     "password": TEST_USER_1[2]})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -515,7 +515,7 @@ class PasswordReset(Setup):
         # Test that send_email was called only once, and check some of the
         # arguments it was called with.
         self.assertEqual(send_email.call_count, 1)
-        self.assertEqual(send_email.call_args[0][0], TEST_USER[1])  # email
+        self.assertEqual(send_email.call_args[0][0], TEST_USER_1[1])  # email
         self.assertEqual(send_email.call_args[0][1],
                          "webmaster@localhost")  # from
         self.assertEqual(send_email.call_args[0][2]["site_name"],
@@ -528,7 +528,7 @@ class PasswordReset(Setup):
                            len(settings.DJOSER["PASSWORD_RESET_CONFIRM_URL"]) +
                            11)
         self.assertEqual(send_email.call_args[0][2]["user"].username,
-                         TEST_USER[0])  # username
+                         TEST_USER_1[0])  # username
 
     @patch("djoser.utils.send_email")
     def test_not_logged_in(self, send_email):
@@ -549,7 +549,7 @@ class PasswordReset(Setup):
         # Now try resetting the password.
         response = \
             self.client.post(PASSWORD_RESET_URL,
-                             json.dumps({"email": TEST_USER[1]}),
+                             json.dumps({"email": TEST_USER_1[1]}),
                              content_type="application/json")
 
         self._check_response(response, send_email)
@@ -567,7 +567,7 @@ class PasswordReset(Setup):
 
         # Try resetting the password.
         response = self.client.post(PASSWORD_RESET_URL,
-                                    json.dumps({"email": TEST_USER[1]}),
+                                    json.dumps({"email": TEST_USER_1[1]}),
                                     content_type="application/json")
 
         self._check_response(response, send_email)

@@ -17,9 +17,7 @@ from mock import patch
 
 from .models import ServerGroup, Server, Interface, Volume, QOSSpec, \
     VolumeType, Snapshot
-from .resource import Types, RESOURCE_TYPES
 from .tests_resource_types_1 import do_tezt, dictassign
-from goldstone.addons.models import Addon as AddonTable
 from goldstone.test_utils import Setup
 
 
