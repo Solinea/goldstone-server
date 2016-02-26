@@ -16,8 +16,7 @@
 import logging
 import sys
 import arrow
-import jsontemplate
-import polymorphic
+from jinja2 import Template
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -35,6 +34,7 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+from goldstone.user.models import User as DjangoUser
 
 logger = logging.getLogger(__name__)
 
@@ -2509,7 +2509,7 @@ class AlertDefinition(models.Model):
 
     search = ForeignKey(SavedSearch, editable=False)
 
-    owner = ForeignKey(User, editable=False)
+    owner = ForeignKey(DjangoUser, editable=False, on_delete=models.CASCADE)
 
     def evaluate(self, search_result, start_time, end_time):
 
@@ -2526,11 +2526,12 @@ class AlertDefinition(models.Model):
 
             if kv_pairs['_search_hits'] > 0:
 
-                short = jsontemplate.expand(self.short_template, kv_pairs)
-                long = jsontemplate.expand(self.long_template, kv_pairs)
+                short = Template(self.short_template).render(kv_pairs)
+                long = Template(self.long_template).render(kv_pairs)
 
                 # create an alert and call all our producers with it
                 alert = Alert(short, long)
+                alert.save()
                 for producer in Producer.objects.filter(alert_def=self):
                     producer.produce(alert)
 
@@ -2543,12 +2544,17 @@ class Alert(models.Model):
 
     long_message = models.TextField()
 
-    alert_def = ForeignKey(AlertDefinition)
+    alert_def = ForeignKey(AlertDefinition, editable=False,
+                           on_delete=models.PROTECT)
 
-    owner = ForeignKey(User)
+    owner = ForeignKey(DjangoUser, editable=False, on_delete=models.CASCADE)
+
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
 
-class Producer(polymorphic.Model):
+class Producer(PolymorphicModel):
     """
         Generic interface class for an alert producer. This contains generic
         producer related information such as sender, receiver names, id's,
@@ -2557,7 +2563,12 @@ class Producer(polymorphic.Model):
         Specific types like email, slack, HTTP-POST etc inherit from this
         class with specific connection attributes
     """
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
     alert_def = models.ForeignKey(AlertDefinition)
+
+    owner = ForeignKey(DjangoUser)
 
     class Meta:
         abstract = True
@@ -2635,31 +2646,3 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
-
-
-class Alert(models.Model):
-    """
-        Create an alert instance object. This contains the fleshed-out
-        alert message which will be passed down to the producer interface
-        to be sent out.
-
-        This does not contain msg-params for actually sending out this alert.
-        For those details, refer to class Producer.
-    """
-
-    uuid = UUIDField(version=4, auto=True, primary_key=True)
-    query = models.ForeignKey(AlertSearch)
-    # alert assignee vs alert receiver, can be a person vs mailing list
-    owner = models.CharField(max_length=64, default='goldstone',
-                             help_text='alert assignee, individual entity')
-
-    msg_title = models.CharField(max_length=256, default='Alert notification')
-    msg_body = models.CharField(max_length=1024,
-                                default='This is an alert notification')
-    created = CreationDateTimeField(editable=False, blank=False, null=False)
-
-    def __unicode__(self):
-        """Return a useful string."""
-
-        return "%s (%s)" % \
-            (self.msg_title, self.uuid)

@@ -17,18 +17,32 @@ class Migration(migrations.Migration):
             name='Alert',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
-                ('owner', models.CharField(default=b'goldstone', help_text=b'alert assignee, individual entity', max_length=64)),
-                ('msg_title', models.CharField(default=b'Alert notification', max_length=256)),
-                ('msg_body', models.CharField(default=b'This is an alert notification', max_length=1024)),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
+                ('short_message', models.TextField()),
+                ('long_message', models.TextField()),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='AlertDefinition',
+            fields=[
+                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
+                ('name', models.CharField(max_length=64)),
+                ('description', models.CharField(default=None, max_length=1024, blank=True)),
+                ('short_template', models.TextField(default=b'Alert: {{_alert_name}} triggered with {{_search_hits}} hits in the last {{_search_interval}} interval')),
+                ('long_template', models.TextField(default=b'There were {{_search_hits}} matching records for the {{_search_name}} search (id: {{_search_id}}) between {{_start_time}} and {{_end_time}}.\n\nAlert ID: {{_alert_id}}')),
+                ('enabled', models.BooleanField(default=True)),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
         ),
         migrations.CreateModel(
             name='EmailProducer',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('sender', models.CharField(default=None, max_length=64)),
+                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
+                ('sender', models.EmailField(default=None, max_length=128)),
                 ('receiver', models.EmailField(max_length=128)),
+                ('alert_def', models.ForeignKey(to='core.AlertDefinition')),
             ],
             options={
                 'abstract': False,
@@ -91,16 +105,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('core.polyresource',),
-        ),
-        migrations.CreateModel(
-            name='AlertSearch',
-            fields=[
-                ('savedsearch_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='core.SavedSearch')),
-            ],
-            options={
-                'verbose_name_plural': 'saved searches with alerts',
-            },
-            bases=('core.savedsearch',),
         ),
         migrations.CreateModel(
             name='AvailabilityZone',
@@ -553,15 +557,5 @@ class Migration(migrations.Migration):
             model_name='polyresource',
             name='polymorphic_ctype',
             field=models.ForeignKey(related_name='polymorphic_core.polyresource_set+', editable=False, to='contenttypes.ContentType', null=True),
-        ),
-        migrations.AddField(
-            model_name='emailproducer',
-            name='query',
-            field=models.ForeignKey(to='core.AlertSearch'),
-        ),
-        migrations.AddField(
-            model_name='alert',
-            name='query',
-            field=models.ForeignKey(to='core.AlertSearch'),
         ),
     ]
