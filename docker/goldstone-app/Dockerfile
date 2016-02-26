@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<<<<<<< 480e877ab85569a0e4c269dca31982b8584dc92b
 FROM solinea/goldstone-base:1.0.0-SNAPSHOT
 
+=======
+>>>>>>> add vagrant to spin up test env
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
 # DJANGO_ADMIN_EMAIL                email address for admininstrative emails

@@ -28,7 +28,11 @@ gsweb:
 # Goldstone Server Container
 gsapp:
   image: solinea/goldstone-app:1.0.0-SNAPSHOT
+<<<<<<< 480e877ab85569a0e4c269dca31982b8584dc92b
   env_file: ./config/goldstone-prod.env
+=======
+  env_file: ./config/goldstone-dev.env
+>>>>>>> add vagrant to spin up test env
   ports:
     - "8000:8000"
   links:
@@ -43,7 +47,11 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db:1.0.0-SNAPSHOT
+<<<<<<< 480e877ab85569a0e4c269dca31982b8584dc92b
   env_file: ./config/goldstone-prod.env
+=======
+  env_file: ./config/goldstone-dev.env
+>>>>>>> add vagrant to spin up test env
   volumes_from:
     - gsdbdvc
   ports:
