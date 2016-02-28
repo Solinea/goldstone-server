@@ -80,5 +80,9 @@ fi
 sleep 5
 eval "$(docker-machine env ${DOCKER_VM})"
 
+# this dir must exist for the app container to start
+if [ ! -d docker/goldstone-app/goldstone-server ] ; then
+    mkdir docker/goldstone-app/goldstone-server
+
 docker-compose -f docker-compose-dev.yml up
 
