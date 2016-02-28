@@ -2407,23 +2407,37 @@ class SavedSearch(models.Model):
      be executed."""
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
+
     name = models.CharField(max_length=64)
+
     owner = models.CharField(max_length=64)
+
     description = models.CharField(max_length=1024, blank=True, default='')
+
     query = models.TextField(help_text='JSON Elasticsearch query body')
+
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
+
     hidden = models.BooleanField(blank=True, default=False,
                                  help_text='True if this search should not be'
                                            'presented via the view')
+
     index_prefix = models.CharField(max_length=64)
+
     doc_type = models.CharField(max_length=64, blank=True, null=True,
                                 default=None)
+
     timestamp_field = models.CharField(max_length=64, null=True)
+
     last_start = models.DateTimeField(blank=True, null=True)
+
     last_end = models.DateTimeField(blank=True, null=True)
+
     target_interval = models.IntegerField(default=0)
+
     created = CreationDateTimeField(editable=False, blank=True, null=True)
+
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
