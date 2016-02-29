@@ -151,38 +151,30 @@ var I18nModel = Backbone.Model.extend({
 
     checkCurrentLanguage: function() {
 
-        // first determine which lanaguage .po files are installed
+        // first determine which language .po files are installed
         var existingPos = _.keys(goldstone.i18nJSON);
 
         // if there is a currently selected language in localStorage,
         // use that to set the current .domain, or set to the
         // English default if none found.
-        var userPrefs = localStorage.getItem('userPrefs');
+        var lang = goldstone.userPrefsView.getUserPrefKey('i18n');
 
-        // set current language
-        if (userPrefs !== null) {
-            var lang = JSON.parse(userPrefs).i18n;
+        // check if language is set && the po exists
+        if (lang !== undefined && existingPos.indexOf(lang) > -1) {
+            this.setCurrentLanguage(lang);
 
-            // check if language is set && the po exists
-            if (lang !== undefined && existingPos.indexOf(lang) > -1) {
-                this.setCurrentLanguage(lang);
-                return;
-            }
+            // and exit function
+            return;
+        } else {
+            // if lang preference hasn't been set yet,
+            // or lang set in localStorage does not have a .po file,
+            // just default to 'English' and set the
+            // localStorage item to 'English'
+            this.setCurrentLanguage('English');
+
+            goldstone.userPrefsView.setUserPrefKey('i18n', 'English');
+            return;
         }
-
-        // if lang preference hasn't been set yet,
-        // or lang set in localStorage does not have a .po file,
-        // just default to 'English' and set the
-        // localStorage item to 'English'
-        this.setCurrentLanguage('English');
-        userPrefs = JSON.parse(userPrefs);
-
-        // in case of initial load, userPrefs will be null
-        userPrefs = userPrefs || {};
-        userPrefs.i18n = 'English';
-        localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
-
-        return;
     },
 
     setCurrentLanguage: function(language) {
@@ -194,6 +186,9 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
+            
+            // persists language selection
+            goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
             // .domain is used by the dgettext calls throughout
             // the site to determine which language set to

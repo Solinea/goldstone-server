@@ -1091,7 +1091,7 @@ var DataTableBaseView = GoldstoneBaseView.extend({
     },
 
     oTableParamGenerator: function(data) {
-        result = this.oTableParamGeneratorBase(data);
+        var result = this.oTableParamGeneratorBase(data);
 
         // hook to add additional paramaters to the options hash
         result = this.addOTableParams(result);
@@ -2596,38 +2596,30 @@ var I18nModel = Backbone.Model.extend({
 
     checkCurrentLanguage: function() {
 
-        // first determine which lanaguage .po files are installed
+        // first determine which language .po files are installed
         var existingPos = _.keys(goldstone.i18nJSON);
 
         // if there is a currently selected language in localStorage,
         // use that to set the current .domain, or set to the
         // English default if none found.
-        var userPrefs = localStorage.getItem('userPrefs');
+        var lang = goldstone.userPrefsView.getUserPrefKey('i18n');
 
-        // set current language
-        if (userPrefs !== null) {
-            var lang = JSON.parse(userPrefs).i18n;
+        // check if language is set && the po exists
+        if (lang !== undefined && existingPos.indexOf(lang) > -1) {
+            this.setCurrentLanguage(lang);
 
-            // check if language is set && the po exists
-            if (lang !== undefined && existingPos.indexOf(lang) > -1) {
-                this.setCurrentLanguage(lang);
-                return;
-            }
+            // and exit function
+            return;
+        } else {
+            // if lang preference hasn't been set yet,
+            // or lang set in localStorage does not have a .po file,
+            // just default to 'English' and set the
+            // localStorage item to 'English'
+            this.setCurrentLanguage('English');
+
+            goldstone.userPrefsView.setUserPrefKey('i18n', 'English');
+            return;
         }
-
-        // if lang preference hasn't been set yet,
-        // or lang set in localStorage does not have a .po file,
-        // just default to 'English' and set the
-        // localStorage item to 'English'
-        this.setCurrentLanguage('English');
-        userPrefs = JSON.parse(userPrefs);
-
-        // in case of initial load, userPrefs will be null
-        userPrefs = userPrefs || {};
-        userPrefs.i18n = 'English';
-        localStorage.setItem('userPrefs', JSON.stringify(userPrefs));
-
-        return;
     },
 
     setCurrentLanguage: function(language) {
@@ -2639,6 +2631,9 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
+            
+            // persists language selection
+            goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
             // .domain is used by the dgettext calls throughout
             // the site to determine which language set to
@@ -5040,7 +5035,6 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
 
         // service status
         '<div class="row">' +
-        '<div id="discover-view-r1" class="row">' +
         '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
         '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
         '</div>' +
@@ -5945,53 +5939,64 @@ var EventsReportView = GoldstoneBaseView.extend({
  */
 
 /*
+Currently only instantiated on init.js
 To instantiate lookback selectors with varying values:
 
-new GlobalLookbackRefreshButtonsView({
-            el: ".global-range-refresh-container",
-            lookbackValues: {
-                lookback: [
-                    [15, 'lookback 15m'],
-                    [60, 'lookback 1h', 'selected'],
-                    [360, 'lookback 6h'],
-                    [1440, 'lookback 1d'],
-                    [10080, 'lookback 7d'],
-                    [43200, 'lookback 30d']
-                ],
-                refresh: [
-                    [30, 'refresh 30s', 'selected'],
-                    [60, 'refresh 1m'],
-                    [300, 'refresh 5m'],
-                    [-1, 'refresh off']
-                ]
-            }
-        });
+goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
+    lookbackValues: {
+        lookback: [
+            [15, 'lookback 15m'],
+            [60, 'lookback 1h'],
+            [360, 'lookback 6h'],
+            [1440, 'lookback 1d'],
+            [4320, 'lookback 3d'],
+            [10080, 'lookback 7d']
+        ],
+        refresh: [
+            [30, 'refresh 30s'],
+            [60, 'refresh 1m'],
+            [300, 'refresh 5m'],
+            [-1, 'refresh off']
+        ],
+        selectedLookback: 60,
+        selectedRefresh: 60
+    }
+});
+$(selector).append(goldstone.globalLookbackRefreshSelectors.el);
+
+Use selectedLookback back and selectedRefresh to set initial values, if desired.
+If omitted, selector will default to the first value in the list.
+
+
+*****************************
+*****************************
+sensible defaults, if needed:
+
+lookback:
+--------
+'<option class="i18n" data-i18n="lookback 15m" value="15" selected>lookback 15m</option>' +
+'<option class="i18n" data-i18n="lookback 1h" value="60">lookback 1h</option>' +
+'<option class="i18n" data-i18n="lookback 6h" value="360">lookback 6h</option>' +
+'<option class="i18n" data-i18n="lookback 1d" value="1440">lookback 1d</option>' +
+'<option class="i18n" data-i18n="lookback 3d" value="4320">lookback 3d</option>' +
+'<option class="i18n" data-i18n="lookback 7d" value="10080">lookback 7d</option>';
+
+refresh:
+-------
+'<option class="i18n" data-i18n="refresh 30s" value="30" selected>refresh 30s</option>' +
+'<option class="i18n" data-i18n="refresh 1m" value="60">refresh 1m</option>' +
+'<option class="i18n" data-i18n="refresh 5m" value="300">refresh 5m</option>' +
+'<option class="i18n" data-i18n="refresh off" value="-1">refresh off</option>';
+*****************************
+*****************************
 */
 
-var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
+var GlobalLookbackRefreshButtonsView = GoldstoneBaseView.extend({
 
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.lookbackValues = options.lookbackValues || null;
-
-        var ns = this.defaults;
-        var self = this;
-
+    instanceSpecificInit: function() {
+        this.processOptions();
         this.render();
-
-        this.$el.find('#global-refresh-range').on('change', function() {
-            self.trigger('globalRefreshChange');
-            self.trigger('globalSelectorChange');
-        });
-        this.$el.find('#global-lookback-range').on('change', function() {
-            self.trigger('globalLookbackChange');
-            self.trigger('globalSelectorChange');
-        });
-
-
+        this.processListeners();
     },
 
     render: function() {
@@ -5999,44 +6004,65 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         return this;
     },
 
+    renderDropdownContent: function(dropdownValues, initValue) {
+        var result = '';
+        _.each(dropdownValues, function(item) {
+            result += '<option class="i18n" data-i18n="' + item[1] + '" value="' + item[0] + '"';
+
+            // check for passed in start value
+            if (item[0] === initValue) {
+                result += ' selected';
+            }
+            result += '>' + item[1] + '</option>';
+        });
+        return result;
+    },
+
     customLookback: function() {
-        if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
-            result = '';
-            _.each(this.defaults.lookbackValues.lookback, function(item) {
-                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
-                if (item[2] && item[2] === 'selected') {
-                    result += ' selected';
-                }
-                result += '>' + item[1] + '</option>';
-            });
-            return result;
-        } else {
-            return '<option class="i18n" data-i18n="lookback 15m" value="15" selected>lookback 15m</option>' +
-                '<option class="i18n" data-i18n="lookback 1h" value="60">lookback 1h</option>' +
-                '<option class="i18n" data-i18n="lookback 6h" value="360">lookback 6h</option>' +
-                '<option class="i18n" data-i18n="lookback 1d" value="1440">lookback 1d</option>' +
-                '<option class="i18n" data-i18n="lookback 3d" value="4320">lookback 3d</option>' +
-                '<option class="i18n" data-i18n="lookback 7d" value="10080">lookback 7d</option>';
+        if (this.lookbackValues && this.lookbackValues.lookback && this.lookbackValues.lookback.length) {
+            var values = this.lookbackValues;
+            var initialLookback = values.selectedLookback;
+
+            // check for persisted initial value
+            var storedLookback = goldstone.userPrefsView.getUserPrefKey('lookback');
+            if (storedLookback) {
+                initialLookback = storedLookback; 
+            }
+            return this.renderDropdownContent(values.lookback, parseInt(initialLookback, 10));
         }
     },
 
     customRefresh: function() {
-        if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
-            result = '';
-            _.each(this.defaults.lookbackValues.refresh, function(item) {
-                result += '<option class="i18n" data-i18n="'+ item[1] +'" value="' + item[0] + '"';
-                if (item[2] && item[2] === 'selected') {
-                    result += ' selected';
-                }
-                result += '>' + item[1] + '</option>';
-            });
-            return result;
-        } else {
-            return '<option class="i18n" data-i18n="refresh 30s" value="30" selected>refresh 30s</option>' +
-                '<option class="i18n" data-i18n="refresh 1m" value="60">refresh 1m</option>' +
-                '<option class="i18n" data-i18n="refresh 5m" value="300">refresh 5m</option>' +
-                '<option class="i18n" data-i18n="refresh off" value="-1">refresh off</option>';
+        if (this.lookbackValues && this.lookbackValues.refresh && this.lookbackValues.refresh.length) {
+            var values = this.lookbackValues;
+            var initialRefresh = values.selectedRefresh;
+
+            // check for persisted initial value
+            var storedRefresh = goldstone.userPrefsView.getUserPrefKey('refresh');
+            if (storedRefresh) {
+                initialRefresh = storedRefresh; 
+            }
+            return this.renderDropdownContent(values.refresh, parseInt(initialRefresh, 10));
         }
+    },
+
+    // persist value of changed selector
+    storeValue: function(selector, value) {
+        goldstone.userPrefsView.setUserPrefKey(selector, value);
+    },
+
+    processListeners: function() {
+        var self = this;
+        this.$el.find('#global-lookback-range').on('change', function() {
+            self.trigger('globalLookbackChange');
+            self.trigger('globalSelectorChange');
+            self.storeValue('lookback', $(this).val());
+        });
+        this.$el.find('#global-refresh-range').on('change', function() {
+            self.trigger('globalRefreshChange');
+            self.trigger('globalSelectorChange');
+            self.storeValue('refresh', $(this).val());
+        });
     },
 
     template: _.template('' +
@@ -6050,8 +6076,9 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="input-group">' +
         '<select class="form-control" id="global-lookback-range">' +
         '<%= this.customLookback() %>' +
-        // '<option value="15">lookback 15m</option>' +
-        // '<option value="60" selected>lookback 1h</option>' +
+        // based on this.lookbackValues.lookback
+        // '<option value="15" selected>lookback 15m</option>' +
+        // '<option value="60">lookback 1h</option>' +
         // '<option value="360">lookback 6h</option>' +
         // '<option value="1440">lookback 1d</option>' +
         '</select>' +
@@ -6068,6 +6095,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="input-group">' +
         '<select class="form-control" id="global-refresh-range">' +
         '<%= this.customRefresh() %>' +
+        // based on this.lookbackValues.refresh
         // '<option value="30" selected>refresh 30s</option>' +
         // '<option value="60">refresh 1m</option>' +
         // '<option value="300">refresh 5m</option>' +
@@ -6079,7 +6107,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</form>' +
         '</div>'
 
-        )
+    )
 });
 ;
 /**
@@ -11480,7 +11508,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-
         $('#global-lookback-range').hide();
         $('#global-refresh-range').hide();
 
@@ -11494,8 +11521,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     renderLanguageChoices: function() {
-
-        // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
             $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
@@ -11526,11 +11551,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         // get current user prefs
         var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
-
-        // set dropdown for theme selection to current theme preference
-        if (userTheme && userTheme.theme) {
-            $('#theme-name').val(userTheme.theme);
-        }
 
         // set dropdown for language selection to
         // current language preference
@@ -11570,23 +11590,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
 
-        // add listener to theme selection drop-down
-        // userPrefsView is instantiated in router.html
-        $('#theme-name').on('change', function() {
-            var theme = $('#theme-name').val();
-            if (theme === 'dark') {
-                goldstone.userPrefsView.trigger('darkThemeSelected');
-            }
-            if (theme === 'light') {
-                goldstone.userPrefsView.trigger('lightThemeSelected');
-            }
-        });
-
         // add listener to language selection drop-down
-        // userPrefsView is instantiated in router.html
+        // goldstone.userPrefsView is instantiated in init.js
         $('#language-name').on('change', function() {
             var language = $('#language-name').val();
-            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+            goldstone.i18n.trigger('setLanguage', language);
 
             // for this page only, re-render content upon language page
             // to reflect translatable fields immediately
@@ -13250,41 +13258,6 @@ var UserPrefsView = Backbone.View.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.initLocalStorageUserPrefs();
-        this.setUpListeners();
-        this.applyUserPrefs();
-    },
-
-    setUpListeners: function() {
-        var self = this;
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'lightThemeSelected', function() {
-
-            self.applyLightTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'light';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'darkThemeSelected', function() {
-
-            self.applyDarkTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'dark';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
-            self.getUserPrefs();
-            self.defaults.userPrefs.i18n = selection;
-            self.setUserPrefs();
-            goldstone.i18n.trigger('setLanguage', selection);
-        });
     },
 
     initLocalStorageUserPrefs: function() {
@@ -13294,6 +13267,7 @@ var UserPrefsView = Backbone.View.extend({
     },
 
     getUserPrefs: function() {
+        this.initLocalStorageUserPrefs();
         this.defaults.userPrefs = JSON.parse(localStorage.getItem('userPrefs'));
 
         // cannot add property to null, so make sure this exists
@@ -13302,28 +13276,21 @@ var UserPrefsView = Backbone.View.extend({
         }
     },
 
+    // called by external views
+    getUserPrefKey: function(key) {
+        this.getUserPrefs();
+        return this.defaults.userPrefs[key];
+    },
+
+    // called by external views
+    setUserPrefKey: function(key, val) {
+        this.getUserPrefs();
+        this.defaults.userPrefs[key] = val;
+        this.setUserPrefs();
+    },
+
     setUserPrefs: function() {
         localStorage.setItem('userPrefs', JSON.stringify(this.defaults.userPrefs));
-    },
-
-    applyUserPrefs: function() {
-        this.getUserPrefs();
-        if (this.defaults.userPrefs && this.defaults.userPrefs.theme) {
-            if (this.defaults.userPrefs.theme === 'light') {
-                this.applyLightTheme();
-            }
-            if (this.defaults.userPrefs.theme === 'dark') {
-                this.applyDarkTheme();
-            }
-        }
-    },
-
-    applyDarkTheme: function() {
-        $('link[href="/static/css/client/scss/styleLight.css"]').attr('href', '/static/css/client/scss/styleDark.css');
-    },
-
-    applyLightTheme: function() {
-        $('link[href="/static/css/client/scss/styleDark.css"]').attr('href', '/static/css/client/scss/styleLight.css');
     }
 });
 ;
@@ -13622,14 +13589,15 @@ goldstone.init = function() {
         }
     });
 
+    // instantiate object that will manage user prefs
+    goldstone.userPrefsView = new UserPrefsView();
+
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-    // instantiate object that will manage user prefs / theme
-    goldstone.userPrefsView = new UserPrefsView();
 
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
@@ -13647,7 +13615,26 @@ goldstone.init = function() {
     });
 
     // append global selectors to page
-    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
+        lookbackValues: {
+            lookback: [
+                [15, 'lookback 15m'],
+                [60, 'lookback 1h'],
+                [360, 'lookback 6h'],
+                [1440, 'lookback 1d'],
+                [4320, 'lookback 3d'],
+                [10080, 'lookback 7d']
+            ],
+            refresh: [
+                [30, 'refresh 30s'],
+                [60, 'refresh 1m'],
+                [300, 'refresh 5m'],
+                [-1, 'refresh off']
+            ],
+            selectedLookback: 15,
+            selectedRefresh: 30
+        }
+    });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
     // start the backbone router that will handle /# calls

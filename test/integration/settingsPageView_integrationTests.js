@@ -21,6 +21,19 @@ describe('settingsPageView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('' +
+
+            /// for testing language switch:
+            '<div class="col-md-2">' +
+            '<h5><%= goldstone.translate("Language") %></h5>' +
+            '<form class="language-selector" role="form">' +
+            '<div class="form-group">' +
+            '<div class="col-xl-5">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="language-name">' +
+            '<option value="English" selected>dark</option>' +
+            '<option value="Japanese">dark</option>' +
+            '</select>' +
+
             // for testing theme switch
             '<form class="theme-selector" role="form">' +
             '<div class="form-group">' +
@@ -43,8 +56,7 @@ describe('settingsPageView.js spec', function() {
 
         goldstone.userPrefsView = new UserPrefsView();
 
-        this.protoApplyLightTheme = sinon.spy(UserPrefsView.prototype, "applyLightTheme");
-        this.protoApplyDarkTheme = sinon.spy(UserPrefsView.prototype, "applyDarkTheme");
+        this.protoSetLanguage = sinon.spy(I18nModel.prototype, "setCurrentLanguage");
 
         this.testView = new SettingsPageView({
             el: '.test-container'
@@ -53,8 +65,7 @@ describe('settingsPageView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
-        this.protoApplyLightTheme.restore();
-        this.protoApplyDarkTheme.restore();
+        this.protoSetLanguage.restore();
         localStorage.clear();
     });
     describe('basic test for chart triggering', function() {
@@ -95,16 +106,6 @@ describe('settingsPageView.js spec', function() {
             this.testView.trimInputField('[name="test1"]');
             // input field should equal 'hello'
             expect($('[name="test1"]').val()).to.equal('hello');
-        });
-        it('triggers theme change', function() {
-            expect(this.protoApplyDarkTheme.callCount).to.equal(0);
-            expect(this.protoApplyLightTheme.callCount).to.equal(0);
-            $('#theme-name').val('light');
-            $('#theme-name').trigger('change');
-            $('#theme-name').val('dark');
-            $('#theme-name').trigger('change');
-            expect(this.protoApplyDarkTheme.callCount).to.equal(1);
-            expect(this.protoApplyLightTheme.callCount).to.equal(1);
         });
     });
 });
