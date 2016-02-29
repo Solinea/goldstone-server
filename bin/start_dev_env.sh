@@ -77,12 +77,13 @@ else
     echo "${DOCKER_VM} is already running"
 fi
 
-sleep 5
+sleep 10
 eval "$(docker-machine env ${DOCKER_VM})"
 
 # this dir must exist for the app container to start
 if [ ! -d docker/goldstone-app/goldstone-server ] ; then
     mkdir docker/goldstone-app/goldstone-server
+fi
 
 docker-compose -f docker-compose-dev.yml up
 
