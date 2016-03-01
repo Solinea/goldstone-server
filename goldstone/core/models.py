@@ -16,6 +16,7 @@
 import logging
 import sys
 import arrow
+from django.utils import timezone
 from jinja2 import Template
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -2441,8 +2442,8 @@ class SavedSearch(models.Model):
     # each other.  In the long run, these should be refactored into something
     # a little more protected from side effects by other tasks.  Possibly a
     # SearchSchedule type with a FK relationship to the search.
-    last_start = models.DateTimeField(blank=True, null=True)
-    last_end = models.DateTimeField(blank=True, null=True)
+    last_start = models.DateTimeField(default=timezone.now)
+    last_end = models.DateTimeField(default=timezone.now)
     target_interval = models.IntegerField(default=0)
 
     created = CreationDateTimeField(editable=False, blank=True, null=True)
@@ -2478,18 +2479,7 @@ class SavedSearch(models.Model):
         if self.timestamp_field is None:
             return self.search()
 
-        # if we haven't run this before, let's provide data from when the
-        # search was created
-        if self.last_end is None and self.created is None:
-            # this is probably a search primed from fixtures, let's set a
-            # reasonable start date of now.
-            start = arrow.utcnow().datetime
-        elif self.last_end is None:
-            # we have a creation time, so let's use that
-            start = self.created
-        else:
-            # we can use the end time of the last successful range
-            start = self.last_end
+        start = self.last_end
 
         end = arrow.utcnow().datetime
 

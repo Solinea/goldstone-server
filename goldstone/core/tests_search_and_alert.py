@@ -13,16 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import datetime
 from smtplib import SMTPException
 
+import arrow
 from django.test import TestCase
+from elasticsearch_dsl import Search
 from mock import patch
 
 from goldstone.core.models import SavedSearch, AlertDefinition, EmailProducer, \
     Alert
 
 
-class ProducerModelTests(TestCase):
+class ModelTests(TestCase):
     """ Test EmailProducer class model"""
 
     fixtures = ['core_initial_data.yaml']
@@ -43,6 +46,11 @@ class ProducerModelTests(TestCase):
         self.alert = Alert(short_message='test', long_message='test123',
                            alert_def=self.alert_def)
         self.alert.save()
+
+    def assertWithinASecond(self, datetime1, datetime2):
+        ts1 = arrow.get(datetime1).timestamp / 1000.0
+        ts2 = arrow.get(datetime2).timestamp / 1000.0
+        self.assertAlmostEqual(ts1, ts2, places=0)
 
     def test_superclass_raises(self):
         """ Calling send on the Producer superclass should raise an exception
@@ -75,3 +83,97 @@ class ProducerModelTests(TestCase):
         with self.assertRaises(SMTPException):
             self.producer.produce(self.alert)
             self.assertEqual(mock_send_mail.call_count, 3)
+
+    def test_search(self):
+        """The search method of a SavedSearch should return an ES search"""
+
+        search = self.saved_search.search()
+        self.assertIsInstance(search, Search)
+
+    def test_search_recent(self):
+        """The search_recent method of a SavedSearch should return an ES search
+        a start datetime, and an end datetime.  The initial start datetime
+        should be roughly the creation time of the object, and the initial end
+        datetime should be roughly the creation time of the object.
+
+        After a call to update_recent_search_window, the last_start and
+        last_end dates should be adjusted to reflect the previous search_recent
+        call.
+
+        The search will a range clause on the SavedSearch.timestamp_field with
+        a start of the last_end and an end of approximately now.
+
+        Finally, if the SavedSearch.timestamp_field is None a search that is
+        the same as the result of search() will be returned along with Nones
+        for start and end.
+        """
+
+        #
+        # first pass we should have initialized start/end times
+        #
+        search, start1, end1 = self.saved_search.search_recent()
+        self.assertIsInstance(search, Search)
+        self.assertIsInstance(start1, datetime)
+        self.assertIsInstance(end1, datetime)
+        self.assertWithinASecond(start1, end1)
+
+        def find_range_dict(a, z):
+            """Helper function that extracts the dict with range key."""
+            if 'range' in z \
+                    and self.saved_search.timestamp_field in z['range']:
+                return z
+            else:
+                return a
+
+        range_dict = reduce(lambda a, z: find_range_dict(a, z),
+                            search.to_dict()['query']['bool']['must'],
+                            None)
+
+        # validate that the range block was added to the search
+        self.assertIsNotNone(range_dict)
+
+        # and that it has the expected start and end times
+        self.assertDictContainsSubset(
+            {'gt': start1.isoformat()},
+            range_dict['range'][self.saved_search.timestamp_field])
+        self.assertDictContainsSubset(
+            {'lte': end1.isoformat()},
+            range_dict['range'][self.saved_search.timestamp_field])
+
+        self.saved_search.update_recent_search_window(start1, end1)
+
+        #
+        # let's get the persisted version of our object and test that
+        # update_recent_search_window updated the last_start and last_end
+        # fields of the object.
+        #
+        self.saved_search = SavedSearch.objects.get(
+            uuid=self.saved_search.uuid)
+
+        self.assertEqual(self.saved_search.last_start, start1)
+        self.assertEqual(self.saved_search.last_end, end1)
+
+        #
+        # finally, let's run recent_search again and make sure we get updated
+        # times.
+        #
+        search, start2, end2 = self.saved_search.search_recent()
+        self.assertIsInstance(start2, datetime)
+        self.assertIsInstance(end2, datetime)
+        self.assertTrue(start2 == end1)
+        self.assertTrue(start2 < end2)
+
+        range_dict = reduce(lambda a, z: find_range_dict(a, z),
+                            search.to_dict()['query']['bool']['must'],
+                            None)
+
+        # validate that the range block was added to the search
+        self.assertIsNotNone(range_dict)
+
+        # and that it has the expected start and end times
+        self.assertDictContainsSubset(
+            {'gt': start2.isoformat()},
+            range_dict['range'][self.saved_search.timestamp_field])
+        self.assertDictContainsSubset(
+            {'lte': end2.isoformat()},
+            range_dict['range'][self.saved_search.timestamp_field])

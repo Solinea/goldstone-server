@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django.utils.timezone
 import django_extensions.db.fields
 import picklefield.fields
 
@@ -78,8 +79,8 @@ class Migration(migrations.Migration):
                 ('index_prefix', models.CharField(max_length=64)),
                 ('doc_type', models.CharField(default=None, max_length=64, null=True, blank=True)),
                 ('timestamp_field', models.CharField(max_length=64, null=True)),
-                ('last_start', models.DateTimeField(null=True, blank=True)),
-                ('last_end', models.DateTimeField(null=True, blank=True)),
+                ('last_start', models.DateTimeField(default=django.utils.timezone.now)),
+                ('last_end', models.DateTimeField(default=django.utils.timezone.now)),
                 ('target_interval', models.IntegerField(default=0)),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
