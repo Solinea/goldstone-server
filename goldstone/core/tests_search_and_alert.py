@@ -116,6 +116,7 @@ class ModelTests(TestCase):
         self.assertIsInstance(start1, datetime)
         self.assertIsInstance(end1, datetime)
         self.assertWithinASecond(start1, end1)
+        self.assertNotEqual(search._doc_type, [])
 
         def find_range_dict(a, z):
             """Helper function that extracts the dict with range key."""
@@ -177,3 +178,14 @@ class ModelTests(TestCase):
         self.assertDictContainsSubset(
             {'lte': end2.isoformat()},
             range_dict['range'][self.saved_search.timestamp_field])
+
+        # doctype should not be set in the search if the SavedSearch doesn't
+        # have one, and the result of search_recent() should be the same as
+        # that of search() if there is no timestamp_field set.
+        self.saved_search.timestamp_field = None
+        self.saved_search.doc_type = None
+
+        search = self.saved_search.search()
+        search_recent = self.saved_search.search_recent()
+        self.assertDictEqual(search.to_dict(), search_recent.to_dict())
+        self.assertEqual(search._doc_type, [])
