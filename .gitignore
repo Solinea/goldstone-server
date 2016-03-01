@@ -87,11 +87,8 @@ TAGS
 docs/site/
 
 # addon modules
-goldstone/static/addons/
-addon-requirements.txt
-/addons
-/docker/**/addons/
-goldstone/compliance
+.gitmodules
+desktop/
 
 # docker static data
 docker/goldstone-app/goldstone-server/
