@@ -37,7 +37,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         // clear after using
         localStorage.removeItem('detailsTabData');
 
-        if(data){
+        if (data) {
             this.drawSingleRsrcInfoTable(data);
         } else {
             $('#details-single-rsrc-table').text(goldstone.contextTranslate('No additional details available.', 'detailsreport'));
@@ -51,11 +51,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         var oTable;
         var keys = Object.keys(json);
         var data = _.map(keys, function(k) {
-            if (json[k] === Object(json[k])) {
-                return [k, JSON.stringify(json[k])];
-            } else {
-                return [k, json[k]];
-            }
+            return [k, json[k]];
         });
 
         if ($.fn.dataTable.isDataTable(location)) {
