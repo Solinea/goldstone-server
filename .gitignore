@@ -88,6 +88,7 @@ docs/site/
 
 # addon modules
 .gitmodules
+desktop/
 
 # docker static data
 docker/goldstone-app/goldstone-server/
