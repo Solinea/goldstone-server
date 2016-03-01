@@ -34,7 +34,7 @@ from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
-from goldstone.user.models import User as DjangoUser
+from goldstone.user.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -2412,7 +2412,7 @@ class SavedSearch(models.Model):
 
     owner = models.CharField(max_length=64)
 
-    description = models.CharField(max_length=1024, blank=True, default='')
+    description = models.CharField(max_length=1024, blank=True, null=True)
 
     query = models.TextField(help_text='JSON Elasticsearch query body')
 
@@ -2430,10 +2430,19 @@ class SavedSearch(models.Model):
 
     timestamp_field = models.CharField(max_length=64, null=True)
 
+    # last_start and last_end are maintained via the
+    # update_recent_search_window method.  they can be used to make a series
+    # of calls that cover a contiguous time window (such as for dumping
+    # data or checking for alerts periodically).
+    # target_interval can be used to trigger a recurring search based on an ES
+    # interval specification such as 5m or 1d.  A celery task that processes
+    # SavedSearches can choose to trigger only if now - interval >= last_end.
+    # BEWARE of multiple tasks using these values since they might step on
+    # each other.  In the long run, these should be refactored into something
+    # a little more protected from side effects by other tasks.  Possibly a
+    # SearchSchedule type with a FK relationship to the search.
     last_start = models.DateTimeField(blank=True, null=True)
-
     last_end = models.DateTimeField(blank=True, null=True)
-
     target_interval = models.IntegerField(default=0)
 
     created = CreationDateTimeField(editable=False, blank=True, null=True)
@@ -2490,6 +2499,14 @@ class SavedSearch(models.Model):
                                               'lte': end.isoformat()}})
         return s, start, end
 
+    def update_recent_search_window(self, start, end):
+        """trigger an update of the last_start and last_end fields and persist
+        the changes"""
+
+        self.last_start = start
+        self.last_end = end
+        return self.save()
+
     def __unicode__(self):
         """Return a useful string."""
 
@@ -2503,11 +2520,11 @@ class AlertDefinition(models.Model):
 
     name = models.CharField(max_length=64)
 
-    description = models.CharField(max_length=1024, blank=True, default=None)
+    description = models.CharField(max_length=1024, blank=True, null=True)
 
     short_template = models.TextField(
         default='Alert: {{_alert_name}} triggered with {{_search_hits}} hits '
-                'in the last {{_search_interval}} interval')
+                'at {{_end_time}}')
 
     long_template = models.TextField(
         default='There were {{_search_hits}} matching records for the '
@@ -2523,14 +2540,11 @@ class AlertDefinition(models.Model):
 
     search = ForeignKey(SavedSearch, editable=False)
 
-    owner = ForeignKey(DjangoUser, editable=False, on_delete=models.CASCADE)
-
     def evaluate(self, search_result, start_time, end_time):
 
             kv_pairs = {
                 '_alert_name': self.name,
                 '_search_hits': search_result['hits']['total'],
-                '_search_interval': self.search.target_interval,
                 '_search_name': self.search.name,
                 '_search_id': self.search.uuid,
                 '_start_time': start_time,
@@ -2544,8 +2558,11 @@ class AlertDefinition(models.Model):
                 long = Template(self.long_template).render(kv_pairs)
 
                 # create an alert and call all our producers with it
-                alert = Alert(short, long)
+                alert = Alert(short_message=short, long_message=long,
+                              alert_def=self, owner=self.owner)
                 alert.save()
+
+                # send the alert to all registered producers
                 for producer in Producer.objects.filter(alert_def=self):
                     producer.produce(alert)
 
@@ -2560,8 +2577,6 @@ class Alert(models.Model):
 
     alert_def = ForeignKey(AlertDefinition, editable=False,
                            on_delete=models.PROTECT)
-
-    owner = ForeignKey(DjangoUser, editable=False, on_delete=models.CASCADE)
 
     created = CreationDateTimeField(editable=False, blank=True, null=True)
 
@@ -2582,8 +2597,6 @@ class Producer(PolymorphicModel):
 
     alert_def = models.ForeignKey(AlertDefinition)
 
-    owner = ForeignKey(DjangoUser)
-
     class Meta:
         abstract = True
 
@@ -2599,14 +2612,13 @@ class EmailProducer(Producer):
         This class only contains methods specific to a mailing interface.
     """
 
-    sender = models.EmailField(max_length=128,
-                               default=settings.EMAIL_HOST_USER)
+    sender = models.EmailField(max_length=128, default="GoldstoneServer")
 
-    receiver = models.EmailField(max_length=128, blank=False)
+    receiver = models.EmailField(max_length=128, blank=False, null=False)
 
     def produce(self, alert):
 
-        email_rv = send_mail(alert.msg_title, alert.msg_body,
+        email_rv = send_mail(alert.short_message, alert.long_message,
                              self.sender, self.receiver,
                              fail_silently=False)
         return email_rv

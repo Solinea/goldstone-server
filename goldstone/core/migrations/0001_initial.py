@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.db.models.deletion
 import django_extensions.db.fields
 import picklefield.fields
 
@@ -28,8 +29,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
                 ('name', models.CharField(max_length=64)),
-                ('description', models.CharField(default=None, max_length=1024, blank=True)),
-                ('short_template', models.TextField(default=b'Alert: {{_alert_name}} triggered with {{_search_hits}} hits in the last {{_search_interval}} interval')),
+                ('description', models.CharField(max_length=1024, null=True, blank=True)),
+                ('short_template', models.TextField(default=b'Alert: {{_alert_name}} triggered with {{_search_hits}} hits at {{_end_time}}')),
                 ('long_template', models.TextField(default=b'There were {{_search_hits}} matching records for the {{_search_name}} search (id: {{_search_id}}) between {{_start_time}} and {{_end_time}}.\n\nAlert ID: {{_alert_id}}')),
                 ('enabled', models.BooleanField(default=True)),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
@@ -40,9 +41,10 @@ class Migration(migrations.Migration):
             name='EmailProducer',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
-                ('sender', models.EmailField(default=None, max_length=128)),
+                ('sender', models.EmailField(default=b'GoldstoneServer', max_length=128)),
                 ('receiver', models.EmailField(max_length=128)),
                 ('alert_def', models.ForeignKey(to='core.AlertDefinition')),
+                ('polymorphic_ctype', models.ForeignKey(related_name='polymorphic_core.emailproducer_set+', editable=False, to='contenttypes.ContentType', null=True)),
             ],
             options={
                 'abstract': False,
@@ -69,7 +71,7 @@ class Migration(migrations.Migration):
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
                 ('name', models.CharField(max_length=64)),
                 ('owner', models.CharField(max_length=64)),
-                ('description', models.CharField(default=b'', max_length=1024, blank=True)),
+                ('description', models.CharField(max_length=1024, null=True, blank=True)),
                 ('query', models.TextField(help_text=b'JSON Elasticsearch query body')),
                 ('protected', models.BooleanField(default=False, help_text=b'True if this is system-defined')),
                 ('hidden', models.BooleanField(default=False, help_text=b'True if this search should not bepresented via the view')),
@@ -557,5 +559,15 @@ class Migration(migrations.Migration):
             model_name='polyresource',
             name='polymorphic_ctype',
             field=models.ForeignKey(related_name='polymorphic_core.polyresource_set+', editable=False, to='contenttypes.ContentType', null=True),
+        ),
+        migrations.AddField(
+            model_name='alertdefinition',
+            name='search',
+            field=models.ForeignKey(editable=False, to='core.SavedSearch'),
+        ),
+        migrations.AddField(
+            model_name='alert',
+            name='alert_def',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, editable=False, to='core.AlertDefinition'),
         ),
     ]

@@ -14,7 +14,8 @@
 # limitations under the License.
 import logging
 from rest_framework import serializers
-from goldstone.core.models import SavedSearch, AlertSearch, Alert
+from goldstone.core.models import SavedSearch, Alert, \
+    AlertDefinition
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -51,12 +52,12 @@ class SavedSearchSerializer(serializers.ModelSerializer):
         exclude = ('hidden',)
 
 
-class AlertSearchSerializer(serializers.ModelSerializer):
+class AlertDefinitionSerializer(serializers.ModelSerializer):
     """The Defined Alert Search serializer."""
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
-        model = AlertSearch
+        model = AlertDefinition
 
 
 class AlertSerializer(serializers.ModelSerializer):

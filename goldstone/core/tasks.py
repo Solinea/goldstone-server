@@ -129,9 +129,7 @@ def expire_auth_tokens():
 #         # execute the search, and assuming no error, update the last_ times
 #         s, start, end = obj.search_recent()
 #         response = s.execute()
-#         obj.last_start = start
-#         obj.last_end = end
-#         obj.save()
+#         obj.update_recent_search_window(start, end)
 #
 #         if response.hits.total > 0:
 #             # We have a non-zero match for pending alerts

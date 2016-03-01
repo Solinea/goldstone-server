@@ -22,14 +22,14 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet
-from goldstone.core.models import SavedSearch, AlertSearch, Alert
+from goldstone.core.models import SavedSearch, Alert, PolyResource, \
+    AlertDefinition
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertSearchSerializer, AlertSerializer
+    AlertDefinitionSerializer, AlertSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
 from goldstone.core import resource
-from .models import PolyResource, SavedSearch
 from .serializers import PassthruSerializer
 from .utils import parse, query_filter_map
 
@@ -509,12 +509,12 @@ class SavedSearchViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class AlertSearchViewSet(SavedSearchViewSet):
+class AlertDefinitionViewSet(SavedSearchViewSet):
     """Provide the /defined_search/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
-    serializer_class = AlertSearchSerializer
-    query_model = AlertSearch
+    serializer_class = AlertDefinitionSerializer
+    query_model = AlertDefinition
 
 
 class AlertViewSet(ModelViewSet):

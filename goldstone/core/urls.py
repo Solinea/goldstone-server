@@ -16,16 +16,17 @@ from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
 from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
-    ResourcesRetrieve, TopologyView, SavedSearchViewSet, AlertSearchViewSet, \
-    AlertViewSet
+    ResourcesRetrieve, TopologyView, SavedSearchViewSet, \
+    AlertDefinitionViewSet, AlertViewSet
 
 router = DefaultRouter()
+
 router.register(r'saved_search',
                 SavedSearchViewSet,
                 base_name="saved_search")
-router.register(r'alert_search',
-                AlertSearchViewSet,
-                base_name="alert_search")
+router.register(r'alert_definition',
+                AlertDefinitionViewSet,
+                base_name="alert_definition")
 router.register(r'alert',
                 AlertViewSet,
                 base_name="alert")
@@ -47,10 +48,4 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': '7906893c-16dc-4ab3-96e0-8f0054bd4cc1'}),
     url(r'^metrics/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
-    url(r'^agent/', SavedSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
-    url(r'^agent/', AlertSearchViewSet.as_view(
-        {'get': 'results'}), {'uuid': '4c010ac2-d437-460a-a6cf-5234eceff5b2'}),
-    url(r'^agent/', AlertViewSet.as_view(
-        {'get': 'get_queryset'})),
 )

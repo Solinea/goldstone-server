@@ -34,7 +34,7 @@ DATABASES = {
 }
 
 SECRET_KEY = None
-LOCAL_PATH = '/tmp'
+LOCAL_PATH = '/var/tmp'
 
 # Ensure that we always have a SECRET_KEY set, even when no local_settings.py
 # file is present. See local_settings.py.example for full documentation on the
@@ -68,12 +68,6 @@ LOGGING = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'default'
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/goldstone.log',
             'formatter': 'default'
         },
     },
