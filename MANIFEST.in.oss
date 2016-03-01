@@ -23,3 +23,4 @@ prune test
 prune test_data
 prune utils
 prune goldstone/compliance
+prune desktop
