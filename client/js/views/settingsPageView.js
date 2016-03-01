@@ -65,7 +65,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     render: function() {
-
         $('#global-lookback-range').hide();
         $('#global-refresh-range').hide();
 
@@ -79,8 +78,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
     },
 
     renderLanguageChoices: function() {
-
-        // defined on router.html
         _.each(goldstone.i18nJSON, function(item, key) {
             $('#language-name').append('<option value="' + key + '">' + key + '</option>');
         });
@@ -111,11 +108,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         // get current user prefs
         var userTheme = JSON.parse(localStorage.getItem('userPrefs'));
-
-        // set dropdown for theme selection to current theme preference
-        if (userTheme && userTheme.theme) {
-            $('#theme-name').val(userTheme.theme);
-        }
 
         // set dropdown for language selection to
         // current language preference
@@ -155,23 +147,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
             $('.password-reset-form').find('[name="new_password"]').val('');
         });
 
-        // add listener to theme selection drop-down
-        // userPrefsView is instantiated in router.html
-        $('#theme-name').on('change', function() {
-            var theme = $('#theme-name').val();
-            if (theme === 'dark') {
-                goldstone.userPrefsView.trigger('darkThemeSelected');
-            }
-            if (theme === 'light') {
-                goldstone.userPrefsView.trigger('lightThemeSelected');
-            }
-        });
-
         // add listener to language selection drop-down
-        // userPrefsView is instantiated in router.html
+        // goldstone.userPrefsView is instantiated in init.js
         $('#language-name').on('change', function() {
             var language = $('#language-name').val();
-            goldstone.userPrefsView.trigger('i18nLanguageSelected', language);
+            goldstone.i18n.trigger('setLanguage', language);
 
             // for this page only, re-render content upon language page
             // to reflect translatable fields immediately

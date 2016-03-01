@@ -26,41 +26,24 @@ describe('settingsPageView.js spec', function() {
         this.server.respondWith('{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}');
 
         this.testView = new UserPrefsView();
-
-        this.getUserPrefsProto = sinon.spy(this.testView, "getUserPrefs");
-        this.setLanguageProto = sinon.spy(goldstone.i18n, "setCurrentLanguage");
-
     });
     afterEach(function() {
         this.server.restore();
         localStorage.clear();
-        this.getUserPrefsProto.restore();
-        this.setLanguageProto.restore();
     });
     describe('individual functions', function() {
-        it('responds properly to empty localStorage', function() {
-            this.testView.applyUserPrefs();
+        it('initializes defaults', function() {
+            expect(this.testView.defaults).to.deep.equal({});
         });
-        it('reponds properly to dark theme selected', function() {
-            localStorage.setItem('userPrefs', JSON.stringify({
-                'theme': 'dark'
-            }));
-            this.testView.applyUserPrefs();
+        it('initializes localStorage', function() {
+            expect(localStorage.getItem('userPrefs')).to.equal(null);
+            this.testView.initLocalStorageUserPrefs();
+            expect(localStorage.getItem('userPrefs')).to.equal(JSON.stringify({}));
         });
-        it('reponds properly to light theme selected', function() {
-            localStorage.setItem('userPrefs', JSON.stringify({
-                'theme': 'light'
-            }));
-            this.testView.applyUserPrefs();
-        });
-        it('reponds properly to triggers', function() {
-            expect(this.getUserPrefsProto.callCount).to.equal(0);
-            this.testView.trigger('i18nLanguageSelected');
-            expect(this.getUserPrefsProto.callCount).to.equal(1);
-        });
-        it('triggers goldstone.i18n', function() {
-            this.testView.trigger('i18nLanguageSelected');
-            expect(this.getUserPrefsProto.callCount).to.equal(1);
+        it('initializes defaults', function() {
+            this.testView.defaults.userPrefs = null;
+            this.testView.getUserPrefs();
+            expect(this.testView.defaults.userPrefs).to.deep.equal({});
         });
     });
 });

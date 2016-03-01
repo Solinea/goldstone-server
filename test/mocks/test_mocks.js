@@ -19,6 +19,8 @@ goldstone.i18nJSON = {
     }
 };
 
+goldstone.userPrefsView = new UserPrefsView();
+
 // Create mocked version with 'missing key callback' commented out
 // to avoid a rainstorm of 'missing translation key' log messages.
 mock_I18nModel = I18nModel.extend({});

@@ -21,41 +21,6 @@ var UserPrefsView = Backbone.View.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.initLocalStorageUserPrefs();
-        this.setUpListeners();
-        this.applyUserPrefs();
-    },
-
-    setUpListeners: function() {
-        var self = this;
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'lightThemeSelected', function() {
-
-            self.applyLightTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'light';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'darkThemeSelected', function() {
-
-            self.applyDarkTheme();
-            self.getUserPrefs();
-            self.defaults.userPrefs.theme = 'dark';
-            self.setUserPrefs();
-
-        });
-
-        // triggered on settingsPageView
-        this.listenTo(this, 'i18nLanguageSelected', function(selection) {
-            self.getUserPrefs();
-            self.defaults.userPrefs.i18n = selection;
-            self.setUserPrefs();
-            goldstone.i18n.trigger('setLanguage', selection);
-        });
     },
 
     initLocalStorageUserPrefs: function() {
@@ -65,6 +30,7 @@ var UserPrefsView = Backbone.View.extend({
     },
 
     getUserPrefs: function() {
+        this.initLocalStorageUserPrefs();
         this.defaults.userPrefs = JSON.parse(localStorage.getItem('userPrefs'));
 
         // cannot add property to null, so make sure this exists
@@ -73,27 +39,20 @@ var UserPrefsView = Backbone.View.extend({
         }
     },
 
+    // called by external views
+    getUserPrefKey: function(key) {
+        this.getUserPrefs();
+        return this.defaults.userPrefs[key];
+    },
+
+    // called by external views
+    setUserPrefKey: function(key, val) {
+        this.getUserPrefs();
+        this.defaults.userPrefs[key] = val;
+        this.setUserPrefs();
+    },
+
     setUserPrefs: function() {
         localStorage.setItem('userPrefs', JSON.stringify(this.defaults.userPrefs));
-    },
-
-    applyUserPrefs: function() {
-        this.getUserPrefs();
-        if (this.defaults.userPrefs && this.defaults.userPrefs.theme) {
-            if (this.defaults.userPrefs.theme === 'light') {
-                this.applyLightTheme();
-            }
-            if (this.defaults.userPrefs.theme === 'dark') {
-                this.applyDarkTheme();
-            }
-        }
-    },
-
-    applyDarkTheme: function() {
-        $('link[href="/static/css/client/scss/styleLight.css"]').attr('href', '/static/css/client/scss/styleDark.css');
-    },
-
-    applyLightTheme: function() {
-        $('link[href="/static/css/client/scss/styleDark.css"]').attr('href', '/static/css/client/scss/styleLight.css');
     }
 });
