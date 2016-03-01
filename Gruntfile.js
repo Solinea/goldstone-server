@@ -84,9 +84,7 @@ module.exports = function(grunt) {
             test: [clientIncludeOrder.test, clientIncludeOrder.e2e],
             addons: clientIncludeOrder.jshintAddons,
             options: {
-                globals: {
-                    eqeqeq: true
-                }
+                elision: true
             }
         },
 
