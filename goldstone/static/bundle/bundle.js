@@ -12367,11 +12367,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
-
-        this.$el.prepend(new ChartHeaderView({
-            chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')
-        }).el);
-
         return this;
     },
 
@@ -12385,7 +12380,8 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     template: _.template('' +
 
         // popup message row
-        '<div class="row">' +
+        '<div class="row col-md-offset-2">' +
+        '<h3><%= goldstone.translate("Tenant Settings") %></h3>' +
         '<div class="col-md-8 col-md-offset-2">' +
         '<div class="alert alert-info popup-message" hidden="true"></div>' +
         '<br></div>' +
