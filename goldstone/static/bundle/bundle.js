@@ -188,25 +188,42 @@ goldstone.setBaseTemplateListeners = function() {
         }
     });
 
-    // listeners for sidebar menu icon visual classes
-    $('.btn-grp').on('click', 'li', function() {
+    // listener for sidebar menu alert tab
+    $('.alerts-tab').on('click', function() {
 
-        // don't change current tab highlighting when
-        // clicking alert or expand buttons
-        if ($(this).hasClass('menu-toggle')) {
-            return;
-        }
-        if ($(this).hasClass('alerts-tab')) {
-            $('.tab-content').toggleClass('open');
-            $('.tab-content').find('.tab').show();
-            return;
-        }
-
-        // otherwise add icon styling
-        $('.btn-grp li').removeClass('active active-page');
-        $(this).addClass('active active-page');
+        $('.tab-content').toggleClass('open');
+        $('.tab-content').find('.tab').show();
     });
 
+    // function to remove existing menu tab highlighting
+    // and highlight tab matching selector, if any
+    var addMenuIconHighlighting = function(selector) {
+        $('.btn-grp li').removeClass('active active-page');
+        $(selector).addClass('active active-page');
+    };
+
+    var routeNameToIconClassHash = {
+        discover: '.dashboard-tab',
+        apiPerfReport: '.metrics-tab',
+        topology: '.topology-tab',
+        "nodeReport": '',
+        "logSearch": '.reports-tab',
+        "savedSearchLog": '.reports-tab',
+        "eventsBrowser": '.reports-tab',
+        "savedSearchEvent": '.reports-tab',
+        "apiBrowser": '.reports-tab',
+        "savedSearchApi": '.reports-tab',
+        "settings": '',
+        "tenant": '',
+        compliance: '.compliance-tab'
+    };
+
+    // backbone router emits 'route' event on route change
+    // and first argument is route name. Match to hash
+    // to highlight the appropriate side menu nav icon
+    goldstone.gsRouter.on('route', function(name) {
+        addMenuIconHighlighting(routeNameToIconClassHash[name]);
+    });
 };
 ;
 /**
@@ -3748,7 +3765,11 @@ var AddonMenuView = GoldstoneBaseView.extend({
                 // the addon's javascript file, do the following:
                 _.each(goldstone[item.url_root].routes, function(route) {
                     if (addNewRoute === true) {
-                        self.addNewRoute(route);
+                        // pass along the route array
+                        // and the name of the addon
+                        // which is needed for 
+                        // proper side-menu highlighting
+                        self.addNewRoute(route, item.url_root);
                     }
                 });
             }
@@ -3759,17 +3780,23 @@ var AddonMenuView = GoldstoneBaseView.extend({
             trigger: 'hover'
         });
 
-        // return backbone template of html string that will construct
-        // the drop down menu and submenus of the add-ons menu item
+        // return backbone template of html string that will
+        // construct the drop down menu and submenus of
+        // the add-ons menu item
         return _.template(result);
     },
 
-    addNewRoute: function(routeToAdd) {
+    addNewRoute: function(routeToAdd, eventName) {
 
-        // .route will dynamically add a new route where the url is
-        // index 0 of the passed in route array, and the view to load is
-        // index 2 of the passed in route array.
-        goldstone.gsRouter.route(routeToAdd[0], function(passedValue) {
+        /*
+        .route will dynamically add a new route where the
+        url is index 0 of the passed in route array, and
+        eventName is the string to return via
+        the router's on.route event.
+        finally, the view to load is index 2 of the passed in route array.
+        */
+
+        goldstone.gsRouter.route(routeToAdd[0], eventName, function(passedValue) {
 
             // passedValue will be created by routes with /:foo
             // passed value = 'foo'
@@ -3785,7 +3812,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
-        '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<li class="compliance-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
         '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
@@ -13537,9 +13564,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
 goldstone.init = function() {
 
-    // defined in setBaseTemplateListeners.js
-    goldstone.setBaseTemplateListeners();
-
     /*
     authLogoutIcon encapsulates the initialization of the $(document)
     listener for ajaxSend events and uses xhr.setRequestHeader to append
@@ -13624,7 +13648,13 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
+    // defined in setBaseTemplateListeners.js
+    // sets up UI to respond to user interaction with
+    // menus, and set highlighting of appropriate menu icons.
+    goldstone.setBaseTemplateListeners();
+
     // start the backbone router that will handle /# calls
     Backbone.history.start();
+
 
 };
