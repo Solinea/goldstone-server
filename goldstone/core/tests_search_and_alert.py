@@ -19,7 +19,7 @@ from smtplib import SMTPException
 import arrow
 from django.test import TestCase
 from elasticsearch_dsl import Search
-from mock import patch
+from mock import patch, Mock, MagicMock
 
 from goldstone.core.models import SavedSearch, AlertDefinition, EmailProducer, \
     Alert
@@ -52,7 +52,7 @@ class ModelTests(TestCase):
         ts2 = arrow.get(datetime2).timestamp / 1000.0
         self.assertAlmostEqual(ts1, ts2, places=0)
 
-    def test_superclass_raises(self):
+    def test_producer_superclass_raises(self):
         """ Calling send on the Producer superclass should raise an exception
         """
 
@@ -61,7 +61,7 @@ class ModelTests(TestCase):
 
     # @patch("django.core.mail.send_mail")
     @patch('goldstone.core.models.send_mail')
-    def test_produce(self, mock_send_mail):
+    def test_producer_produce(self, mock_send_mail):
         """ The return value from send_mail will be the number of successfully
         delivered messages (which can be 0 or 1 since it can only send one
         message).  It could also raise a SMTPException.
@@ -189,3 +189,15 @@ class ModelTests(TestCase):
         search_recent = self.saved_search.search_recent()
         self.assertDictEqual(search.to_dict(), search_recent.to_dict())
         self.assertEqual(search._doc_type, [])
+
+    @patch('goldstone.core.models.Alert')
+    def test_alert_def_evaluate(self, mock_alert):
+        """tests that alert definitions properly create alerts, and produce
+        notifications."""
+
+        # mock out a search_result to trigger the alert condition
+        search, start, end = self.saved_search.search_recent()
+        search_result = {'hits': {'total': 99}}
+        self.alert_def.evaluate(search_result, start, end)
+        # self.assertTrue(mock_alert.called)
+        mock_alert.assert_called_with('a', 'b', 'c')

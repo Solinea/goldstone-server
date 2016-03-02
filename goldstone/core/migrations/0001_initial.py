@@ -39,6 +39,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+<<<<<<< Updated upstream
             name='EmailProducer',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
@@ -52,6 +53,8 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+=======
+>>>>>>> Stashed changes
             name='PolyResource',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(primary_key=True, serialize=False, editable=False, version=1, blank=True)),
@@ -64,6 +67,15 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'polyresource',
+            },
+        ),
+        migrations.CreateModel(
+            name='Producer',
+            fields=[
+                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
+            ],
+            options={
+                'abstract': False,
             },
         ),
         migrations.CreateModel(
@@ -158,6 +170,18 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('core.polyresource',),
+        ),
+        migrations.CreateModel(
+            name='EmailProducer',
+            fields=[
+                ('producer_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='core.Producer')),
+                ('sender', models.EmailField(default=b'GoldstoneServer', max_length=128)),
+                ('receiver', models.EmailField(max_length=128)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('core.producer',),
         ),
         migrations.CreateModel(
             name='Endpoint',
@@ -555,6 +579,16 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='savedsearch',
             unique_together=set([('name', 'owner')]),
+        ),
+        migrations.AddField(
+            model_name='producer',
+            name='alert_def',
+            field=models.ForeignKey(to='core.AlertDefinition'),
+        ),
+        migrations.AddField(
+            model_name='producer',
+            name='polymorphic_ctype',
+            field=models.ForeignKey(related_name='polymorphic_core.producer_set+', editable=False, to='contenttypes.ContentType', null=True),
         ),
         migrations.AddField(
             model_name='polyresource',

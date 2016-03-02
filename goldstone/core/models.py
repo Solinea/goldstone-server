@@ -2587,8 +2587,9 @@ class Producer(PolymorphicModel):
 
     alert_def = models.ForeignKey(AlertDefinition)
 
-    class Meta:
-        abstract = True
+    # This doesn't allow Producer.objects.all() calls, so had to remove it.
+    # class Meta:
+    #    abstract = True
 
     @classmethod
     def produce(self, alert):
