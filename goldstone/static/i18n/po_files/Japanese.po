@@ -1802,6 +1802,10 @@ msgstr "リソースリスト"
 msgid "No data"
 msgstr "データがありません"
 
+#: topologyTreeView.js
+msgid "Server response was empty."
+msgstr ""
+
 #: vulnerability advisor
 # msgid "Vulnerability Advisor"
 # msgstr ""
