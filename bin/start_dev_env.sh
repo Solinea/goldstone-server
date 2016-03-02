@@ -61,7 +61,7 @@ echo ""
 
 cd $TOP_DIR || exit 1
 
-VboxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
+VBoxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
     VBoxManage startvm ${STACK_VM} --type headless
@@ -69,7 +69,7 @@ else
     echo "${STACK_VM} is already running"
 fi
 
-VboxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
+VBoxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
 if [[ $RC != 0 ]] ; then
     # No matches, start the VM
     docker-machine start ${DOCKER_VM}
