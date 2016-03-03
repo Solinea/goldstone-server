@@ -2480,7 +2480,7 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key, language) {
-            if(!goldstone.skipI18nLog) {
+            if (!goldstone.skipI18nLog) {
                 console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
@@ -2631,7 +2631,7 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
-            
+
             // persists language selection
             goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
@@ -2646,6 +2646,14 @@ var I18nModel = Backbone.Model.extend({
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
             $(item).text(goldstone.translate($(item).data().i18n));
+        });
+
+        _.each($('[data-i18n-tooltip]'), function(item) {
+            var tooltipText = $(item).data('i18nTooltip');
+            var tooltipTraslation = goldstone.translate(tooltipText);
+            $(item).tooltip()
+                .attr('data-original-title', tooltipTraslation)
+                .tooltip();
         });
     }
 });
@@ -3717,13 +3725,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
-
+            
             this.generateRoutesPerAddon(addNewRoute);
-
-            // must trigger html template translation in order to display a
-            // language other than English upon initial render without
-            // having to toggle the language selector switch
-            goldstone.i18n.translateBaseTemplate();
 
         } else {
 
@@ -3785,7 +3788,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
-        '<li data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<li data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
         '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
@@ -13589,16 +13592,16 @@ goldstone.init = function() {
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
-    // re-translate the base template when switching pages to make sure
-    // the possibly hidden lookback/refresh selectors are translated
-    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-        goldstone.i18n.translateBaseTemplate();
-    });
-
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
     goldstone.addonMenuView = new AddonMenuView({
         el: ".addon-menu-view-container"
+    });
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
     });
 
     // append global selectors to page

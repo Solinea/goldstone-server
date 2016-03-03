@@ -35,7 +35,7 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key, language) {
-            if(!goldstone.skipI18nLog) {
+            if (!goldstone.skipI18nLog) {
                 console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
@@ -186,7 +186,7 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
-            
+
             // persists language selection
             goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
@@ -201,6 +201,14 @@ var I18nModel = Backbone.Model.extend({
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
             $(item).text(goldstone.translate($(item).data().i18n));
+        });
+
+        _.each($('[data-i18n-tooltip]'), function(item) {
+            var tooltipText = $(item).data('i18nTooltip');
+            var tooltipTraslation = goldstone.translate(tooltipText);
+            $(item).tooltip()
+                .attr('data-original-title', tooltipTraslation)
+                .tooltip();
         });
     }
 });
