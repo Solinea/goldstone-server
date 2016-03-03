@@ -39,22 +39,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-<<<<<<< Updated upstream
-            name='EmailProducer',
-            fields=[
-                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
-                ('sender', models.EmailField(default=b'GoldstoneServer', max_length=128)),
-                ('receiver', models.EmailField(max_length=128)),
-                ('alert_def', models.ForeignKey(to='core.AlertDefinition')),
-                ('polymorphic_ctype', models.ForeignKey(related_name='polymorphic_core.emailproducer_set+', editable=False, to='contenttypes.ContentType', null=True)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-=======
->>>>>>> Stashed changes
             name='PolyResource',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(primary_key=True, serialize=False, editable=False, version=1, blank=True)),

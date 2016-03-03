@@ -196,8 +196,33 @@ class ModelTests(TestCase):
         notifications."""
 
         # mock out a search_result to trigger the alert condition
+        hit_count = 99
         search, start, end = self.saved_search.search_recent()
-        search_result = {'hits': {'total': 99}}
+        search_result = {'hits': {'total': hit_count}}
         self.alert_def.evaluate(search_result, start, end)
-        # self.assertTrue(mock_alert.called)
-        mock_alert.assert_called_with('a', 'b', 'c')
+        self.assertTrue(mock_alert.called)
+
+        # should be called with *args and **kwargs
+        self.assertEqual(len(mock_alert.call_args), 2)
+
+        # interested in kwargs
+        expected_short = 'Alert: %s triggered with %d hits at %s' % \
+            (self.alert_def.name, hit_count, end)
+
+        expected_long = 'There were %d matching records for the %s search ' \
+                        '(id: %s) between %s and %s.\n\nAlert ID: %s' % \
+                        (hit_count, self.saved_search.name,
+                         self.saved_search.uuid, start, end,
+                         self.alert_def.uuid)
+
+        expected_long = 'There were %d matching records for the %s alert ' \
+                        '(ID: %s) between %s and %s.\n\nAlert Definition ID:' \
+                        ' %s' % \
+                        (hit_count, self.alert_def.name, self.alert_def.uuid,
+                         start, end, self.alert_def.uuid)
+
+        self.assertIs(mock_alert.call_args[1]['alert_def'], self.alert_def)
+        self.assertEqual(mock_alert.call_args[1]['short_message'],
+                         expected_short)
+        self.assertEqual(mock_alert.call_args[1]['long_message'],
+                         expected_long)

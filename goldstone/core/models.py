@@ -2497,11 +2497,8 @@ class SavedSearch(models.Model):
         self.last_end = end
         return self.save()
 
-    def __unicode__(self):
-        """Return a useful string."""
-
-        return "%s owned by %s (%s)" % \
-            (self.name, self.owner, self.uuid)
+    def __repr__(self):
+        return "<SavedSearch: %s>" % self.uuid
 
 
 class AlertDefinition(models.Model):
@@ -2513,14 +2510,14 @@ class AlertDefinition(models.Model):
     description = models.CharField(max_length=1024, blank=True, null=True)
 
     short_template = models.TextField(
-        default='Alert: {{_alert_name}} triggered with {{_search_hits}} hits '
-                'at {{_end_time}}')
+        default='Alert: {{_alert_def_name}} triggered with {{_search_hits}} '
+                'hits at {{_end_time}}')
 
     long_template = models.TextField(
         default='There were {{_search_hits}} matching records for the '
-                '{{_search_name}} search (id: {{_search_id}}) between '
-                '{{_start_time}} and {{_end_time}}.\n\nAlert ID: '
-                '{{_alert_id}}')
+                '{{_alert_def_name}} alert (ID: {{_alert_def_id}}) '
+                'between {{_start_time}} and {{_end_time}}.\n\nAlert '
+                'Definition ID: {{_alert_def_id}}')
 
     enabled = models.BooleanField(default=True)
 
@@ -2533,13 +2530,11 @@ class AlertDefinition(models.Model):
     def evaluate(self, search_result, start_time, end_time):
 
             kv_pairs = {
-                '_alert_name': self.name,
+                '_alert_def_name': self.name,
                 '_search_hits': search_result['hits']['total'],
-                '_search_name': self.search.name,
-                '_search_id': self.search.uuid,
                 '_start_time': start_time,
                 '_end_time': end_time,
-                '_alert_id': self.uuid
+                '_alert_def_id': self.uuid
             }
 
             if kv_pairs['_search_hits'] > 0:
@@ -2549,12 +2544,15 @@ class AlertDefinition(models.Model):
 
                 # create an alert and call all our producers with it
                 alert = Alert(short_message=short, long_message=long,
-                              alert_def=self, owner=self.owner)
+                              alert_def=self)
                 alert.save()
 
                 # send the alert to all registered producers
                 for producer in Producer.objects.filter(alert_def=self):
                     producer.produce(alert)
+
+    def __repr__(self):
+        return "<AlertDefiniton: %s>" % self.uuid
 
 
 class Alert(models.Model):
@@ -2571,6 +2569,9 @@ class Alert(models.Model):
     created = CreationDateTimeField(editable=False, blank=True, null=True)
 
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    def __repr__(self):
+        return "<Alert: %s>" % self.uuid
 
 
 class Producer(PolymorphicModel):
@@ -2595,6 +2596,9 @@ class Producer(PolymorphicModel):
     def produce(self, alert):
         raise NotImplementedError("Producer subclass must implement send.")
 
+    def __repr__(self):
+        return "<Producer: %s>" % self.uuid
+
 
 class EmailProducer(Producer):
     """
@@ -2610,9 +2614,12 @@ class EmailProducer(Producer):
     def produce(self, alert):
 
         email_rv = send_mail(alert.short_message, alert.long_message,
-                             self.sender, self.receiver,
+                             self.sender, [self.receiver],
                              fail_silently=False)
         return email_rv
+
+    def __repr__(self):
+        return "<EmailProducer: %s>" % self.uuid
 
 
 class CADFEventDocType(DailyIndexDocType):
