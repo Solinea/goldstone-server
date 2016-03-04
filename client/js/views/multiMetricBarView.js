@@ -704,27 +704,27 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             metric: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Value', 0]
+                [goldstone.translate('Value'), 0]
             ],
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
+                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             cpu: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
+                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             disk: [
-                ['Total', 1],
-                ['Used', 0]
+                [goldstone.translate('Total'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             spawn: [
-                ['Fail', 1],
-                ['Success', 0]
+                [goldstone.translate('Fail'), 1],
+                [goldstone.translate('Success'), 0]
             ]
         };
 
