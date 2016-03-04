@@ -53,13 +53,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
-
+            
             this.generateRoutesPerAddon(addNewRoute);
-
-            // must trigger html template translation in order to display a
-            // language other than English upon initial render without
-            // having to toggle the language selector switch
-            goldstone.i18n.translateBaseTemplate();
 
         } else {
 
@@ -131,7 +126,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
-        '<li class="compliance-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<li class="compliance-tab" data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
         '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +

@@ -52,7 +52,7 @@ msgstr ""
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "API Calls vs Time"
+msgid "API Call Search"
 msgstr ""
 
 #: apiBrowserPageView.js
@@ -155,6 +155,18 @@ msgid "Interval"
 msgstr ""
 
 #: apiPerfView.js
+msgid "Max"
+msgstr ""
+
+#: apiPerfView.js
+msgid "Avg"
+msgstr ""
+
+#: apiPerfView.js
+msgid "Min"
+msgstr ""
+
+#: apiPerfView.js
 msgid "seconds"
 msgstr ""
 
@@ -201,19 +213,12 @@ msgid "Reports"
 msgstr ""
 
 #: base.html
-msgid "Log Browser"
-msgstr ""
-
-#: base.html
-msgid "Event Browser"
-msgstr ""
-
-#: base.html
-msgid "API Browser"
-msgstr ""
-
-#: base.html
 msgid "Copyright"
+msgstr ""
+
+#: base.html
+#. refers to software version
+msgid "Version"
 msgstr ""
 
 #: base.html
@@ -227,7 +232,7 @@ msgstr ""
 
 #: base.html
 #. refers to a link to customer support
-msgid "Help"
+msgid "Support"
 msgstr ""
 
 #: base.html
@@ -237,7 +242,7 @@ msgstr ""
 
 #: base.html
 #. link to github repo
-msgid "Github"
+msgid "Github Repo"
 msgstr ""
 
 #: base.html
@@ -271,38 +276,11 @@ msgid "Unread"
 msgstr ""
 
 #: base.html
-msgid "Service Status"
+#. side-menu icon tooltip to expand menu
+msgid "Expand"
 msgstr ""
 
-#: base.html
-msgid "Service"
-msgstr ""
-
-#: base.html
-msgid "Status"
-msgstr ""
-
-#: base.html
-msgid "Cinder"
-msgstr ""
-
-#: base.html
-msgid "Glance"
-msgstr ""
-
-#: base.html
-msgid "Keystone"
-msgstr ""
-
-#: base.html
-msgid "Neutron"
-msgstr ""
-
-#: base.html
-msgid "Nova"
-msgstr ""
-
-
+#: chartHeaderView.js
 
 #: chartHeaderView.js
 msgid "Set Chart Title"
@@ -311,53 +289,6 @@ msgstr ""
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr ""
-
-#: addons
-
-#: predefinedSearchView.js
-msgid "Predefined Searches"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "failed authorization"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "stack traces"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "nova instance created"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "nova instance creation failed"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "cinder volume created"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "database problems"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "image uploaded"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "queue failures"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "nova usage audits"
-msgstr ""
-
-#: predefinedSearchView.js
-msgid "nova claim request"
-msgstr ""
-
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -411,6 +342,11 @@ msgid "Storage"
 msgstr ""
 
 #: eventsBrowserPageView.js
+
+#: eventsBrowserPageView.js
+msgctxt "eventsbrowser"
+msgid "Event Search"
+msgstr ""
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
@@ -523,10 +459,6 @@ msgstr ""
 msgid "Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>."
 msgstr ""
 
-#: helpView.js
-msgid "License"
-msgstr ""
-
 #: infoButtonText.js
 
 #: infoButtonText.js
@@ -600,38 +532,13 @@ msgstr ""
 #: leaseDataTableView.js
 
 #: leaseDataTableView.js
-msgctxt "lease"
-msgid "Creation of %s successful"
+#. tooltip popup for active lease
+msgid "active"
 msgstr ""
 
 #: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to create %s"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Update of %s successful"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to update %s"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Deletion of %s complete"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to delete %s"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "%s will be permanently deleted. Are you sure?"
+#. tooltip popup for completed lease
+msgid "completed"
 msgstr ""
 
 #: leaseDataTableView.js
@@ -661,11 +568,6 @@ msgstr ""
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Lease Name"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
 msgid "Scope"
 msgstr ""
 
@@ -682,6 +584,12 @@ msgstr ""
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Lease Start"
+msgstr ""
+
+#: leaseDataTableView.js
+#. time lease was created
+msgctxt "lease"
+msgid "Lease Creation"
 msgstr ""
 
 #: leaseDataTableView.js
@@ -741,17 +649,12 @@ msgstr ""
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Resource"
+msgid "Server"
 msgstr ""
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Project"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Resource Type"
+msgid "Volume"
 msgstr ""
 
 #: leaseDataTableView.js
@@ -786,11 +689,6 @@ msgstr ""
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Close"
-msgstr ""
-
-#: leaseDataTableView.js
-msgctxt "lease"
 msgid "Delete Lease Confirmation"
 msgstr ""
 
@@ -820,6 +718,14 @@ msgstr ""
 
 #: leasesManagerPageView.js
 msgid "List of Leases"
+msgstr ""
+
+#: logBrowserViz.js
+msgid "Uncheck log-type to hide from display"
+msgstr ""
+
+#: logBrowserViz.js
+msgid "Exit"
 msgstr ""
 
 #: loginPageView.js
@@ -863,10 +769,30 @@ msgstr ""
 
 #: logSearchPageView.js
 
-msgctxt "logbrowserpage"
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "Log Viewer"
+msgstr ""
+
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "Event Viewer"
+msgstr ""
+
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "API Call Viewer"
+msgstr ""
+
+msgid "Log Search"
+msgstr ""
+
+#: logSearchPageView.js
 msgid "Log Browser"
 msgstr ""
 
+#: logSearchPageView.js
+#. y-axis label for log browser chart
 msgctxt "logbrowserpage"
 msgid "Log Events"
 msgstr ""
@@ -910,16 +836,6 @@ msgstr ""
 
 #: nodeAvailView.js
 msgid "Log Severity Filters"
-msgstr ""
-
-#: nodeAvailView.js
-msgctxt "nodeavail"
-msgid "Uncheck log-type to hide from display"
-msgstr ""
-
-#: eventTimelineView.js
-msgctxt "nodeavail"
-msgid "Exit"
 msgstr ""
 
 #: metricOverviewView.js
@@ -1010,11 +926,6 @@ msgid "Metric"
 msgstr ""
 
 #: metricViewerView.js
-msgctxt "metricviewer"
-msgid "Resource"
-msgstr ""
-
-#: metricViewerView.js
 msgid "Standard Deviation Bands"
 msgstr ""
 
@@ -1058,6 +969,29 @@ msgctxt "metricviewer"
 msgid "Select chart parameters"
 msgstr ""
 
+#: multiMetricBarView.js
+
+#: multiMetricBarView.js
+msgid "Physical"
+msgstr ""
+
+#: multiMetricBarView.js
+msgid "Value"
+msgstr ""
+
+#: multiMetricBarView.js
+msgid "Used"
+msgstr ""
+
+#: multiMetricBarView.js
+msgid "Total"
+msgstr ""
+
+#: multiRscsView.js
+#. table with more info about selected cloud resource
+msgid "Resource Info"
+msgstr ""
+
 #: newPasswordView.js
 msgid "You have successfully changed your password."
 msgstr ""
@@ -1077,11 +1011,6 @@ msgstr ""
 #: newPasswordView.js
 msgctxt "newpassword"
 msgid "New password"
-msgstr ""
-
-#: newPasswordView.js
-msgctxt "newpassword"
-msgid "Enter new password"
 msgstr ""
 
 #: newPasswordView.js
@@ -1153,10 +1082,6 @@ msgstr ""
 #: nodeReportView.js
 msgctxt "nodereport"
 msgid ""
-msgstr ""
-
-#: novaReportView.js
-msgid "Nova API Performance"
 msgstr ""
 
 #: novaReportView.js
@@ -1234,22 +1159,7 @@ msgstr ""
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
-msgid "Project Name (audit filter)"
-msgstr ""
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project Name (optional audit filter)"
-msgstr ""
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project ID (audit filter)"
-msgstr ""
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project ID (optional audit filter)"
+msgid "Filter by OpenStack User ID (optional)"
 msgstr ""
 
 #: openTrailDataTableView.js
@@ -1360,6 +1270,11 @@ msgstr ""
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
+msgid "Enter Swift Password"
+msgstr ""
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
 msgid "Swift Tenant Name"
 msgstr ""
 
@@ -1424,44 +1339,22 @@ msgid "Submit"
 msgstr ""
 
 #: openTrailDataTableView.js
-#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Creation of %s successful"
-msgstr ""
-
-#: openTrailDataTableView.js
-#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Failure to create %s"
-msgstr ""
-
-#: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Update of %s successful"
 msgstr ""
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Failure to update %s"
 msgstr ""
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Deletion of %s complete"
-msgstr ""
-
-#: openTrailDataTableView.js
-#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Failure to delete %s"
 msgstr ""
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "%s will be permanently deleted. Are you sure?"
 msgstr ""
 
@@ -1479,10 +1372,6 @@ msgstr ""
 msgid "List of Trails"
 msgstr ""
 
-#: openTrailManagerPageView.js
-msgid "OpenTrail Manager"
-msgstr ""
-
 #: openTrailLogListPageView.js
 
 #: openTrailLogListPageView.js
@@ -1493,11 +1382,6 @@ msgstr ""
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Trail Log History"
-msgstr ""
-
-#: openTrailLogListPageView.js
-msgctxt "opentrail"
-msgid "Name"
 msgstr ""
 
 #: openTrailLogListPageView.js
@@ -1569,6 +1453,260 @@ msgstr ""
 #: reportsReportView.js
 msgctxt "reportsreport"
 msgid "No reports available."
+msgstr ""
+
+#: savedSearchDataTableView.js
+
+#: savedSearchDataTableView.js
+#. saved searches modal
+msgctxt "savedsearch"
+msgid "Update Search Details"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches modal
+msgctxt "savedsearch"
+msgid "Delete Search Confirmation"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. %s will refer to the name of a new saved search. Please place according to the langauge in question.
+msgid "Creation of %s successful"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Failure to create %s"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Deletion of %s complete"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Create New Search"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Name"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Description"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Query"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "ElasticSearch Query (omit surrounding quotes)"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Cancel"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Submit"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Confirm"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Submit Search"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches controls
+msgid "system search - can not delete"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Name"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Description"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Controls"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "openstack syslog errors"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "failure events"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "slow API calls"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "generic syslog errors"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "log query"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Predefined Searches"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "failed authorization"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "stack traces"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "nova instance created"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "nova instance creation failed"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "cinder volume created"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "database problems"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "image uploaded"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "queue failures"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "nova usage audits"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "nova claim request"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "event query"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "api call query"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "service status"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Search Manager"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: Log Browser"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: Event Browser"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: API Browser"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: Log"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: Event"
+msgstr ""
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: API"
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. If there are no predefined returned by server.
+msgid "No predefined searches."
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. If the server returns an error.
+msgid "Server error."
+msgstr ""
+
+#: savedSearchDataTableView.js
+#. to remove search filter
+msgid "None (reset)"
+msgstr ""
+
+#: serviceStatusView.js
+
+#: serviceStatusView.js
+msgid "Service Status"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Service"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Status"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Cinder"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Glance"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Keystone"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Neutron"
+msgstr ""
+
+#: serviceStatusView.js
+msgid "Nova"
 msgstr ""
 
 #: settingsPageView.js
@@ -1680,6 +1818,10 @@ msgstr ""
 
 #: spawnsView.js
 msgid "Success"
+msgstr ""
+
+#: spawnsView.js
+msgid "Fail"
 msgstr ""
 
 #: tenantSettingsPageView.js
@@ -1802,10 +1944,24 @@ msgstr ""
 msgid "No data"
 msgstr ""
 
+#: topologyTreeView.js
+msgid "Server response was empty."
+msgstr ""
+
+#: vulnerability advisor
+
 #: vulnerability advisor
 msgid "Vulnerability Advisor"
 msgstr ""
 
 #: vulnerability advisor
 msgid "OpenStack Vulnerabilities"
+msgstr ""
+
+#: vulnerability advisor
+msgid "Notice Date"
+msgstr ""
+
+#: vulnerability advisor
+msgid "Brief Description (click expand icon for more info)"
 msgstr ""

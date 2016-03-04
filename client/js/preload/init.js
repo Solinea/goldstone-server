@@ -65,16 +65,16 @@ goldstone.init = function() {
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
-    // re-translate the base template when switching pages to make sure
-    // the possibly hidden lookback/refresh selectors are translated
-    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-        goldstone.i18n.translateBaseTemplate();
-    });
-
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
     goldstone.addonMenuView = new AddonMenuView({
         el: ".addon-menu-view-container"
+    });
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
     });
 
     // append global selectors to page

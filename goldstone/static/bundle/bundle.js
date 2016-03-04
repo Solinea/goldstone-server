@@ -2497,7 +2497,7 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key, language) {
-            if(!goldstone.skipI18nLog) {
+            if (!goldstone.skipI18nLog) {
                 console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
@@ -2648,7 +2648,7 @@ var I18nModel = Backbone.Model.extend({
 
         // this would be triggered on userPrefsView
         this.listenTo(this, 'setLanguage', function(language) {
-            
+
             // persists language selection
             goldstone.userPrefsView.setUserPrefKey('i18n', language);
 
@@ -2663,6 +2663,14 @@ var I18nModel = Backbone.Model.extend({
     translateBaseTemplate: function() {
         _.each($('.i18n'), function(item) {
             $(item).text(goldstone.translate($(item).data().i18n));
+        });
+
+        _.each($('[data-i18n-tooltip]'), function(item) {
+            var tooltipText = $(item).data('i18nTooltip');
+            var tooltipTraslation = goldstone.translate(tooltipText);
+            $(item).tooltip()
+                .attr('data-original-title', tooltipTraslation)
+                .tooltip();
         });
     }
 });
@@ -2707,11 +2715,7 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             discoverCloudTopology: function() {
                 return goldstone.translate('This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.');
             },
-
-            discoverZoomTopology: function() {
-                return goldstone.translate('This is the OpenStack topology map.  Clicking branches will zoom in, clicking on leaf nodes will bring up information about resources.  Click on the far left section to zoom out.');
-            },
-
+            
             eventTimeline: function() {
                 return goldstone.translate('The event timeline displays key events that have occurred in your cloud.  You can adjust the displayed data with the filter and time settings in the menu bar.  Hovering on an event brings up the event detail.');
             },
@@ -3734,13 +3738,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
-
+            
             this.generateRoutesPerAddon(addNewRoute);
-
-            // must trigger html template translation in order to display a
-            // language other than English upon initial render without
-            // having to toggle the language selector switch
-            goldstone.i18n.translateBaseTemplate();
 
         } else {
 
@@ -3812,7 +3811,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     template: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
-        '<li class="compliance-tab" data-toggle="tooltip" data-placement="right" title="" data-original-title="Compliance">' +
+        '<li class="compliance-tab" data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
         '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
         '</li>' +
@@ -7481,19 +7480,19 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         // header
         '<div class="modal-header">' +
         '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+        '<h4 class="modal-title" id="myModalLabel"><%=goldstone.translate(\'Log Severity Filters\')%></h4>' +
         '</div>' +
 
         // body
         '<div class="modal-body">' +
-        '<h5>Uncheck log-type to hide from display</h5><br>' +
+        '<h5><%=goldstone.translate(\'Uncheck log-type to hide from display\')%></h5><br>' +
         '<div id="populateEventFilters"></div>' +
         '</div>' +
 
         // footer
         '<div class="modal-footer">' +
         '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '" class="btn btn-primary" data-dismiss="modal"><%=goldstone.translate(\'Exit\')%></button>' +
         '</div>' +
 
         '</div>' +
@@ -7563,7 +7562,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
+            chartTitle: goldstone.translate('Log Search'),
             collection: this.logSearchObserverCollection,
             el: '#log-viewer-visualization',
             infoText: 'logBrowser',
@@ -7573,7 +7572,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserTable = new LogBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            chartTitle: goldstone.translate('Log Browser'),
             collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
             width: $('#log-viewer-table').width()
@@ -8997,27 +8996,27 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             metric: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Value', 0]
+                [goldstone.translate('Value'), 0]
             ],
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
+                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             cpu: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
+                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             disk: [
-                ['Total', 1],
-                ['Used', 0]
+                [goldstone.translate('Total'), 1],
+                [goldstone.translate('Used'), 0]
             ],
             spawn: [
-                ['Fail', 1],
-                ['Success', 0]
+                [goldstone.translate('Fail'), 1],
+                [goldstone.translate('Success'), 0]
             ]
         };
 
@@ -9148,7 +9147,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="mainContainer shadow-block panel-body">' +
-        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
         '</div>' +
 
         // modal
@@ -9159,7 +9158,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<div class="modal-header">' +
         '<button type="button" class="close" data-dismiss="modal"' +
         'aria-hidden="true">&times;</button>' +
-        '<h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>' +
+        '<h4 class="modal-title single-rsrc-title" id="myModalLabel"><%=goldstone.translate(\'Resource Info\')%></h4>' +
         '</div>' +
         '<div class="modal-body single-rsrc-panel">' +
         '<div id="single-rsrc-body" class="panel-body">' +
@@ -10686,7 +10685,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         })
             .done(function() {
 
-                var updateMessage = goldstone.contextTranslate('Creation of %s successful', 'savedsearch');
+                var updateMessage = goldstone.translate('Creation of %s successful');
                 var successMessage = goldstone.sprintf(updateMessage, $('.create-form #new-search-name').val());
 
                 // show success message at top of screen
@@ -10696,7 +10695,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
             })
             .fail(function(err) {
-                var failMessage = goldstone.contextTranslate('Failure to create %s', 'savedsearch');
+                var failMessage = goldstone.translate('Failure to create %s');
                 var failureWarning = goldstone.sprintf(failMessage, $('.create-form #new-search-name').val());
 
                 // show failure message at top of screen
@@ -10734,7 +10733,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             })
                 .done(function() {
 
-                    var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
+                    var updateMessage = goldstone.translate('Update of %s successful');
                     var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
@@ -10745,7 +10744,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 })
                 .fail(function(err) {
 
-                    var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
+                    var failedTrailName = goldstone.translate('Failure to update %s');
                     var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
@@ -10781,7 +10780,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             })
                 .done(function() {
 
-                    var deletedTrailName = goldstone.contextTranslate('Deletion of %s complete', 'savedsearch');
+                    var deletedTrailName = goldstone.translate('Deletion of %s complete');
                     var deleteSuccess = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
 
                     // success message
@@ -10792,7 +10791,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 })
                 .fail(function(err) {
 
-                    var deletedTrailName = goldstone.contextTranslate('Failure to delete %s', 'savedsearch');
+                    var deletedTrailName = goldstone.translate('Failure to delete %s');
                     var deleteFailure = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
 
                     // failure message
@@ -10858,7 +10857,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
         $(row).on('click', '.fa-trash-o', function() {
 
-            var deleteWarningText = goldstone.contextTranslate('"%s" will be permanently deleted. Are you sure?', 'savedsearch');
+            var deleteWarningText = goldstone.translate('%s will be permanently deleted. Are you sure?');
             var deleteWarningMessage = goldstone.sprintf(deleteWarningText, data.name);
 
             // delete trail modal - pass in row data details
@@ -10923,7 +10922,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 [0, 'asc']
             ],
             "columnDefs": [{
-                    "data": "name",
+                    // "data": "name",
+                    "data": function(data){
+                        return goldstone.translate(data.name);
+                    },
                     "targets": 0,
                     "sortable": true
                 }, {
@@ -10938,7 +10940,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                     "render": function(data) {
                         if (data.protected === true) {
                             return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
-                                "<div class='saved-search-no-delete'>system search - can not delete</div>";
+                                '<div class="saved-search-no-delete">' + goldstone.translate("system search - can not delete") + '</div>';
                         } else {
                             return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
                                 "<i class='fa fa-trash-o fa-2x fa-fw text-danger' data-toggle='modal' data-target='#delete-modal'></i>";
@@ -11020,9 +11022,9 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
-        '<th>Name</th>' +
-        '<th>Description</th>' +
-        '<th>Controls</th>' +
+        '<th><%=goldstone.translate(\'Name\')%></th>' +
+        '<th><%=goldstone.translate(\'Description\')%></th>' +
+        '<th><%=goldstone.translate(\'Controls\')%></th>' +
         '</tr>'
     ),
 
@@ -11125,7 +11127,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
         '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
-        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden UUID
@@ -11169,7 +11171,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         '<h4><span id="delete-name-span"></span></h4>' +
 
         '<button id="confirm-delete" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Confirm\', \'savedsearch\')%></button>' +
-        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.translate(\'Cancel\')%></button>' +
+        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button>' +
         '</form>' +
         '</div>' +
 
@@ -12218,8 +12220,8 @@ var SpawnsView = GoldstoneBaseView.extend({
         // appends chart legends
         var legendSpecs = {
             spawn: [
-                ['Fail', 1],
-                ['Success', 0]
+                [goldstone.translate('Fail'), 1],
+                [goldstone.translate('Success'), 0]
             ]
         };
         this.appendLegend(legendSpecs.spawn);
@@ -13613,16 +13615,16 @@ goldstone.init = function() {
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
-    // re-translate the base template when switching pages to make sure
-    // the possibly hidden lookback/refresh selectors are translated
-    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-        goldstone.i18n.translateBaseTemplate();
-    });
-
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
     goldstone.addonMenuView = new AddonMenuView({
         el: ".addon-menu-view-container"
+    });
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
     });
 
     // append global selectors to page
