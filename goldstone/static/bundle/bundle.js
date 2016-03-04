@@ -6741,32 +6741,32 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "searching": true,
             "ordering": false,
             "order": [
-                [0, 'desc']
+                [1, 'desc']
             ],
             "columnDefs": [{
                 "data": "@timestamp",
                 "type": "date",
                 "targets": 0,
-                "sortable": false,
+                "sortable": true,
                 "render": function(data, type, full, meta) {
                     return moment(data).format();
                 }
             }, {
                 "data": "syslog_severity",
                 "targets": 1,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "component",
                 "targets": 2,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "host",
                 "targets": 3,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "log_message",
                 "targets": 4,
-                "sortable": false
+                "sortable": true
             }],
             "serverSide": true,
             "ajax": {
@@ -6798,7 +6798,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    /*
+                    
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'syslog_severity',
@@ -6810,8 +6810,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         asc: '',
                         'desc': '-'
                     };
-                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+                    // settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
