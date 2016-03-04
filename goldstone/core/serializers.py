@@ -15,7 +15,7 @@
 import logging
 from rest_framework import serializers
 from goldstone.core.models import SavedSearch, Alert, \
-    AlertDefinition
+    AlertDefinition, Producer
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -44,7 +44,7 @@ class PassthruSerializer(serializers.Serializer):
 
 
 class SavedSearchSerializer(serializers.ModelSerializer):
-    """The Defined Search serializer."""
+    """The Saved Search serializer."""
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
@@ -53,16 +53,28 @@ class SavedSearchSerializer(serializers.ModelSerializer):
 
 
 class AlertDefinitionSerializer(serializers.ModelSerializer):
-    """The Defined Alert Search serializer."""
+    """The Alert Definition serializer."""
+
+    search = serializers.PrimaryKeyRelatedField(
+        queryset=SavedSearch.objects.all())
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
-
         model = AlertDefinition
 
 
 class AlertSerializer(serializers.ModelSerializer):
-    """The Defined Alert serializer."""
+    """The Alert serializer."""
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
         model = Alert
+
+
+class ProducerSerializer(serializers.ModelSerializer):
+    """The Producer serializer should handle polymorphic producers."""
+
+    class Meta:  # pylint: disable=C0111,C1001,W0232
+
+        model = Producer
+        lookup_field = 'uuid'
+        exclude = ['polymorphic_ctype']

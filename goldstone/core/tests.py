@@ -243,39 +243,6 @@ class TaskTests(SimpleTestCase):
         self.assertItemsEqual(rv, ['goldstone-1900.01.01'])
 
 
-class AlertSearchModelTests(TestCase):
-
-    def test_build_msg_template(self):
-        as_obj = AlertSearch()
-        as_obj.save()
-        search_hits = 215
-        msg_dict = as_obj.build_alert_template(hits=search_hits)
-        self.assertTrue(str(search_hits) in str(msg_dict['title']))
-        self.assertTrue(str(search_hits) in str(msg_dict['body']))
-
-    def test_alert_search_recent(self):
-        search_obj = AlertSearch()
-        search_obj.save()
-        s = '<elasticsearch_dsl.search.Search object at 0x7fb60f642a90>'
-        start = '2016-01-23 15:15:06.007474+00'
-        end = '2016-01-23 15:25:06.007474+00'
-
-        with mock.patch("goldstone.core.models.AlertSearch.search_recent") \
-                as esmock:
-            esmock.return_value = s, start, end
-            saved_alerts = AlertSearch.objects.all()
-            for obj in saved_alerts:
-                self.assertEqual(obj.search_recent(), esmock.return_value)
-                self.assertEqual(esmock.call_count, 1)
-
-    def test_alert_search_save(self):
-        with mock.patch("goldstone.core.models.AlertSearch.save") \
-                as esmock:
-                esmock.return_value = None
-                self.assertEqual(AlertSearch.save(), esmock.return_value)
-        self.assertEqual(esmock.call_count, 1)
-
-
 class DailyIndexDocTypeTests(SimpleTestCase):
 
     class LogMessage(DailyIndexDocType):

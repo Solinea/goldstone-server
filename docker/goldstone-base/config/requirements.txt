@@ -26,7 +26,7 @@ django-picklefield==0.3.2
 django-polymorphic==0.7.2
 django-rest-params==1.0.2
 django-rest-swagger==0.3.4
-djangorestframework==3.1.0
+djangorestframework==3.3.2
 djoser==0.3.2
 drf-extensions==0.2.7
 elasticsearch-curator==3.4.0

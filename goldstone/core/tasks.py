@@ -39,6 +39,7 @@ def prune_es_indices():
         {"prefix": "goldstone-", "time_string": "%Y.%m.%d"},
         {"prefix": "goldstone_metrics-", "time_string": "%Y.%m.%d"},
         {"prefix": "api_stats-", "time_string": "%Y.%m.%d"},
+        {"prefix": "internal-", "time_string": "%Y.%m.%d"},
     ]
 
     client = es_conn()

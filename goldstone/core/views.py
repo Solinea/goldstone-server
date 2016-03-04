@@ -25,7 +25,7 @@ from rest_framework.viewsets import ModelViewSet
 from goldstone.core.models import SavedSearch, Alert, PolyResource, \
     AlertDefinition
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertDefinitionSerializer, AlertSerializer
+    AlertDefinitionSerializer, AlertSerializer, ProducerSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -510,7 +510,7 @@ class SavedSearchViewSet(ModelViewSet):
 
 
 class AlertDefinitionViewSet(SavedSearchViewSet):
-    """Provide the /defined_search/ endpoints."""
+    """Provide the /core/alert_definition/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertDefinitionSerializer
@@ -518,10 +518,20 @@ class AlertDefinitionViewSet(SavedSearchViewSet):
 
 
 class AlertViewSet(ModelViewSet):
-    """Provide the /defined_search/ endpoints."""
+    """Provide the /core/alert/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertSerializer
+
+    def get_queryset(self):
+        return Alert.objects.all()
+
+
+class ProducerViewSet(ModelViewSet):
+    """Producer the /core/producer/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ProducerSerializer
 
     def get_queryset(self):
         return Alert.objects.all()

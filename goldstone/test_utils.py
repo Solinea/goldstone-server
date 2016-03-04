@@ -36,7 +36,7 @@ CONTENT_NOT_BLANK_USERNAME = '"username":["This field is required."]'
 CONTENT_NOT_FOUND = "Not found."
 CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied."}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
-CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
+CONTENT_UNIQUE_NAME = 'Tenant with this name already exists.'
 
 # The payload string for the HTTP Authorization header.
 AUTHORIZATION_PAYLOAD = "Token %s"

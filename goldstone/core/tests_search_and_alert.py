@@ -20,9 +20,10 @@ import arrow
 from django.test import TestCase
 from elasticsearch_dsl import Search
 from mock import patch, Mock, MagicMock
+from rest_framework.test import APITestCase
 
-from goldstone.core.models import SavedSearch, AlertDefinition, EmailProducer, \
-    Alert
+from goldstone.core.models import SavedSearch, AlertDefinition, \
+    EmailProducer, Alert
 
 
 class ModelTests(TestCase):
