@@ -11498,10 +11498,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
+            '<form class="tenant-settings-link">' +
             '<h3>' + goldstone.translate("Additional Actions") + '</h3>' +
-            '<button class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>');
+            '<button action="submit" class="btn btn-lg btn-primary btn-block modify">' + goldstone.translate("Modify Tenant Settings") + '</button>' +
+            '</form>');
 
-        $('button.modify').on('click', function() {
+        $('form.tenant-settings-link').on('submit', function(e) {
+            e.preventDefault();
             window.location.href = "#settings/tenants";
         });
     },
@@ -11709,7 +11712,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '</div>' +
 
         // tenant settings link
-        '<div class="container">' +
         '<div class="row"><hr>' +
         '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
         '</div>' +
@@ -12392,11 +12394,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         $('#global-refresh-range').hide();
 
         this.$el.html(this.template());
-
-        this.$el.prepend(new ChartHeaderView({
-            chartTitle: goldstone.contextTranslate('Tenants', 'tenantsettings')
-        }).el);
-
         return this;
     },
 
@@ -12410,7 +12407,8 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     template: _.template('' +
 
         // popup message row
-        '<div class="row">' +
+        '<div class="row col-md-offset-2">' +
+        '<h3><%= goldstone.translate("Tenant Settings") %></h3>' +
         '<div class="col-md-8 col-md-offset-2">' +
         '<div class="alert alert-info popup-message" hidden="true"></div>' +
         '<br></div>' +
