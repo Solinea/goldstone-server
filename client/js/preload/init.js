@@ -16,9 +16,6 @@
 
 goldstone.init = function() {
 
-    // defined in setBaseTemplateListeners.js
-    goldstone.setBaseTemplateListeners();
-
     /*
     authLogoutIcon encapsulates the initialization of the $(document)
     listener for ajaxSend events and uses xhr.setRequestHeader to append
@@ -103,7 +100,13 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
+    // defined in setBaseTemplateListeners.js
+    // sets up UI to respond to user interaction with
+    // menus, and set highlighting of appropriate menu icons.
+    goldstone.setBaseTemplateListeners();
+
     // start the backbone router that will handle /# calls
     Backbone.history.start();
+
 
 };

@@ -73,23 +73,40 @@ goldstone.setBaseTemplateListeners = function() {
         }
     });
 
-    // listeners for sidebar menu icon visual classes
-    $('.btn-grp').on('click', 'li', function() {
+    // listener for sidebar menu alert tab
+    $('.alerts-tab').on('click', function() {
 
-        // don't change current tab highlighting when
-        // clicking alert or expand buttons
-        if ($(this).hasClass('menu-toggle')) {
-            return;
-        }
-        if ($(this).hasClass('alerts-tab')) {
-            $('.tab-content').toggleClass('open');
-            $('.tab-content').find('.tab').show();
-            return;
-        }
-
-        // otherwise add icon styling
-        $('.btn-grp li').removeClass('active active-page');
-        $(this).addClass('active active-page');
+        $('.tab-content').toggleClass('open');
+        $('.tab-content').find('.tab').show();
     });
 
+    // function to remove existing menu tab highlighting
+    // and highlight tab matching selector, if any
+    var addMenuIconHighlighting = function(selector) {
+        $('.btn-grp li').removeClass('active active-page');
+        $(selector).addClass('active active-page');
+    };
+
+    var routeNameToIconClassHash = {
+        discover: '.dashboard-tab',
+        apiPerfReport: '.metrics-tab',
+        topology: '.topology-tab',
+        "nodeReport": '',
+        "logSearch": '.reports-tab',
+        "savedSearchLog": '.reports-tab',
+        "eventsBrowser": '.reports-tab',
+        "savedSearchEvent": '.reports-tab',
+        "apiBrowser": '.reports-tab',
+        "savedSearchApi": '.reports-tab',
+        "settings": '',
+        "tenant": '',
+        compliance: '.compliance-tab'
+    };
+
+    // backbone router emits 'route' event on route change
+    // and first argument is route name. Match to hash
+    // to highlight the appropriate side menu nav icon
+    goldstone.gsRouter.on('route', function(name) {
+        addMenuIconHighlighting(routeNameToIconClassHash[name]);
+    });
 };
