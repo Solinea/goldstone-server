@@ -15,7 +15,7 @@
 import logging
 from rest_framework import serializers
 from goldstone.core.models import SavedSearch, Alert, \
-    AlertDefinition, Producer
+    AlertDefinition, Producer, EmailProducer
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -76,5 +76,25 @@ class ProducerSerializer(serializers.ModelSerializer):
     class Meta:  # pylint: disable=C0111,C1001,W0232
 
         model = Producer
+        lookup_field = 'uuid'
+        exclude = ['polymorphic_ctype']
+
+    def to_representation(self, instance):
+        """Return an already-serialized object in the shape of the underlying
+        polymorphic class.  If there are new classes, add them to the map."""
+
+        serializer_map = {
+            'EmailProducer': EmailProducerSerializer
+        }
+
+        return serializer_map[instance.__class__.__name__](instance).data
+
+
+class EmailProducerSerializer(serializers.ModelSerializer):
+    """The Producer serializer should handle polymorphic producers."""
+
+    class Meta:  # pylint: disable=C0111,C1001,W0232
+
+        model = EmailProducer
         lookup_field = 'uuid'
         exclude = ['polymorphic_ctype']

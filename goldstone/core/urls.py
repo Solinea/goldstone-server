@@ -17,7 +17,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
     ResourcesRetrieve, TopologyView, SavedSearchViewSet, \
-    AlertDefinitionViewSet, AlertViewSet
+    AlertDefinitionViewSet, AlertViewSet, ProducerViewSet, EmailProducerViewSet
 
 router = DefaultRouter()
 
@@ -30,6 +30,12 @@ router.register(r'alert_definition',
 router.register(r'alert',
                 AlertViewSet,
                 base_name="alert")
+router.register(r'producer',
+                ProducerViewSet,
+                base_name="producer")
+router.register(r'email_producer',
+                EmailProducerViewSet,
+                base_name="email_producer")
 
 urlpatterns = router.urls
 urlpatterns += patterns(

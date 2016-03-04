@@ -23,9 +23,10 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from goldstone.core.models import SavedSearch, Alert, PolyResource, \
-    AlertDefinition, Producer
+    AlertDefinition, Producer, EmailProducer
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertDefinitionSerializer, AlertSerializer, ProducerSerializer
+    AlertDefinitionSerializer, AlertSerializer, ProducerSerializer, \
+    EmailProducerSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -530,7 +531,7 @@ class AlertViewSet(ReadOnlyModelViewSet):
         return Alert.objects.all()
 
 
-class ProducerViewSet(ModelViewSet):
+class ProducerViewSet(ReadOnlyModelViewSet):
     """Producer the /core/producer/ endpoints."""
 
     permission_classes = (IsAuthenticated,)
@@ -538,3 +539,16 @@ class ProducerViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Producer.objects.all()
+        #  base_objects = Producer.objects.all()
+        # return Producer.objects.get_real_instances(base_objects)
+
+
+class EmailProducerViewSet(ModelViewSet):
+    """Producer the /core/email_producer/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EmailProducerSerializer
+    filter_fields = ('sender', 'receiver', 'alert_def')
+
+    def get_queryset(self):
+        return EmailProducer.objects.all()

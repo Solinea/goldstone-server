@@ -2588,7 +2588,12 @@ class Producer(PolymorphicModel):
 
     alert_def = models.ForeignKey(AlertDefinition)
 
-    # This doesn't allow Producer.objects.all() calls, so had to remove it.
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    # This doesn't allow Producer.objects.all() calls.  Beware all ye who
+    # navigate these waters.
     # class Meta:
     #    abstract = True
 

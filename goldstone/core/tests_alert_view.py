@@ -22,11 +22,11 @@ from goldstone.core.models import SavedSearch, AlertDefinition, Alert
 from goldstone.test_utils import CONTENT_NO_CREDENTIALS, \
     AUTHORIZATION_PAYLOAD, BAD_TOKEN, CONTENT_BAD_TOKEN, create_and_login
 
-ALERT_DEF_URL = '/core/alert_definition/'
+ALERT_URL = '/core/alert/'
 
 
-class AlertDefinitionViewTests(APITestCase):
-    """ Test AlertDefitions API """
+class AlertViewTests(APITestCase):
+    """ Test Alert API """
 
     fixtures = ['core_initial_data.yaml']
 
@@ -44,14 +44,14 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.basic_post_body = {
             'name': 'basic test test alert def',
-            'search': SavedSearch.objects.all()[0].uuid
+            'alert_def': self.alert_def.uuid
         }
 
     def test_not_logged_in(self):
         """All operations should fail when not logged in."""
 
         # Try getting resource with no token.
-        response = self.client.get(ALERT_DEF_URL)
+        response = self.client.get(ALERT_URL)
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
@@ -59,7 +59,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try getting resource a bogus token.
         response = self.client.get(
-            ALERT_DEF_URL,
+            ALERT_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
@@ -67,7 +67,7 @@ class AlertDefinitionViewTests(APITestCase):
                             status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try creating resource with no token.
-        response = self.client.post(ALERT_DEF_URL,
+        response = self.client.post(ALERT_URL,
                                     json.dumps(self.basic_post_body),
                                     content_type="application/json")
 
@@ -77,7 +77,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try creating resource with a bogus token.
         response = self.client.post(
-            ALERT_DEF_URL,
+            ALERT_URL,
             json.dumps(self.basic_post_body),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
@@ -88,7 +88,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try updating resource with no token.
         response = self.client.put(
-            ALERT_DEF_URL + self.alert_def.uuid + '/',
+            ALERT_URL + self.alert_def.uuid + '/',
             json.dumps(self.basic_post_body),
             content_type="application/json")
 
@@ -98,7 +98,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try updating resource with a bogus token.
         response = self.client.put(
-            ALERT_DEF_URL + self.alert_def.uuid + '/',
+            ALERT_URL + self.alert_def.uuid + '/',
             json.dumps(self.basic_post_body),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
@@ -115,7 +115,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try creating resource with a valid token.
         response = self.client.post(
-            ALERT_DEF_URL,
+            ALERT_URL,
             json.dumps(self.basic_post_body),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -132,7 +132,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # We should have at least one result in our list, but could have more
         response = self.client.get(
-            ALERT_DEF_URL,
+            ALERT_URL,
             accept="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -148,21 +148,18 @@ class AlertDefinitionViewTests(APITestCase):
         # test the structure of the one we loaded
 
         response = self.client.get(
-            ALERT_DEF_URL + "%s/" % self.alert_def.uuid,
+            ALERT_URL + "%s/" % self.alert.uuid,
             accept="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content)
         self.assertIn('uuid', content)
-        self.assertIn('name', content)
-        self.assertIn('description', content)
-        self.assertIn('search', content)
+        self.assertIn('alert_def', content)
         self.assertIn('created', content)
         self.assertIn('updated', content)
-        self.assertIn('enabled', content)
-        self.assertIn('short_template', content)
-        self.assertIn('long_template', content)
+        self.assertIn('short_message', content)
+        self.assertIn('long_message', content)
 
     def test_delete_not_allowed(self):
         """DELETE operation tests"""
@@ -171,7 +168,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try creating resource with a valid token.
         response = self.client.delete(
-            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            ALERT_URL + '%s/' % self.alert_def.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code,
@@ -184,7 +181,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try creating resource with a valid token.
         response = self.client.put(
-            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            ALERT_URL + '%s/' % self.alert_def.uuid,
             json.dumps(self.basic_post_body),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -199,7 +196,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         # Try creating resource with a valid token.
         response = self.client.put(
-            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            ALERT_URL + '%s/' % self.alert_def.uuid,
             json.dumps(self.basic_post_body),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
