@@ -47,7 +47,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserViz = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Log Search', 'logbrowserpage'),
+            chartTitle: goldstone.translate('Log Search'),
             collection: this.logSearchObserverCollection,
             el: '#log-viewer-visualization',
             infoText: 'logBrowser',
@@ -57,7 +57,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         });
 
         this.logBrowserTable = new LogBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            chartTitle: goldstone.translate('Log Browser'),
             collectionMixin: this.logSearchObserverCollection,
             el: '#log-viewer-table',
             width: $('#log-viewer-table').width()
