@@ -53,7 +53,7 @@ msgstr "ブラウザをリロードするかログインしなおしてアドオ
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
 msgid "API Call Search"
-msgstr ""
+msgstr "API呼出検索"
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
@@ -156,15 +156,15 @@ msgstr "間隔"
 
 #: apiPerfView.js
 msgid "Max"
-msgstr ""
+msgstr "最大"
 
 #: apiPerfView.js
 msgid "Avg"
-msgstr ""
+msgstr "平均"
 
 #: apiPerfView.js
 msgid "Min"
-msgstr ""
+msgstr "最小"
 
 #: apiPerfView.js
 msgid "seconds"
@@ -219,7 +219,7 @@ msgstr "コピーライト"
 #: base.html
 #. refers to software version
 msgid "Version"
-msgstr ""
+msgstr "バージョン"
 
 #: base.html
 msgid "License"
@@ -233,7 +233,7 @@ msgstr "設定"
 #: base.html
 #. refers to a link to customer support
 msgid "Support"
-msgstr ""
+msgstr "サポート"
 
 #: base.html
 #. link to external site
@@ -243,7 +243,7 @@ msgstr "Googleグループ"
 #: base.html
 #. link to github repo
 msgid "Github Repo"
-msgstr ""
+msgstr "GitHubリポジトリ"
 
 #: base.html
 #. logout of site
@@ -278,7 +278,7 @@ msgstr "未読"
 #: base.html
 #. side-menu icon tooltip to expand menu
 msgid "Expand"
-msgstr ""
+msgstr "拡張"
 
 #: chartHeaderView.js
 
@@ -346,7 +346,7 @@ msgstr "ストレージ"
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
 msgid "Event Search"
-msgstr ""
+msgstr "イベント検索"
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
@@ -400,32 +400,32 @@ msgstr "データが見つかりません"
 #: globalLookbackRefreshButtonsView.js
 #: designates 15 minutes
 msgid "lookback 15m"
-msgstr "15分"
+msgstr "15分前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 hour
 msgid "lookback 1h"
-msgstr "1時間"
+msgstr "1時間前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 6 hours
 msgid "lookback 6h"
-msgstr "6時間"
+msgstr "6時間前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 day
 msgid "lookback 1d"
-msgstr "1日"
+msgstr "1日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 3 days
 msgid "lookback 3d"
-msgstr "3日"
+msgstr "3日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 7 days
 msgid "lookback 7d"
-msgstr "7日"
+msgstr "7日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 30 seconds
@@ -534,12 +534,12 @@ msgstr "リソース情報の詳細は行をクリックしてください。<br
 #: leaseDataTableView.js
 #. tooltip popup for active lease
 msgid "active"
-msgstr ""
+msgstr "有効"
 
 #: leaseDataTableView.js
 #. tooltip popup for completed lease
 msgid "completed"
-msgstr ""
+msgstr "完了"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -590,7 +590,7 @@ msgstr "リース開始"
 #. time lease was created
 msgctxt "lease"
 msgid "Lease Creation"
-msgstr ""
+msgstr "リース作成"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -650,12 +650,12 @@ msgstr "リーススコープ"
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Server"
-msgstr ""
+msgstr "サーバ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
 msgid "Volume"
-msgstr ""
+msgstr "ボリューム"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -772,20 +772,20 @@ msgstr "アドオンの初期化に失敗しました。"
 #: logSearchPageView.js
 #. navigation buttons at top of page
 msgid "Log Viewer"
-msgstr ""
+msgstr "ログビューワ"
 
 #: logSearchPageView.js
 #. navigation buttons at top of page
 msgid "Event Viewer"
-msgstr ""
+msgstr "イベントビューワ"
 
 #: logSearchPageView.js
 #. navigation buttons at top of page
 msgid "API Call Viewer"
-msgstr ""
+msgstr "API呼出ビューワ"
 
 msgid "Log Search"
-msgstr ""
+msgstr "ログ検索"
 
 #: logSearchPageView.js
 msgid "Log Browser"
@@ -795,7 +795,7 @@ msgstr "ログブラウザ"
 #. y-axis label for log browser chart
 msgctxt "logbrowserpage"
 msgid "Log Events"
-msgstr ""
+msgstr "ログイベント"
 
 #: logSearchPageView.js
 msgctxt "logbrowserdata"
@@ -842,7 +842,7 @@ msgstr "ログ重要度フィルタ"
 
 #: metricOverview
 msgid "Metric Overview"
-msgstr ""
+msgstr "メトリック概要"
 
 #: metricOverview
 msgid "API"
@@ -973,24 +973,24 @@ msgstr "チャートパラメターの選択"
 
 #: multiMetricBarView.js
 msgid "Physical"
-msgstr ""
+msgstr "物理"
 
 #: multiMetricBarView.js
 msgid "Value"
-msgstr ""
+msgstr "値"
 
 #: multiMetricBarView.js
 msgid "Used"
-msgstr ""
+msgstr "使用中"
 
 #: multiMetricBarView.js
 msgid "Total"
-msgstr ""
+msgstr "全体"
 
 #: multiRscsView.js
 #. table with more info about selected cloud resource
 msgid "Resource Info"
-msgstr ""
+msgstr "リソース情報"
 
 #: newPasswordView.js
 msgid "You have successfully changed your password."
@@ -1120,12 +1120,12 @@ msgstr "ギガバイト"
 
 #: openTrailManagerPageView.js
 msgid "OpenTrail Manager"
-msgstr "Open追跡マネージャ"
+msgstr "OpenTrailマネージャ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Create New Trail"
-msgstr "新規追跡作成"
+msgstr "新規証跡作成"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1155,12 +1155,12 @@ msgstr "コントロール"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Trail Name"
-msgstr "追跡名"
+msgstr "証跡名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Filter by OpenStack User ID (optional)"
-msgstr ""
+msgstr "OpenStackユーザIDでフィルタ(オプション)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1210,7 +1210,7 @@ msgstr "ユーザID"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID (optional audit filter)"
-msgstr "ユーザID(オプショナル監査フィルター)"
+msgstr "ユーザID(オプション監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1220,7 +1220,7 @@ msgstr "ユーザID(監査フィルター)"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Also log the results of unfiltered queries?"
-msgstr "フィルターされていない問い合わせもログに残しますか?"
+msgstr "フィルターされていない問い合わせ結果もログに残しますか?"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1271,7 +1271,7 @@ msgstr "Swiftパスワード"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Enter Swift Password"
-msgstr ""
+msgstr "Swiftパスワードを入力"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1361,16 +1361,16 @@ msgstr "%sは完全に消去されます。本当に削除しますか?"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Update Trail Details"
-msgstr "追跡の詳細を更新"
+msgstr "証跡の詳細を更新"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Delete Trail Confirmation"
-msgstr "追跡の削除の確認"
+msgstr "証跡の削除の確認"
 
 #: openTrailManagerPageView.js
 msgid "List of Trails"
-msgstr "追跡の一覧"
+msgstr "証跡の一覧"
 
 #: openTrailLogListPageView.js
 
@@ -1382,7 +1382,7 @@ msgstr "ログ履歴"
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Trail Log History"
-msgstr "ログ追跡履歴"
+msgstr "証跡ログ履歴"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
@@ -1461,13 +1461,13 @@ msgstr "使用可能なレポートはありません"
 #. saved searches modal
 msgctxt "savedsearch"
 msgid "Update Search Details"
-msgstr ""
+msgstr "検索詳細の更新"
 
 #: savedSearchDataTableView.js
 #. saved searches modal
 msgctxt "savedsearch"
 msgid "Delete Search Confirmation"
-msgstr ""
+msgstr "検索削除の確認"
 
 #: savedSearchDataTableView.js
 #. %s will refer to the name of a new saved search. Please place according to the langauge in question.
@@ -1486,103 +1486,103 @@ msgstr "%sの削除に成功しました。"
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Create New Search"
-msgstr ""
+msgstr "新規検索の作成"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Search Name"
-msgstr ""
+msgstr "検索名"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Search Description"
-msgstr ""
+msgstr "検索の説明"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Search Query"
-msgstr ""
+msgstr "検索クエリ"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "ElasticSearch Query (omit surrounding quotes)"
-msgstr ""
+msgstr "ElasticSearchクエリを入力"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Cancel"
-msgstr ""
+msgstr "キャンセル"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Submit"
-msgstr ""
+msgstr "決定"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Confirm"
-msgstr ""
+msgstr "確認"
 
 #: savedSearchDataTableView.js
 #. saved searches create modal
 msgctxt "savedsearch"
 msgid "Submit Search"
-msgstr ""
+msgstr "検索実行"
 
 #: savedSearchDataTableView.js
 #. saved searches controls
 msgid "system search - can not delete"
-msgstr ""
+msgstr "システム検索ー削除できません"
 
 #: savedSearchDataTableView.js
 #. saved searches table heading
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: savedSearchDataTableView.js
 #. saved searches table heading
 msgid "Description"
-msgstr ""
+msgstr "説明"
 
 #: savedSearchDataTableView.js
 #. saved searches table heading
 msgid "Controls"
-msgstr ""
+msgstr "コントロール"
 
 #: savedSearchDataTableView.js
 msgid "openstack syslog errors"
-msgstr ""
+msgstr "OpenStack Syslogエラー"
 
 #: savedSearchDataTableView.js
 msgid "failure events"
-msgstr ""
+msgstr "失敗イベント"
 
 #: savedSearchDataTableView.js
 msgid "slow API calls"
-msgstr ""
+msgstr "長時間API呼出"
 
 #: savedSearchDataTableView.js
 msgid "generic syslog errors"
-msgstr ""
+msgstr "一般的syslogエラー"
 
 #: savedSearchDataTableView.js
 msgid "log query"
-msgstr ""
+msgstr "ログクエリ"
 
 #: savedSearchDataTableView.js
 msgid "Predefined Searches"
-msgstr "事前設定検索"
+msgstr "事前定義検索"
 
 #: savedSearchDataTableView.js
 msgid "failed authorization"
-msgstr "認証に失敗しました"
+msgstr "認証失敗"
 
 #: savedSearchDataTableView.js
 msgid "stack traces"
@@ -1590,19 +1590,19 @@ msgstr "スタックトレース"
 
 #: savedSearchDataTableView.js
 msgid "nova instance created"
-msgstr "Novaサーバが作成されました"
+msgstr "Novaサーバ作成"
 
 #: savedSearchDataTableView.js
 msgid "nova instance creation failed"
-msgstr "Novaサーバの作成に失敗しました"
+msgstr "Novaサーバ作成失敗"
 
 #: savedSearchDataTableView.js
 msgid "cinder volume created"
-msgstr "Cinderボリュームが作成されました"
+msgstr "Cinderボリューム作成"
 
 #: savedSearchDataTableView.js
 msgid "database problems"
-msgstr "データベースで問題が発生しました"
+msgstr "データベース問題"
 
 #: savedSearchDataTableView.js
 msgid "image uploaded"
@@ -1610,11 +1610,11 @@ msgstr "イメージアップロード"
 
 #: savedSearchDataTableView.js
 msgid "queue failures"
-msgstr "キューの処理に失敗しました"
+msgstr "キュー処理失敗"
 
 #: savedSearchDataTableView.js
 msgid "nova usage audits"
-msgstr "Nova使用量監査"
+msgstr "Nova使用量"
 
 #: savedSearchDataTableView.js
 msgid "nova claim request"
@@ -1622,58 +1622,58 @@ msgstr "Novaリクエスト"
 
 #: savedSearchDataTableView.js
 msgid "event query"
-msgstr "Novaリクエスト"
+msgstr "イベントクエリ
 
 #: savedSearchDataTableView.js
 msgid "api call query"
-msgstr ""
+msgstr "API呼出"
 
 #: savedSearchDataTableView.js
 msgid "service status"
-msgstr ""
+msgstr "サービス状態"
 
 #: savedSearchDataTableView.js
 msgid "Saved Search Manager"
-msgstr ""
+msgstr "検索条件管理
 
 #: savedSearchDataTableView.js
 msgid "Saved Searches: Log Browser"
-msgstr ""
+msgstr "検索条件：ログブラウザ"
 
 #: savedSearchDataTableView.js
 msgid "Saved Searches: Event Browser"
-msgstr ""
+msgstr "検索条件：イベントブラウザ"
 
 #: savedSearchDataTableView.js
 msgid "Saved Searches: API Browser"
-msgstr ""
+msgstr "検索条件：APIブラウザ"
 
 #: savedSearchDataTableView.js
 msgid "Saved Search: Log"
-msgstr ""
+msgstr "検索条件：ログ"
 
 #: savedSearchDataTableView.js
 msgid "Saved Search: Event"
-msgstr ""
+msgstr "検索条件：イベント"
 
 #: savedSearchDataTableView.js
 msgid "Saved Search: API"
-msgstr ""
+msgstr "検索条件：API"
 
 #: savedSearchDataTableView.js
 #. If there are no predefined returned by server.
 msgid "No predefined searches."
-msgstr ""
+msgstr "検索条件がありません"
 
 #: savedSearchDataTableView.js
 #. If the server returns an error.
 msgid "Server error."
-msgstr ""
+msgstr "サーバでエラーが発生しました"
 
 #: savedSearchDataTableView.js
 #. to remove search filter
 msgid "None (reset)"
-msgstr ""
+msgstr "無条件（リセット）"
 
 #: serviceStatusView.js
 
@@ -1691,23 +1691,23 @@ msgstr "状態"
 
 #: serviceStatusView.js
 msgid "Cinder"
-msgstr ""
+msgstr "Cinder"
 
 #: serviceStatusView.js
 msgid "Glance"
-msgstr ""
+msgstr "Glance"
 
 #: serviceStatusView.js
 msgid "Keystone"
-msgstr ""
+msgstr "Keystone"
 
 #: serviceStatusView.js
 msgid "Neutron"
-msgstr ""
+msgstr "Neutron"
 
 #: serviceStatusView.js
 msgid "Nova"
-msgstr ""
+msgstr "Nova"
 
 #: settingsPageView.js
 
@@ -1822,7 +1822,7 @@ msgstr "成功"
 
 #: spawnsView.js
 msgid "Fail"
-msgstr ""
+msgstr "失敗"
 
 #: tenantSettingsPageView.js
 
@@ -1946,22 +1946,22 @@ msgstr "データがありません"
 
 #: topologyTreeView.js
 msgid "Server response was empty."
-msgstr ""
+msgstr "サーバのレスポンスが空でした"
 
 #: vulnerability advisor
 
 #: vulnerability advisor
 msgid "Vulnerability Advisor"
-msgstr ""
+msgstr "脆弱性アドバイザ"
 
 #: vulnerability advisor
 msgid "OpenStack Vulnerabilities"
-msgstr ""
+msgstr "OpenStack脆弱性"
 
 #: vulnerability advisor
 msgid "Notice Date"
-msgstr ""
+msgstr "通知日"
 
 #: vulnerability advisor
 msgid "Brief Description (click expand icon for more info)"
-msgstr ""
+msgstr "概要(Expandのクリックで詳細表示)"
