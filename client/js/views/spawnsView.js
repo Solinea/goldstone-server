@@ -499,8 +499,8 @@ var SpawnsView = GoldstoneBaseView.extend({
         // appends chart legends
         var legendSpecs = {
             spawn: [
-                ['Fail', 1],
-                ['Success', 0]
+                [goldstone.translate('Fail'), 1],
+                [goldstone.translate('Success'), 0]
             ]
         };
         this.appendLegend(legendSpecs.spawn);

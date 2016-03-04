@@ -452,8 +452,13 @@ a.logo-header { text-decoration: none; }
 
 .tooltip-arrow { display: none; }
 
-.tooltip-inner { height: 30px; padding: 0; position: absolute; left: -6px; top: -13px; min-width: 58px; line-height: 30px; background: rgba(0, 0, 0, 0.8); }
+/*
+disabling overwriting of bootstrap tooltips which
+naturally respect vertical placement for Japanese text.
 
+.tooltip-inner { height: 30px; padding: 0; position: absolute; left: -6px; top: -13px; min-width: 58px; line-height: 30px; background: rgba(0, 0, 0, 0.8);
+}
+*/
 .btn-grp .btn-icon-block { width: 56px; padding: 14px 18px; display: inline-block; }
 
 .sidebar .btn-grp li span { font-size: 14px; }

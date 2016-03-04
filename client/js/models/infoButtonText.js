@@ -38,11 +38,7 @@ var InfoButtonText = GoldstoneBaseModel.extend({
             discoverCloudTopology: function() {
                 return goldstone.translate('This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.');
             },
-
-            discoverZoomTopology: function() {
-                return goldstone.translate('This is the OpenStack topology map.  Clicking branches will zoom in, clicking on leaf nodes will bring up information about resources.  Click on the far left section to zoom out.');
-            },
-
+            
             eventTimeline: function() {
                 return goldstone.translate('The event timeline displays key events that have occurred in your cloud.  You can adjust the displayed data with the filter and time settings in the menu bar.  Hovering on an event brings up the event detail.');
             },

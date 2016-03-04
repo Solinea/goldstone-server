@@ -16,9 +16,6 @@
 
 goldstone.init = function() {
 
-    // defined in setBaseTemplateListeners.js
-    goldstone.setBaseTemplateListeners();
-
     /*
     authLogoutIcon encapsulates the initialization of the $(document)
     listener for ajaxSend events and uses xhr.setRequestHeader to append
@@ -68,16 +65,16 @@ goldstone.init = function() {
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
-    // re-translate the base template when switching pages to make sure
-    // the possibly hidden lookback/refresh selectors are translated
-    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-        goldstone.i18n.translateBaseTemplate();
-    });
-
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
     goldstone.addonMenuView = new AddonMenuView({
         el: ".addon-menu-view-container"
+    });
+
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
     });
 
     // append global selectors to page
@@ -103,7 +100,13 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
+    // defined in setBaseTemplateListeners.js
+    // sets up UI to respond to user interaction with
+    // menus, and set highlighting of appropriate menu icons.
+    goldstone.setBaseTemplateListeners();
+
     // start the backbone router that will handle /# calls
     Backbone.history.start();
+
 
 };
