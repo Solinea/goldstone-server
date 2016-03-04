@@ -15,19 +15,16 @@
 # limitations under the License.
 import json
 
-from rest_framework.status import HTTP_401_UNAUTHORIZED, HTTP_201_CREATED
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from goldstone.compliance.tests_trails import TRAILS_URL
 from goldstone.core.models import SavedSearch, AlertDefinition, Alert
-from goldstone.test_utils import CONTENT_NO_CREDENTIALS, AUTHORIZATION_PAYLOAD, \
-    BAD_TOKEN, CONTENT_BAD_TOKEN, create_and_login
+from goldstone.test_utils import CONTENT_NO_CREDENTIALS, \
+    AUTHORIZATION_PAYLOAD, BAD_TOKEN, CONTENT_BAD_TOKEN, create_and_login
 
 ALERT_DEF_URL = '/core/alert_definition/'
 
-POST_DATA = {
-    'basic': {}
-}
 
 class AlertDefinitionViewTests(APITestCase):
     """ Test AlertDefitions API """
@@ -59,15 +56,16 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
-                            status_code=HTTP_401_UNAUTHORIZED)
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try getting resource a bogus token.
-        response = self.client.get(ALERT_DEF_URL,
+        response = self.client.get(
+            ALERT_DEF_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try creating resource with no token.
         response = self.client.post(TRAILS_URL,
@@ -76,8 +74,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
-                            status_code=HTTP_401_UNAUTHORIZED)
-
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try creating resource with a bogus token.
         response = self.client.post(
@@ -88,7 +85,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try updating resource with no token.
         response = self.client.put(
@@ -98,7 +95,7 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
-                            status_code=HTTP_401_UNAUTHORIZED)
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
         # Try updating resource with a bogus token.
         response = self.client.put(
@@ -109,9 +106,9 @@ class AlertDefinitionViewTests(APITestCase):
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+                            status_code=status.HTTP_401_UNAUTHORIZED)
 
-    def test_post(self):
+    def test_post_not_allowed(self):
         """POST operation tests"""
 
         # Create a user and get the authorization token. Then do the test.
@@ -125,17 +122,88 @@ class AlertDefinitionViewTests(APITestCase):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
-        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    #
-    #     # can't post if not logged in
-    #
-    # def test_get(self):
-    #
-    # def test_delete(self):
-    #
-    # def test_put(self):
-    #
-    # def test_patch(self):
+    def test_get(self):
+        """GET operation tests"""
 
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
 
+        # We should have at least one result in our list, but could have more
+        response = self.client.get(
+            ALERT_DEF_URL,
+            accept="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content)
+        self.assertIn('count', content)
+        self.assertIn('next', content)
+        self.assertIn('previous', content)
+        self.assertIn('results', content)
+        self.assertIsInstance(content['results'], list)
+        self.assertGreater(len(content['results']), 0)
+
+        # test the structure of the one we loaded
+
+        response = self.client.get(
+            ALERT_DEF_URL + "%s/" % self.alert_def.uuid,
+            accept="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content)
+        self.assertIn('uuid', content)
+        self.assertIn('name', content)
+        self.assertIn('description', content)
+        self.assertIn('search', content)
+        self.assertIn('created', content)
+        self.assertIn('updated', content)
+        self.assertIn('enabled', content)
+        self.assertIn('short_template', content)
+        self.assertIn('long_template', content)
+
+    def test_delete_not_allowed(self):
+        """DELETE operation tests"""
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try creating resource with a valid token.
+        response = self.client.delete(
+            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_put_not_allowed(self):
+        """PUT operation tests"""
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try creating resource with a valid token.
+        response = self.client.put(
+            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_patch_not_allowed(self):
+        """PATCH operation tests"""
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try creating resource with a valid token.
+        response = self.client.put(
+            ALERT_DEF_URL + '%s/' % self.alert_def.uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)

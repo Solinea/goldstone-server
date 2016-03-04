@@ -128,7 +128,7 @@ Then in another window:
 
     $ eval $(docker-machine env default)
     $ docker exec -it goldstoneserver_appdev_1 bash
-    (container) $ fab -f post_install.py -H 172.24.4.100 configure_stack:172.24.4.1
+    (container) $ fab -f post_install.py -H 172.24.4.100 configure_stack:172.24.4.1,True,True
 
 
 It may be helpful to create a couple of instances via the API in order to generate some log, event, and metric activity.  You can execute the following commands to create a small instance:
@@ -139,7 +139,7 @@ It may be helpful to create a couple of instances via the API in order to genera
 Here are some [screenshots](https://goo.gl/photos/MeN3a1R4NUo3KuuK6) of a working dev environment. Your environment should look similar.
 
 
-## Logging In
+## Logging In and Using the API
 
 After the containers have started and OpenStack has been configured to interact with Goldstone, you can access the user interface with the following information:
 
@@ -149,6 +149,18 @@ After the containers have started and OpenStack has been configured to interact 
 * Goldstone admin username: **gsadmin**
 * Goldstone admin password: **goldstone**
 
+The convenience script `bin/devrc` will create and alias called gscurl that has a current auth token set so the API can be called easily.  Source it after the server is accepting connections.
+
+    $ source ./bin/devrc
+    Change GS_* environment vars and rerun if necessary
+    GS_URL=http://localhost:8000
+    GS_USER=gsadmin
+    GS_PASS=goldstone
+    gscurl: aliased to curl -H "Authorization: Token 7d8c28168c5be6b0af8b033fac999339f8a2dcb4"
+
+Now you can make API authenticated API calls like:
+
+    $ gscurl -XGET $GS_URL/core/alert_definition/ | python -m json.tool
 
 ## Stopping Goldstone Server
 

@@ -21,9 +21,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from goldstone.core.models import SavedSearch, Alert, PolyResource, \
-    AlertDefinition
+    AlertDefinition, Producer
 from goldstone.core.serializers import SavedSearchSerializer, \
     AlertDefinitionSerializer, AlertSerializer, ProducerSerializer
 from goldstone.drfes.filters import ElasticFilter
@@ -509,15 +509,18 @@ class SavedSearchViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class AlertDefinitionViewSet(SavedSearchViewSet):
+class AlertDefinitionViewSet(ReadOnlyModelViewSet):
     """Provide the /core/alert_definition/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertDefinitionSerializer
     query_model = AlertDefinition
 
+    def get_queryset(self):
+        return AlertDefinition.objects.all()
 
-class AlertViewSet(ModelViewSet):
+
+class AlertViewSet(ReadOnlyModelViewSet):
     """Provide the /core/alert/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
@@ -534,4 +537,4 @@ class ProducerViewSet(ModelViewSet):
     serializer_class = ProducerSerializer
 
     def get_queryset(self):
-        return Alert.objects.all()
+        return Producer.objects.all()
