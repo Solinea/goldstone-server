@@ -31,8 +31,8 @@ class Migration(migrations.Migration):
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
                 ('name', models.CharField(max_length=64)),
                 ('description', models.CharField(max_length=1024, null=True, blank=True)),
-                ('short_template', models.TextField(default=b'Alert: {{_alert_def_name}} triggered with {{_search_hits}} hits at {{_end_time}}')),
-                ('long_template', models.TextField(default=b'There were {{_search_hits}} matching records for the {{_alert_def_name}} alert (ID: {{_alert_def_id}}) between {{_start_time}} and {{_end_time}}.\n\nAlert Definition ID: {{_alert_def_id}}')),
+                ('short_template', models.TextField(default=b"Alert: '{{_alert_def_name}}' triggered at {{_end_time}}")),
+                ('long_template', models.TextField(default=b"There were {{_search_hits}} instances of '{{_alert_def_name}}' from {{_start_time}} to {{_end_time}}.\nAlert Definition: {{_alert_def_id}}")),
                 ('enabled', models.BooleanField(default=True)),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
@@ -161,7 +161,7 @@ class Migration(migrations.Migration):
             name='EmailProducer',
             fields=[
                 ('producer_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='core.Producer')),
-                ('sender', models.EmailField(default=b'GoldstoneServer', max_length=128)),
+                ('sender', models.EmailField(default=b'root@localhost', max_length=128)),
                 ('receiver', models.EmailField(max_length=128)),
             ],
             options={

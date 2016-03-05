@@ -2495,13 +2495,15 @@ class SavedSearch(models.Model):
 
         self.last_start = start
         self.last_end = end
-        return self.save()
+        self.save()
+        return self.last_start, self.last_end
 
     def __repr__(self):
         return "<SavedSearch: %s>" % self.uuid
 
 
 class AlertDefinition(models.Model):
+    """The definition of alert conditions based on a SavedSearch."""
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
 
@@ -2510,14 +2512,12 @@ class AlertDefinition(models.Model):
     description = models.CharField(max_length=1024, blank=True, null=True)
 
     short_template = models.TextField(
-        default='Alert: {{_alert_def_name}} triggered with {{_search_hits}} '
-                'hits at {{_end_time}}')
+        default='Alert: \'{{_alert_def_name}}\' triggered at {{_end_time}}')
 
     long_template = models.TextField(
-        default='There were {{_search_hits}} matching records for the '
-                '{{_alert_def_name}} alert (ID: {{_alert_def_id}}) '
-                'between {{_start_time}} and {{_end_time}}.\n\nAlert '
-                'Definition ID: {{_alert_def_id}}')
+        default='There were {{_search_hits}} instances of '
+                '\'{{_alert_def_name}}\' from {{_start_time}} to '
+                '{{_end_time}}.\nAlert Definition: {{_alert_def_id}}')
 
     enabled = models.BooleanField(default=True)
 
@@ -2528,34 +2528,45 @@ class AlertDefinition(models.Model):
     search = ForeignKey(SavedSearch, editable=False)
 
     def evaluate(self, search_result, start_time, end_time):
+        """Determine if we need to trigger an alert"""
 
-            kv_pairs = {
-                '_alert_def_name': self.name,
-                '_search_hits': search_result['hits']['total'],
-                '_start_time': start_time,
-                '_end_time': end_time,
-                '_alert_def_id': self.uuid
-            }
+        kv_pairs = {
+            '_alert_def_name': self.name,
+            '_search_hits': search_result['hits']['total'],
+            '_start_time': start_time,
+            '_end_time': end_time,
+            '_alert_def_id': self.uuid
+        }
 
-            if kv_pairs['_search_hits'] > 0:
+        if kv_pairs['_search_hits'] > 0:
 
-                short = Template(self.short_template).render(kv_pairs)
-                long = Template(self.long_template).render(kv_pairs)
+            short = Template(self.short_template).render(kv_pairs)
+            long = Template(self.long_template).render(kv_pairs)
 
-                # create an alert and call all our producers with it
-                alert = Alert(short_message=short, long_message=long,
-                              alert_def=self)
-                alert.save()
+            # create an alert and call all our producers with it
+            alert = Alert(short_message=short, long_message=long,
+                          alert_def=self)
+            alert.save()
 
-                # send the alert to all registered producers
-                for producer in Producer.objects.filter(alert_def=self):
+            self.search.update_recent_search_window(start_time, end_time)
+
+            # send the alert to all registered producers
+            for producer in Producer.objects.filter(alert_def=self):
+                try:
                     producer.produce(alert)
+                except Exception as e:
+                    logger.exception(
+                        "failed to send alert to %s" % producer.receiver)
+                    continue
+        else:
+            self.search.update_recent_search_window(start_time, end_time)
 
     def __repr__(self):
         return "<AlertDefiniton: %s>" % self.uuid
 
 
 class Alert(models.Model):
+    """An alert derived from an AlertDefinition."""
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
 
@@ -2592,7 +2603,7 @@ class Producer(PolymorphicModel):
 
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
-    # This doesn't allow Producer.objects.all() calls.  Beware all ye who
+    # This doesn't allow Producer.objects.all() calls.  Beware ye who
     # navigate these waters.
     # class Meta:
     #    abstract = True
@@ -2612,7 +2623,7 @@ class EmailProducer(Producer):
         This class only contains methods specific to a mailing interface.
     """
 
-    sender = models.EmailField(max_length=128, default="GoldstoneServer")
+    sender = models.EmailField(max_length=128, default="root@localhost")
 
     receiver = models.EmailField(max_length=128, blank=False, null=False)
 

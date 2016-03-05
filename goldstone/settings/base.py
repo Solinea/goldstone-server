@@ -167,21 +167,25 @@ CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
 )
 
-# Definitions for the prune task. Indices older than this number of this time
-# unit are periodically pruned.
-PRUNE_OLDER_THAN = 7
-DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
+# Definitions for the prune task. Indices older than this number of this number
+# of days are pruned from ES
+PRUNE_OLDER_THAN = 30
 
+EVERY_MIDNIGHT = crontab(minute='0', hour='0', day_of_week='*')
+
+# used to update the topology graph
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
+
+# used to update the CPU, Disk, Memory, and Spawns info
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
-ALERT_QUERY_INTERVAL = crontab(minute='*/5')
-HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
-HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
+
+# how often should alerts be checked
+ALERT_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
         'task': 'goldstone.core.tasks.prune_es_indices',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
+        'schedule': EVERY_MIDNIGHT,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
@@ -213,10 +217,10 @@ CELERYBEAT_SCHEDULE = {
     },
     'expire_auth_tokens': {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
-        'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
+        'schedule': EVERY_MIDNIGHT
     },
-    'check_for_pending_alerts': {
-        'task': 'goldstone.core.tasks.check_for_pending_alerts',
+    'process_alerts': {
+        'task': 'goldstone.core.tasks.process_alerts',
         'schedule': ALERT_QUERY_INTERVAL
     },
 }
