@@ -16,8 +16,8 @@ import logging
 from django.conf import settings
 import curator
 from goldstone.celery import app as celery_app
-from goldstone.core.models import SavedSearch, CADFEventDocType, \
-    Alert, EmailProducer, AlertDefinition
+from celery.utils.log import get_task_logger
+from goldstone.core.models import AlertDefinition
 from goldstone.models import es_conn
 from goldstone.cinder.utils import update_nodes as update_cinder_nodes
 from goldstone.glance.utils import update_nodes as update_glance_nodes
@@ -25,7 +25,7 @@ from goldstone.keystone.utils import update_nodes as update_keystone_nodes
 from goldstone.nova.utils import update_nodes as update_nova_nodes
 from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
 @celery_app.task()
@@ -125,12 +125,8 @@ def process_alerts():
     for alert_def in AlertDefinition.objects.all():
         try:
             # try to process all alert definitions
-            print("processing alert_def: %s" % alert_def)
             search, start, end = alert_def.search.search_recent()
-            print("search: %s" % search.to_dict())
-            print("start: %s, end: %s" % (start, end))
             result = search.execute()
-            print("result: %s" % result.to_dict())
             alert_def.evaluate(result.to_dict(), start, end)
         except Exception as e:
             logger.exception("failed to process %s" % alert_def)

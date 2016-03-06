@@ -207,19 +207,12 @@ class ModelTests(TestCase):
         self.assertEqual(len(mock_alert.call_args), 2)
 
         # interested in kwargs
-        expected_short = 'Alert: %s triggered with %d hits at %s' % \
-            (self.alert_def.name, hit_count, end)
+        expected_short = 'Alert: \'%s\' triggered at %s' % \
+            (self.alert_def.name, end)
 
-        expected_long = 'There were %d matching records for the %s search ' \
-                        '(id: %s) between %s and %s.\n\nAlert ID: %s' % \
-                        (hit_count, self.saved_search.name,
-                         self.saved_search.uuid, start, end,
-                         self.alert_def.uuid)
-
-        expected_long = 'There were %d matching records for the %s alert ' \
-                        '(ID: %s) between %s and %s.\n\nAlert Definition ID:' \
-                        ' %s' % \
-                        (hit_count, self.alert_def.name, self.alert_def.uuid,
+        expected_long = 'There were %d instances of \'%s\' from ' \
+                        '%s to %s.\nAlert Definition: %s' % \
+                        (hit_count, self.alert_def.name,
                          start, end, self.alert_def.uuid)
 
         self.assertIs(mock_alert.call_args[1]['alert_def'], self.alert_def)
