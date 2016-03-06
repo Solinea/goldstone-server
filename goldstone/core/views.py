@@ -516,6 +516,10 @@ class AlertDefinitionViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertDefinitionSerializer
     query_model = AlertDefinition
+    filter_fields = ('name', 'description', 'created', 'updated',
+                     'short_template', 'long_template', 'search')
+    ordering_fields = ('name', 'created', 'updated', 'short_message',
+                       'long_message', 'search', 'enabled')
 
     def get_queryset(self):
         return AlertDefinition.objects.all()
@@ -526,6 +530,10 @@ class AlertViewSet(ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertSerializer
+    filter_fields = ('created', 'updated', 'short_message', 'long_message',
+                     'alert_def')
+    ordering_fields = ('created', 'updated', 'short_message', 'long_message',
+                       'alert_def')
 
     def get_queryset(self):
         return Alert.objects.all()
@@ -536,6 +544,7 @@ class ProducerViewSet(ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticated,)
     serializer_class = ProducerSerializer
+    ordering_fields = ('alert_def',)
 
     def get_queryset(self):
         return Producer.objects.all()
@@ -549,6 +558,7 @@ class EmailProducerViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = EmailProducerSerializer
     filter_fields = ('sender', 'receiver', 'alert_def')
+    ordering_fields = ('sender', 'receiver', 'alert_def')
 
     def get_queryset(self):
         return EmailProducer.objects.all()

@@ -2527,6 +2527,9 @@ class AlertDefinition(models.Model):
 
     search = ForeignKey(SavedSearch, editable=False)
 
+    class Meta:
+        ordering = ['-created']
+
     def evaluate(self, search_result, start_time, end_time):
         """Determine if we need to trigger an alert"""
 
@@ -2581,6 +2584,9 @@ class Alert(models.Model):
 
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
+    class Meta:
+        ordering = ['-created']
+
     def __repr__(self):
         return "<Alert: %s>" % self.uuid
 
@@ -2607,6 +2613,9 @@ class Producer(PolymorphicModel):
     # navigate these waters.
     # class Meta:
     #    abstract = True
+
+    class Meta:
+        ordering = ['-created']
 
     @classmethod
     def produce(self, alert):
