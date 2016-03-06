@@ -24,6 +24,9 @@ class Migration(migrations.Migration):
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
+            options={
+                'ordering': ['-created'],
+            },
         ),
         migrations.CreateModel(
             name='AlertDefinition',
@@ -37,6 +40,9 @@ class Migration(migrations.Migration):
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
+            options={
+                'ordering': ['-created'],
+            },
         ),
         migrations.CreateModel(
             name='PolyResource',
@@ -61,7 +67,7 @@ class Migration(migrations.Migration):
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
             options={
-                'abstract': False,
+                'ordering': ['-created'],
             },
         ),
         migrations.CreateModel(
