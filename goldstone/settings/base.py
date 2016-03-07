@@ -278,7 +278,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'goldstone.core.pagination.Pagination',
     'PAGE_SIZE': 10,
-    'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
+    # 'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
 # Settings for Django REST Swagger.
