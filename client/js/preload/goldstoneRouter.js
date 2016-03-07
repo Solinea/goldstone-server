@@ -38,7 +38,7 @@ var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",
-        "metrics/topology": "topology",
+        "topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/logbrowser/search": "savedSearchLog",

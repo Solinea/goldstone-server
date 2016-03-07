@@ -288,6 +288,8 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 .dashboard h3 { font-size: 24px; color: #424242; margin: 0 -0.5em 5px; border-radius: 8px 8px 0 0; }
 
+h3.popover-title { margin: 0 0 5px; }
+
 .setting-btn { display: inline-block; height: 24px; width: 14px; background: url(../../../images/icon-settings.png) no-repeat left 8px; cursor: pointer; margin: 0.3em 0 0 0.3em; }
 
 .single-block { width: 30.76%; float: left; }
@@ -450,8 +452,13 @@ a.logo-header { text-decoration: none; }
 
 .tooltip-arrow { display: none; }
 
-.tooltip-inner { height: 30px; padding: 0; position: absolute; left: -6px; top: -13px; min-width: 58px; line-height: 30px; background: rgba(0, 0, 0, 0.8); }
+/*
+disabling overwriting of bootstrap tooltips which
+naturally respect vertical placement for Japanese text.
 
+.tooltip-inner { height: 30px; padding: 0; position: absolute; left: -6px; top: -13px; min-width: 58px; line-height: 30px; background: rgba(0, 0, 0, 0.8);
+}
+*/
 .btn-grp .btn-icon-block { width: 56px; padding: 14px 18px; display: inline-block; }
 
 .sidebar .btn-grp li span { font-size: 14px; }
@@ -500,12 +507,12 @@ a.logo-header { text-decoration: none; }
 /* 1.) Media Query for Handheld Devices ===============================*/
 @media only screen and (max-width: 1324px) { /* Styles */
   .dashboard .content, .dashboard .footer { padding-left: 80px; } }
-@media only screen and (max-width: 1230px) { .dashboard .container { width: 970px; }
-  .service-status-table li { padding: 9px 15px; }
+@media only screen and (max-width: 1230px) { .dashboard .container { width: 960px; }
+  .service-status-table li { padding: 1.41em 15px; }
   .node { margin-right: 15px; margin-bottom: 14.3px; } }
-@media only screen and (max-width: 1030px) { .dashboard .container { width: 750px; }
+@media only screen and (max-width: 1030px) { .dashboard .container { width: 937px; }
   .node-block { padding: 10px 5px 0 7px; }
-  .service-status-table li { padding: 4.7px 15px; }
+  .service-status-table li { padding: 1.41em 15px; }
   .service-status-table li { font-size: 12px; }
   .service-status-table .table-header { font-size: 14px; }
   .node { margin-bottom: 8px; margin-right: 10px; }

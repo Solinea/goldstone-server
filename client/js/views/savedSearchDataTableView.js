@@ -122,7 +122,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         })
             .done(function() {
 
-                var updateMessage = goldstone.contextTranslate('Creation of %s successful', 'savedsearch');
+                var updateMessage = goldstone.translate('Creation of %s successful');
                 var successMessage = goldstone.sprintf(updateMessage, $('.create-form #new-search-name').val());
 
                 // show success message at top of screen
@@ -132,7 +132,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
             })
             .fail(function(err) {
-                var failMessage = goldstone.contextTranslate('Failure to create %s', 'savedsearch');
+                var failMessage = goldstone.translate('Failure to create %s');
                 var failureWarning = goldstone.sprintf(failMessage, $('.create-form #new-search-name').val());
 
                 // show failure message at top of screen
@@ -170,7 +170,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             })
                 .done(function() {
 
-                    var updateMessage = goldstone.contextTranslate('Update of %s successful', 'savedsearch');
+                    var updateMessage = goldstone.translate('Update of %s successful');
                     var successMessage = goldstone.sprintf(updateMessage, $('.update-form #update-search-name').val());
 
                     // success message
@@ -181,7 +181,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 })
                 .fail(function(err) {
 
-                    var failedTrailName = goldstone.contextTranslate('Failure to update %s', 'savedsearch');
+                    var failedTrailName = goldstone.translate('Failure to update %s');
                     var failureWarning = goldstone.sprintf(failedTrailName, $('.update-form #update-search-name').val());
 
                     // failure message
@@ -217,7 +217,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
             })
                 .done(function() {
 
-                    var deletedTrailName = goldstone.contextTranslate('Deletion of %s complete', 'savedsearch');
+                    var deletedTrailName = goldstone.translate('Deletion of %s complete');
                     var deleteSuccess = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
 
                     // success message
@@ -228,7 +228,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 })
                 .fail(function(err) {
 
-                    var deletedTrailName = goldstone.contextTranslate('Failure to delete %s', 'savedsearch');
+                    var deletedTrailName = goldstone.translate('Failure to delete %s');
                     var deleteFailure = goldstone.sprintf(deletedTrailName, $('.delete-form #deleteName').val());
 
                     // failure message
@@ -294,7 +294,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
         $(row).on('click', '.fa-trash-o', function() {
 
-            var deleteWarningText = goldstone.contextTranslate('"%s" will be permanently deleted. Are you sure?', 'savedsearch');
+            var deleteWarningText = goldstone.translate('%s will be permanently deleted. Are you sure?');
             var deleteWarningMessage = goldstone.sprintf(deleteWarningText, data.name);
 
             // delete trail modal - pass in row data details
@@ -359,7 +359,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                 [0, 'asc']
             ],
             "columnDefs": [{
-                    "data": "name",
+                    // "data": "name",
+                    "data": function(data){
+                        return goldstone.translate(data.name);
+                    },
                     "targets": 0,
                     "sortable": true
                 }, {
@@ -374,7 +377,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
                     "render": function(data) {
                         if (data.protected === true) {
                             return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
-                                "<div class='saved-search-no-delete'>system search - can not delete</div>";
+                                '<div class="saved-search-no-delete">' + goldstone.translate("system search - can not delete") + '</div>';
                         } else {
                             return "<i class='fa fa-gear fa-2x fa-fw' data-toggle='modal' data-target='#update-modal'></i> " +
                                 "<i class='fa fa-trash-o fa-2x fa-fw text-danger' data-toggle='modal' data-target='#delete-modal'></i>";
@@ -456,9 +459,9 @@ SavedSearchDataTableView = DataTableBaseView.extend({
 
     serverSideTableHeadings: _.template('' +
         '<tr class="header">' +
-        '<th>Name</th>' +
-        '<th>Description</th>' +
-        '<th>Controls</th>' +
+        '<th><%=goldstone.translate(\'Name\')%></th>' +
+        '<th><%=goldstone.translate(\'Description\')%></th>' +
+        '<th><%=goldstone.translate(\'Controls\')%></th>' +
         '</tr>'
     ),
 
@@ -561,7 +564,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         '<div class="form-group">' +
         '<label for="update-search-query"><%=goldstone.contextTranslate(\'Search Query\', \'savedsearch\')%></label>' +
         '<textarea cols="40" rows="20" name="query" type="text" class="form-control"' +
-        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'Search Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
+        'id="update-search-query" placeholder="<%=goldstone.contextTranslate(\'ElasticSearch Query (omit surrounding quotes)\', \'savedsearch\')%>" required></textarea>' +
         '</div>' +
 
         // hidden UUID
@@ -605,7 +608,7 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         '<h4><span id="delete-name-span"></span></h4>' +
 
         '<button id="confirm-delete" type="button" class="btn btn-danger"><%=goldstone.contextTranslate(\'Confirm\', \'savedsearch\')%></button>' +
-        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.translate(\'Cancel\')%></button>' +
+        ' <button id="cancel-delete-search" type="button" class="btn btn-info"><%=goldstone.contextTranslate(\'Cancel\', \'savedsearch\')%></button>' +
         '</form>' +
         '</div>' +
 

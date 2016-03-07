@@ -84,7 +84,6 @@ var MultiRscsView = GoldstoneBaseView.extend({
 
     template: _.template('' +
 
-        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><%= this.chartTitle %>' +
         '<span class="title-extra"></span>' +
@@ -92,8 +91,9 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="mainContainer shadow-block panel-body">' +
-        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240">This is the OpenStack topology map.<br>You can use leaf nodes to navigate to specific types of resources.</div>' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
         '</div>' +
 
         // modal
@@ -104,7 +104,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '<div class="modal-header">' +
         '<button type="button" class="close" data-dismiss="modal"' +
         'aria-hidden="true">&times;</button>' +
-        '<h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>' +
+        '<h4 class="modal-title single-rsrc-title" id="myModalLabel"><%=goldstone.translate(\'Resource Info\')%></h4>' +
         '</div>' +
         '<div class="modal-body single-rsrc-panel">' +
         '<div id="single-rsrc-body" class="panel-body">' +

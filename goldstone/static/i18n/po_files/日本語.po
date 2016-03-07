@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: goldstone-server\n"
 "Report-Msgid-Bugs-To: https://github.com/Solinea/goldstone-server/issues\n"
 "PO-Creation-Date: 2015-09-11 14:47-0700\n"
-"PO-Revision-Date: 2016-01-09 11:21-0700\n"
+"PO-Revision-Date: 2016-03-4 11:21-0700\n"
 "Last-Translator: Takahiro Higashi github.com/takahigashi\n"
 "Language-Team: Solinea Inc.\n"
 "MIME-Version: 1.0\n"
@@ -52,8 +52,8 @@ msgstr "ブラウザをリロードするかログインしなおしてアドオ
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
-msgid "API Calls vs Time"
-msgstr "時間あたりAPI呼出し"
+msgid "API Call Search"
+msgstr "API呼出検索"
 
 #: apiBrowserPageView.js
 msgctxt "apibrowserpage"
@@ -155,6 +155,18 @@ msgid "Interval"
 msgstr "間隔"
 
 #: apiPerfView.js
+msgid "Max"
+msgstr "最大"
+
+#: apiPerfView.js
+msgid "Avg"
+msgstr "平均"
+
+#: apiPerfView.js
+msgid "Min"
+msgstr "最小"
+
+#: apiPerfView.js
 msgid "seconds"
 msgstr "秒"
 
@@ -201,20 +213,13 @@ msgid "Reports"
 msgstr "レポート"
 
 #: base.html
-msgid "Log Browser"
-msgstr "ログブラウザ"
-
-#: base.html
-msgid "Event Browser"
-msgstr "イベントブラウザ"
-
-#: base.html
-msgid "API Browser"
-msgstr "APIブラウザ"
-
-#: base.html
 msgid "Copyright"
 msgstr "コピーライト"
+
+#: base.html
+#. refers to software version
+msgid "Version"
+msgstr "バージョン"
 
 #: base.html
 msgid "License"
@@ -227,8 +232,8 @@ msgstr "設定"
 
 #: base.html
 #. refers to a link to customer support
-msgid "Help"
-msgstr "ヘルプ"
+msgid "Support"
+msgstr "サポート"
 
 #: base.html
 #. link to external site
@@ -237,8 +242,8 @@ msgstr "Googleグループ"
 
 #: base.html
 #. link to github repo
-msgid "Github"
-msgstr "Github"
+msgid "Github Repo"
+msgstr "GitHubリポジトリ"
 
 #: base.html
 #. logout of site
@@ -271,38 +276,11 @@ msgid "Unread"
 msgstr "未読"
 
 #: base.html
-msgid "Service Status"
-msgstr "サービス状態"
+#. side-menu icon tooltip to expand menu
+msgid "Expand"
+msgstr "拡張"
 
-#: base.html
-msgid "Service"
-msgstr "サービス"
-
-#: base.html
-msgid "Status"
-msgstr "状態"
-
-#: base.html
-msgid "Cinder"
-msgstr ""
-
-#: base.html
-msgid "Glance"
-msgstr ""
-
-#: base.html
-msgid "Keystone"
-msgstr ""
-
-#: base.html
-msgid "Neutron"
-msgstr ""
-
-#: base.html
-msgid "Nova"
-msgstr ""
-
-
+#: chartHeaderView.js
 
 #: chartHeaderView.js
 msgid "Set Chart Title"
@@ -311,53 +289,6 @@ msgstr "表名を設定"
 #: chartHeaderView.js
 msgid "Set in InfoButtonText.js"
 msgstr "InfoButtonText.jsに設定"
-
-#: addons
-
-#: predefinedSearchView.js
-msgid "Predefined Searches"
-msgstr "事前設定検索"
-
-#: predefinedSearchView.js
-msgid "failed authorization"
-msgstr "認証に失敗しました"
-
-#: predefinedSearchView.js
-msgid "stack traces"
-msgstr "スタックトレース"
-
-#: predefinedSearchView.js
-msgid "nova instance created"
-msgstr "Novaサーバが作成されました"
-
-#: predefinedSearchView.js
-msgid "nova instance creation failed"
-msgstr "Novaサーバの作成に失敗しました"
-
-#: predefinedSearchView.js
-msgid "cinder volume created"
-msgstr "Cinderボリュームが作成されました"
-
-#: predefinedSearchView.js
-msgid "database problems"
-msgstr "データベースで問題が発生しました"
-
-#: predefinedSearchView.js
-msgid "image uploaded"
-msgstr "イメージアップロード"
-
-#: predefinedSearchView.js
-msgid "queue failures"
-msgstr "キューの処理に失敗しました"
-
-#: predefinedSearchView.js
-msgid "nova usage audits"
-msgstr "Nova使用量監査"
-
-#: predefinedSearchView.js
-msgid "nova claim request"
-msgstr "Novaリクエスト"
-
 
 #: dataTable plugin
 #: to be used with dataTable initialization object
@@ -414,6 +345,11 @@ msgstr "ストレージ"
 
 #: eventsBrowserPageView.js
 msgctxt "eventsbrowser"
+msgid "Event Search"
+msgstr "イベント検索"
+
+#: eventsBrowserPageView.js
+msgctxt "eventsbrowser"
 msgid "Number of Events"
 msgstr "イベント数"
 
@@ -464,32 +400,32 @@ msgstr "データが見つかりません"
 #: globalLookbackRefreshButtonsView.js
 #: designates 15 minutes
 msgid "lookback 15m"
-msgstr "15分"
+msgstr "15分前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 hour
 msgid "lookback 1h"
-msgstr "1時間"
+msgstr "1時間前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 6 hours
 msgid "lookback 6h"
-msgstr "6時間"
+msgstr "6時間前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 1 day
 msgid "lookback 1d"
-msgstr "1日"
+msgstr "1日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 3 days
 msgid "lookback 3d"
-msgstr "3日"
+msgstr "3日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 7 days
 msgid "lookback 7d"
-msgstr "7日"
+msgstr "7日前"
 
 #: globalLookbackRefreshButtonsView.js
 #: designates 30 seconds
@@ -522,10 +458,6 @@ msgstr "問題の報告、機能リクエストその他Goldstone関連のフィ
 #: helpView.js
 msgid "Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> or on the web at <a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>."
 msgstr "Goldstoneのライセンス情報は <b>/opt/goldstone/LICENSE</b>ファイル、または<a href=\'https://www.apache.org/licenses/LICENSE-2.0\'>https://www.apache.org/licenses/LICENSE-2.0</a>Webサイトをご確認ください。"
-
-#: helpView.js
-msgid "License"
-msgstr "ライセンス"
 
 #: infoButtonText.js
 
@@ -600,39 +532,14 @@ msgstr "リソース情報の詳細は行をクリックしてください。<br
 #: leaseDataTableView.js
 
 #: leaseDataTableView.js
-msgctxt "lease"
-msgid "Creation of %s successful"
-msgstr "%sの作成に成功しました。"
+#. tooltip popup for active lease
+msgid "active"
+msgstr "有効"
 
 #: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to create %s"
-msgstr "%sの作成に失敗しました。"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Update of %s successful"
-msgstr "%sの更新に成功しました。"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to update %s"
-msgstr "%sの更新に失敗しました。"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Deletion of %s complete"
-msgstr "%sの削除に成功しました。"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Failure to delete %s"
-msgstr "%sの削除に失敗しました。"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "%s will be permanently deleted. Are you sure?"
-msgstr "%sは完全に消去されます。本当に削除しますか?"
+#. tooltip popup for completed lease
+msgid "completed"
+msgstr "完了"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -661,11 +568,6 @@ msgstr "リース詳細を表示"
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Lease Name"
-msgstr "リース名"
-
-#: leaseDataTableView.js
-msgctxt "lease"
 msgid "Scope"
 msgstr "スコープ"
 
@@ -683,6 +585,12 @@ msgstr "リースID"
 msgctxt "lease"
 msgid "Lease Start"
 msgstr "リース開始"
+
+#: leaseDataTableView.js
+#. time lease was created
+msgctxt "lease"
+msgid "Lease Creation"
+msgstr "リース作成"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -741,18 +649,13 @@ msgstr "リーススコープ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Resource"
-msgstr "リソース"
+msgid "Server"
+msgstr "サーバ"
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Project"
-msgstr "プロジェクト"
-
-#: leaseDataTableView.js
-msgctxt "lease"
-msgid "Resource Type"
-msgstr "リソースタイプ"
+msgid "Volume"
+msgstr "ボリューム"
 
 #: leaseDataTableView.js
 msgctxt "lease"
@@ -786,11 +689,6 @@ msgstr "リース作成"
 
 #: leaseDataTableView.js
 msgctxt "lease"
-msgid "Close"
-msgstr "クローズ"
-
-#: leaseDataTableView.js
-msgctxt "lease"
 msgid "Delete Lease Confirmation"
 msgstr "リース削除確認"
 
@@ -821,6 +719,14 @@ msgstr "リースマネージャー"
 #: leasesManagerPageView.js
 msgid "List of Leases"
 msgstr "リース一覧"
+
+#: logBrowserViz.js
+msgid "Uncheck log-type to hide from display"
+msgstr "ログタイプを解除して非表示にする"
+
+#: logBrowserViz.js
+msgid "Exit"
+msgstr "終了"
 
 #: loginPageView.js
 
@@ -863,10 +769,30 @@ msgstr "アドオンの初期化に失敗しました。"
 
 #: logSearchPageView.js
 
-msgctxt "logbrowserpage"
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "Log Viewer"
+msgstr "ログビューワ"
+
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "Event Viewer"
+msgstr "イベントビューワ"
+
+#: logSearchPageView.js
+#. navigation buttons at top of page
+msgid "API Call Viewer"
+msgstr "API呼出ビューワ"
+
+msgid "Log Search"
+msgstr "ログ検索"
+
+#: logSearchPageView.js
 msgid "Log Browser"
 msgstr "ログブラウザ"
 
+#: logSearchPageView.js
+#. y-axis label for log browser chart
 msgctxt "logbrowserpage"
 msgid "Log Events"
 msgstr "ログイベント"
@@ -912,21 +838,11 @@ msgstr "検索結果"
 msgid "Log Severity Filters"
 msgstr "ログ重要度フィルタ"
 
-#: nodeAvailView.js
-msgctxt "nodeavail"
-msgid "Uncheck log-type to hide from display"
-msgstr "ログタイプを解除して非表示にする"
-
-#: eventTimelineView.js
-msgctxt "nodeavail"
-msgid "Exit"
-msgstr "終了"
-
 #: metricOverviewView.js
 
 #: metricOverview
 msgid "Metric Overview"
-TBD
+msgstr "メトリック概要"
 
 #: metricOverview
 msgid "API"
@@ -1010,11 +926,6 @@ msgid "Metric"
 msgstr "指標"
 
 #: metricViewerView.js
-msgctxt "metricviewer"
-msgid "Resource"
-msgstr "リソース"
-
-#: metricViewerView.js
 msgid "Standard Deviation Bands"
 msgstr "標準分散範囲"
 
@@ -1058,6 +969,29 @@ msgctxt "metricviewer"
 msgid "Select chart parameters"
 msgstr "チャートパラメターの選択"
 
+#: multiMetricBarView.js
+
+#: multiMetricBarView.js
+msgid "Physical"
+msgstr "物理"
+
+#: multiMetricBarView.js
+msgid "Value"
+msgstr "値"
+
+#: multiMetricBarView.js
+msgid "Used"
+msgstr "使用中"
+
+#: multiMetricBarView.js
+msgid "Total"
+msgstr "全体"
+
+#: multiRscsView.js
+#. table with more info about selected cloud resource
+msgid "Resource Info"
+msgstr "リソース情報"
+
 #: newPasswordView.js
 msgid "You have successfully changed your password."
 msgstr "パスワードの変更に成功しました"
@@ -1078,11 +1012,6 @@ msgstr "新しいパスワードを入力"
 msgctxt "newpassword"
 msgid "New password"
 msgstr "新しいパスワード"
-
-#: newPasswordView.js
-msgctxt "newpassword"
-msgid "Enter new password"
-msgstr "新しいパスワードを入力"
 
 #: newPasswordView.js
 msgctxt "newpassword"
@@ -1156,10 +1085,6 @@ msgid ""
 msgstr ""
 
 #: novaReportView.js
-msgid "Nova API Performance"
-msgstr "Nova API性能"
-
-#: novaReportView.js
 msgid "VM Spawns"
 msgstr "VM作成"
 
@@ -1195,12 +1120,12 @@ msgstr "ギガバイト"
 
 #: openTrailManagerPageView.js
 msgid "OpenTrail Manager"
-msgstr "Open追跡マネージャ"
+msgstr "OpenTrailマネージャ"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Create New Trail"
-msgstr "新規追跡作成"
+msgstr "新規証跡作成"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1230,27 +1155,12 @@ msgstr "コントロール"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Trail Name"
-msgstr "追跡名"
+msgstr "証跡名"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
-msgid "Project Name (audit filter)"
-msgstr "プロジェクト名(監査フィルター)"
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project Name (optional audit filter)"
-msgstr "プロジェクト名(オプショナル監査フィルター)"
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project ID (audit filter)"
-msgstr "プロジェクトID(監査フィルター)"
-
-#: openTrailDataTableView.js
-msgctxt "opentrail"
-msgid "Project ID (optional audit filter)"
-msgstr "プロジェクトID(オプショナル関西フィルター)"
+msgid "Filter by OpenStack User ID (optional)"
+msgstr "OpenStackユーザIDでフィルタ(オプション)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1300,7 +1210,7 @@ msgstr "ユーザID"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "User ID (optional audit filter)"
-msgstr "ユーザID(オプショナル監査フィルター)"
+msgstr "ユーザID(オプション監査フィルター)"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1310,7 +1220,7 @@ msgstr "ユーザID(監査フィルター)"
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Also log the results of unfiltered queries?"
-msgstr "フィルターされていない問い合わせもログに残しますか?"
+msgstr "フィルターされていない問い合わせ結果もログに残しますか?"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1357,6 +1267,11 @@ msgstr "Swiftユーザ名"
 msgctxt "opentrail"
 msgid "Swift Password"
 msgstr "Swiftパスワード"
+
+#: openTrailDataTableView.js
+msgctxt "opentrail"
+msgid "Enter Swift Password"
+msgstr "Swiftパスワードを入力"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
@@ -1424,64 +1339,38 @@ msgid "Submit"
 msgstr "決定"
 
 #: openTrailDataTableView.js
-#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Creation of %s successful"
-msgstr "%sの作成に成功しました"
-
-#: openTrailDataTableView.js
-#. %s will refer to the name of a new audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Failure to create %s"
-msgstr "%sの作成に失敗しました"
-
-#: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Update of %s successful"
 msgstr "%sの変更に成功しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Failure to update %s"
 msgstr "%sの変更に失敗しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
-msgid "Deletion of %s complete"
-msgstr "%sの削除に成功しました"
-
-#: openTrailDataTableView.js
-#. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "Failure to delete %s"
 msgstr "%sの削除に失敗しました"
 
 #: openTrailDataTableView.js
 #. %s will refer to the name of an audit trail. Please place according to the langauge in question.
-msgctxt "opentrail"
 msgid "%s will be permanently deleted. Are you sure?"
 msgstr "%sは完全に消去されます。本当に削除しますか?"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Update Trail Details"
-msgstr "追跡の詳細を更新"
+msgstr "証跡の詳細を更新"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
 msgid "Delete Trail Confirmation"
-msgstr "追跡の削除の確認"
+msgstr "証跡の削除の確認"
 
 #: openTrailManagerPageView.js
 msgid "List of Trails"
-msgstr "追跡の一覧"
-
-#: openTrailManagerPageView.js
-msgid "OpenTrail Manager"
-msgstr "Open追跡マネージャ"
+msgstr "証跡の一覧"
 
 #: openTrailLogListPageView.js
 
@@ -1493,12 +1382,7 @@ msgstr "ログ履歴"
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
 msgid "Trail Log History"
-msgstr "ログ追跡履歴"
-
-#: openTrailLogListPageView.js
-msgctxt "opentrail"
-msgid "Name"
-msgstr "名前"
+msgstr "証跡ログ履歴"
 
 #: openTrailLogListPageView.js
 msgctxt "opentrail"
@@ -1570,6 +1454,260 @@ msgstr "選択された期間に結果が見つかりません"
 msgctxt "reportsreport"
 msgid "No reports available."
 msgstr "使用可能なレポートはありません"
+
+#: savedSearchDataTableView.js
+
+#: savedSearchDataTableView.js
+#. saved searches modal
+msgctxt "savedsearch"
+msgid "Update Search Details"
+msgstr "検索詳細の更新"
+
+#: savedSearchDataTableView.js
+#. saved searches modal
+msgctxt "savedsearch"
+msgid "Delete Search Confirmation"
+msgstr "検索削除の確認"
+
+#: savedSearchDataTableView.js
+#. %s will refer to the name of a new saved search. Please place according to the langauge in question.
+msgid "Creation of %s successful"
+msgstr "%sの作成に成功しました"
+
+#: savedSearchDataTableView.js
+msgid "Failure to create %s"
+msgstr "%sの作成に失敗しました。"
+
+#: savedSearchDataTableView.js
+msgid "Deletion of %s complete"
+msgstr "%sの削除に成功しました。"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Create New Search"
+msgstr "新規検索の作成"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Name"
+msgstr "検索名"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Description"
+msgstr "検索の説明"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Search Query"
+msgstr "検索クエリ"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "ElasticSearch Query (omit surrounding quotes)"
+msgstr "ElasticSearchクエリを入力"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Submit"
+msgstr "決定"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Confirm"
+msgstr "確認"
+
+#: savedSearchDataTableView.js
+#. saved searches create modal
+msgctxt "savedsearch"
+msgid "Submit Search"
+msgstr "検索実行"
+
+#: savedSearchDataTableView.js
+#. saved searches controls
+msgid "system search - can not delete"
+msgstr "システム検索ー削除できません"
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Name"
+msgstr "名前"
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Description"
+msgstr "説明"
+
+#: savedSearchDataTableView.js
+#. saved searches table heading
+msgid "Controls"
+msgstr "コントロール"
+
+#: savedSearchDataTableView.js
+msgid "openstack syslog errors"
+msgstr "OpenStack Syslogエラー"
+
+#: savedSearchDataTableView.js
+msgid "failure events"
+msgstr "失敗イベント"
+
+#: savedSearchDataTableView.js
+msgid "slow API calls"
+msgstr "長時間API呼出"
+
+#: savedSearchDataTableView.js
+msgid "generic syslog errors"
+msgstr "一般的syslogエラー"
+
+#: savedSearchDataTableView.js
+msgid "log query"
+msgstr "ログクエリ"
+
+#: savedSearchDataTableView.js
+msgid "Predefined Searches"
+msgstr "事前定義検索"
+
+#: savedSearchDataTableView.js
+msgid "failed authorization"
+msgstr "認証失敗"
+
+#: savedSearchDataTableView.js
+msgid "stack traces"
+msgstr "スタックトレース"
+
+#: savedSearchDataTableView.js
+msgid "nova instance created"
+msgstr "Novaサーバ作成"
+
+#: savedSearchDataTableView.js
+msgid "nova instance creation failed"
+msgstr "Novaサーバ作成失敗"
+
+#: savedSearchDataTableView.js
+msgid "cinder volume created"
+msgstr "Cinderボリューム作成"
+
+#: savedSearchDataTableView.js
+msgid "database problems"
+msgstr "データベース問題"
+
+#: savedSearchDataTableView.js
+msgid "image uploaded"
+msgstr "イメージアップロード"
+
+#: savedSearchDataTableView.js
+msgid "queue failures"
+msgstr "キュー処理失敗"
+
+#: savedSearchDataTableView.js
+msgid "nova usage audits"
+msgstr "Nova使用量"
+
+#: savedSearchDataTableView.js
+msgid "nova claim request"
+msgstr "Novaリクエスト"
+
+#: savedSearchDataTableView.js
+msgid "event query"
+msgstr "イベントクエリ
+
+#: savedSearchDataTableView.js
+msgid "api call query"
+msgstr "API呼出"
+
+#: savedSearchDataTableView.js
+msgid "service status"
+msgstr "サービス状態"
+
+#: savedSearchDataTableView.js
+msgid "Saved Search Manager"
+msgstr "検索条件管理
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: Log Browser"
+msgstr "検索条件：ログブラウザ"
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: Event Browser"
+msgstr "検索条件：イベントブラウザ"
+
+#: savedSearchDataTableView.js
+msgid "Saved Searches: API Browser"
+msgstr "検索条件：APIブラウザ"
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: Log"
+msgstr "検索条件：ログ"
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: Event"
+msgstr "検索条件：イベント"
+
+#: savedSearchDataTableView.js
+msgid "Saved Search: API"
+msgstr "検索条件：API"
+
+#: savedSearchDataTableView.js
+#. If there are no predefined returned by server.
+msgid "No predefined searches."
+msgstr "検索条件がありません"
+
+#: savedSearchDataTableView.js
+#. If the server returns an error.
+msgid "Server error."
+msgstr "サーバでエラーが発生しました"
+
+#: savedSearchDataTableView.js
+#. to remove search filter
+msgid "None (reset)"
+msgstr "無条件（リセット）"
+
+#: serviceStatusView.js
+
+#: serviceStatusView.js
+msgid "Service Status"
+msgstr "サービス状態"
+
+#: serviceStatusView.js
+msgid "Service"
+msgstr "サービス"
+
+#: serviceStatusView.js
+msgid "Status"
+msgstr "状態"
+
+#: serviceStatusView.js
+msgid "Cinder"
+msgstr "Cinder"
+
+#: serviceStatusView.js
+msgid "Glance"
+msgstr "Glance"
+
+#: serviceStatusView.js
+msgid "Keystone"
+msgstr "Keystone"
+
+#: serviceStatusView.js
+msgid "Neutron"
+msgstr "Neutron"
+
+#: serviceStatusView.js
+msgid "Nova"
+msgstr "Nova"
 
 #: settingsPageView.js
 
@@ -1681,6 +1819,10 @@ msgstr "ユーザ設定の読み込みに失敗しました"
 #: spawnsView.js
 msgid "Success"
 msgstr "成功"
+
+#: spawnsView.js
+msgid "Fail"
+msgstr "失敗"
 
 #: tenantSettingsPageView.js
 
@@ -1802,10 +1944,24 @@ msgstr "リソースリスト"
 msgid "No data"
 msgstr "データがありません"
 
-#: vulnerability advisor
-# msgid "Vulnerability Advisor"
-# msgstr ""
+#: topologyTreeView.js
+msgid "Server response was empty."
+msgstr "サーバのレスポンスが空でした"
 
 #: vulnerability advisor
-# msgid "OpenStack Vulnerabilities"
-# msgstr ""
+
+#: vulnerability advisor
+msgid "Vulnerability Advisor"
+msgstr "脆弱性アドバイザ"
+
+#: vulnerability advisor
+msgid "OpenStack Vulnerabilities"
+msgstr "OpenStack脆弱性"
+
+#: vulnerability advisor
+msgid "Notice Date"
+msgstr "通知日"
+
+#: vulnerability advisor
+msgid "Brief Description (click expand icon for more info)"
+msgstr "概要(Expandのクリックで詳細表示)"

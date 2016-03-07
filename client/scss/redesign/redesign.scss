@@ -189,6 +189,10 @@ body {
     border-radius: 8px 8px 0 0;
 }
 
+h3.popover-title {
+    margin: 0 0 5px;
+}
+
 .setting-btn {
     display: inline-block;
     height: 24px;
@@ -593,6 +597,10 @@ a.logo-header {
     display: none;
 }
 
+/*
+disabling overwriting of bootstrap tooltips which
+naturally respect vertical placement for Japanese text.
+
 .tooltip-inner {
     height: 30px;
     padding: 0;
@@ -603,6 +611,7 @@ a.logo-header {
     line-height: 30px;
     background: rgba(0, 0, 0, 0.8);
 }
+*/
 
 .btn-grp .btn-icon-block {
     width: 56px;

@@ -37,7 +37,25 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
 
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new GlobalLookbackRefreshButtonsView({});
+        this.testView = new GlobalLookbackRefreshButtonsView({
+            lookbackValues: {
+                lookback: [
+                    [15, 'lookback 15m', 'selected'],
+                    [60, 'lookback 1h'],
+                    [360, 'lookback 6h'],
+                    [1440, 'lookback 1d'],
+                    [4320, 'lookback 3d'],
+                    [10080, 'lookback 7d']
+                ],
+                refresh: [
+                    [30, 'refresh 30s', 'selected'],
+                    [60, 'refresh 1m'],
+                    [300, 'refresh 5m'],
+                    [-1, 'refresh off']
+                ]
+            }
+        });
+        $('.test-container').append(this.testView);
     });
     afterEach(function() {
         $('body').html('');
@@ -52,68 +70,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
     });
     describe('view takes optional parameters for lookback/refresh values', function() {
         it('should instantiate the basic default values if none supplied', function() {
-            // clear existing selectors on page
-            $('body').html('<div class="test-container"></div>');
-            this.testView = new GlobalLookbackRefreshButtonsView({
-                el: '.test-container',
-            });
             expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
-        });
-        it('in the case of an empty array, should return the default set', function() {
-            // clear existing selectors on page
-            $('body').html('<div class="test-container"></div>');
-            this.testView = new GlobalLookbackRefreshButtonsView({
-                el: '.test-container',
-                lookbackValues: {
-                    lookback: [],
-                    refresh: []
-                }
-            });
-            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
-        });
-        it('in the case of a lack of lookbackValues, should return the default set', function() {
-            // clear existing selectors on page
-            $('body').html('<div class="test-container"></div>');
-            this.testView = new GlobalLookbackRefreshButtonsView({
-                el: '.test-container'
-                // lookbackValues: {
-                //     lookback:[],
-                //     refresh:[]
-                // }
-            });
-            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7drefresh 30srefresh 1mrefresh 5mrefresh off');
-        });
-        it('should allow for passing in lookback only', function() {
-            // clear existing selectors on page
-            $('body').html('<div class="test-container"></div>');
-            this.testView = new GlobalLookbackRefreshButtonsView({
-                el: '.test-container',
-                lookbackValues: {
-                    lookback: [
-                        [10, 'ten'],
-                        [20, 'twenty'],
-                        [30, 'thirty']
-                    ],
-                    refresh: []
-                }
-            });
-            expect($(this.testView.el).text()).to.equal(' tentwentythirtyrefresh 30srefresh 1mrefresh 5mrefresh off');
-        });
-        it('should allow for passing in refresh only', function() {
-            // clear existing selectors on page
-            $('body').html('<div class="test-container"></div>');
-            this.testView = new GlobalLookbackRefreshButtonsView({
-                el: '.test-container',
-                lookbackValues: {
-                    lookback: [],
-                    refresh: [
-                        [20, 'twenty'],
-                        [40, 'forty'],
-                        [60, 'sixty']
-                    ]
-                }
-            });
-            expect($(this.testView.el).text()).to.equal(' lookback 15mlookback 1hlookback 6hlookback 1dlookback 3dlookback 7dtwentyfortysixty');
         });
         it('should select the first value as default if not designated', function() {
             // clear existing selectors on page
@@ -146,14 +103,16 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
                 lookbackValues: {
                     lookback: [
                         [10, 'ten'],
-                        [20, 'twenty', 'selected'],
+                        [20, 'twenty'],
                         [30, 'thirty']
                     ],
                     refresh: [
                         [20, 'twenty'],
                         [40, 'forty'],
-                        [60, 'sixty', 'selected']
-                    ]
+                        [60, 'sixty']
+                    ],
+                    selectedLookback: 20,
+                    selectedRefresh: 60
                 }
             });
             expect($('#global-lookback-range').val()).to.equal('20');

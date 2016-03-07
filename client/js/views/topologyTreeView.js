@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  */
 
 /*
-instantiated on discoverView when user prefs for topoTreeStyle === 'collapse' as
+instantiated on topologyPageView.js as:
 
-this.discoverTree = new ZoomablePartitionCollection({});
+this.discoverTreeCollection = new GoldstoneBaseCollection({
+    urlBase: "/core/topology/"
+});
 
-var topologyTreeView = new TopologyTreeView({
+this.topologyTreeView = new TopologyTreeView({
     blueSpinnerGif: blueSpinnerGif,
-    collection: this.discoverTree,
-    chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
-    el: '#goldstone-discover-r2-c1',
-    h: 600,
-    multiRsrcViewEl: '#goldstone-discover-r2-c2',
-    width: $('#goldstone-discover-r2-c1').width(),
+    collection: this.discoverTreeCollection,
+    chartTitle: goldstone.translate('Cloud Topology'),
+    el: '#goldstone-discover-r1-c1',
+    height: 700,
+    infoText: 'discoverCloudTopology',
+    multiRsrcViewEl: '#goldstone-discover-r1-c2',
+    width: $('#goldstone-discover-r1-c2').width(),
 });
 
 */
@@ -37,7 +40,12 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     // this block is run upon instantiating the object
     // and called by 'initialize' on the parent object
     instanceSpecificInit: function() {
-        TopologyTreeView.__super__.instanceSpecificInit.apply(this, arguments);
+        this.processOptions();
+        this.processListeners();
+        this.render();
+        this.appendChartHeading();
+        this.addModalAndHeadingIcons();
+        this.setSpinner();
         this.initSvg();
         this.hideSpinner();
     },
@@ -123,11 +131,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         var oTable;
         var keys = Object.keys(json);
         var data = _.map(keys, function(k) {
-            if (json[k] === Object(json[k])) {
-                return [k, JSON.stringify(json[k])];
-            } else {
-                return [k, json[k]];
-            }
+            return [k, json[k]];
         });
 
         $(self.multiRsrcViewEl).find(".panel-heading").popover({
@@ -267,6 +271,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
                             var supress;
 
+                            // uncomment the following block to forward to
+                            // node page for host or hypervisor
+                            /*
                             var storeDataLocally = function(data) {
                                 localStorage.setItem('detailsTabData', JSON.stringify(data));
                             };
@@ -284,6 +291,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                     supress = true;
                                 }
                             });
+                            */
 
                             // otherwise, render usual resource info    popover
                             if (!supress) {
@@ -357,9 +365,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     },
 
     processTree: function(json) {
-        // not used in zoomablePartitionView
-        // but must keep for old collapsable tree style viz
-
         var self = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
 
@@ -608,20 +613,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 self.data.x0 = self.height / 2;
                 self.data.y0 = 0;
                 self.processTree(self.data);
-
-                // render resource url in localStorage, if any
-                if (localStorage.getItem('urlForResourceList') !== null) {
-                    this.loadLeafData(localStorage.getItem('urlForResourceList'));
-                }
-                // append stored front-page leaf name to chart header
-                if (localStorage.getItem('origClickedLabel') !== null) {
-                    this.appendLeafNameToResourceHeader(localStorage.getItem('origClickedLabel'));
-                }
-
-                // delete localStorage keys that have been used to pre-fetch the
-                // items that were clicke to arrive at this page
-                localStorage.removeItem('urlForResourceList');
-                localStorage.removeItem('origClickedLabel');
             }
         }
     },

@@ -17,11 +17,11 @@
 
 @media only screen and (max-width : 1230px){
 	.dashboard .container {
-    width: 970px;
+    width: 960px;
 }
 
 .service-status-table li{
-	padding: 9px 15px;
+	padding: 1.41em 15px;
 }
 .node{
 	 margin-right: 15px;
@@ -31,14 +31,14 @@
 
 @media only screen and (max-width : 1030px){
 	.dashboard .container {
-	    width: 750px;
+	    width: 937px;
 	}
 
 	.node-block{
 		padding: 10px 5px 0 7px;
 	}
 	.service-status-table li {
-    padding: 4.7px 15px;
+    padding: 1.41em 15px;
 }
 .service-status-table li{
 	font-size:12px;

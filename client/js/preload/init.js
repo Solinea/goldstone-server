@@ -16,9 +16,6 @@
 
 goldstone.init = function() {
 
-    // defined in setBaseTemplateListeners.js
-    goldstone.setBaseTemplateListeners();
-
     /*
     authLogoutIcon encapsulates the initialization of the $(document)
     listener for ajaxSend events and uses xhr.setRequestHeader to append
@@ -55,23 +52,18 @@ goldstone.init = function() {
         }
     });
 
+    // instantiate object that will manage user prefs
+    goldstone.userPrefsView = new UserPrefsView();
+
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-    // instantiate object that will manage user prefs / theme
-    goldstone.userPrefsView = new UserPrefsView();
 
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
-
-    // re-translate the base template when switching pages to make sure
-    // the possibly hidden lookback/refresh selectors are translated
-    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
-        goldstone.i18n.translateBaseTemplate();
-    });
 
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
@@ -79,11 +71,42 @@ goldstone.init = function() {
         el: ".addon-menu-view-container"
     });
 
+    // re-translate the base template when switching pages to make sure
+    // the possibly hidden lookback/refresh selectors are translated
+    goldstone.i18n.listenTo(goldstone.gsRouter, 'switchingView', function() {
+        goldstone.i18n.translateBaseTemplate();
+    });
+
     // append global selectors to page
-    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+    goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
+        lookbackValues: {
+            lookback: [
+                [15, 'lookback 15m'],
+                [60, 'lookback 1h'],
+                [360, 'lookback 6h'],
+                [1440, 'lookback 1d'],
+                [4320, 'lookback 3d'],
+                [10080, 'lookback 7d']
+            ],
+            refresh: [
+                [30, 'refresh 30s'],
+                [60, 'refresh 1m'],
+                [300, 'refresh 5m'],
+                [-1, 'refresh off']
+            ],
+            selectedLookback: 15,
+            selectedRefresh: 30
+        }
+    });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+    // defined in setBaseTemplateListeners.js
+    // sets up UI to respond to user interaction with
+    // menus, and set highlighting of appropriate menu icons.
+    goldstone.setBaseTemplateListeners();
 
     // start the backbone router that will handle /# calls
     Backbone.history.start();
+
 
 };
