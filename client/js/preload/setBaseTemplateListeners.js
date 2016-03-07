@@ -103,10 +103,22 @@ goldstone.setBaseTemplateListeners = function() {
         compliance: '.compliance-tab'
     };
 
+    var updateLicenseLink = function(name) {
+
+        // if navigating to compliance, update license
+        // link to proprietary software link
+        if (name === 'compliance') {
+            $('.dynamic-license').attr("href", "http://solinea.com/wp-content/uploads/2016/03/Solinea-Goldstone-Software-License-v1.0.pdf");
+        } else {
+            $('.dynamic-license').attr("href", "https://www.apache.org/licenses/LICENSE-2.0");
+        }
+    };
+
     // backbone router emits 'route' event on route change
     // and first argument is route name. Match to hash
     // to highlight the appropriate side menu nav icon
     goldstone.gsRouter.on('route', function(name) {
         addMenuIconHighlighting(routeNameToIconClassHash[name]);
+        updateLicenseLink(name);
     });
 };
