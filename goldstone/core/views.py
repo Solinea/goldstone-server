@@ -15,6 +15,8 @@
 import logging
 
 from django.conf import settings
+from rest_framework import filters
+import django_filters
 from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -443,7 +445,7 @@ class SavedSearchViewSet(ModelViewSet):
     # Tell DRF that the lookup field is this string, and not "pk".
     lookup_field = "uuid"
 
-    filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
+    search_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
     ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
                        'doc_type', 'last_start', 'last_end', 'created',
                        'updated', 'target_interval', 'description')
@@ -516,8 +518,11 @@ class AlertDefinitionViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertDefinitionSerializer
     query_model = AlertDefinition
-    filter_fields = ('name', 'description', 'created', 'updated',
-                     'short_template', 'long_template', 'search')
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    search_fields = ('name', 'description', 'short_template', 'long_template')
     ordering_fields = ('name', 'created', 'updated', 'short_message',
                        'long_message', 'search', 'enabled')
 
@@ -525,13 +530,28 @@ class AlertDefinitionViewSet(ReadOnlyModelViewSet):
         return AlertDefinition.objects.all()
 
 
+class CreatedFilter(filters.FilterSet):
+    created_after = django_filters.NumberFilter(name="created_ts",
+                                                lookup_type='gt')
+
+    class Meta:
+        model = Alert
+        fields = ['created_ts']
+
+
 class AlertViewSet(ReadOnlyModelViewSet):
     """Provide the /core/alert/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertSerializer
-    filter_fields = ('created', 'updated', 'short_message', 'long_message',
-                     'alert_def')
+    query_model = Alert
+    filter_class = CreatedFilter
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    search_fields = ('short_message', 'long_message', 'alert_def',
+                     'created_ts')
     ordering_fields = ('created', 'updated', 'short_message', 'long_message',
                        'alert_def')
 
@@ -557,7 +577,7 @@ class EmailProducerViewSet(ModelViewSet):
 
     permission_classes = (IsAuthenticated,)
     serializer_class = EmailProducerSerializer
-    filter_fields = ('sender', 'receiver', 'alert_def')
+    search_fields = ('sender', 'receiver', 'alert_def')
     ordering_fields = ('sender', 'receiver', 'alert_def')
 
     def get_queryset(self):

@@ -21,7 +21,8 @@ from jinja2 import Template
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import CharField, IntegerField, ForeignKey
+from django.db.models import CharField, IntegerField, BigIntegerField, \
+    ForeignKey, DecimalField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
@@ -36,6 +37,7 @@ from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
 from goldstone.user.models import User
+from goldstone.utils import now_micro_ts
 
 logger = logging.getLogger(__name__)
 
@@ -2581,6 +2583,9 @@ class Alert(models.Model):
                            on_delete=models.PROTECT)
 
     created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    created_ts = DecimalField(max_digits=13, decimal_places=0,
+                              editable=False, default=now_micro_ts)
 
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 

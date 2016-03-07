@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+import goldstone.utils
 import django.utils.timezone
 import django_extensions.db.fields
 import picklefield.fields
@@ -22,6 +23,7 @@ class Migration(migrations.Migration):
                 ('short_message', models.TextField()),
                 ('long_message', models.TextField()),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, null=True)),
+                ('created_ts', models.DecimalField(default=goldstone.utils.now_micro_ts, editable=False, max_digits=13, decimal_places=0)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, null=True)),
             ],
             options={

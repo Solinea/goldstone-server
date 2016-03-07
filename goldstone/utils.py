@@ -15,6 +15,7 @@
 import functools
 import socket
 
+import arrow
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
@@ -27,6 +28,10 @@ class GoldstoneBaseException(Exception):
 class GoldstoneAuthError(GoldstoneBaseException):
     """Goldstone account authorization error."""
     pass
+
+
+def now_micro_ts():
+    return arrow.utcnow().timestamp * 1000
 
 
 def to_es_date(date_object):

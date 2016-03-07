@@ -278,7 +278,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
-                                'rest_framework.filters.OrderingFilter', ),
+                                'rest_framework.filters.SearchFilter',
+                                'rest_framework.filters.OrderingFilter'),
     'DEFAULT_PAGINATION_CLASS':
         'goldstone.core.pagination.Pagination',
     'PAGE_SIZE': 10,
