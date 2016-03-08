@@ -3881,7 +3881,6 @@ var AddonMenuView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-// iconEl: 'i.icon.alerts'
 AlertsMenuView = GoldstoneBaseView.extend({
 
     setModel: function() {
@@ -3896,6 +3895,14 @@ AlertsMenuView = GoldstoneBaseView.extend({
         this.setModel();
         this.processOptions();
         this.processListeners();
+        this.setInterval();
+    },
+
+    setInterval: function() {
+        var self = this;
+        setInterval(function() {
+            self.collection.urlGenerator();
+        }, 60000);
     },
 
     processListeners: function() {
@@ -3907,13 +3914,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
             this.listenTo(this.collection, 'error', this.dataErrorMessage);
         }
 
-        this.listenTo(this, 'lookbackSelectorChanged', function() {
-            this.getGlobalLookbackRefresh();
-            if (this.collection) {
-                this.collection.urlGenerator();
-            }
-        });
-
         this.listenTo(this.model, 'change', function() {
             self.iconAddHighlight();
             self.renderAlerts();
@@ -3922,25 +3922,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
         this.$el.on('click', function() {
             self.iconRemoveHighlight();
         });
-    },
-
-    convertStatus: function(value) {
-        /*
-        online = green
-        offline = red
-        intermittent = orange
-        unknown = grey
-        */
-
-        // screen out non-numbers
-        if (+value !== value) {
-            return 'unknown';
-        }
-        if (value > 0) {
-            return 'online';
-        } else {
-            return 'offline';
-        }
     },
 
     update: function() {
@@ -3966,7 +3947,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     renderAlerts: function() {
-        this.extractedAlerts = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
         this.populateRecentAlertDiv();
         this.populateAllAlertDiv();
     },
@@ -3975,7 +3955,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         var result = [];
         var oneDay = (1000 * 60 * 60 * 24);
         _.each(alerts, function(alert) {
-            if (moment(alert.updated).diff(now) <= oneDay) {
+            if (moment(alert.created).diff(now) <= oneDay) {
                 result.push(alert);
             }
         });
@@ -3983,17 +3963,32 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     alertTemplate: _.template('' +
-        ''
+        '<li>' +
+        '<div class="msg-block">' +
+        '<span class="msg"><%= short_message %></span>' +
+        '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
+        '</div>' +
+        // '<i class="remove-btn">&nbsp;</i>' +
+        '</li>'
     ),
 
     populateRecentAlertDiv: function() {
-
+        var self = this;
+        var results = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
+        $('.alerts-recent').html('');
+        _.each(results, function(alert) {
+            $('.alerts-recent').append(self.alertTemplate(alert));
+        });
     },
 
     populateAllAlertDiv: function() {
-
+        var self = this;
+        var results = this.model.get('alerts');
+        $('.alerts-all').html('');
+        _.each(results, function(alert) {
+            $('.alerts-all').append(self.alertTemplate(alert));
+        });
     }
-
 });
 ;
 /**

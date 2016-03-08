@@ -453,7 +453,7 @@ a.logo-header {
 .btn-grp li {
     border-left: 4px solid transparent;
     height: 48px;
-    white-space: nowrap;
+    white-space: normal;
     cursor: pointer;
 }
 
@@ -688,14 +688,14 @@ naturally respect vertical placement for Japanese text.
     color: #000;
     display: block;
     margin-bottom: 4px;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .list-content .time {
     font-size: 12px;
     color: #616161;
     display: block;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .list-content li {
