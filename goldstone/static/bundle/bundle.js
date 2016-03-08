@@ -3893,6 +3893,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         // processes the hash of options passed in when object is instantiated
+        // this.render();
         this.setModel();
         this.processOptions();
         this.processListeners();
@@ -3918,7 +3919,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
             self.iconAddHighlight();
         });
 
-        $(this.alertIcon).on('click', function() {
+        this.$el.on('click', function() {
             self.iconRemoveHighlight();
         });
     },
@@ -3952,18 +3953,24 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     iconAddHighlight: function() {
-        console.log('iconAddHighlight');
         $('i.icon.alerts').css('background-color', 'red');
     },
 
     iconRemoveHighlight: function() {
-        console.log('iconRemoveHighlight');
         $('i.icon.alerts').css('background-color', 'white');
     },
 
     render: function() {
-
+        this.$el.html(this.template());
+        return this;
     },
+
+    template: _.template(
+        '<li class="alerts-tab" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Alerts" title="Alerts">' +
+        '<span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>' +
+        '<span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>' +
+        '</li>'
+    )
 
 });
 ;
@@ -13792,6 +13799,17 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
+
+    // start the population of the sidebar alerts menu
+    var alertsMenuCollection = new AlertsMenuCollection({
+        urlBase: '/core/alert/'
+    });
+
+    goldstone.alertsMenu = new AlertsMenuView({
+        collection: alertsMenuCollection,
+        el: '.alert-icon-placeholder'
+    });
+
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
     // menus, and set highlighting of appropriate menu icons.
@@ -13800,12 +13818,4 @@ goldstone.init = function() {
     // start the backbone router that will handle /# calls
     Backbone.history.start();
 
-    // start the population of the sidebar alerts menu
-    var alertsMenuCollection = new AlertsMenuCollection({
-        urlBase: '/core/alert/'
-    });
-
-    goldstone.alertsMenu = new AlertsMenuView({
-        collection: alertsMenuCollection
-    });
 };

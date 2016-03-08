@@ -27,6 +27,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
         // processes the hash of options passed in when object is instantiated
+        // this.render();
         this.setModel();
         this.processOptions();
         this.processListeners();
@@ -52,7 +53,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
             self.iconAddHighlight();
         });
 
-        $(this.alertIcon).on('click', function() {
+        this.$el.on('click', function() {
             self.iconRemoveHighlight();
         });
     },
@@ -86,17 +87,23 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     iconAddHighlight: function() {
-        console.log('iconAddHighlight');
         $('i.icon.alerts').css('background-color', 'red');
     },
 
     iconRemoveHighlight: function() {
-        console.log('iconRemoveHighlight');
         $('i.icon.alerts').css('background-color', 'white');
     },
 
     render: function() {
-
+        this.$el.html(this.template());
+        return this;
     },
+
+    template: _.template(
+        '<li class="alerts-tab" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Alerts" title="Alerts">' +
+        '<span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>' +
+        '<span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>' +
+        '</li>'
+    )
 
 });

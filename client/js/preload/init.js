@@ -100,6 +100,17 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
+
+    // start the population of the sidebar alerts menu
+    var alertsMenuCollection = new AlertsMenuCollection({
+        urlBase: '/core/alert/'
+    });
+
+    goldstone.alertsMenu = new AlertsMenuView({
+        collection: alertsMenuCollection,
+        el: '.alert-icon-placeholder'
+    });
+
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
     // menus, and set highlighting of appropriate menu icons.
@@ -108,12 +119,4 @@ goldstone.init = function() {
     // start the backbone router that will handle /# calls
     Backbone.history.start();
 
-    // start the population of the sidebar alerts menu
-    var alertsMenuCollection = new AlertsMenuCollection({
-        urlBase: '/core/alert/'
-    });
-
-    goldstone.alertsMenu = new AlertsMenuView({
-        collection: alertsMenuCollection
-    });
 };
