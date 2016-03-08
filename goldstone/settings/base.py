@@ -174,13 +174,13 @@ PRUNE_OLDER_THAN = 30
 EVERY_MIDNIGHT = crontab(minute='0', hour='0', day_of_week='*')
 
 # used to update the topology graph
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
+EVERY_5_MINUTES = crontab(minute='*/5')
 
 # used to update the CPU, Disk, Memory, and Spawns info
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
 
 # how often should alerts be checked
-ALERT_QUERY_INTERVAL = crontab(minute='*/1')
+EVERY_MINUTE = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
@@ -189,31 +189,31 @@ CELERYBEAT_SCHEDULE = {
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
-        'schedule': RESOURCE_QUERY_INTERVAL,
+        'schedule': EVERY_MINUTE,
     },
     'discover_keystone_topology': {
         'task': 'goldstone.keystone.tasks.discover_keystone_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_glance_topology': {
         'task': 'goldstone.glance.tasks.discover_glance_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_cinder_topology': {
         'task': 'goldstone.cinder.tasks.discover_cinder_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_nova_topology': {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_neutron_topology': {
         'task': 'goldstone.neutron.tasks.discover_neutron_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'update_persistent_graph': {
         'task': 'goldstone.core.tasks.update_persistent_graph',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'expire_auth_tokens': {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
@@ -221,7 +221,11 @@ CELERYBEAT_SCHEDULE = {
     },
     'process_alerts': {
         'task': 'goldstone.core.tasks.process_alerts',
-        'schedule': ALERT_QUERY_INTERVAL
+        'schedule': EVERY_MINUTE
+    },
+    'service_status_check': {
+        'task': 'goldstone.core.tasks.service_status_check',
+        'schedule': EVERY_MINUTE
     },
 }
 
