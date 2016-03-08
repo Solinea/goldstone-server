@@ -42,16 +42,27 @@ var I18nModel = Backbone.Model.extend({
 
         finalResult.locale_data = {};
 
+        // the interplay between po2json and Jed.js is not
+        // quite right as-is, so redefining the resulting
+        // JSON object to work with Jed.js
+
         _.each(goldstone.i18nJSON, function(val, key, orig) {
             var result = {};
+
+            // copy everything except for the [""] key
             result = _.omit(orig[key].locale_data.messages, "");
+
+            // redefine the [""] key
             result[""] = orig[key].locale_data.messages[""];
             result[""].domain = key;
             finalResult.locale_data[key] = result;
         });
+
+        // the final object that will be passed to Jed.js 
         this.combinedPoJsonFiles = finalResult;
 
         /*
+        "lang" is populated from the .po file 'Language' field.
         this constructs an initialization object like:
 
         this.combinedPoJsonFiles: {
@@ -64,7 +75,7 @@ var I18nModel = Backbone.Model.extend({
                     "": {
                         "domain": "English",
                         "plural_forms": "nplurals=2; plural=(n != 1);",
-                        "lang": "en"
+                        "lang": "English"
                     },
                     "goldstone": [""],
                     "Metrics": [""],
@@ -74,7 +85,7 @@ var I18nModel = Backbone.Model.extend({
                     "": {
                         "domain": "japanese",
                         "plural_forms": "nplurals=1; plural=0;",
-                        "lang": "ja"
+                        "lang": "日本語"
                     },
                     "goldstone": ["ゴールドストーン"],
                     "Metrics": ["メトリック"],

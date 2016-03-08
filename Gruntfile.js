@@ -232,8 +232,7 @@ module.exports = function(grunt) {
         po2json: {
             options: {
                 format: 'jed1.x',
-                singleFile: true,
-                pretty: true
+                singleFile: true
             },
             all: {
                 src: [clientIncludeOrder.poSourceFiles],

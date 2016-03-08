@@ -18,6 +18,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+# Use 'Language' keyword to set how the language will render on the settings page
+"Language: 日本語"
 
 #: addonMenuView.js
 
