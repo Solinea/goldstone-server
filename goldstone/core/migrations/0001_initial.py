@@ -47,6 +47,17 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='MonitoredService',
+            fields=[
+                ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
+                ('name', models.CharField(max_length=128)),
+                ('host', models.CharField(max_length=128)),
+                ('state', models.CharField(default=b'UNKNOWN', max_length=64, choices=[(b'UP', b'UP'), (b'DOWN', b'DOWN'), (b'UNKNOWN', b'UNKNOWN'), (b'MAINTENANCE', b'MAINTENANCE')])),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
+                ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True)),
+            ],
+        ),
+        migrations.CreateModel(
             name='PolyResource',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(primary_key=True, serialize=False, editable=False, version=1, blank=True)),

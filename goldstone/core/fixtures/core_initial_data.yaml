@@ -287,17 +287,10 @@
       protected: true
       hidden: false
       query: '{
-    "size": 0,
+   "size": 0,
    "query": {
       "bool": {
          "must": [
-            {
-               "range": {
-                  "@timestamp": {
-                     "gte": "now-5m"
-                  }
-               }
-            },
             {
                "range": {
                   "response_status": {
@@ -309,11 +302,21 @@
       }
    },
    "aggs": {
-      "per_component": {
+      "per_host": {
          "terms": {
-            "field": "component",
-            "min_doc_count": 0,
-            "exclude": ["unknown"]
+            "field": "host",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_component": {
+               "terms": {
+                  "field": "component",
+                  "min_doc_count": 0,
+                  "exclude": [
+                     "unknown"
+                  ]
+               }
+            }
          }
       }
    }
