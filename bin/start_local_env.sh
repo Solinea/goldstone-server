@@ -20,6 +20,8 @@ tmux new -d -s goldstone_dev \
      docker-compose -f docker-compose-local-dev.yml up' \; \
      split-window -d \
      'cd ${PROJECT_HOME}/goldstone-server;
+     sleep 15;
      bin/start_local_celery.sh' \; \
      attach -t goldstone_dev \;
+
      # set-option -t goldstone_dev remain-on-exit \; \

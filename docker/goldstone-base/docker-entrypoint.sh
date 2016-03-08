@@ -22,6 +22,7 @@ GS_DEV_ENV=${GS_DEV_ENV:-false}
 GS_DEV_DJANGO_PORT=${GS_DEV_DJANGO_PORT:-8000}
 GS_DB_HOST=${GS_DB_HOST:-gsdb}
 GS_START_CELERY=${GS_START_CELERY:-true}
+CELERY_BG=${CELERY_BG:-true}
 GS_START_RUNSERVER=${GS_START_RUNSERVER:-${GS_DEV_ENV}}
 GS_START_GUNICORN=${GS_START_GUNICORN:-true}
 
@@ -62,16 +63,23 @@ if [[ $GS_DEV_ENV != "false" ]] ; then
 fi
 
 # only do this one time
-if [ ! -f /var/tmp/post_install ] ; then
+if [ ! -f /var/tmp/goldstone-postinstall ] ; then
     python post_install.py
-    touch /var/tmp/post_install
+    touch /var/tmp/goldstone-postinstall
 fi
 
 if [[ $GS_START_CELERY == 'true' ]] ; then
-    echo Starting Celery.
-    exec celery worker --app goldstone --queues default --beat --purge \
-        --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
-        --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+    if [[ ${CELERY_BG} == 'true' ]] ; then
+        echo Starting Celery in the background.
+        exec celery worker --app goldstone --queues default --beat --purge \
+            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
+            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+    else
+        echo Starting Celery in the foreground.
+        exec celery worker --app goldstone --queues default --beat --purge \
+            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
+            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
+    fi
 fi
 
 if [[ $GS_START_RUNSERVER == 'true' && $GS_DEV_ENV == 'true' ]] ; then

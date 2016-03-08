@@ -445,6 +445,7 @@ class SavedSearchViewSet(ModelViewSet):
     # Tell DRF that the lookup field is this string, and not "pk".
     lookup_field = "uuid"
 
+    filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
     search_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
     ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
                        'doc_type', 'last_start', 'last_end', 'created',

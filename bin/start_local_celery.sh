@@ -13,5 +13,6 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 export GS_LOCAL_DEV=true
 export GS_DEV_DJANGO_PORT=8001
 export GS_START_RUNSERVER=false
+export CELERY_BG=false
 . docker/goldstone-base/docker-entrypoint.sh
 
