@@ -3899,6 +3899,8 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     processListeners: function() {
+        var self = this;
+
         // registers 'sync' event so view 'watches' collection for data update
         if (this.collection) {
             this.listenTo(this.collection, 'sync', this.update);
@@ -3913,7 +3915,11 @@ AlertsMenuView = GoldstoneBaseView.extend({
         });
 
         this.listenTo(this.model, 'change', function() {
-            this.render();
+            self.iconAddHighlight();
+        });
+
+        $(this.alertIcon).on('click', function() {
+            self.iconRemoveHighlight();
         });
     },
 
@@ -3945,8 +3951,18 @@ AlertsMenuView = GoldstoneBaseView.extend({
         this.model.set('alerts', data.results);
     },
 
-    render: function() {
+    iconAddHighlight: function() {
+        console.log('iconAddHighlight');
         $('i.icon.alerts').css('background-color', 'red');
+    },
+
+    iconRemoveHighlight: function() {
+        console.log('iconRemoveHighlight');
+        $('i.icon.alerts').css('background-color', 'white');
+    },
+
+    render: function() {
+
     },
 
 });
