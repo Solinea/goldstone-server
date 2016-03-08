@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// this chart provides the base methods that
-// are extended into almost all other Views
-
 var ServiceStatusView = GoldstoneBaseView.extend({
 
     setModel: function() {

@@ -108,5 +108,12 @@ goldstone.init = function() {
     // start the backbone router that will handle /# calls
     Backbone.history.start();
 
+    // start the population of the sidebar alerts menu
+    var alertsMenuCollection = new AlertsMenuCollection({
+        urlBase: '/core/alert/'
+    });
 
+    goldstone.alertsMenu = new AlertsMenuView({
+        collection: alertsMenuCollection
+    });
 };
