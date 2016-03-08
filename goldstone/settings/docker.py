@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import sys
-import socket
 from .base import *            # pylint: disable=W0614,W0401
 from goldstone.libs import secret_key
 
@@ -92,6 +91,7 @@ LOGGING = {
         },
         'graypy': {
             'class': 'graypy.GELFHandler',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'host': 'gslog',
             'port': 5517,
         },
@@ -108,7 +108,7 @@ LOGGING = {
         },
         'goldstone': {
             'level': 'INFO',
-            'handlers': ['console', 'graypy']
+            'handlers': ['console', 'graypy'],
         },
     },
 }

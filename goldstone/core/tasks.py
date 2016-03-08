@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import logging
 from django.conf import settings
 import curator
@@ -27,7 +28,8 @@ from goldstone.keystone.utils import update_nodes as update_keystone_nodes
 from goldstone.nova.utils import update_nodes as update_nova_nodes
 from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
-logger = get_task_logger(__name__)
+# do not user get_task_logger here as it does not honor the Django settings
+logger = logging.getLogger(__name__)
 
 
 @celery_app.task()
@@ -207,13 +209,14 @@ def service_status_check():
         """
 
     # execute our search and get the results
+    logger.info("Starting service status check")
     search_id = 'c7fa5f00-e851-4a71-9be0-7dbf8415426c'
     ss = SavedSearch.objects.get(uuid=search_id)
     search, start, end = ss.search_recent()
-    print "search = %s" % search.to_dict()
+    # print "search = %s" % search.to_dict()
     result = search.execute().to_dict()
 
-    print "search_result = %s" % result
+    # print "search_result = %s" % result
 
     # compare our results with existing MonitoredService records to see if
     # we have a state change.
@@ -238,10 +241,12 @@ def service_status_check():
                         (status['name'], status['host'], status['state']))
 
     for host in missing_hosts:
+
         # these hosts have disappeared from all ES records.  Possibly an old
-        # host that has been curated out of all indicies.  We'll set the state
+        # host that has been curated out of all indices.  We'll set the state
         # of all services on the host to unknown.  A human may want to mark the
         # service as deleted at some point.
+
         missing_services = MonitoredService.objects.filter(
             ~Q(state=MonitoredService.UNKNOWN),
             host=host
@@ -258,35 +263,54 @@ def service_status_check():
             missing_service.save()
 
     for host in common_hosts:
+
         # we still may known or missing services for a known host.  handle
         # those like above.  everything else is a comparison of state.
+
         host_services = MonitoredService.objects.filter(host=host)
         statuses = status_from_agg(found_services_by_host, host)
+
         for status in statuses:
+
+            # process each of the status records in ES for this host
+
             if host_services.filter(name=status['name']).count() == 0:
-                # this is a new service on the host.
+
+                # this is a new service on the host.  Create a database entry
+                # and log a message to be harvested by an AlertDefinition.
+
                 MonitoredService(**status).save()
+
                 logger.info(
                     "Service status update: service %s discovered on host "
                     "%s with state %s" %
                     (status['name'], status['host'], status['state']))
 
-            # there should be a record for this service
+                continue
+
+            # if we got here, there should be a record for this service
+
             service_rec = MonitoredService.objects.get(
                 host=status['host'],
                 name=status['name'])
+
             if service_rec.state != status['state']:
-                # this is a state change
-                service_rec.state = status['state']
-                service_rec.save()
+
+                # this is a state change. Update the database entry
+                # and log a message to be harvested by an AlertDefinition.
+
                 logger.info("Service status update: service %s on host "
                             "%s changed state from %s to %s" %
                             (service_rec.name,
                              service_rec.host,
                              service_rec.state,
                              status['state']))
+                service_rec.state = status['state']
+                service_rec.save()
 
     # if we got here, let's update the search time range
     ss.update_recent_search_window(start, end)
+    logger.info("Finished service status check")
+
 
 
