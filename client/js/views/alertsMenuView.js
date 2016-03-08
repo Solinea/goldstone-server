@@ -26,8 +26,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
     alertIcon: 'i.icon.alerts',
 
     instanceSpecificInit: function() {
-        // processes the hash of options passed in when object is instantiated
-        // this.render();
         this.setModel();
         this.processOptions();
         this.processListeners();
@@ -51,6 +49,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
         this.listenTo(this.model, 'change', function() {
             self.iconAddHighlight();
+            self.renderAlerts();
         });
 
         this.$el.on('click', function() {
@@ -87,23 +86,45 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     iconAddHighlight: function() {
-        $('i.icon.alerts').css('background-color', 'red');
+        this.$el.addClass('alert-active');
     },
 
     iconRemoveHighlight: function() {
-        $('i.icon.alerts').css('background-color', 'white');
+        this.$el.removeClass('alert-active');
     },
 
-    render: function() {
-        this.$el.html(this.template());
-        return this;
+    timeNow: function() {
+        // return now in unix timestamp
+        return +new Date();
     },
 
-    template: _.template(
-        '<li class="alerts-tab" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Alerts" title="Alerts">' +
-        '<span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>' +
-        '<span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>' +
-        '</li>'
-    )
+    renderAlerts: function() {
+        this.extractedAlerts = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
+        this.populateRecentAlertDiv();
+        this.populateAllAlertDiv();
+    },
+
+    extractRecentAlerts: function(alerts, now) {
+        var result = [];
+        var oneDay = (1000 * 60 * 60 * 24);
+        _.each(alerts, function(alert) {
+            if (moment(alert.updated).diff(now) <= oneDay) {
+                result.push(alert);
+            }
+        });
+        return result;
+    },
+
+    alertTemplate: _.template('' +
+        ''
+    ),
+
+    populateRecentAlertDiv: function() {
+
+    },
+
+    populateAllAlertDiv: function() {
+
+    }
 
 });

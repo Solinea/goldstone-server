@@ -360,12 +360,12 @@ h3.popover-title { margin: 0 0 5px; }
 
 .node:nth-child(9n) { margin-right: 0; }
 
-.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff;     /*width:64px;
-	transition:all 0.3s ease;
-	-webkit-transition:all 0.3s ease;
-	-ms-transition:all 0.3s ease;
-	-moz-transition:all 0.3s ease;
-	-o-transition:all 0.3s ease;*/ z-index: 9999; }
+.sidebar { position: absolute; left: 0; top: 64px; height: 100%; background: #ffffff; /*width:64px;
+transition:all 0.3s ease;
+-webkit-transition:all 0.3s ease;
+-ms-transition:all 0.3s ease;
+-moz-transition:all 0.3s ease;
+-o-transition:all 0.3s ease;*/ z-index: 9999; }
 
 .sidebar.expand-menu { width: inherit; }
 
@@ -376,11 +376,11 @@ a.logo-header { text-decoration: none; }
 
 .sidebar.expand-menu .btn-grp { width: 180px; }
 
-.dashboard .content { position: relative; left: 0;     /*transition:all 0.3s ease;
-	-webkit-transition:all 0.3s ease;
-	-ms-transition:all 0.3s ease;
-	-moz-transition:all 0.3s ease;
-	-o-transition:all 0.3s ease;*/ }
+.dashboard .content { position: relative; left: 0; /*transition:all 0.3s ease;
+-webkit-transition:all 0.3s ease;
+-ms-transition:all 0.3s ease;
+-moz-transition:all 0.3s ease;
+-o-transition:all 0.3s ease;*/ }
 
 .sidebar.open { width: inherit !important; }
 
@@ -395,6 +395,8 @@ a.logo-header { text-decoration: none; }
 .btn-grp li:hover { border-color: #eeeeee; }
 
 .btn-grp li.active { background: #4f376e; }
+
+.btn-grp .alerts-tab.alert-active { background: #d50612; }
 
 .btn-grp li.active:hover { border-left-color: #4f376e; }
 
@@ -491,9 +493,7 @@ naturally respect vertical placement for Japanese text.
 
 .tab-content .tab { display: none; }
 
-.sub-tab-content .tabs { display: none; }
-
-.sub-tab-content .tabs:first-child { display: block; }
+.all-tab-content { display: none; }
 
 ::-webkit-input-placeholder { color: rgba(255, 255, 255, 0.7); opacity: 1 !important; }
 
