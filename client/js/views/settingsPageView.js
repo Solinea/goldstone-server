@@ -82,7 +82,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     renderLanguageChoices: function() {
         _.each(goldstone.i18nJSON, function(item, key) {
-            var language = item.locale_data.messages[""].lang;
+
+            // fallback to key in case `Language` was not
+            // set on .po file
+            var language = item.locale_data.messages[""].lang || key;
             $('#language-name').append('<option value="' + key + '">' + language + '</option>');
         });
     },
