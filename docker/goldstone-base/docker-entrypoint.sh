@@ -74,7 +74,7 @@ if [[ $GS_START_CELERY == 'true' ]] ; then
         --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
 fi
 
-if [[ $GS_DEV_ENV != 'false' && $GS_START_RUNSERVER != 'true' ]] ; then
+if [[ $GS_START_RUNSERVER == 'true' && $GS_DEV_ENV == 'true' ]] ; then
     echo "Starting Django server"
     exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} 0.0.0.0:${GS_DEV_DJANGO_PORT} "$@"
 fi
