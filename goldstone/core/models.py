@@ -2700,3 +2700,33 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
+
+
+class MonitoredService(models.Model):
+    """Model of a service that can be monitored.  The actual monitoring is done
+    somewhere else..."""
+
+    UP = 'UP'
+    DOWN = 'DOWN'
+    UNKNOWN = 'UNKNOWN'
+    MAINTENANCE = 'MAINTENANCE'
+    STATE_CHOICES = (
+        (UP, UP),
+        (DOWN, DOWN),
+        (UNKNOWN, UNKNOWN),
+        (MAINTENANCE, MAINTENANCE),
+    )
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    name = CharField(max_length=128, null=False, blank=False)
+
+    host = CharField(max_length=128, null=False, blank=False)
+
+    state = CharField(max_length=64, choices=STATE_CHOICES,
+                      default=UNKNOWN, null=False,
+                      blank=False)
+
+    created = CreationDateTimeField(editable=False, blank=False, null=False)
+
+    updated = ModificationDateTimeField(editable=True, blank=False, null=False)
