@@ -94,7 +94,7 @@ goldstone.init = function() {
                 [300, 'refresh 5m'],
                 [-1, 'refresh off']
             ],
-            selectedLookback: 15,
+            selectedLookback: 60,
             selectedRefresh: 30
         }
     });

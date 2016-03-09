@@ -3911,9 +3911,10 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
     setInterval: function() {
         var self = this;
+        var thirtySeconds = (1000 * 30);
         setInterval(function() {
             self.collection.urlGenerator();
-        }, 60000);
+        }, thirtySeconds);
     },
 
     processListeners: function() {
@@ -13825,7 +13826,7 @@ goldstone.init = function() {
                 [300, 'refresh 5m'],
                 [-1, 'refresh off']
             ],
-            selectedLookback: 15,
+            selectedLookback: 60,
             selectedRefresh: 30
         }
     });
