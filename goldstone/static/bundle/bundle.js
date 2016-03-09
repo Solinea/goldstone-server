@@ -4032,7 +4032,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": false,
+            "ordering": true,
             "order": [
                 [0, 'desc']
             ],
@@ -4040,42 +4040,42 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
-                    "sortable": false,
+                    "sortable": true,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
                     "data": "_source.host",
                     "targets": 1,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.client_ip",
                     "targets": 2,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.uri",
                     "targets": 3,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_status",
                     "targets": 4,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_time",
                     "targets": 5,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_length",
                     "targets": 6,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.component",
                     "targets": 7,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.type",
                     "targets": 8,
-                    "sortable": false
+                    "sortable": true
                 }
 
             ],
@@ -4109,20 +4109,24 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    /*
+                    
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'host',
-                        2: 'component',
-                        3: 'host',
-                        4: 'log_message'
+                        2: 'client_ip',
+                        3: 'uri',
+                        4: 'response_status',
+                        5: 'response_time',
+                        6: 'response_length',
+                        7: 'component',
+                        8: 'type',
                     };
                     var ascDec = {
                         asc: '',
                         'desc': '-'
                     };
                     settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+                    
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -6884,9 +6888,9 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": false,
+            "ordering": true,
             "order": [
-                [1, 'desc']
+                [0, 'desc']
             ],
             "columnDefs": [{
                 "data": "@timestamp",
@@ -6955,7 +6959,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         asc: '',
                         'desc': '-'
                     };
-                    // settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
                     
                 },
                 dataSrc: "results",
