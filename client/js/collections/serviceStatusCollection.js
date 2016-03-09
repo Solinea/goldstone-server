@@ -17,37 +17,8 @@
 // define collection and link to model
 
 var ServiceStatusCollection = GoldstoneBaseCollection.extend({
-
-    instanceSpecificInit: function() {
-        this.processOptions();
-        this.urlGenerator();
-    },
-
-    urlGenerator: function(data) {
-        var self = this;
-
-        // the call to /core/saved_seaarch/?name=service+status
-        // returns the uuid required for the service aggregations
-
-        $.get(this.urlBase + '?name=service+status', function() {})
-            .done(function(data) {
-                var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
-                self.url = searchUuid;
-
-                // fetch return triggers 'sync' which triggers
-                // update in the client with the returned data
-                self.fetch();
-            });
-    },
-
-    constructAggregationUrl: function(uuid) {
-        return this.urlBase + uuid + '/results/';
-    },
-
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
     }
-
-
 });

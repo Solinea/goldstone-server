@@ -35,7 +35,7 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         */
 
         this.serviceStatusChart = new ServiceStatusCollection({
-            urlBase: '/core/saved_search/'
+            urlBase: '/core/monitored_service/'
         });
 
         this.serviceStatusChartView = new ServiceStatusView({
