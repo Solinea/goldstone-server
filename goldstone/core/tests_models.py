@@ -136,10 +136,10 @@ class ModelTests(TestCase):
 
         # and that it has the expected start and end times
         self.assertDictContainsSubset(
-            {'gt': start1.isoformat()},
+            {'gte': start1.isoformat()},
             range_dict['range'][self.saved_search.timestamp_field])
         self.assertDictContainsSubset(
-            {'lte': end1.isoformat()},
+            {'lt': end1.isoformat()},
             range_dict['range'][self.saved_search.timestamp_field])
 
         self.saved_search.update_recent_search_window(start1, end1)
@@ -163,7 +163,7 @@ class ModelTests(TestCase):
         self.assertIsInstance(start2, datetime)
         self.assertIsInstance(end2, datetime)
         self.assertTrue(start2 == end1)
-        self.assertTrue(start2 < end2)
+        self.assertTrue(start2 <= end2)
 
         range_dict = reduce(lambda a, z: find_range_dict(a, z),
                             search.to_dict()['query']['bool']['must'],
@@ -174,10 +174,10 @@ class ModelTests(TestCase):
 
         # and that it has the expected start and end times
         self.assertDictContainsSubset(
-            {'gt': start2.isoformat()},
+            {'gte': start2.isoformat()},
             range_dict['range'][self.saved_search.timestamp_field])
         self.assertDictContainsSubset(
-            {'lte': end2.isoformat()},
+            {'lt': end2.isoformat()},
             range_dict['range'][self.saved_search.timestamp_field])
 
         # doctype should not be set in the search if the SavedSearch doesn't
