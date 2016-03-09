@@ -3900,8 +3900,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
         });
     },
 
-    alertIcon: 'i.icon.alerts',
-
     instanceSpecificInit: function() {
         this.setModel();
         this.processOptions();
