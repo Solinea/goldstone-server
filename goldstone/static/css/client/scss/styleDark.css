@@ -471,7 +471,9 @@ naturally respect vertical placement for Japanese text.
 
 .tab-content .header-block { font-size: 20px; line-height: 48px; text-align: center; color: rgba(255, 255, 255, 0.5); margin: 0; background: #4f376e; }
 
-.subtab .tab-links, .list-content { padding: 0; list-style-type: none; overflow: hidden; margin: 0; }
+.subtab .tab-links { padding: 0; list-style-type: none; overflow: hidden; margin: 0; }
+
+.list-content { height: 93%; overflow: auto; }
 
 .subtab .tab-links li { width: 50%; background: #4f376e; float: left; font-size: 14px; text-transform: uppercase; text-align: center; line-height: 48px; color: rgba(255, 255, 255, 0.5); border-bottom: 4px solid transparent; cursor: pointer; }
 

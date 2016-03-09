@@ -657,12 +657,16 @@ naturally respect vertical placement for Japanese text.
     background: #4f376e;
 }
 
-.subtab .tab-links,
-.list-content {
+.subtab .tab-links {
     padding: 0;
     list-style-type: none;
     overflow: hidden;
     margin: 0;
+}
+
+.list-content {
+    height: 93%;
+    overflow: auto;
 }
 
 .subtab .tab-links li {
