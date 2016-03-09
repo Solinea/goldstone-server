@@ -94,6 +94,7 @@ LOGGING = {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'host': 'gslog',
             'port': 5517,
+            'formatter': 'default'
         },
     },
     'loggers': {
