@@ -2545,8 +2545,8 @@ class AlertDefinition(models.Model):
         }
 
         if kv_pairs['_search_hits'] > 0:
-            logger.info("%s alert %s to %s" %
-                        (kv_pairs['_alert_def_name'],start_time, end_time))
+            logger.debug("%s alert %s to %s" %
+                        (kv_pairs['_alert_def_name'], start_time, end_time))
             short = Template(self.short_template).render(kv_pairs)
             long = Template(self.long_template).render(kv_pairs)
             # create an alert and call all our producers with it

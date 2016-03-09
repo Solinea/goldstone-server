@@ -311,6 +311,3 @@ def service_status_check():
     # if we got here, let's update the search time range
     ss.update_recent_search_window(start, end)
     logger.info("Finished service status check")
-
-
-

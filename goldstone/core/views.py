@@ -601,4 +601,3 @@ class MonitoredServiceViewSet(ModelViewSet):
 
     def get_queryset(self):
         return self.query_model.objects.all()
-
