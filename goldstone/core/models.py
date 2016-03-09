@@ -32,6 +32,7 @@ from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
 from django.core.mail import send_mail
 from goldstone.keystone.utils import get_client as get_keystone_client
+from goldstone.models import es_indices
 from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
@@ -2491,7 +2492,7 @@ class SavedSearch(models.Model):
                                               'lt': end.isoformat()}})
         return s, start, end
 
-    def update_recent_search_window(self, start, end):
+     def update_recent_search_window(self, start, end):
         """trigger an update of the last_start and last_end fields and persist
         the changes.  Due to a bug in logstash, we're going to round these
         times down to the nearest second.  """
@@ -2500,6 +2501,25 @@ class SavedSearch(models.Model):
         self.last_end = end.replace(microsecond=0)
         self.save()
         return self.last_start, self.last_end
+
+    def field_has_raw(self, field):
+        """Return boolean indicating whether the field has a .raw version."""
+
+        conn = DailyIndexDocType._doc_type.using
+        index = es_indices(self.index_prefix)
+
+        try:
+            mapping = conn.indices.get_field_mapping(
+                field,
+                index,
+                self.doc_type,
+                include_defaults=True,
+                allow_no_indices=False)
+            return 'raw' in \
+                   mapping[mapping.keys()[-1]]['mappings'][self.doc_type][
+                       field]['mapping'][field]['fields']
+        except KeyError:
+            return False
 
     def __repr__(self):
         return "<SavedSearch: %s>" % self.uuid

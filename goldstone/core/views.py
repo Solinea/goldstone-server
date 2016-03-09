@@ -474,10 +474,34 @@ class SavedSearchViewSet(ModelViewSet):
 
         # Tell ElasticFilter to not add these query parameters to the
         # Elasticsearch query.
-        self.reserved_params = ['interval']            # pylint: disable=W0201
+        self.reserved_params = ['interval',  # pylint: disable=W0201
+                                'ordering']
 
         queryset = obj.search()
         queryset = self.filter_queryset(queryset)
+
+        # Default to descending sort on the timestamp_field if no ordering
+        # param is provided in the query.
+        if obj.timestamp_field is not None \
+                and 'ordering' not in self.request.query_params:
+            queryset = queryset.sort("-%s" % obj.timestamp_field)
+
+        # otherwise use any provided ordering parameter (only supports
+        # fieldname or -fieldname forms at the moment).  We'll try to look up
+        # a raw field if it has one.  If it doesn't, and it's a string, this
+        # will probably fail.  It may also fail for events since they don't
+        # have a common doc_type.
+        elif 'ordering' in self.request.query_params:
+            ordering_value = self.request.query_params['ordering']
+            if ordering_value.startswith("-"):
+                has_raw = obj.field_has_raw(ordering_value[1:])
+            else:
+                has_raw = obj.field_has_raw(ordering_value)
+
+            if has_raw:
+                ordering_value += ".raw"
+
+            queryset = queryset.sort(ordering_value)
 
         # if an interval parameter was provided, assume that it is meant to
         # be a change to the saved search data_histogram aggregation interval
