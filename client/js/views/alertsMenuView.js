@@ -93,9 +93,9 @@ AlertsMenuView = GoldstoneBaseView.extend({
         var result = [];
         var oneDay = (1000 * 60 * 60 * 24);
         _.each(alerts, function(alert) {
-            if (moment(alert.created).diff(now) <= oneDay) {
+            if (moment(now).diff(alert.created) <= oneDay) {
                 result.push(alert);
-            }
+            } 
         });
         return result;
     },
