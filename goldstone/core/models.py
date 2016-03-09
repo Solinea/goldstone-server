@@ -2492,7 +2492,7 @@ class SavedSearch(models.Model):
                                               'lt': end.isoformat()}})
         return s, start, end
 
-     def update_recent_search_window(self, start, end):
+    def update_recent_search_window(self, start, end):
         """trigger an update of the last_start and last_end fields and persist
         the changes.  Due to a bug in logstash, we're going to round these
         times down to the nearest second.  """

@@ -171,16 +171,11 @@ CELERY_QUEUES = (
 # of days are pruned from ES
 PRUNE_OLDER_THAN = 30
 
-EVERY_MIDNIGHT = crontab(minute='0', hour='0', day_of_week='*')
-
-# used to update the topology graph
-EVERY_5_MINUTES = crontab(minute='*/5')
-
-# used to update the CPU, Disk, Memory, and Spawns info
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
 
 # how often should alerts be checked
 EVERY_MINUTE = crontab(minute='*/1')
+EVERY_5_MINUTES = crontab(minute='*/5')
+EVERY_MIDNIGHT = crontab(minute='0', hour='0', day_of_week='*')
 
 CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
@@ -225,7 +220,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'service_status_check': {
         'task': 'goldstone.core.tasks.service_status_check',
-        'schedule': EVERY_MINUTE
+        'schedule': EVERY_5_MINUTES
     },
 }
 
