@@ -287,17 +287,10 @@
       protected: true
       hidden: false
       query: '{
-    "size": 0,
+   "size": 0,
    "query": {
       "bool": {
          "must": [
-            {
-               "range": {
-                  "@timestamp": {
-                     "gte": "now-5m"
-                  }
-               }
-            },
             {
                "range": {
                   "response_status": {
@@ -309,13 +302,172 @@
       }
    },
    "aggs": {
-      "per_component": {
+      "per_host": {
          "terms": {
-            "field": "component",
-            "min_doc_count": 0,
-            "exclude": ["unknown"]
+            "field": "host",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "per_component": {
+               "terms": {
+                  "field": "component",
+                  "min_doc_count": 0,
+                  "exclude": [
+                     "unknown"
+                  ]
+               }
+            }
          }
       }
    }
 }'
 
+  - model: core.SavedSearch
+    pk: fee36158-775d-45fc-9be1-d439495bc28d
+    fields:
+        name: service discovered
+        description: 'A new service was discovered and will be monitored'
+        owner: core
+        index_prefix: internal-*
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "service status update discovered",
+                     "slop": 10
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: 11eda171-eaf9-4cab-a8d1-a4ead440b282
+    fields:
+        name: service discovery
+        description: 'a new service has been discovered, and will be monitored'
+        search: fee36158-775d-45fc-9be1-d439495bc28d
+
+  - model: core.SavedSearch
+    pk: 1659bc1e-e2a8-4cca-bb34-a1d81396503f
+    fields:
+        name: service status DOWN
+        description: 'one or more services have changed status to DOWN'
+        owner: core
+        index_prefix: internal-*
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "service status update"
+                  }
+               }
+            },
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "to down"
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: 1cd6a68c-48bc-443f-b5ff-887b03f43334
+    fields:
+        name: service status DOWN
+        description: 'a service has changed status to DOWN'
+        search: 1659bc1e-e2a8-4cca-bb34-a1d81396503f
+
+  - model: core.SavedSearch
+    pk: 73473580-9333-467f-a0f0-0cc69a710bcb
+    fields:
+        name: service status UNKNOWN
+        description: 'one or more services have changed status to UNKNOWN'
+        owner: core
+        index_prefix: internal-*
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "service status update"
+                  }
+               }
+            },
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "to unknown"
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: e4e2bf1e-fab7-4556-84a8-dd3aaff19579
+    fields:
+        name: service status UNKNOWN
+        description: 'one or more services have changed status to UNKNOWN'
+        search: 73473580-9333-467f-a0f0-0cc69a710bcb
+
+  - model: core.SavedSearch
+    pk: de730aab-e0f9-40c7-81c0-4289ddb67e96
+    fields:
+        name: service status UP
+        description: 'one or more services have changed status to UP'
+        owner: core
+        index_prefix: internal-*
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "service status update"
+                  }
+               }
+            },
+            {
+               "match_phrase": {
+                  "message": {
+                     "query": "to up"
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: f053951a-2834-43e1-a5dc-a6faf36260ed
+    fields:
+        name: service status UP
+        description: 'one or more services have changed status to UP'
+        search: de730aab-e0f9-40c7-81c0-4289ddb67e96

@@ -2481,22 +2481,23 @@ class SavedSearch(models.Model):
         if self.timestamp_field is None:
             return self.search()
 
-        start = self.last_end
+        start = self.last_end.replace(microsecond=0)
 
-        end = arrow.utcnow().datetime
+        end = arrow.utcnow().datetime.replace(microsecond=0)
 
         s = self.search()\
             .query('range',
-                   ** {self.timestamp_field: {'gt': start.isoformat(),
-                                              'lte': end.isoformat()}})
+                   ** {self.timestamp_field: {'gte': start.isoformat(),
+                                              'lt': end.isoformat()}})
         return s, start, end
 
     def update_recent_search_window(self, start, end):
         """trigger an update of the last_start and last_end fields and persist
-        the changes"""
+        the changes.  Due to a bug in logstash, we're going to round these
+        times down to the nearest second.  """
 
-        self.last_start = start
-        self.last_end = end
+        self.last_start = start.replace(microsecond=0)
+        self.last_end = end.replace(microsecond=0)
         self.save()
         return self.last_start, self.last_end
 
@@ -2544,17 +2545,15 @@ class AlertDefinition(models.Model):
         }
 
         if kv_pairs['_search_hits'] > 0:
-
+            logger.info("%s alert %s to %s" %
+                        (kv_pairs['_alert_def_name'],start_time, end_time))
             short = Template(self.short_template).render(kv_pairs)
             long = Template(self.long_template).render(kv_pairs)
-
             # create an alert and call all our producers with it
             alert = Alert(short_message=short, long_message=long,
                           alert_def=self)
             alert.save()
-
             self.search.update_recent_search_window(start_time, end_time)
-
             # send the alert to all registered producers
             for producer in Producer.objects.filter(alert_def=self):
                 try:
@@ -2700,3 +2699,33 @@ class CADFEventDocType(DailyIndexDocType):
         :return: dict
         """
         return {"traits": e.as_dict()}
+
+
+class MonitoredService(models.Model):
+    """Model of a service that can be monitored.  The actual monitoring is done
+    somewhere else..."""
+
+    UP = 'UP'
+    DOWN = 'DOWN'
+    UNKNOWN = 'UNKNOWN'
+    MAINTENANCE = 'MAINTENANCE'
+    STATE_CHOICES = (
+        (UP, UP),
+        (DOWN, DOWN),
+        (UNKNOWN, UNKNOWN),
+        (MAINTENANCE, MAINTENANCE),
+    )
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    name = CharField(max_length=128, null=False, blank=False)
+
+    host = CharField(max_length=128, null=False, blank=False)
+
+    state = CharField(max_length=64, choices=STATE_CHOICES,
+                      default=UNKNOWN, null=False,
+                      blank=False)
+
+    created = CreationDateTimeField(editable=False, blank=False, null=False)
+
+    updated = ModificationDateTimeField(editable=True, blank=False, null=False)
