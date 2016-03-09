@@ -17,7 +17,6 @@ import socket
 
 import arrow
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
 
 
 class GoldstoneBaseException(Exception):
@@ -154,20 +153,3 @@ def partition_hostname(hostname):
     parts = hostname.partition('.')
     return dict(hostname=parts[0],
                 domainname=parts[2] if parts[1] == '.' else None)
-
-
-class DjangoOrTenantAdminPermission(BasePermission):
-    """
-    DRF permission class that only allows Django or Goldstone admin access
-    """
-
-    def has_permission(self, request, view):
-
-        user = request.user
-
-        # Checking is_authenticated filters out AnonymousUser.
-        if user.is_superuser or \
-           (user.is_authenticated() and user.tenant_admin):
-            return True
-        else:
-            return False

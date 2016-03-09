@@ -2504,6 +2504,9 @@ class SavedSearch(models.Model):
     def __repr__(self):
         return "<SavedSearch: %s>" % self.uuid
 
+    def __unicode__(self):
+        return "<SavedSearch: %s>" % self.uuid
+
 
 class AlertDefinition(models.Model):
     """The definition of alert conditions based on a SavedSearch."""
@@ -2568,6 +2571,9 @@ class AlertDefinition(models.Model):
     def __repr__(self):
         return "<AlertDefiniton: %s>" % self.uuid
 
+    def __unicode__(self):
+        return "<AlertDefiniton: %s>" % self.uuid
+
 
 class Alert(models.Model):
     """An alert derived from an AlertDefinition."""
@@ -2592,6 +2598,9 @@ class Alert(models.Model):
         ordering = ['-created']
 
     def __repr__(self):
+        return "<Alert: %s>" % self.uuid
+
+    def __unicode__(self):
         return "<Alert: %s>" % self.uuid
 
 
@@ -2628,6 +2637,9 @@ class Producer(PolymorphicModel):
     def __repr__(self):
         return "<Producer: %s>" % self.uuid
 
+    def __unicode__(self):
+        return "<Producer: %s>" % self.uuid
+
 
 class EmailProducer(Producer):
     """
@@ -2648,6 +2660,9 @@ class EmailProducer(Producer):
         return email_rv
 
     def __repr__(self):
+        return "<EmailProducer: %s>" % self.uuid
+
+    def __unicode__(self):
         return "<EmailProducer: %s>" % self.uuid
 
 
@@ -2732,3 +2747,9 @@ class MonitoredService(models.Model):
 
     class Meta:
         ordering = ['-updated']
+
+    def __repr__(self):
+        return "<MonitoredService: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<MonitoredService: %s>" % self.uuid
