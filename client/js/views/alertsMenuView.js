@@ -53,6 +53,10 @@ AlertsMenuView = GoldstoneBaseView.extend({
             self.renderAlerts();
         });
 
+        $('.tab-links').on('click', 'li', function() {
+            self.iconRemoveHighlight();
+        });
+
         this.$el.on('click', function() {
             self.iconRemoveHighlight();
         });
