@@ -50,12 +50,15 @@ class Migration(migrations.Migration):
             name='MonitoredService',
             fields=[
                 ('uuid', django_extensions.db.fields.UUIDField(serialize=False, editable=False, primary_key=True, blank=True)),
-                ('name', models.CharField(max_length=128)),
-                ('host', models.CharField(max_length=128)),
+                ('name', models.CharField(max_length=128, editable=False)),
+                ('host', models.CharField(max_length=128, editable=False)),
                 ('state', models.CharField(default=b'UNKNOWN', max_length=64, choices=[(b'UP', b'UP'), (b'DOWN', b'DOWN'), (b'UNKNOWN', b'UNKNOWN'), (b'MAINTENANCE', b'MAINTENANCE')])),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
                 ('updated', django_extensions.db.fields.ModificationDateTimeField(auto_now=True)),
             ],
+            options={
+                'ordering': ['-updated'],
+            },
         ),
         migrations.CreateModel(
             name='PolyResource',

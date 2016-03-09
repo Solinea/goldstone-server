@@ -2718,9 +2718,9 @@ class MonitoredService(models.Model):
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
 
-    name = CharField(max_length=128, null=False, blank=False)
+    name = CharField(max_length=128, null=False, blank=False, editable=False)
 
-    host = CharField(max_length=128, null=False, blank=False)
+    host = CharField(max_length=128, null=False, blank=False, editable=False)
 
     state = CharField(max_length=64, choices=STATE_CHOICES,
                       default=UNKNOWN, null=False,
@@ -2729,3 +2729,6 @@ class MonitoredService(models.Model):
     created = CreationDateTimeField(editable=False, blank=False, null=False)
 
     updated = ModificationDateTimeField(editable=True, blank=False, null=False)
+
+    class Meta:
+        ordering = ['-updated']

@@ -15,7 +15,7 @@
 import logging
 from rest_framework import serializers
 from goldstone.core.models import SavedSearch, Alert, \
-    AlertDefinition, Producer, EmailProducer
+    AlertDefinition, Producer, EmailProducer, MonitoredService
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -99,3 +99,12 @@ class EmailProducerSerializer(serializers.ModelSerializer):
         model = EmailProducer
         lookup_field = 'uuid'
         exclude = ['polymorphic_ctype']
+
+
+class MonitoredServiceSerializer(serializers.ModelSerializer):
+    """The serializer for MonitoredServices."""
+
+    class Meta:
+
+        model = MonitoredService
+        lookup_field = 'uuid'

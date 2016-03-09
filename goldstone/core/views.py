@@ -25,10 +25,10 @@ from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from goldstone.core.models import SavedSearch, Alert, PolyResource, \
-    AlertDefinition, Producer, EmailProducer
+    AlertDefinition, Producer, EmailProducer, MonitoredService
 from goldstone.core.serializers import SavedSearchSerializer, \
     AlertDefinitionSerializer, AlertSerializer, ProducerSerializer, \
-    EmailProducerSerializer
+    EmailProducerSerializer, MonitoredServiceSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
@@ -583,3 +583,22 @@ class EmailProducerViewSet(ModelViewSet):
 
     def get_queryset(self):
         return EmailProducer.objects.all()
+
+
+class MonitoredServiceViewSet(ModelViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MonitoredServiceSerializer
+    query_model = MonitoredService
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    filter_fields = ('name', 'host', 'state')
+    search_fields = ('name', 'host', 'state')
+    ordering_fields = ('name', 'host', 'state', 'created', 'updated')
+
+    def get_queryset(self):
+        return self.query_model.objects.all()
+
