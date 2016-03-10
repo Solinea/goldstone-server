@@ -89,7 +89,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             "oSearch": {
                 sSearch: self.cachedSearch
             },
-            "ordering": false,
+            "ordering": true,
             "processing": false,
             "paging": true,
             "scrollX": true,
@@ -143,21 +143,28 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // uncomment for ordering by column
+                    // ordering by column
+
                     /*
+                    columnLabelHash is now being dynamically generated
+                    before this standardAjaxOptions is returned.
+
                     var columnLabelHash = {
                         0: 'timestamp',
                         1: 'eventType',
-                        2: 'id',
-                        3: 'action',
-                        4: 'outcome'
+                        ... dynamically constructed
                     };
+                    */
+
                     var ascDec = {
                         asc: '',
                         'desc': '-'
                     };
-                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+
+                    if (this.columnLabelHash[sortByColumnNumber]) {
+                        settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + this.columnLabelHash[sortByColumnNumber];
+                    }
+
 
                 },
                 dataSrc: "results",
@@ -203,8 +210,36 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             standardAjaxOptions.deferLoading = self.cachedResults.recordsTotal;
         }
 
+        standardAjaxOptions.ajax.columnLabelHash = self.createHashFromArray(self.cachedHeadingArray);
+
+        // standardAjaxOptions.ajax.columnLabelHash = {
+        //     0: 'timestamp',
+        //     1: 'eventType',
+        //     2: 'id',
+        //     3: 'action',
+        //     4: 'outcome'
+        // };
+
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
+    },
+
+    createHashFromArray: function(arr) {
+        var result = {};
+
+        if (!arr) {
+            console.log('returning the default');
+            return {
+                0: 'timestamp'
+            };
+        }
+
+        _.each(arr, function(item, key) {
+            result[key] = item;
+        });
+
+        console.log(arr, result);
+        return result;
     },
 
     prepDataForViz: function(data) {
@@ -322,6 +357,12 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         _.each(keysWithName, function(item) {
             uniqueObjectKeys.unshift(item[0]);
         });
+
+        console.log('uniqueObjectKeys', uniqueObjectKeys);
+
+        // store the sorted list so it can be used to create a map for
+        // the column that is clicked for sorting
+        self.cachedHeadingArray = uniqueObjectKeys;
 
         // END SORT
 
