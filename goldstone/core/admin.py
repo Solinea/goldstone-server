@@ -15,11 +15,41 @@
 
 from django.contrib import admin
 from goldstone.core.models import SavedSearch, AlertDefinition, \
-    EmailProducer, Alert, MonitoredService, PolyResource
+    EmailProducer, Alert, MonitoredService, PolyResource, Producer
 
-admin.site.register(PolyResource)
-admin.site.register(SavedSearch)
-admin.site.register(AlertDefinition)
-admin.site.register(EmailProducer)
-admin.site.register(Alert)
-admin.site.register(MonitoredService)
+
+class PolyResourceAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'native_id', 'native_name')
+
+
+class SavedSearchAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'name', 'owner', 'protected', 'hidden',
+                    'index_prefix', 'doc_type', 'timestamp_field')
+
+
+class AlertAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'short_message', 'alert_def')
+
+
+class AlertDefinitionAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'name', 'enabled', 'search')
+
+
+class ProducerAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'alert_def')
+
+
+class EmailProducerAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'alert_def', 'sender', 'receiver')
+
+
+class MonitoredServiceAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'name', 'host', 'state', 'updated')
+
+admin.site.register(PolyResource, PolyResourceAdmin)
+admin.site.register(SavedSearch, SavedSearchAdmin)
+admin.site.register(AlertDefinition, AlertDefinitionAdmin)
+admin.site.register(Alert, AlertAdmin)
+admin.site.register(Producer, ProducerAdmin)
+admin.site.register(EmailProducer, EmailProducerAdmin)
+admin.site.register(MonitoredService, MonitoredServiceAdmin)
