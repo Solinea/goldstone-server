@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,8 +69,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     update: function() {
-        // this.currentTop = $(document).scrollTop();
-        // this.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
         this.oTable.ajax.reload();
     },
 
@@ -99,6 +97,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.hideSpinner();
+
                     // having the results of the last render that fit the
                     // current heading structure will allow to return it to 
                     // the table that is about to be destroyed and overwritten.
@@ -111,6 +110,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.currentTop = $(document).scrollTop();
                     self.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
 
+                    // call the url generation function that will
+                    // create the url string to replace the
+                    // datatables native url generation
                     self.collectionMixin.urlGenerator();
 
                     // extraction methods defined on dataTableBaseView
@@ -347,7 +349,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
         // strip object down to things in 'traits' and then
         // flatten object before returning it to the dataPrep function
-
         var result = data.map(function(record) {
             return record._source.traits;
         });
