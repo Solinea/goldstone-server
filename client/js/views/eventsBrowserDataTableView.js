@@ -69,9 +69,8 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     update: function() {
-        console.log('in upate');
-        this.currentTop = $(document).scrollTop();
-        this.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
+        // this.currentTop = $(document).scrollTop();
+        // this.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
         this.oTable.ajax.reload();
     },
 
@@ -100,7 +99,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             "ajax": {
                 beforeSend: function(obj, settings) {
                     self.hideSpinner();
-
                     // having the results of the last render that fit the
                     // current heading structure will allow to return it to 
                     // the table that is about to be destroyed and overwritten.
@@ -170,6 +168,10 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     };
 
                     if (this.columnLabelHash[sortByColumnNumber]) {
+
+                        // store the columnHeadingByName of the actual sort column that was clicked
+                        self.cachedColumnHeadingByName = this.columnLabelHash[sortByColumnNumber];
+
                         settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + this.columnLabelHash[sortByColumnNumber];
                     }
 
@@ -227,22 +229,22 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // set up the dynamic column label ordering scheme
         standardAjaxOptions.ajax.columnLabelHash = self.createHashFromArray(self.cachedHeadingArray);
 
-
         // set up the proper column heading ordering arrow
-        if (this.cachedSortByColumnNumber && this.cachedSortAscDesc) {
-            console.log('this.cachedHeadingArray.len', this.cachedHeadingArray.length);
-            console.log('this.cached sort by number and ascdesc', this.cachedSortByColumnNumber, this.cachedSortAscDesc);
-            console.log('is the sort column greater than the number of columns available?');
-            console.log(this.cachedHeadingArray.length, this.cachedSortByColumnNumber);
-            if (this.cachedSortByColumnNumber >= this.cachedHeadingArray.length) {
-                console.log('this.cachedSortByColumnNumber = this.cachedHeadingArray.length - 1: ');
-                this.cachedSortByColumnNumber = Math.max(this.cachedHeadingArray.length - 1, 0);
-            }
-            standardAjaxOptions.order = [
-                [this.cachedSortByColumnNumber, this.cachedSortAscDesc]
-            ];
-        }
+        if ((this.cachedSortByColumnNumber !== undefined) && this.cachedSortAscDesc) {
+            
+            // find the clicked column label in the hash
+            var newIndexOfSortColumn = _.findKey(standardAjaxOptions.ajax.columnLabelHash, function(item) {
+                return item === self.cachedColumnHeadingByName;
+            });
 
+            // if the sort column is no longer existent, don't 
+            // impose a sort order on the table 
+            if(newIndexOfSortColumn !== undefined) {
+                standardAjaxOptions.order = [
+                    [newIndexOfSortColumn, this.cachedSortAscDesc]
+                ];
+            }
+        }
 
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
@@ -252,9 +254,8 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         var result = {};
 
         if (!arr) {
-            console.log('returning the default');
             return {
-                0: 'timestamp'
+                0: 'eventTime'
             };
         }
 
@@ -262,7 +263,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             result[key] = item;
         });
 
-        console.log(arr, result);
         return result;
     },
 
@@ -382,7 +382,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             uniqueObjectKeys.unshift(item[0]);
         });
 
-        console.log('uniqueObjectKeys', uniqueObjectKeys);
 
         // store the sorted list so it can be used to create a map for
         // the column that is clicked for sorting
