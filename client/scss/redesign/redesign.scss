@@ -212,6 +212,8 @@ h3.popover-title {
     margin: 0;
     padding: 0 0 5px;
     background: #fafafa;
+    height: 400px;
+    overflow: auto;
 }
 
 .service-status-table li {
@@ -230,15 +232,20 @@ h3.popover-title {
     background: #424242;
 }
 
-.service-status-table .service {
-    width: 60%;
+.service-status-table .host {
+    width: 35%;
     float: left;
 }
 
-.service-status-table .sf {
-    width: 36%;
+.service-status-table .service {
+    width: 33%;
     float: left;
-    min-width: 25px;
+}
+
+.service-status-table .service-status {
+    width: auto;
+    float: left;
+    margin-left: 6%;
 }
 
 .online {

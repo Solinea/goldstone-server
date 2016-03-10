@@ -294,7 +294,7 @@ h3.popover-title { margin: 0 0 5px; }
 
 .single-block { width: 30.76%; float: left; }
 
-.service-status-table { list-style-type: none; margin: 0; padding: 0 0 5px; background: #fafafa; }
+.service-status-table { list-style-type: none; margin: 0; padding: 0 0 5px; background: #fafafa; height: 400px; overflow: auto; }
 
 .service-status-table li { padding: 1.56em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
 
@@ -302,9 +302,11 @@ h3.popover-title { margin: 0 0 5px; }
 
 .service-status-table .table-header { font-size: 16px; color: #ffffff; background: #424242; }
 
-.service-status-table .service { width: 60%; float: left; }
+.service-status-table .host { width: 35%; float: left; }
 
-.service-status-table .sf { width: 36%; float: left; min-width: 25px; }
+.service-status-table .service { width: 33%; float: left; }
+
+.service-status-table .service-status { width: auto; float: left; margin-left: 6%; }
 
 .online { background: url(../../../images/icon-online@2x.png) no-repeat left top; }
 
