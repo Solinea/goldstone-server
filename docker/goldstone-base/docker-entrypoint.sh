@@ -13,16 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. ${ENVDIR}/bin/activate 
-echo ". ${ENVDIR}/bin/activate" > .bashrc
+if [[ $GS_LOCAL_DEV != "true" ]] ; then
+    . ${ENVDIR}/bin/activate 
+    echo ". ${ENVDIR}/bin/activate" > .bashrc
+fi
 
 GS_DEV_ENV=${GS_DEV_ENV:-false}
+GS_DEV_DJANGO_PORT=${GS_DEV_DJANGO_PORT:-8000}
+GS_DB_HOST=${GS_DB_HOST:-gsdb}
+GS_START_CELERY=${GS_START_CELERY:-true}
+CELERY_BG=${CELERY_BG:-true}
+GS_START_RUNSERVER=${GS_START_RUNSERVER:-${GS_DEV_ENV}}
+GS_START_GUNICORN=${GS_START_GUNICORN:-true}
 
 export PYTHONPATH=$PYTHONPATH:`pwd`
 
 #test if postgres service is up
 PORT=5432
-HOST=gsdb
+HOST=${GS_DB_HOST}
 
 status="DOWN"
 i="0"
@@ -50,25 +58,37 @@ if [ ! -f /var/tmp/goldstone-fixtured ] ; then
 fi
 
 # gather up the static files at container start if this is a dev environment
-if [[ $GS_DEV_ENV == "true" ]] ; then
+if [[ $GS_DEV_ENV != "false" ]] ; then
     python manage.py collectstatic  --noinput
 fi
 
 # only do this one time
-if [ ! -f /var/tmp/post_install ] ; then
+if [ ! -f /var/tmp/goldstone-postinstall ] ; then
     python post_install.py
-    touch /var/tmp/post_install
+    touch /var/tmp/goldstone-postinstall
 fi
 
-echo Starting Celery.
-exec celery worker --app goldstone --queues default --beat --purge \
-    --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
-    --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+if [[ $GS_START_CELERY == 'true' ]] ; then
+    if [[ ${CELERY_BG} == 'true' ]] ; then
+        echo Starting Celery in the background.
+        exec celery worker --app goldstone --queues default --beat --purge \
+            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
+            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
+    else
+        echo Starting Celery in the foreground.
+        exec celery worker --app goldstone --queues default --beat --purge \
+            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
+            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
+    fi
+fi
 
-if [[ $GS_DEV_ENV == "true" ]] ; then
+if [[ $GS_START_RUNSERVER == 'true' && $GS_DEV_ENV == 'true' ]] ; then
     echo "Starting Django server"
-    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} 0.0.0.0:8000 "$@"
-else
+    exec python manage.py runserver --settings=${DJANGO_SETTINGS_MODULE} 0.0.0.0:${GS_DEV_DJANGO_PORT} "$@"
+fi
+
+
+if [[ $GS_START_GUNICORN == 'true' && $GS_DEV_ENV == 'false' ]] ; then
     echo Starting Gunicorn.
     exec gunicorn ${GUNICORN_RELOAD} \
         --env DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} \

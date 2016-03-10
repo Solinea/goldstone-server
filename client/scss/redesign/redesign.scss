@@ -393,11 +393,11 @@ h3.popover-title {
     height: 100%;
     background: #ffffff;
     /*width:64px;
-	transition:all 0.3s ease;
-	-webkit-transition:all 0.3s ease;
-	-ms-transition:all 0.3s ease;
-	-moz-transition:all 0.3s ease;
-	-o-transition:all 0.3s ease;*/
+    transition:all 0.3s ease;
+    -webkit-transition:all 0.3s ease;
+    -ms-transition:all 0.3s ease;
+    -moz-transition:all 0.3s ease;
+    -o-transition:all 0.3s ease;*/
     z-index: 9999;
 }
 
@@ -425,7 +425,7 @@ h3.popover-title {
     a {
         text-decoration: none;
         color: #333;
-    }    
+    }
 }
 
 a.logo-header {
@@ -440,10 +440,10 @@ a.logo-header {
     position: relative;
     left: 0;
     /*transition:all 0.3s ease;
-	-webkit-transition:all 0.3s ease;
-	-ms-transition:all 0.3s ease;
-	-moz-transition:all 0.3s ease;
-	-o-transition:all 0.3s ease;*/
+    -webkit-transition:all 0.3s ease;
+    -ms-transition:all 0.3s ease;
+    -moz-transition:all 0.3s ease;
+    -o-transition:all 0.3s ease;*/
 }
 
 .sidebar.open {
@@ -453,7 +453,7 @@ a.logo-header {
 .btn-grp li {
     border-left: 4px solid transparent;
     height: 48px;
-    white-space: nowrap;
+    white-space: normal;
     cursor: pointer;
 }
 
@@ -475,6 +475,10 @@ a.logo-header {
 
 .btn-grp li.active {
     background: #4f376e;
+}
+
+.btn-grp .alerts-tab.alert-active{
+    background: #d50612;
 }
 
 .btn-grp li.active:hover {
@@ -597,6 +601,7 @@ a.logo-header {
     display: none;
 }
 
+
 /*
 disabling overwriting of bootstrap tooltips which
 naturally respect vertical placement for Japanese text.
@@ -652,12 +657,16 @@ naturally respect vertical placement for Japanese text.
     background: #4f376e;
 }
 
-.subtab .tab-links,
-.list-content {
+.subtab .tab-links {
     padding: 0;
     list-style-type: none;
     overflow: hidden;
     margin: 0;
+}
+
+.list-content {
+    height: 93%;
+    overflow: auto;
 }
 
 .subtab .tab-links li {
@@ -683,14 +692,14 @@ naturally respect vertical placement for Japanese text.
     color: #000;
     display: block;
     margin-bottom: 4px;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .list-content .time {
     font-size: 12px;
     color: #616161;
     display: block;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .list-content li {
@@ -727,12 +736,8 @@ naturally respect vertical placement for Japanese text.
     display: none;
 }
 
-.sub-tab-content .tabs {
+.all-tab-content {
     display: none;
-}
-
-.sub-tab-content .tabs:first-child {
-    display: block;
 }
 
 ::-webkit-input-placeholder {

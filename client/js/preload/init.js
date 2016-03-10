@@ -94,11 +94,22 @@ goldstone.init = function() {
                 [300, 'refresh 5m'],
                 [-1, 'refresh off']
             ],
-            selectedLookback: 15,
+            selectedLookback: 60,
             selectedRefresh: 30
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+
+    // start the population of the sidebar alerts menu
+    var alertsMenuCollection = new AlertsMenuCollection({
+        urlBase: '/core/alert/'
+    });
+
+    goldstone.alertsMenu = new AlertsMenuView({
+        collection: alertsMenuCollection,
+        el: '.alert-icon-placeholder'
+    });
 
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
@@ -107,6 +118,5 @@ goldstone.init = function() {
 
     // start the backbone router that will handle /# calls
     Backbone.history.start();
-
 
 };

@@ -274,6 +274,11 @@ msgstr ""
 
 #: base.html
 #. alerts menu column header for unread alerts
+msgid "Recent"
+msgstr ""
+
+#: base.html
+#. alerts menu column header for unread alerts
 msgid "Unread"
 msgstr ""
 

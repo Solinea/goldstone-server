@@ -89,20 +89,27 @@ LOGGING = {
             'filename': '/tmp/goldstone.log',
             'formatter': 'default'
         },
+        'graypy': {
+            'class': 'graypy.GELFHandler',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'host': 'gslog',
+            'port': 5517,
+            'formatter': 'default'
+        },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['console'],
+            'handlers': ['console', 'graypy'],
             'propagate': False,
             'level': 'INFO',
         },
         'elasticsearch': {
             'level': 'WARN',
-            'handlers': ['console']
+            'handlers': ['console', 'graypy']
         },
         'goldstone': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console', 'graypy'],
         },
     },
 }

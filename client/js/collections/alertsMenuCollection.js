@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,16 @@
 
 // define collection and link to model
 
-var ServiceStatusCollection = GoldstoneBaseCollection.extend({
-    // Overwriting. Additinal pages not needed.
-    checkForAdditionalPages: function(data) {
-        return true;
+var AlertsMenuCollection = GoldstoneBaseCollection.extend({
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.urlGenerator();
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '?page_size=' + n;
     }
+
 });

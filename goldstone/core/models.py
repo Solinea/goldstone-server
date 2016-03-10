@@ -16,10 +16,13 @@
 import logging
 import sys
 import arrow
+from django.utils import timezone
+from jinja2 import Template
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import CharField, IntegerField
+from django.db.models import CharField, IntegerField, BigIntegerField, \
+    ForeignKey, DecimalField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from elasticsearch_dsl import String, Date, Integer, A, Nested, Search
@@ -29,10 +32,13 @@ from polymorphic import PolymorphicModel
 from goldstone.drfes.new_models import DailyIndexDocType
 from django.core.mail import send_mail
 from goldstone.keystone.utils import get_client as get_keystone_client
+from goldstone.models import es_indices
 from goldstone.nova.utils import get_client as get_nova_client
 from goldstone.cinder.utils import get_client as get_cinder_client
 from goldstone.glance.utils import get_client as get_glance_client
 from goldstone.neutron.utils import get_client as get_neutron_client
+from goldstone.user.models import User
+from goldstone.utils import now_micro_ts
 
 logger = logging.getLogger(__name__)
 
@@ -2405,23 +2411,46 @@ class SavedSearch(models.Model):
      be executed."""
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
+
     name = models.CharField(max_length=64)
+
     owner = models.CharField(max_length=64)
-    description = models.CharField(max_length=1024, blank=True, default='')
+
+    description = models.CharField(max_length=1024, blank=True, null=True)
+
     query = models.TextField(help_text='JSON Elasticsearch query body')
+
     protected = models.BooleanField(default=False,
                                     help_text='True if this is system-defined')
+
     hidden = models.BooleanField(blank=True, default=False,
                                  help_text='True if this search should not be'
                                            'presented via the view')
+
     index_prefix = models.CharField(max_length=64)
+
     doc_type = models.CharField(max_length=64, blank=True, null=True,
                                 default=None)
+
     timestamp_field = models.CharField(max_length=64, null=True)
-    last_start = models.DateTimeField(blank=True, null=True)
-    last_end = models.DateTimeField(blank=True, null=True)
+
+    # last_start and last_end are maintained via the
+    # update_recent_search_window method.  they can be used to make a series
+    # of calls that cover a contiguous time window (such as for dumping
+    # data or checking for alerts periodically).
+    # target_interval can be used to trigger a recurring search based on an ES
+    # interval specification such as 5m or 1d.  A celery task that processes
+    # SavedSearches can choose to trigger only if now - interval >= last_end.
+    # BEWARE of multiple tasks using these values since they might step on
+    # each other.  In the long run, these should be refactored into something
+    # a little more protected from side effects by other tasks.  Possibly a
+    # SearchSchedule type with a FK relationship to the search.
+    last_start = models.DateTimeField(default=timezone.now)
+    last_end = models.DateTimeField(default=timezone.now)
     target_interval = models.IntegerField(default=0)
+
     created = CreationDateTimeField(editable=False, blank=True, null=True)
+
     updated = ModificationDateTimeField(editable=True, blank=True, null=True)
 
     class Meta:               # pylint: disable=C0111,W0232,C1001
@@ -2453,32 +2482,208 @@ class SavedSearch(models.Model):
         if self.timestamp_field is None:
             return self.search()
 
-        # if we haven't run this before, let's provide data from when the
-        # search was created
-        if self.last_end is None and self.created is None:
-            # this is probably a search primed from fixtures, let's set a
-            # reasonable start date of now.
-            start = arrow.utcnow().datetime
-        elif self.last_end is None:
-            # we have a creation time, so let's use that
-            start = self.created
-        else:
-            # we can use the end time of the last successful range
-            start = self.last_end
+        start = self.last_end.replace(microsecond=0)
 
-        end = arrow.utcnow().datetime
+        end = arrow.utcnow().datetime.replace(microsecond=0)
 
         s = self.search()\
             .query('range',
-                   ** {self.timestamp_field: {'gt': start.isoformat(),
-                                              'lte': end.isoformat()}})
+                   ** {self.timestamp_field: {'gte': start.isoformat(),
+                                              'lt': end.isoformat()}})
         return s, start, end
 
-    def __unicode__(self):
-        """Return a useful string."""
+    def update_recent_search_window(self, start, end):
+        """trigger an update of the last_start and last_end fields and persist
+        the changes.  Due to a bug in logstash, we're going to round these
+        times down to the nearest second.  """
 
-        return "%s owned by %s (%s)" % \
-            (self.name, self.owner, self.uuid)
+        self.last_start = start.replace(microsecond=0)
+        self.last_end = end.replace(microsecond=0)
+        self.save()
+        return self.last_start, self.last_end
+
+    def field_has_raw(self, field):
+        """Return boolean indicating whether the field has a .raw version."""
+
+        conn = DailyIndexDocType._doc_type.using
+        index = es_indices(self.index_prefix)
+
+        try:
+            mapping = conn.indices.get_field_mapping(
+                field,
+                index,
+                self.doc_type,
+                include_defaults=True,
+                allow_no_indices=False)
+            return 'raw' in \
+                   mapping[mapping.keys()[-1]]['mappings'][self.doc_type][
+                       field]['mapping'][field]['fields']
+        except KeyError:
+            return False
+
+    def __repr__(self):
+        return "<SavedSearch: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<SavedSearch: %s>" % self.uuid
+
+
+class AlertDefinition(models.Model):
+    """The definition of alert conditions based on a SavedSearch."""
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    name = models.CharField(max_length=64)
+
+    description = models.CharField(max_length=1024, blank=True, null=True)
+
+    short_template = models.TextField(
+        default='Alert: \'{{_alert_def_name}}\' triggered at {{_end_time}}')
+
+    long_template = models.TextField(
+        default='There were {{_search_hits}} instances of '
+                '\'{{_alert_def_name}}\' from {{_start_time}} to '
+                '{{_end_time}}.\nAlert Definition: {{_alert_def_id}}')
+
+    enabled = models.BooleanField(default=True)
+
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    search = ForeignKey(SavedSearch, editable=False)
+
+    class Meta:
+        ordering = ['-created']
+
+    def evaluate(self, search_result, start_time, end_time):
+        """Determine if we need to trigger an alert"""
+
+        kv_pairs = {
+            '_alert_def_name': self.name,
+            '_search_hits': search_result['hits']['total'],
+            '_start_time': start_time,
+            '_end_time': end_time,
+            '_alert_def_id': self.uuid
+        }
+
+        if kv_pairs['_search_hits'] > 0:
+            logger.debug("%s alert %s to %s" %
+                         (kv_pairs['_alert_def_name'], start_time, end_time))
+            short = Template(self.short_template).render(kv_pairs)
+            long = Template(self.long_template).render(kv_pairs)
+            # create an alert and call all our producers with it
+            alert = Alert(short_message=short, long_message=long,
+                          alert_def=self)
+            alert.save()
+            self.search.update_recent_search_window(start_time, end_time)
+            # send the alert to all registered producers
+            for producer in Producer.objects.filter(alert_def=self):
+                try:
+                    producer.produce(alert)
+                except Exception as e:
+                    logger.exception(
+                        "failed to send alert to %s" % producer.receiver)
+                    continue
+        else:
+            self.search.update_recent_search_window(start_time, end_time)
+
+    def __repr__(self):
+        return "<AlertDefiniton: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<AlertDefiniton: %s>" % self.uuid
+
+
+class Alert(models.Model):
+    """An alert derived from an AlertDefinition."""
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    short_message = models.TextField()
+
+    long_message = models.TextField()
+
+    alert_def = ForeignKey(AlertDefinition, editable=False,
+                           on_delete=models.PROTECT)
+
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    created_ts = DecimalField(max_digits=13, decimal_places=0,
+                              editable=False, default=now_micro_ts)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created']
+
+    def __repr__(self):
+        return "<Alert: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<Alert: %s>" % self.uuid
+
+
+class Producer(PolymorphicModel):
+    """
+        Generic interface class for an alert producer. This contains generic
+        producer related information such as sender, receiver names, id's,
+        host, auth-params etc
+
+        Specific types like email, slack, HTTP-POST etc inherit from this
+        class with specific connection attributes
+    """
+
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
+
+    alert_def = models.ForeignKey(AlertDefinition)
+
+    created = CreationDateTimeField(editable=False, blank=True, null=True)
+
+    updated = ModificationDateTimeField(editable=True, blank=True, null=True)
+
+    # This doesn't allow Producer.objects.all() calls.  Beware ye who
+    # navigate these waters.
+    # class Meta:
+    #    abstract = True
+
+    class Meta:
+        ordering = ['-created']
+
+    @classmethod
+    def produce(self, alert):
+        raise NotImplementedError("Producer subclass must implement send.")
+
+    def __repr__(self):
+        return "<Producer: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<Producer: %s>" % self.uuid
+
+
+class EmailProducer(Producer):
+    """
+        Specific interface class to prepare and send an email.
+        Class gets all of its email contents from the parent producer class.
+        This class only contains methods specific to a mailing interface.
+    """
+
+    sender = models.EmailField(max_length=128, default="root@localhost")
+
+    receiver = models.EmailField(max_length=128, blank=False, null=False)
+
+    def produce(self, alert):
+
+        email_rv = send_mail(alert.short_message, alert.long_message,
+                             self.sender, [self.receiver],
+                             fail_silently=False)
+        return email_rv
+
+    def __repr__(self):
+        return "<EmailProducer: %s>" % self.uuid
+
+    def __unicode__(self):
+        return "<EmailProducer: %s>" % self.uuid
 
 
 class CADFEventDocType(DailyIndexDocType):
@@ -2531,97 +2736,40 @@ class CADFEventDocType(DailyIndexDocType):
         return {"traits": e.as_dict()}
 
 
-class AlertSearch(SavedSearch):
-    """
-        Model for AlertSearches, a subclass of SavedSearch that has an alert
-        notification configured to be sent out to one or more recipients.
+class MonitoredService(models.Model):
+    """Model of a service that can be monitored.  The actual monitoring is done
+    somewhere else..."""
 
-    """
-
-    class Meta:               # pylint: disable=C0111,W0232,C1001
-
-        verbose_name_plural = "saved searches with alerts"
-
-    def build_alert_template(self, hits):
-        msg_title_template = 'Alert : ' + str(self.name) + \
-                             ' triggered with ' + str(hits) +\
-                             ' hits in the last ' + str(self.target_interval) +\
-                             ' minutes.'
-
-        msg_body_template = 'There were ' + str(hits) + \
-                            ' occurrences of ' + str(self.name) +\
-                            ' in the last ' + str(self.target_interval) +\
-                            ' minutes.' + '\n' +\
-                            'This query was last updated at : ' +\
-                            str(self.updated) + '\n' +\
-                            'This query last ran from : ' +\
-                            str(self.last_start) + ' to : ' +\
-                            str(self.last_end)
-        msg_params_dict = {'title': msg_title_template,
-                           'body': msg_body_template}
-        return msg_params_dict
-
-
-class Alert(models.Model):
-    """
-        Create an alert instance object. This contains the fleshed-out
-        alert message which will be passed down to the producer interface
-        to be sent out.
-
-        This does not contain msg-params for actually sending out this alert.
-        For those details, refer to class Producer.
-    """
+    UP = 'UP'
+    DOWN = 'DOWN'
+    UNKNOWN = 'UNKNOWN'
+    MAINTENANCE = 'MAINTENANCE'
+    STATE_CHOICES = (
+        (UP, UP),
+        (DOWN, DOWN),
+        (UNKNOWN, UNKNOWN),
+        (MAINTENANCE, MAINTENANCE),
+    )
 
     uuid = UUIDField(version=4, auto=True, primary_key=True)
-    query = models.ForeignKey(AlertSearch)
-    # alert assignee vs alert receiver, can be a person vs mailing list
-    owner = models.CharField(max_length=64, default='goldstone',
-                             help_text='alert assignee, individual entity')
 
-    msg_title = models.CharField(max_length=256, default='Alert notification')
-    msg_body = models.CharField(max_length=1024,
-                                default='This is an alert notification')
+    name = CharField(max_length=128, null=False, blank=False, editable=False)
+
+    host = CharField(max_length=128, null=False, blank=False, editable=False)
+
+    state = CharField(max_length=64, choices=STATE_CHOICES,
+                      default=UNKNOWN, null=False,
+                      blank=False)
+
     created = CreationDateTimeField(editable=False, blank=False, null=False)
 
-    def __unicode__(self):
-        """Return a useful string."""
-
-        return "%s (%s)" % \
-            (self.msg_title, self.uuid)
-
-
-class Producer(models.Model):
-    """
-        Generic interface class for an alert producer. This contains generic
-        producer related information such as sender, receiver names, id's,
-        host, auth-params etc
-
-        Specific types like email, slack, HTTP-POST etc inherit from this
-        class with specific connection attributes
-    """
-    query = models.ForeignKey(AlertSearch)
+    updated = ModificationDateTimeField(editable=True, blank=False, null=False)
 
     class Meta:
-        abstract = True
+        ordering = ['-updated']
 
-    @classmethod
-    def send(self, alert):
-        raise NotImplementedError("Producer must implement send.")
+    def __repr__(self):
+        return "<MonitoredService: %s>" % self.uuid
 
-
-class EmailProducer(Producer):
-    """
-        Specific interface class to prepare and send an email.
-        Class gets all of its email contents from the parent producer class.
-        This class only contains methods specific to a mailing interface.
-    """
-
-    sender = models.CharField(max_length=64, default=settings.EMAIL_HOST_USER)
-    receiver = models.EmailField(max_length=128, blank=False)
-
-    def send(self, alert):
-
-        email_rv = send_mail(alert.msg_title, alert.msg_body,
-                             str(self.sender), list(self.receiver),
-                             fail_silently=False)
-        return email_rv
+    def __unicode__(self):
+        return "<MonitoredService: %s>" % self.uuid

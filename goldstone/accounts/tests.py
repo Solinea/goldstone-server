@@ -24,7 +24,8 @@ from goldstone.test_utils import Setup, create_and_login, login, \
 
 # Http response content.
 CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
-CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
+CONTENT_UNIQUE_USERNAME = 'A user with that username already exists.'
+
 
 # URLs used by this module.
 REGISTRATION_URL = "/accounts/register/"
@@ -119,7 +120,7 @@ class Register(Setup):
 
         """
 
-        USERNAME = "Debra"
+        USERNAME = "user1"
 
         # Assemble the registration payload
         payload = {"username": USERNAME, "password": "x"}
@@ -138,9 +139,7 @@ class Register(Setup):
         response_content = json.loads(response.content)
         self.assertEqual(response_content["username"], USERNAME)
         self.assertIsInstance(response_content["auth_token"], basestring)
-        self.assertEquals(len(response_content), 3)
         self.assertEqual(response_content["email"], email if email else '')
-
         self.assertEqual(get_user_model().objects.count(), 1)
         self.assertEqual(get_user_model().objects.all()[0].username,
                          USERNAME)
@@ -148,7 +147,7 @@ class Register(Setup):
     def test_post_with_email(self):
         """Register a user, with an email address."""
 
-        self.test_post("dirk@diggler.com")
+        self.test_post("donotreply@dontdoit.xyz")
 
 
 class Login(Setup):

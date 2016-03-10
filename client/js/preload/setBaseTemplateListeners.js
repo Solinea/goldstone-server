@@ -60,16 +60,17 @@ goldstone.setBaseTemplateListeners = function() {
     });
 
     $('.tab-links li').click(function() {
-
         // for tabs inside side alerts menu
-        if ($(this).text() === 'Unread') {
-            $('.active').removeClass('active');
+        if ($(this).text() === 'Recent') {
+            $(this).parent().find('.active').removeClass('active');
             $(this).addClass('active');
-            $(this).parent().next().show();
+            $('.sub-tab-content').show();
+            $('.all-tab-content').hide();
         } else {
-            $('.active').removeClass('active');
+            $(this).parent().find('.active').removeClass('active');
             $(this).addClass('active');
-            $(this).parent().next().hide();
+            $('.sub-tab-content').hide();
+            $('.all-tab-content').show();
         }
     });
 

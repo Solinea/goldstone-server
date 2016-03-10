@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// this chart provides the base methods that
-// are extended into almost all other Views
-
 var ServiceStatusView = GoldstoneBaseView.extend({
 
     setModel: function() {
@@ -68,15 +65,15 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         unknown = grey
         */
 
-        // screen out non-numbers
-        if (+value !== value) {
-            return 'unknown';
-        }
-        if (value > 0) {
+        if (value === 'UP') {
             return 'online';
-        } else {
+        }
+        if (value === 'DOWN') {
             return 'offline';
         }
+
+        // otherwise
+        return 'unknown';
     },
 
     update: function() {
@@ -86,24 +83,30 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         var data = this.collection.toJSON();
         this.hideSpinner();
 
-        // append 'no data returned if so'
-        // or else hide spinner
-        this.checkReturnedDataSet(data);
+        // if no data returned, append 'no data' and hide spinner
+        // or else just hide spinner
+        if (!this.checkReturnedDataSet(data[0].results)) {
+            return;
+        }
 
         // otherwise extract statuses from buckets
-        data = data[0].aggregations.per_component.buckets;
+        data = data[0].results;
 
         /*
         {
-            doc_count: 75
-            key: "neutron"
+          "uuid": "59ee1623-9b48-4ce1-9cad-153c75cab784",
+          "name": "cinder",
+          "host": "rdo-kilo",
+          "state": "DOWN",
+          "created": "2016-03-09T18:46:00.336399Z",
+          "updated": "2016-03-09T18:47:00.347864Z"
         }
         */
 
         // set model attributes based on hash of statuses
         _.each(data, function(bucket) {
-            var value = self.convertStatus(bucket.doc_count);
-            self.model.set(bucket.key, value);
+            var value = self.convertStatus(bucket.state);
+            self.model.set(bucket.name, value);
         });
 
     },
@@ -140,7 +143,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
         '</li>'),
 
-        template: _.template('' +
+    template: _.template('' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<ul class="service-status-table shadow-block">' +
         '<li class="table-header">' +

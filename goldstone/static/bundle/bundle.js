@@ -175,16 +175,17 @@ goldstone.setBaseTemplateListeners = function() {
     });
 
     $('.tab-links li').click(function() {
-
         // for tabs inside side alerts menu
-        if ($(this).text() === 'Unread') {
-            $('.active').removeClass('active');
+        if ($(this).text() === 'Recent') {
+            $(this).parent().find('.active').removeClass('active');
             $(this).addClass('active');
-            $(this).parent().next().show();
+            $('.sub-tab-content').show();
+            $('.all-tab-content').hide();
         } else {
-            $('.active').removeClass('active');
+            $(this).parent().find('.active').removeClass('active');
             $(this).addClass('active');
-            $(this).parent().next().hide();
+            $('.sub-tab-content').hide();
+            $('.all-tab-content').show();
         }
     });
 
@@ -513,6 +514,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             return false;
         } else {
             this.clearDataErrorMessage();
+            return true;
         }
     },
 
@@ -2805,6 +2807,38 @@ var InfoButtonText = GoldstoneBaseModel.extend({
 });
 ;
 /**
+ * Copyright 2016 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+var AlertsMenuCollection = GoldstoneBaseCollection.extend({
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.urlGenerator();
+    },
+
+    addPageSize: function(n) {
+        n = n || 1000;
+        return '?page_size=' + n;
+    }
+
+});
+;
+/**
  * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3555,39 +3589,10 @@ var SearchObserverCollection = GoldstoneBaseCollection.extend({
 // define collection and link to model
 
 var ServiceStatusCollection = GoldstoneBaseCollection.extend({
-
-    instanceSpecificInit: function() {
-        this.processOptions();
-        this.urlGenerator();
-    },
-
-    urlGenerator: function(data) {
-        var self = this;
-
-        // the call to /core/saved_seaarch/?name=service+status
-        // returns the uuid required for the service aggregations
-
-        $.get(this.urlBase + '?name=service+status', function() {})
-            .done(function(data) {
-                var searchUuid = self.constructAggregationUrl(data.results[0].uuid);
-                self.url = searchUuid;
-
-                // fetch return triggers 'sync' which triggers
-                // update in the client with the returned data
-                self.fetch();
-            });
-    },
-
-    constructAggregationUrl: function(uuid) {
-        return this.urlBase + uuid + '/results/';
-    },
-
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
     }
-
-
 });
 ;
 /**
@@ -3841,6 +3846,135 @@ var AddonMenuView = GoldstoneBaseView.extend({
         '</a>'
     )
 
+});
+;
+/**
+ * Copyright 2016 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+AlertsMenuView = GoldstoneBaseView.extend({
+
+    setModel: function() {
+        this.model = new Backbone.Model({
+            'alerts': []
+        });
+    },
+
+    instanceSpecificInit: function() {
+        this.setModel();
+        this.processOptions();
+        this.processListeners();
+        this.setInterval();
+    },
+
+    setInterval: function() {
+        var self = this;
+        var thirtySeconds = (1000 * 30);
+        setInterval(function() {
+            self.collection.urlGenerator();
+        }, thirtySeconds);
+    },
+
+    processListeners: function() {
+        var self = this;
+
+        // registers 'sync' event so view 'watches' collection for data update
+        if (this.collection) {
+            this.listenTo(this.collection, 'sync', this.update);
+            this.listenTo(this.collection, 'error', this.dataErrorMessage);
+        }
+
+        this.listenTo(this.model, 'change', function() {
+            self.iconAddHighlight();
+            self.renderAlerts();
+        });
+
+        $('.tab-links').on('click', 'li', function() {
+            self.iconRemoveHighlight();
+        });
+
+        this.$el.on('click', function() {
+            self.iconRemoveHighlight();
+        });
+    },
+
+    update: function() {
+        var self = this;
+
+        // grab data from collection
+        var data = this.collection.toJSON()[0];
+        // set model attributes based on hash of statuses
+        this.model.set('alerts', data.results);
+    },
+
+    iconAddHighlight: function() {
+        this.$el.addClass('alert-active');
+    },
+
+    iconRemoveHighlight: function() {
+        this.$el.removeClass('alert-active');
+    },
+
+    timeNow: function() {
+        // return now in unix timestamp
+        return +new Date();
+    },
+
+    renderAlerts: function() {
+        this.populateRecentAlertDiv();
+        this.populateAllAlertDiv();
+    },
+
+    extractRecentAlerts: function(alerts, now) {
+        var result = [];
+        var oneDay = (1000 * 60 * 60 * 24);
+        _.each(alerts, function(alert) {
+            if (moment(now).diff(alert.created) <= oneDay) {
+                result.push(alert);
+            } 
+        });
+        return result;
+    },
+
+    alertTemplate: _.template('' +
+        '<li>' +
+        '<div class="msg-block">' +
+        '<span class="msg"><%= short_message %></span>' +
+        '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
+        '</div>' +
+        // '<i class="remove-btn">&nbsp;</i>' +
+        '</li>'
+    ),
+
+    populateRecentAlertDiv: function() {
+        var self = this;
+        var results = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
+        $('.alerts-recent').html('');
+        _.each(results, function(alert) {
+            $('.alerts-recent').append(self.alertTemplate(alert));
+        });
+    },
+
+    populateAllAlertDiv: function() {
+        var self = this;
+        var results = this.model.get('alerts');
+        $('.alerts-all').html('');
+        _.each(results, function(alert) {
+            $('.alerts-all').append(self.alertTemplate(alert));
+        });
+    }
 });
 ;
 /**
@@ -4970,7 +5104,7 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         */
 
         this.serviceStatusChart = new ServiceStatusCollection({
-            urlBase: '/core/saved_search/'
+            urlBase: '/core/monitored_service/'
         });
 
         this.serviceStatusChartView = new ServiceStatusView({
@@ -6752,32 +6886,32 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "searching": true,
             "ordering": false,
             "order": [
-                [0, 'desc']
+                [1, 'desc']
             ],
             "columnDefs": [{
                 "data": "@timestamp",
                 "type": "date",
                 "targets": 0,
-                "sortable": false,
+                "sortable": true,
                 "render": function(data, type, full, meta) {
                     return moment(data).format();
                 }
             }, {
                 "data": "syslog_severity",
                 "targets": 1,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "component",
                 "targets": 2,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "host",
                 "targets": 3,
-                "sortable": false
+                "sortable": true
             }, {
                 "data": "log_message",
                 "targets": 4,
-                "sortable": false
+                "sortable": true
             }],
             "serverSide": true,
             "ajax": {
@@ -6809,7 +6943,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    /*
+                    
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'syslog_severity',
@@ -6821,8 +6955,8 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         asc: '',
                         'desc': '-'
                     };
-                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+                    // settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -11351,9 +11485,6 @@ SavedSearchPageView = GoldstoneBasePageView.extend({
  * limitations under the License.
  */
 
-// this chart provides the base methods that
-// are extended into almost all other Views
-
 var ServiceStatusView = GoldstoneBaseView.extend({
 
     setModel: function() {
@@ -11405,15 +11536,15 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         unknown = grey
         */
 
-        // screen out non-numbers
-        if (+value !== value) {
-            return 'unknown';
-        }
-        if (value > 0) {
+        if (value === 'UP') {
             return 'online';
-        } else {
+        }
+        if (value === 'DOWN') {
             return 'offline';
         }
+
+        // otherwise
+        return 'unknown';
     },
 
     update: function() {
@@ -11423,24 +11554,30 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         var data = this.collection.toJSON();
         this.hideSpinner();
 
-        // append 'no data returned if so'
-        // or else hide spinner
-        this.checkReturnedDataSet(data);
+        // if no data returned, append 'no data' and hide spinner
+        // or else just hide spinner
+        if (!this.checkReturnedDataSet(data[0].results)) {
+            return;
+        }
 
         // otherwise extract statuses from buckets
-        data = data[0].aggregations.per_component.buckets;
+        data = data[0].results;
 
         /*
         {
-            doc_count: 75
-            key: "neutron"
+          "uuid": "59ee1623-9b48-4ce1-9cad-153c75cab784",
+          "name": "cinder",
+          "host": "rdo-kilo",
+          "state": "DOWN",
+          "created": "2016-03-09T18:46:00.336399Z",
+          "updated": "2016-03-09T18:47:00.347864Z"
         }
         */
 
         // set model attributes based on hash of statuses
         _.each(data, function(bucket) {
-            var value = self.convertStatus(bucket.doc_count);
-            self.model.set(bucket.key, value);
+            var value = self.convertStatus(bucket.state);
+            self.model.set(bucket.name, value);
         });
 
     },
@@ -11477,7 +11614,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
         '</li>'),
 
-        template: _.template('' +
+    template: _.template('' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<ul class="service-status-table shadow-block">' +
         '<li class="table-header">' +
@@ -13669,11 +13806,22 @@ goldstone.init = function() {
                 [300, 'refresh 5m'],
                 [-1, 'refresh off']
             ],
-            selectedLookback: 15,
+            selectedLookback: 60,
             selectedRefresh: 30
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
+
+
+    // start the population of the sidebar alerts menu
+    var alertsMenuCollection = new AlertsMenuCollection({
+        urlBase: '/core/alert/'
+    });
+
+    goldstone.alertsMenu = new AlertsMenuView({
+        collection: alertsMenuCollection,
+        el: '.alert-icon-placeholder'
+    });
 
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
@@ -13682,6 +13830,5 @@ goldstone.init = function() {
 
     // start the backbone router that will handle /# calls
     Backbone.history.start();
-
 
 };

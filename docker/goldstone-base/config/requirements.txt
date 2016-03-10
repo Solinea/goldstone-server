@@ -26,7 +26,7 @@ django-picklefield==0.3.2
 django-polymorphic==0.7.2
 django-rest-params==1.0.2
 django-rest-swagger==0.3.4
-djangorestframework==3.1.0
+djangorestframework==3.3.2
 djoser==0.3.2
 drf-extensions==0.2.7
 elasticsearch-curator==3.4.0
@@ -34,6 +34,8 @@ elasticsearch-dsl==0.0.4
 elasticsearch==1.6.0
 fabric==1.10.2
 functools32==3.2.3-1
+graypy==0.2.12
+# json-log-formatter==0.0.2
 kombu==3.0.26
 lockfile==0.9.1
 networkx==1.9.1

@@ -1,0 +1,23 @@
+#!/bin/bash
+# source this file for convenience after goldstone server is running
+
+# environment params
+export GS_URL=${GS_URL:-'http://localhost:8000'}
+export GS_USER=${GS_USER:-gsadmin}
+export GS_PASS=${GS_PASS:-goldstone}
+
+# internal constants
+AUTH_URL=${GS_URL}/accounts/login/
+
+auth_token=$(curl -s -X POST -d "username=${GS_USER}&password=${GS_PASS}" $AUTH_URL | sed -e 's/{"auth_token":"\(.*\)".*/\1/')
+
+export GS_AUTH_TOKEN=$auth_token
+
+alias gscurl="curl -H \"Authorization: Token $GS_AUTH_TOKEN\" "
+
+echo "$(tput setaf 3)Change GS_* environment vars and rerun if necessary$(tput sgr0)"
+echo "GS_URL=$GS_URL"
+echo "GS_USER=$GS_USER"
+echo "GS_PASS=$GS_PASS"
+echo "$(tput setaf 2)`which gscurl`$(tput sgr0)"
+echo 

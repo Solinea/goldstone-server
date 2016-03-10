@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import logging
 from django.conf import settings
 import curator
-from pycadf import event, cadftype, cadftaxonomy, resource, measurement, metric
 from goldstone.celery import app as celery_app
-from goldstone.core.models import SavedSearch, CADFEventDocType, AlertSearch, \
-    Alert, EmailProducer
+from celery.utils.log import get_task_logger
+from goldstone.core.models import AlertDefinition, SavedSearch, \
+    MonitoredService
+from django.db.models import Q
 from goldstone.models import es_conn
 from goldstone.cinder.utils import update_nodes as update_cinder_nodes
 from goldstone.glance.utils import update_nodes as update_glance_nodes
@@ -26,6 +28,7 @@ from goldstone.keystone.utils import update_nodes as update_keystone_nodes
 from goldstone.nova.utils import update_nodes as update_nova_nodes
 from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
+# do not user get_task_logger here as it does not honor the Django settings
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +43,7 @@ def prune_es_indices():
         {"prefix": "goldstone-", "time_string": "%Y.%m.%d"},
         {"prefix": "goldstone_metrics-", "time_string": "%Y.%m.%d"},
         {"prefix": "api_stats-", "time_string": "%Y.%m.%d"},
+        {"prefix": "internal-", "time_string": "%Y.%m.%d"},
     ]
 
     client = es_conn()
@@ -99,6 +103,8 @@ def update_persistent_graph():
         except Exception as e:
             logger.exception(e)
 
+    logger.info("update_persistent_graph task completed successfully")
+
 
 @celery_app.task()
 def expire_auth_tokens():
@@ -117,50 +123,191 @@ def expire_auth_tokens():
 
 
 @celery_app.task()
-def check_for_pending_alerts():
-    """
-     Run an AlertSearch query to check for any pending alerts to be fired.
-    """
+def process_alerts():
+    """Detect new alerts since the last run."""
 
-    saved_alerts = AlertSearch.objects.all()
+    for alert_def in AlertDefinition.objects.all():
+        try:
+            # try to process all alert definitions
+            search, start, end = alert_def.search.search_recent()
+            result = search.execute()
+            alert_def.evaluate(result.to_dict(), start, end)
+        except Exception as e:
+            logger.exception("failed to process %s" % alert_def)
+            continue
 
-    for obj in saved_alerts:
-        # execute the search, and assuming no error, update the last_ times
-        s, start, end = obj.search_recent()
-        response = s.execute()
-        obj.last_start = start
-        obj.last_end = end
-        obj.save()
 
-        if response.hits.total > 0:
-            # We have a non-zero match for pending alerts
-            # Go ahead and generate an instance of the alert object here.
-            # We can directly call the producer class to send an email
+def status_from_agg(host_buckets, host):
+    service_buckets = [service['per_component']['buckets']
+                       for service in host_buckets
+                       if service['key'] == host][0]
 
-            msg_dict = obj.build_alert_template(hits=response.hits.total)
+    result = []
+    for bucket in service_buckets:
+        if bucket['doc_count'] > 0:
+            state = MonitoredService.UP
+        else:
+            state = MonitoredService.DOWN
 
-            # For this scheduled celery task, pick up the message template
-            # from the query object and pass it along. For all other
-            # cases, user is allowed to send custom msg_title and msg_body
-            alert_obj = Alert(query=obj, msg_title=msg_dict['title'],
-                              msg_body=msg_dict['body'])
-            alert_obj.save()
+        result.append({"host": host,
+                       "name": bucket['key'],
+                       "state": state})
+    return result
 
-            # Filter by fk = AlertSearch obj
-            # dont throw an exception from this loop and keep retrying
-            # till all the producers in the list are exhausted
-            producer_rv_list = list()
-            for producer in EmailProducer.objects.filter(query=obj):
-                try:
-                    producer_ret = producer.send(alert_obj)
-                    ret_dict = {producer.query.name: producer_ret}
-                except Exception as e:
-                    ret_dict = {producer.query.name: e}
-                    # Uncomment the lines below if we ever want to mark
-                    # this task to be in retry state. For now, we don't
-                    # mind that this task is marked success/failure.
-                    # check_for_pending_alerts.retry(throw=False)
-                    # raise RetryTaskError(None, None)
-                producer_rv_list.append(ret_dict)
 
-            return producer_rv_list
+@celery_app.task()
+def service_status_check():
+    """Run the service status saved search, update any records, and log a
+        message for any services with changed status.
+
+        The response from the associated search has an aggregation that we
+        can use to assess availablity.  It looks like this:
+
+        "aggregations": {
+              "per_host": {
+                 "doc_count_error_upper_bound": 0,
+                 "sum_other_doc_count": 0,
+                 "buckets": [
+                    {
+                       "key": "rdo-kilo",
+                       "doc_count": 13834,
+                       "per_component": {
+                          "doc_count_error_upper_bound": 0,
+                          "sum_other_doc_count": 0,
+                          "buckets": [
+                             {
+                                "key": "keystone",
+                                "doc_count": 8810
+                             },
+                             {
+                                "key": "neutron",
+                                "doc_count": 2304
+                             },
+                             {
+                                "key": "nova",
+                                "doc_count": 1430
+                             },
+                             {
+                                "key": "glance",
+                                "doc_count": 614
+                             },
+                             {
+                                "key": "cinder",
+                                "doc_count": 338
+                             }
+                          ]
+                       }
+                    }
+                 ]
+              }
+           }
+
+        Current interpretation for a key would be:
+            key missing = 'UNKNOWN'
+            doc_count = 0 = 'DOWN'
+            doc_count > 0 = 'UP'
+        """
+
+    # execute our search and get the results
+    logger.info("Starting service status check")
+    search_id = 'c7fa5f00-e851-4a71-9be0-7dbf8415426c'
+    ss = SavedSearch.objects.get(uuid=search_id)
+    search, start, end = ss.search_recent()
+    # print "search = %s" % search.to_dict()
+    result = search.execute().to_dict()
+
+    # print "search_result = %s" % result
+
+    # compare our results with existing MonitoredService records to see if
+    # we have a state change.
+    found_services_by_host = result['aggregations']['per_host']['buckets']
+    monitored_services = MonitoredService.objects.all()
+
+    found_hosts = set([rec['key'] for rec in found_services_by_host])
+    monitored_hosts = set([service.host for service in monitored_services])
+
+    new_hosts = found_hosts - monitored_hosts
+    missing_hosts = monitored_hosts - found_hosts
+    common_hosts = found_hosts.intersection(monitored_hosts)
+
+    for host in new_hosts:
+        # found a new host, so all services on it should be monitored.
+        # also log a message to indicate a status change.
+        statuses = status_from_agg(found_services_by_host, host)
+        for status in statuses:
+            MonitoredService(**status).save()
+            logger.info("Service status update: service %s discovered on host "
+                        "%s with state %s" %
+                        (status['name'], status['host'], status['state']))
+
+    for host in missing_hosts:
+
+        # these hosts have disappeared from all ES records.  Possibly an old
+        # host that has been curated out of all indices.  We'll set the state
+        # of all services on the host to unknown.  A human may want to mark the
+        # service as deleted at some point.
+
+        missing_services = MonitoredService.objects.filter(
+            ~Q(state=MonitoredService.UNKNOWN),
+            host=host
+        )
+        for missing_service in missing_services:
+
+            logger.info("Service status update: service %s on host "
+                        "%s changed state from %s to %s" %
+                        (missing_service.name,
+                         missing_service.host,
+                         missing_service.state,
+                         MonitoredService.UNKNOWN))
+            missing_service.state = MonitoredService.UNKNOWN
+            missing_service.save()
+
+    for host in common_hosts:
+
+        # we still may known or missing services for a known host.  handle
+        # those like above.  everything else is a comparison of state.
+
+        host_services = MonitoredService.objects.filter(host=host)
+        statuses = status_from_agg(found_services_by_host, host)
+
+        for status in statuses:
+
+            # process each of the status records in ES for this host
+
+            if host_services.filter(name=status['name']).count() == 0:
+
+                # this is a new service on the host.  Create a database entry
+                # and log a message to be harvested by an AlertDefinition.
+
+                MonitoredService(**status).save()
+
+                logger.info(
+                    "Service status update: service %s discovered on host "
+                    "%s with state %s" %
+                    (status['name'], status['host'], status['state']))
+
+                continue
+
+            # if we got here, there should be a record for this service
+
+            service_rec = MonitoredService.objects.get(
+                host=status['host'],
+                name=status['name'])
+
+            if service_rec.state != status['state']:
+
+                # this is a state change. Update the database entry
+                # and log a message to be harvested by an AlertDefinition.
+
+                logger.info("Service status update: service %s on host "
+                            "%s changed state from %s to %s" %
+                            (service_rec.name,
+                             service_rec.host,
+                             service_rec.state,
+                             status['state']))
+                service_rec.state = status['state']
+                service_rec.save()
+
+    # if we got here, let's update the search time range
+    ss.update_recent_search_window(start, end)
+    logger.info("Finished service status check")

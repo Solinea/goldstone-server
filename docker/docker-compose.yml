@@ -35,6 +35,7 @@ gsapp:
     - gsdb
     - gssearch
     - gstaskq
+    - gslog
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"
@@ -71,6 +72,7 @@ gslog:
     - "5514:5514"
     - "5515:5515"
     - "5516:5516"
+    - "5517:5517"
   links:
     - gssearch
   log_driver: "syslog"

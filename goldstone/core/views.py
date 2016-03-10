@@ -15,21 +15,24 @@
 import logging
 
 from django.conf import settings
+from rest_framework import filters
+import django_filters
 from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK, \
     HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import ModelViewSet
-from goldstone.core.models import SavedSearch, AlertSearch, Alert
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from goldstone.core.models import SavedSearch, Alert, PolyResource, \
+    AlertDefinition, Producer, EmailProducer, MonitoredService
 from goldstone.core.serializers import SavedSearchSerializer, \
-    AlertSearchSerializer, AlertSerializer
+    AlertDefinitionSerializer, AlertSerializer, ProducerSerializer, \
+    EmailProducerSerializer, MonitoredServiceSerializer
 from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
 from goldstone.core import resource
-from .models import PolyResource, SavedSearch
 from .serializers import PassthruSerializer
 from .utils import parse, query_filter_map
 
@@ -443,6 +446,7 @@ class SavedSearchViewSet(ModelViewSet):
     lookup_field = "uuid"
 
     filter_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
+    search_fields = ('owner', 'name', 'protected', 'index_prefix', 'doc_type')
     ordering_fields = ('owner', 'name', 'protected', 'index_prefix',
                        'doc_type', 'last_start', 'last_end', 'created',
                        'updated', 'target_interval', 'description')
@@ -470,10 +474,34 @@ class SavedSearchViewSet(ModelViewSet):
 
         # Tell ElasticFilter to not add these query parameters to the
         # Elasticsearch query.
-        self.reserved_params = ['interval']            # pylint: disable=W0201
+        self.reserved_params = ['interval',  # pylint: disable=W0201
+                                'ordering']
 
         queryset = obj.search()
         queryset = self.filter_queryset(queryset)
+
+        # Default to descending sort on the timestamp_field if no ordering
+        # param is provided in the query.
+        if obj.timestamp_field is not None \
+                and 'ordering' not in self.request.query_params:
+            queryset = queryset.sort("-%s" % obj.timestamp_field)
+
+        # otherwise use any provided ordering parameter (only supports
+        # fieldname or -fieldname forms at the moment).  We'll try to look up
+        # a raw field if it has one.  If it doesn't, and it's a string, this
+        # will probably fail.  It may also fail for events since they don't
+        # have a common doc_type.
+        elif 'ordering' in self.request.query_params:
+            ordering_value = self.request.query_params['ordering']
+            if ordering_value.startswith("-"):
+                has_raw = obj.field_has_raw(ordering_value[1:])
+            else:
+                has_raw = obj.field_has_raw(ordering_value)
+
+            if has_raw:
+                ordering_value += ".raw"
+
+            queryset = queryset.sort(ordering_value)
 
         # if an interval parameter was provided, assume that it is meant to
         # be a change to the saved search data_histogram aggregation interval
@@ -509,19 +537,91 @@ class SavedSearchViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class AlertSearchViewSet(SavedSearchViewSet):
-    """Provide the /defined_search/ endpoints."""
+class AlertDefinitionViewSet(ReadOnlyModelViewSet):
+    """Provide the /core/alert_definition/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
-    serializer_class = AlertSearchSerializer
-    query_model = AlertSearch
+    serializer_class = AlertDefinitionSerializer
+    query_model = AlertDefinition
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    search_fields = ('name', 'description', 'short_template', 'long_template')
+    ordering_fields = ('name', 'created', 'updated', 'short_message',
+                       'long_message', 'search', 'enabled')
+
+    def get_queryset(self):
+        return AlertDefinition.objects.all()
 
 
-class AlertViewSet(ModelViewSet):
-    """Provide the /defined_search/ endpoints."""
+class CreatedFilter(filters.FilterSet):
+    created_after = django_filters.NumberFilter(name="created_ts",
+                                                lookup_type='gt')
+
+    class Meta:
+        model = Alert
+        fields = ['created_ts']
+
+
+class AlertViewSet(ReadOnlyModelViewSet):
+    """Provide the /core/alert/ endpoints."""
 
     permission_classes = (IsAuthenticated, )
     serializer_class = AlertSerializer
+    query_model = Alert
+    filter_class = CreatedFilter
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    search_fields = ('short_message', 'long_message', 'alert_def',
+                     'created_ts')
+    ordering_fields = ('created', 'updated', 'short_message', 'long_message',
+                       'alert_def')
 
     def get_queryset(self):
         return Alert.objects.all()
+
+
+class ProducerViewSet(ReadOnlyModelViewSet):
+    """Producer the /core/producer/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ProducerSerializer
+    ordering_fields = ('alert_def',)
+
+    def get_queryset(self):
+        return Producer.objects.all()
+        #  base_objects = Producer.objects.all()
+        # return Producer.objects.get_real_instances(base_objects)
+
+
+class EmailProducerViewSet(ModelViewSet):
+    """Producer the /core/email_producer/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EmailProducerSerializer
+    search_fields = ('sender', 'receiver', 'alert_def')
+    ordering_fields = ('sender', 'receiver', 'alert_def')
+
+    def get_queryset(self):
+        return EmailProducer.objects.all()
+
+
+class MonitoredServiceViewSet(ModelViewSet):
+    """Provide the /defined_search/ endpoints."""
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MonitoredServiceSerializer
+    query_model = MonitoredService
+
+    # Tell DRF that the lookup field is this string, and not "pk".
+    lookup_field = "uuid"
+
+    filter_fields = ('name', 'host', 'state')
+    search_fields = ('name', 'host', 'state')
+    ordering_fields = ('name', 'host', 'state', 'created', 'updated')
+
+    def get_queryset(self):
+        return self.query_model.objects.all()

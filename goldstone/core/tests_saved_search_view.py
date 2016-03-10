@@ -17,6 +17,7 @@ import json
 from types import NoneType
 
 from mock import patch
+
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -24,7 +25,7 @@ from goldstone.core.models import SavedSearch
 from goldstone.core.views import SavedSearchViewSet
 from goldstone.test_utils import Setup, create_and_login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
-    BAD_TOKEN, BAD_UUID, TEST_USER_1
+    BAD_TOKEN, BAD_UUID, TEST_USER_1, PAGE_SIZE
 
 SEARCH_URL = "/core/saved_search/"
 SEARCH_UUID_URL = SEARCH_URL + "%s/"
@@ -144,9 +145,10 @@ class GetPostTests(SearchSetup):
         # table's initial data. We verify the result count, the next and
         # previous keys, and each row's keys.  We don't verify the contents
         # of each defined search.
-        expected_rows = SavedSearch.objects.filter(hidden=False).count()
-        if expected_rows > 10:
-            expected_rows = 10
+        total_rows = SavedSearch.objects.filter(hidden=False).count()
+        if total_rows > PAGE_SIZE:
+            expected_rows = PAGE_SIZE
+
         expected_keys = ['created', 'name', 'protected', 'query', 'updated',
                          'uuid', 'owner', 'index_prefix', 'doc_type',
                          'timestamp_field', 'last_start', 'last_end',
@@ -163,10 +165,19 @@ class GetPostTests(SearchSetup):
 
         response_content = json.loads(response.content)
 
-        self.assertEqual(expected_rows, response_content["count"])
-
+        self.assertEqual(total_rows, response_content["count"])
         self.assertIsNone(response_content["previous"])
-        self.assertIsNone(response_content["next"])
+
+        if total_rows > PAGE_SIZE:
+
+            self.assertEqual(len(response_content['results']),
+                             PAGE_SIZE)
+            self.assertIsNotNone(response_content["next"])
+        else:
+
+            self.assertEqual(len(response_content['results']),
+                             response_content["count"])
+            self.assertIsNone(response_content["next"])
 
         for entry in response_content["results"]:
             for key in expected_keys:
@@ -176,16 +187,14 @@ class GetPostTests(SearchSetup):
         """Good GET request using pages."""
 
         # We'll ask for the last page of single-entry pages.
-        expected_rows = SavedSearch.objects.filter(hidden=False).count()
-        if expected_rows > 10:
-            expected_rows = 10
+        total_rows = SavedSearch.objects.filter(hidden=False).count()
 
-        expected_prev = expected_rows - 1
+        expected_prev = total_rows - 1
 
         token = create_and_login()
 
         response = self.client.get(
-            SEARCH_URL + "?page_size=1&page=%d" % expected_rows,
+            SEARCH_URL + "?page_size=1&page=%d" % total_rows,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
@@ -193,7 +202,7 @@ class GetPostTests(SearchSetup):
 
         response_content = json.loads(response.content)
 
-        self.assertEqual(expected_rows, response_content["count"])
+        self.assertEqual(total_rows, response_content["count"])
         self.assertIsNone(response_content["next"])
         self.assertEqual(
             response_content["previous"],

@@ -40,10 +40,6 @@ ENV DJANGO_SETTINGS_MODULE=goldstone.settings.docker \
 
 WORKDIR ${APPDIR}
 
-COPY config ${APPDIR}/config
-
-COPY docker-entrypoint.sh /
-
 USER root
 
 RUN buildReqs=' \
@@ -64,6 +60,12 @@ RUN buildReqs=' \
   && chown -R ${APPUSER}:staff /usr/share/nginx/html/static \
   && chown -R ${APPUSER}:staff ${APPDIR} 
 
+USER ${APPUSER}
+
+COPY config ${APPDIR}/config
+
+USER root
+
 # purposely creating a new layer for the requirements.
 RUN su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/requirements.txt" \
   && su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/test-requirements.txt" \
@@ -73,6 +75,8 @@ RUN su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 USER ${APPUSER}
+
+COPY docker-entrypoint.sh /
 
 EXPOSE 8000
 

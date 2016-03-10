@@ -14,7 +14,8 @@
 # limitations under the License.
 import logging
 from rest_framework import serializers
-from goldstone.core.models import SavedSearch, AlertSearch, Alert
+from goldstone.core.models import SavedSearch, Alert, \
+    AlertDefinition, Producer, EmailProducer, MonitoredService
 from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
@@ -43,7 +44,7 @@ class PassthruSerializer(serializers.Serializer):
 
 
 class SavedSearchSerializer(serializers.ModelSerializer):
-    """The Defined Search serializer."""
+    """The Saved Search serializer."""
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
@@ -51,17 +52,59 @@ class SavedSearchSerializer(serializers.ModelSerializer):
         exclude = ('hidden',)
 
 
-class AlertSearchSerializer(serializers.ModelSerializer):
-    """The Defined Alert Search serializer."""
+class AlertDefinitionSerializer(serializers.ModelSerializer):
+    """The Alert Definition serializer."""
+
+    search = serializers.PrimaryKeyRelatedField(
+        queryset=SavedSearch.objects.all())
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
-
-        model = AlertSearch
+        model = AlertDefinition
 
 
 class AlertSerializer(serializers.ModelSerializer):
-    """The Defined Alert serializer."""
+    """The Alert serializer."""
 
     class Meta:                 # pylint: disable=C0111,C1001,W0232
 
         model = Alert
+        # exclude = ('created_ts',)  # might want to exclude this at some point
+
+
+class ProducerSerializer(serializers.ModelSerializer):
+    """The Producer serializer should handle polymorphic producers."""
+
+    class Meta:  # pylint: disable=C0111,C1001,W0232
+
+        model = Producer
+        lookup_field = 'uuid'
+        exclude = ['polymorphic_ctype']
+
+    def to_representation(self, instance):
+        """Return an already-serialized object in the shape of the underlying
+        polymorphic class.  If there are new classes, add them to the map."""
+
+        serializer_map = {
+            'EmailProducer': EmailProducerSerializer
+        }
+
+        return serializer_map[instance.__class__.__name__](instance).data
+
+
+class EmailProducerSerializer(serializers.ModelSerializer):
+    """The Producer serializer should handle polymorphic producers."""
+
+    class Meta:  # pylint: disable=C0111,C1001,W0232
+
+        model = EmailProducer
+        lookup_field = 'uuid'
+        exclude = ['polymorphic_ctype']
+
+
+class MonitoredServiceSerializer(serializers.ModelSerializer):
+    """The serializer for MonitoredServices."""
+
+    class Meta:
+
+        model = MonitoredService
+        lookup_field = 'uuid'

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+from django.conf import settings
 from rest_framework.status import HTTP_200_OK
 
 # Test URLs.
@@ -36,7 +36,7 @@ CONTENT_NOT_BLANK_USERNAME = '"username":["This field is required."]'
 CONTENT_NOT_FOUND = "Not found."
 CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied."}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
-CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
+CONTENT_UNIQUE_NAME = 'Tenant with this name already exists.'
 
 # The payload string for the HTTP Authorization header.
 AUTHORIZATION_PAYLOAD = "Token %s"
@@ -46,6 +46,7 @@ TEST_USER_1 = ("fred", "fred@fred.com", "meh")
 TEST_USER_2 = ("ginger", "ginger@ginger.com", "hem")
 BAD_TOKEN = '4' * 40
 BAD_UUID = '4' * 32
+PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
 
 
 class Setup(APITransactionTestCase):

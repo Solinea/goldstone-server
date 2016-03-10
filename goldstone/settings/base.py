@@ -167,57 +167,60 @@ CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
 )
 
-# Definitions for the prune task. Indices older than this number of this time
-# unit are periodically pruned.
-PRUNE_OLDER_THAN = 7
-DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
+# Definitions for the prune task. Indices older than this number of this number
+# of days are pruned from ES
+PRUNE_OLDER_THAN = 30
 
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/1')
-ALERT_QUERY_INTERVAL = crontab(minute='*/5')
-HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
-HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
+
+# how often should alerts be checked
+EVERY_MINUTE = crontab(minute='*/1')
+EVERY_5_MINUTES = crontab(minute='*/5')
+EVERY_MIDNIGHT = crontab(minute='0', hour='0', day_of_week='*')
 
 CELERYBEAT_SCHEDULE = {
     'prune_es_indices': {
         'task': 'goldstone.core.tasks.prune_es_indices',
-        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
+        'schedule': EVERY_MIDNIGHT,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
-        'schedule': RESOURCE_QUERY_INTERVAL,
+        'schedule': EVERY_MINUTE,
     },
     'discover_keystone_topology': {
         'task': 'goldstone.keystone.tasks.discover_keystone_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_glance_topology': {
         'task': 'goldstone.glance.tasks.discover_glance_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_cinder_topology': {
         'task': 'goldstone.cinder.tasks.discover_cinder_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_nova_topology': {
         'task': 'goldstone.nova.tasks.discover_nova_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'discover_neutron_topology': {
         'task': 'goldstone.neutron.tasks.discover_neutron_topology',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'update_persistent_graph': {
         'task': 'goldstone.core.tasks.update_persistent_graph',
-        'schedule': TOPOLOGY_QUERY_INTERVAL
+        'schedule': EVERY_5_MINUTES
     },
     'expire_auth_tokens': {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
-        'schedule': crontab(hour=0, minute=0)     # execute daily at midnight
+        'schedule': EVERY_MIDNIGHT
     },
-    'check_for_pending_alerts': {
-        'task': 'goldstone.core.tasks.check_for_pending_alerts',
-        'schedule': ALERT_QUERY_INTERVAL
+    'process_alerts': {
+        'task': 'goldstone.core.tasks.process_alerts',
+        'schedule': EVERY_MINUTE
+    },
+    'service_status_check': {
+        'task': 'goldstone.core.tasks.service_status_check',
+        'schedule': EVERY_5_MINUTES
     },
 }
 
@@ -274,11 +277,12 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
-                                'rest_framework.filters.OrderingFilter', ),
+                                'rest_framework.filters.SearchFilter',
+                                'rest_framework.filters.OrderingFilter'),
     'DEFAULT_PAGINATION_CLASS':
         'goldstone.core.pagination.Pagination',
     'PAGE_SIZE': 10,
-    'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
+    # 'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
 # Settings for Django REST Swagger.

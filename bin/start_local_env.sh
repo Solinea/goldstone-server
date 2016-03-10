@@ -1,5 +1,6 @@
-# vim:set ft=dockerfile:
-# Copyright 2015 Solinea, Inc.
+#!/bin/bash
+
+# Copyright 2016 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM logstash:2.1
-MAINTAINER Luke Heidecke <luke@solinea.com>
+tmux new -d -s goldstone_dev \
+    'cd ${PROJECT_HOME}/goldstone-server;
+     eval $(docker-machine env default); 
+     docker-compose -f docker-compose-local-dev.yml up' \; \
+     split-window -d \
+     'cd ${PROJECT_HOME}/goldstone-server;
+     sleep 15;
+     bin/start_local_celery.sh' \; \
+     attach -t goldstone_dev \;
 
-COPY conf.d /logstash/conf.d
-COPY patterns /opt/logstash/patterns
-
-RUN /opt/logstash/bin/plugin install logstash-filter-translate
-RUN /opt/logstash/bin/plugin install logstash-input-http
-
-EXPOSE 5514 5515 5516 5517/udp
-
-CMD ["logstash", "-f", "/logstash/conf.d", "-w", "1"]
+     # set-option -t goldstone_dev remain-on-exit \; \

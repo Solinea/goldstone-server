@@ -245,6 +245,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             return false;
         } else {
             this.clearDataErrorMessage();
+            return true;
         }
     },
 
