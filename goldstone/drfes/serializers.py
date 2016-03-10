@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from elasticsearch_dsl.result import Response
+from elasticsearch_dsl.result import Response as ESResponse
 from rest_framework.serializers import Serializer
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class ElasticResponseSerializer(Serializer):
 
         """
 
-        assert(isinstance(instance, Response))
+        assert(isinstance(instance, ESResponse))
         rv = {
             'results': instance.hits.hits
         }

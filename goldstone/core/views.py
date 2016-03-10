@@ -504,7 +504,7 @@ class SavedSearchViewSet(ModelViewSet):
             queryset = queryset.sort(ordering_value)
 
         # if an interval parameter was provided, assume that it is meant to
-        # be a change to the saved search data_histogram aggregation interval
+        # be a change to the saved search date_histogram aggregation interval
         # if present.
         if 'interval' in self.request.query_params:
             try:
