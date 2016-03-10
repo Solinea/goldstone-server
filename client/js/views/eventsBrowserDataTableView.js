@@ -169,10 +169,16 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     if (this.columnLabelHash[sortByColumnNumber]) {
 
+                        var nameToStore = this.columnLabelHash[sortByColumnNumber];
+                        // correct for vagaries in ES results
+                        if (nameToStore === 'eventTime') {
+                            nameToStore = 'timestamp';
+                        }
+
                         // store the columnHeadingByName of the actual sort column that was clicked
                         self.cachedColumnHeadingByName = this.columnLabelHash[sortByColumnNumber];
 
-                        settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + this.columnLabelHash[sortByColumnNumber];
+                        settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + nameToStore;
                     }
 
 
@@ -231,7 +237,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
         // set up the proper column heading ordering arrow
         if ((this.cachedSortByColumnNumber !== undefined) && this.cachedSortAscDesc) {
-            
+
             // find the clicked column label in the hash
             var newIndexOfSortColumn = _.findKey(standardAjaxOptions.ajax.columnLabelHash, function(item) {
                 return item === self.cachedColumnHeadingByName;
@@ -239,7 +245,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
             // if the sort column is no longer existent, don't 
             // impose a sort order on the table 
-            if(newIndexOfSortColumn !== undefined) {
+            if (newIndexOfSortColumn !== undefined) {
                 standardAjaxOptions.order = [
                     [newIndexOfSortColumn, this.cachedSortAscDesc]
                 ];
