@@ -69,7 +69,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     update: function() {
+        console.log('in upate');
         this.currentTop = $(document).scrollTop();
+        this.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
         this.oTable.ajax.reload();
     },
 
@@ -109,6 +111,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     // store the browser page height to restore it post-render
                     self.currentTop = $(document).scrollTop();
+                    self.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
 
                     self.collectionMixin.urlGenerator();
 
@@ -231,9 +234,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             console.log('this.cached sort by number and ascdesc', this.cachedSortByColumnNumber, this.cachedSortAscDesc);
             console.log('is the sort column greater than the number of columns available?');
             console.log(this.cachedHeadingArray.length, this.cachedSortByColumnNumber);
-            if (this.cachedSortByColumnNumber > this.cachedHeadingArray.length) {
-                console.log('this.cachedSortByColumnNumber = this.cachedHeadingArray.length: ');
-                this.cachedSortByColumnNumber = this.cachedHeadingArray.length;
+            if (this.cachedSortByColumnNumber >= this.cachedHeadingArray.length) {
+                console.log('this.cachedSortByColumnNumber = this.cachedHeadingArray.length - 1: ');
+                this.cachedSortByColumnNumber = Math.max(this.cachedHeadingArray.length - 1, 0);
             }
             standardAjaxOptions.order = [
                 [this.cachedSortByColumnNumber, this.cachedSortAscDesc]
@@ -487,6 +490,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // reposition page to pre-refresh height
         if (this.currentTop !== undefined) {
             $(document).scrollTop(this.currentTop);
+        }
+        if (this.currentScrollLeft !== undefined) {
+            $('.dataTables_scrollBody').scrollLeft(this.currentScrollLeft);
         }
     }
 });
