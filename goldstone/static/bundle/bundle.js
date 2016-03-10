@@ -5388,11 +5388,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     // uncomment for ordering by column
                     /*
                     var columnLabelHash = {
-                        0: '@timestamp',
-                        1: 'syslog_severity',
-                        2: 'component',
-                        3: 'host',
-                        4: 'log_message'
+                        0: 'timestamp',
+                        1: 'eventType',
+                        2: 'id',
+                        3: 'action',
+                        4: 'outcome'
                     };
                     var ascDec = {
                         asc: '',
