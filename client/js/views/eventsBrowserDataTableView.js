@@ -130,6 +130,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
 
+                    // cache ordering column and direction to highlight the 
+                    // selected column upon next table rendering
+                    self.cachedSortAscDesc = sortAscDesc;
+                    self.cachedSortByColumnNumber = parseInt(sortByColumnNumber, 10);
+
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
                     // the parsed components
@@ -210,15 +215,31 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             standardAjaxOptions.deferLoading = self.cachedResults.recordsTotal;
         }
 
-        standardAjaxOptions.ajax.columnLabelHash = self.createHashFromArray(self.cachedHeadingArray);
-
         // standardAjaxOptions.ajax.columnLabelHash = {
         //     0: 'timestamp',
         //     1: 'eventType',
-        //     2: 'id',
-        //     3: 'action',
-        //     4: 'outcome'
+        //    ...
         // };
+
+        // set up the dynamic column label ordering scheme
+        standardAjaxOptions.ajax.columnLabelHash = self.createHashFromArray(self.cachedHeadingArray);
+
+
+        // set up the proper column heading ordering arrow
+        if (this.cachedSortByColumnNumber && this.cachedSortAscDesc) {
+            console.log('this.cachedHeadingArray.len', this.cachedHeadingArray.length);
+            console.log('this.cached sort by number and ascdesc', this.cachedSortByColumnNumber, this.cachedSortAscDesc);
+            console.log('is the sort column greater than the number of columns available?');
+            console.log(this.cachedHeadingArray.length, this.cachedSortByColumnNumber);
+            if (this.cachedSortByColumnNumber > this.cachedHeadingArray.length) {
+                console.log('this.cachedSortByColumnNumber = this.cachedHeadingArray.length: ');
+                this.cachedSortByColumnNumber = this.cachedHeadingArray.length;
+            }
+            standardAjaxOptions.order = [
+                [this.cachedSortByColumnNumber, this.cachedSortAscDesc]
+            ];
+        }
+
 
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
