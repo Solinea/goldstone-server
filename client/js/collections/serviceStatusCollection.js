@@ -20,5 +20,10 @@ var ServiceStatusCollection = GoldstoneBaseCollection.extend({
     // Overwriting. Additinal pages not needed.
     checkForAdditionalPages: function(data) {
         return true;
+    },
+
+    // order results by up/down, then service name, then host
+    addCustom: function() {
+        return '?ordering=state,name,host';
     }
 });

@@ -18,11 +18,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     setModel: function() {
         this.model = new Backbone.Model({
-            'cinder': 'unknown',
-            'glance': 'unknown',
-            'keystone': 'unknown',
-            'neutron': 'unknown',
-            'nova': 'unknown',
+            'results': []
         });
     },
 
@@ -45,7 +41,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
         }
 
         this.listenTo(this, 'lookbackSelectorChanged', function() {
-            this.getGlobalLookbackRefresh();
             if (this.collection) {
                 this.showSpinner();
                 this.collection.urlGenerator();
@@ -94,61 +89,54 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
         /*
         {
-          "uuid": "59ee1623-9b48-4ce1-9cad-153c75cab784",
-          "name": "cinder",
-          "host": "rdo-kilo",
-          "state": "DOWN",
-          "created": "2016-03-09T18:46:00.336399Z",
-          "updated": "2016-03-09T18:47:00.347864Z"
+            "created": "2016-03-10T03:51:00.088953Z",
+            "host": "rdo-kilo",
+            "name": "cinder",
+            "state": "DOWN",
+            "updated": "2016-03-10T23:02:00.081637Z",
+            "uuid": "ddef095a-dc85-48c6-9fb6-e7ecc52e5fcd"
         }
         */
 
-        // set model attributes based on hash of statuses
-        _.each(data, function(bucket) {
-            var value = self.convertStatus(bucket.state);
-            self.model.set(bucket.name, value);
-        });
-
+        // set model.results which will trigger 'change' if
+        // anything is different from previous fetch
+        this.model.set('results', data);
     },
 
     render: function() {
         $(this.el).html(this.template());
-        $(this.el).find('.fill-in').html(this.statusTemplate());
         return this;
     },
 
     updateChart: function() {
-        $(this.el).find('.fill-in').html(this.statusTemplate());
+        var self = this;
+        this.$el.find('.fill-in').html('');
+        var data = this.collection.toJSON()[0].results;
+        _.each(data, function(status) {
+            self.$el.find('.fill-in').append(self.statusBlockTemplate(status));
+        });
+
     },
 
-    statusTemplate: _.template('' +
+    properCap: function(word) {
+        return word.substr(0, 1).toUpperCase() + word.substr(1);
+    },
+
+    statusBlockTemplate: _.template('' +
         '<li>' +
-        '<span class="service"><%= goldstone.translate("Cinder") %></span>' +
-        '<span class="sf"><i class=<%= this.model.get("cinder") %>>&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service"><%= goldstone.translate("Glance") %></span>' +
-        '<span class="sf"><i class=<%= this.model.get("glance") %>>&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service"><%= goldstone.translate("Keystone") %></span>' +
-        '<span class="sf"><i class=<%= this.model.get("keystone") %>>&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service"><%= goldstone.translate("Neutron") %></span>' +
-        '<span class="sf"><i class=<%= this.model.get("neutron") %>>&nbsp;</i></span>' +
-        '</li>' +
-        '<li>' +
-        '<span class="service"><%= goldstone.translate("Nova") %></span>' +
-        '<span class="sf"><i class=<%= this.model.get("nova") %>>&nbsp;</i></span>' +
-        '</li>'),
+        '<span class="host"><%= host %></span>' +
+        '<span class="service"><%= goldstone.translate(this.properCap(name)) %></span>' +
+        '<span class="service-status"><i class=<%= this.convertStatus(state) %>>&nbsp;</i></span>' +
+        '</li>'
+    ),
 
     template: _.template('' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<ul class="service-status-table shadow-block">' +
         '<li class="table-header">' +
+        '<span class="host"><%= goldstone.translate("Host") %></span>' +
         '<span class="service"><%= goldstone.translate("Service") %></span>' +
-        '<span class="sf"><%= goldstone.translate("Status") %></span>' +
+        '<span class="service-status"><%= goldstone.translate("Status") %></span>' +
         '</li>' +
         '<div class="fill-in"></div>' +
         '</ul>')

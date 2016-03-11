@@ -117,5 +117,11 @@ describe('serviceStatusView.js spec', function() {
         it('should render charts', function() {
             expect($('.test-container').length).to.be.above(0);
         });
+        it('should properly capitilize service names', function() {
+            expect(this.testView.properCap('')).to.equal('');
+            expect(this.testView.properCap('zoot')).to.equal('Zoot');
+            expect(this.testView.properCap('puppy bagel')).to.equal('Puppy bagel');
+            expect(this.testView.properCap('-hi')).to.equal('-hi');
+        });
     });
 });

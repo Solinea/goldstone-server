@@ -145,8 +145,8 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
 
         // service status
         '<div class="row">' +
-        '<div id="discover-view-r1-c1" class="col-md-2"></div>' +
-        '<div id="discover-view-r1-c2" class="col-md-10"></div>' +
+        '<div id="discover-view-r1-c1" class="col-md-3"></div>' +
+        '<div id="discover-view-r1-c2" class="col-md-9"></div>' +
         '</div>' +
 
         // extra row for spacing
