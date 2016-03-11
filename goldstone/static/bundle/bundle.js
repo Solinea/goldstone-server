@@ -4032,7 +4032,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": false,
+            "ordering": true,
             "order": [
                 [0, 'desc']
             ],
@@ -4040,42 +4040,42 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.@timestamp",
                     "type": "date",
                     "targets": 0,
-                    "sortable": false,
+                    "sortable": true,
                     "render": function(data, type, full, meta) {
                         return moment(data).format();
                     }
                 }, {
                     "data": "_source.host",
                     "targets": 1,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.client_ip",
                     "targets": 2,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.uri",
                     "targets": 3,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_status",
                     "targets": 4,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_time",
                     "targets": 5,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.response_length",
                     "targets": 6,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.component",
                     "targets": 7,
-                    "sortable": false
+                    "sortable": true
                 }, {
                     "data": "_source.type",
                     "targets": 8,
-                    "sortable": false
+                    "sortable": true
                 }
 
             ],
@@ -4109,20 +4109,24 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    /*
+                    
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'host',
-                        2: 'component',
-                        3: 'host',
-                        4: 'log_message'
+                        2: 'client_ip',
+                        3: 'uri',
+                        4: 'response_status',
+                        5: 'response_time',
+                        6: 'response_length',
+                        7: 'component',
+                        8: 'type',
                     };
                     var ascDec = {
                         asc: '',
                         'desc': '-'
                     };
                     settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+                    
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -5237,7 +5241,7 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5307,7 +5311,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
     },
 
     update: function() {
-        this.currentTop = $(document).scrollTop();
         this.oTable.ajax.reload();
     },
 
@@ -5327,7 +5330,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             "oSearch": {
                 sSearch: self.cachedSearch
             },
-            "ordering": false,
+            "ordering": true,
             "processing": false,
             "paging": true,
             "scrollX": true,
@@ -5347,7 +5350,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
                     // store the browser page height to restore it post-render
                     self.currentTop = $(document).scrollTop();
+                    self.currentScrollLeft = $('.dataTables_scrollBody').scrollLeft();
 
+                    // call the url generation function that will
+                    // create the url string to replace the
+                    // datatables native url generation
                     self.collectionMixin.urlGenerator();
 
                     // extraction methods defined on dataTableBaseView
@@ -5368,6 +5375,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
 
+                    // cache ordering column and direction to highlight the 
+                    // selected column upon next table rendering
+                    self.cachedSortAscDesc = sortAscDesc;
+                    self.cachedSortByColumnNumber = parseInt(sortByColumnNumber, 10);
+
                     // the url that will be fetched is now about to be
                     // replaced with the urlGen'd url before adding on
                     // the parsed components
@@ -5381,21 +5393,38 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                             searchQuery + ".*";
                     }
 
-                    // uncomment for ordering by column
+                    // ordering by column
+
                     /*
+                    columnLabelHash is now being dynamically generated
+                    before this standardAjaxOptions is returned.
+
                     var columnLabelHash = {
-                        0: '@timestamp',
-                        1: 'syslog_severity',
-                        2: 'component',
-                        3: 'host',
-                        4: 'log_message'
+                        0: 'timestamp',
+                        1: 'eventType',
+                        ... dynamically constructed
                     };
+                    */
+
                     var ascDec = {
                         asc: '',
                         'desc': '-'
                     };
-                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    */
+
+                    if (this.columnLabelHash[sortByColumnNumber]) {
+
+                        var nameToStore = this.columnLabelHash[sortByColumnNumber];
+                        // correct for vagaries in ES results
+                        if (nameToStore === 'eventTime') {
+                            nameToStore = 'timestamp';
+                        }
+
+                        // store the columnHeadingByName of the actual sort column that was clicked
+                        self.cachedColumnHeadingByName = this.columnLabelHash[sortByColumnNumber];
+
+                        settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + nameToStore;
+                    }
+
 
                 },
                 dataSrc: "results",
@@ -5441,8 +5470,50 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
             standardAjaxOptions.deferLoading = self.cachedResults.recordsTotal;
         }
 
+        // standardAjaxOptions.ajax.columnLabelHash = {
+        //     0: 'timestamp',
+        //     1: 'eventType',
+        //    ...
+        // };
+
+        // set up the dynamic column label ordering scheme
+        standardAjaxOptions.ajax.columnLabelHash = self.createHashFromArray(self.cachedHeadingArray);
+
+        // set up the proper column heading ordering arrow
+        if ((this.cachedSortByColumnNumber !== undefined) && this.cachedSortAscDesc) {
+
+            // find the clicked column label in the hash
+            var newIndexOfSortColumn = _.findKey(standardAjaxOptions.ajax.columnLabelHash, function(item) {
+                return item === self.cachedColumnHeadingByName;
+            });
+
+            // if the sort column is no longer existent, don't 
+            // impose a sort order on the table 
+            if (newIndexOfSortColumn !== undefined) {
+                standardAjaxOptions.order = [
+                    [newIndexOfSortColumn, this.cachedSortAscDesc]
+                ];
+            }
+        }
+
         // will be used as the 'options' when instantiating dataTable
         return standardAjaxOptions;
+    },
+
+    createHashFromArray: function(arr) {
+        var result = {};
+
+        if (!arr) {
+            return {
+                0: 'eventTime'
+            };
+        }
+
+        _.each(arr, function(item, key) {
+            result[key] = item;
+        });
+
+        return result;
     },
 
     prepDataForViz: function(data) {
@@ -5520,7 +5591,6 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
         // strip object down to things in 'traits' and then
         // flatten object before returning it to the dataPrep function
-
         var result = data.map(function(record) {
             return record._source.traits;
         });
@@ -5560,6 +5630,11 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         _.each(keysWithName, function(item) {
             uniqueObjectKeys.unshift(item[0]);
         });
+
+
+        // store the sorted list so it can be used to create a map for
+        // the column that is clicked for sorting
+        self.cachedHeadingArray = uniqueObjectKeys;
 
         // END SORT
 
@@ -5663,6 +5738,9 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // reposition page to pre-refresh height
         if (this.currentTop !== undefined) {
             $(document).scrollTop(this.currentTop);
+        }
+        if (this.currentScrollLeft !== undefined) {
+            $('.dataTables_scrollBody').scrollLeft(this.currentScrollLeft);
         }
     }
 });
@@ -6884,9 +6962,9 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": false,
+            "ordering": true,
             "order": [
-                [1, 'desc']
+                [0, 'desc']
             ],
             "columnDefs": [{
                 "data": "@timestamp",
@@ -6955,7 +7033,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         asc: '',
                         'desc': '-'
                     };
-                    // settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
                     
                 },
                 dataSrc: "results",
