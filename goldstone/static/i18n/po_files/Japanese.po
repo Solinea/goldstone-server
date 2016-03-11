@@ -1685,6 +1685,10 @@ msgstr "無条件（リセット）"
 #: serviceStatusView.js
 
 #: serviceStatusView.js
+msgid "Host"
+msgstr "ホスト"
+
+#: serviceStatusView.js
 msgid "Service Status"
 msgstr "サービス状態"
 

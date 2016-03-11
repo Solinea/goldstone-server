@@ -1685,6 +1685,10 @@ msgstr ""
 #: serviceStatusView.js
 
 #: serviceStatusView.js
+msgid "Host"
+msgstr ""
+
+#: serviceStatusView.js
 msgid "Service Status"
 msgstr ""
 
