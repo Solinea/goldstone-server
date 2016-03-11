@@ -88,19 +88,6 @@ def _hash(*args):
 # Resource graph types and instances #
 ######################################
 
-def utc_now():
-    """Return a timezone-aware current UTC datetime.
-
-    This is needed for a model field's default. It's called every time a row is
-    created, and lambdas can't be used because they can't be serialized by
-    migrations.
-
-    """
-    import arrow
-
-    return arrow.utcnow().datetime
-
-
 class PolyResource(PolymorphicModel):
     """The base type for resources.
 

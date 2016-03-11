@@ -672,8 +672,10 @@ naturally respect vertical placement for Japanese text.
 }
 
 .list-content {
-    height: 93%;
+    height: 88%;
     overflow: auto;
+    /* adds spacing after last list item for full scrollability*/
+    padding-bottom: 15%
 }
 
 .subtab .tab-links li {

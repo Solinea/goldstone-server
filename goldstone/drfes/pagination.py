@@ -18,6 +18,7 @@ from django.core.paginator import InvalidPage, Paginator as DjangoPaginator
 from rest_framework import pagination
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
+from elasticsearch_dsl.result import Response as ESResponse
 import six
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,12 @@ class ElasticPageNumberPagination(pagination.PageNumberPagination):
                 page_number=page_number, message=six.text_type(exc)
             )
             raise NotFound(msg)
+        except Exception as exc:
+            # This probably came from ES, so let's log it, and return and
+            # empty response to the client.  This can happen when the indices
+            # have not been created, or generally on any ES exception.
+            logger.exception(exc)
+            self.page.object_list = ESResponse({"hits": {"hits": []}})
 
         if paginator.count > 1 and self.template is not None:
             # The browsable API should display pagination controls.
