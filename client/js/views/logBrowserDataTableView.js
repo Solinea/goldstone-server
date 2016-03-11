@@ -64,9 +64,9 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
             "lengthChange": true,
             "paging": true,
             "searching": true,
-            "ordering": false,
+            "ordering": true,
             "order": [
-                [1, 'desc']
+                [0, 'desc']
             ],
             "columnDefs": [{
                 "data": "@timestamp",
@@ -135,7 +135,7 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
                         asc: '',
                         'desc': '-'
                     };
-                    // settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
+                    settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
                     
                 },
                 dataSrc: "results",
