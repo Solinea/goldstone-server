@@ -2,6 +2,12 @@
 systemctl stop goldstone-server
 systemctl disable goldstone-server
 
+# stop containers
+echo "Stopping containers..."
+if [ `docker ps | grep goldstone | wc -l` -gt 0 ]; then
+  docker stop -f $(docker ps -a | grep goldstone | awk '{print $1}' | xargs) || /bin/true
+fi
+
 # remove stopped containers
 echo "Removing containers..."
 if [ `docker ps -a | grep goldstone | wc -l` -gt 0 ]; then
