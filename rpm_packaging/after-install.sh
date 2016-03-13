@@ -7,6 +7,8 @@ if [ -f /usr/lib/systemd/system/goldstone-server-enterprise.service ]; then
 else
   PKGNAME=goldstone-server
 fi
+export GS_PATH="/opt"
+
 
 echo "*****************************************************************************"
 echo ""
