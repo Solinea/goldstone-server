@@ -2,7 +2,7 @@
 # $GS_PATH/goldstone/bin/docker-compose -f $GS_PATH/goldstone/docker-compose.yml pull
 
 # find pkg type
-if [ -z /usr/lib/systemd/system/goldstone-server-enterprise.service ]; then
+if [ -f /usr/lib/systemd/system/goldstone-server-enterprise.service ]; then
   PKGNAME=goldstone-server-enterprise
 else
   PKGNAME=goldstone-server
