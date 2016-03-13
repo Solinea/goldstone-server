@@ -9,8 +9,8 @@ Restart=always
 User=root
 Group=root
 ExecStartPre=docker login -u "${GOLDSTONE_REPO_USER}" -p "${GOLDSTONE_REPO_PASS}" -e "${GOLDSTONE_REPO_EMAIL}" gs-docker-ent.bintray.io
-ExecStart=/opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml up
-ExecStop=/opt/goldstone/bin/docker-compose -f /opt/goldstone/docker-compose.yml stop
+ExecStart=/opt/goldstone/bin/docker-compose --verbose -f /opt/goldstone/docker-compose.yml up
+ExecStop=/opt/goldstone/bin/docker-compose --verbose -f /opt/goldstone/docker-compose.yml stop
 RestartSec=
 
 [Install]
