@@ -1,7 +1,7 @@
 // mock i18n
 var goldstone = goldstone || {};
 
-goldstone.skipI18nLog = true;
+goldstone.inTestEnv = true;
 
 goldstone.i18nJSON = {
     "English": {

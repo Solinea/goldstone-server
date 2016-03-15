@@ -20,7 +20,7 @@
 describe('dataTableBaseView.js', function() {
     beforeEach(function() {
         $('body').html(
-            '<div class="events-browser-table"></div>'
+            '<div class="datatable-base"></div>'
         );
 
         // to answer GET requests
@@ -37,7 +37,7 @@ describe('dataTableBaseView.js', function() {
         blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new DataTableBaseView({
-            el: '.events-browser-table',
+            el: '.datatable-base',
             chartTitle: 'Events Browser',
             infoIcon: 'fa-table',
             width: 300
@@ -156,6 +156,62 @@ describe('dataTableBaseView.js', function() {
             // returning fallbacks
             expect(test1).to.equal(0);
             expect(test2).to.equal('desc');
+        });
+        it('preps data appropriately', function() {
+
+            // passing something other than typeof === object
+            var test1 = '';
+            var res1 = this.testView.dataPrep(test1);
+            expect(res1).to.deep.equal([]);
+
+            // passing something with typeof === object
+            var test2 = [{
+                'name': 'zippy',
+                'face': 'confused'
+            }];
+            var res2 = this.testView.dataPrep(test2);
+            expect(res2).to.deep.equal([
+                ['zippy', 'confused']
+            ]);
+        });
+        it('returns table headings sorted appropriately', function() {
+            this.testView.headingsToPin = {
+                'name': 0,
+                'face': 1,
+                'beard': 2
+            };
+
+            var test1 = [{
+                'name': 'zippy',
+                'face': 'confused',
+                'beard': 'stubble',
+                'in-pocket': 'waffle'
+            }];
+            var res1 = this.testView.dataPrep(test1);
+            expect(res1).to.deep.equal([
+                ['zippy', 'confused', 'stubble', 'waffle']
+            ]);
+
+            this.testView.headingsToPin = {
+                'name': 2,
+                'in-pocket': 1,
+                'face': 0
+            };
+
+            var test2 = [{
+                'name': 'zippy',
+                'face': 'confused',
+                'beard': 'stubble',
+                'in-pocket': 'waffle'
+            }];
+            var res2 = this.testView.dataPrep(test2);
+            expect(res2).to.deep.equal([
+                ['confused', 'waffle', 'zippy', 'stubble']
+            ]);
+        });
+        it('performes a drawSearchTable sanity check', function() {
+            this.testView.render();
+            this.testView.drawSearchTable('.table', null);
         });
     });
 });
