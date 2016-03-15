@@ -129,7 +129,7 @@ describe('alertsMenuView.js spec', function() {
     describe('view tests', function() {
         it('renders alerts accordingly', function() {
             this.server.respond();
-            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at 2016-03-10 00:28:00+00:00</span><span class="time">Last Wednesday at 4:28 PM (2016-03-09T16:28:00-08:00)</span></div></li>');
+            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at 2016-03-10 00:28:00+00:00</span></div></li>');
         });
         it('renders recent alerts accordingly', function() {
             expect($('.alerts-recent').html()).to.equal('');
