@@ -38,7 +38,7 @@ describe('nodeServiceStatusView.js spec', function() {
             url: '/null/and/void'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new NodeServiceStatusView({
             collection: this.testCollection,

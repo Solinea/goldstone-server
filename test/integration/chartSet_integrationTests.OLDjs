@@ -29,7 +29,7 @@ describe('chartSet.js spec', function() {
             "Content-Type": "application/json"
         }, 'OK']);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection = new GoldstoneBaseCollection({
         });

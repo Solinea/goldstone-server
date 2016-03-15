@@ -34,7 +34,7 @@ describe('dataTableBaseView.js', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new DataTableBaseView({
             el: '.datatable-base',
@@ -209,9 +209,25 @@ describe('dataTableBaseView.js', function() {
                 ['confused', 'waffle', 'zippy', 'stubble']
             ]);
         });
-        it('performes a drawSearchTable sanity check', function() {
+        it('performs a drawSearchTable sanity check', function() {
             this.testView.render();
             this.testView.drawSearchTable('.table', null);
+        });
+        it('sets the proper top boundary of a refreshed table', function() {
+
+            // lots of html fluff to allow for a scrollTop > 0
+            for (var i = 0; i < 100; i++) {
+                $('body').prepend('<div><br></div>');
+            }
+            expect($('body').scrollTop()).equals(0);
+            this.testView.render();
+            this.testView.drawSearchTable('.table', null);
+            expect($('body').scrollTop()).equals(0);
+
+            $('body').scrollTop(20);
+            this.testView.drawSearchTable('.table', null);
+            expect($('body').scrollTop()).equals(20);
+
         });
     });
 });

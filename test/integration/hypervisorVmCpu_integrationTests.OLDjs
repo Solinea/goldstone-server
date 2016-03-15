@@ -37,7 +37,7 @@ describe('HypervisorVmCpu spec', function() {
             url: '/something/fancy'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection.reset();
         this.testCollection.add([{

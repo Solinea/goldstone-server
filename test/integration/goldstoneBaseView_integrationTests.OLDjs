@@ -68,7 +68,7 @@ describe('goldstoneBaseView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection = new ApiPerfCollection({
             urlPrefix: 'cinder'

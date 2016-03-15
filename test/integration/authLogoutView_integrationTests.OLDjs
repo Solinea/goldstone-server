@@ -29,7 +29,7 @@ describe('LogoutIcon.js spec', function() {
             "Content-Type": "application/json"
         }, 'test unauthorized']);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new LogoutIcon({
             el: '.test-container'

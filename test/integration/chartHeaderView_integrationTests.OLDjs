@@ -29,7 +29,7 @@ describe('ChartHeaderView.js spec', function() {
             "Content-Type": "application/json"
         }, '[]']);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);

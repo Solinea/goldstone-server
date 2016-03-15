@@ -37,7 +37,7 @@ describe('UtilizationMem.js spec', function() {
             url: '/something/fancy'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new HypervisorView({
             collection: this.testCollection,

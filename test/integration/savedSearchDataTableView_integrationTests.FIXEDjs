@@ -69,14 +69,32 @@ describe('savedSearchDataTableView.js', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondImmediately = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", '/core/saved_search/?page_size=25&page=1&ordering=name&index_prefix=test-prefix*', [200, {
                 "Content-Type": "application/json"
             },
             JSON.stringify(dData)
         ]);
 
-        
+        this.server.respondWith("GET", '/user/', [200, {
+                "Content-Type": "application/json"
+            },
+            JSON.stringify({
+                uuid: '3.14159',
+                name: 'stayFresh'
+            })
+        ]);
+
+        this.server.respondWith("PATCH", '/core/saved_search/', [200, {
+                "Content-Type": "application/json"
+            },
+            '[]'
+        ]);
+
+        this.server.respondWith("DELETE", '/core/saved_search/*', [200, {
+                "Content-Type": "application/json"
+            },
+            '[]'
+        ]);
 
         this.testCollection = new GoldstoneBaseCollection({
             skipFetch: true,
@@ -115,6 +133,7 @@ describe('savedSearchDataTableView.js', function() {
             $('#cancel-delete-search').click();
             $('.fa-trash-o').click();
             $('#confirm-delete').click();
+            this.server.respond();
         });
         it('triggers dataTableRowGenerationHooks', function() {
 
@@ -123,8 +142,11 @@ describe('savedSearchDataTableView.js', function() {
             };
 
             this.testView.dataTableRowGenerationHooks([], testData);
+            $('.fa-gear').click();
         });
         it('tests server side data prep', function() {
+            this.testView.render();
+            this.server.respond();
             this.testView.serverSideDataPrep(JSON.stringify([]));
         });
         it('adds otable params', function() {
@@ -133,12 +155,36 @@ describe('savedSearchDataTableView.js', function() {
             expect(test1.createdRow).to.be.a('function');
         });
         it('createsNewTrailAjax', function() {
-            this.server.respondWith("POST", "/test/", [200, {
+            this.server.respondWith("POST", '/core/saved_search', [200, {
                     "Content-Type": "application/json"
                 },
-                'OK'
+                '[]'
             ]);
             this.testView.createNewSearchAjax([]);
+            this.server.respond();
+            this.testView.update();
+            this.server.respond();
+        });
+        it('pretty prints', function() {
+            var test1 = JSON.stringify({
+                a: 'abrac',
+                b: [1, 2, 3],
+                c: 'dabara'
+            });
+
+            var res1 = this.testView.prettyPrint(test1);
+            expect(res1).to.equal(JSON.stringify(JSON.parse(test1), null, 2));
+
+            // returns original input if not JSON encoded originally
+            var test2 = {
+                a: 'abrac',
+                b: [1, 2, 3],
+                c: 'dabara'
+            };
+
+            var res2 = this.testView.prettyPrint(test2);
+            expect(res2).to.deep.equal(test2);
+
         });
     });
 });

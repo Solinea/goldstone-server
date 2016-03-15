@@ -59,12 +59,13 @@ describe('ApiBrowserPageView.js spec', function() {
             '</form>' +
             '</div>');
 
+        this.clock = sinon.useFakeTimers(3600000);
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", '/core/api-calls/?@timestamp__range={"gte":0,"lte":3600000}&interval=180s&page_size=10&page=1&ordering=-@timestamp', [200, {
             "Content-Type": "application/json"
-        }, '{absolutely: "nothing"}']);
+        }, '[]']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -80,10 +81,13 @@ describe('ApiBrowserPageView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
+        this.clock.restore();
     });
     describe('view is constructed', function() {
         it('sanity check', function() {
+            this.server.respond();
             this.testView.triggerChange('lookbackSelectorChanged');
+            this.server.respond();
         });
     });
 });

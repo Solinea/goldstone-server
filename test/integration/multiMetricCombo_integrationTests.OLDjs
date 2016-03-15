@@ -39,7 +39,7 @@ describe('stackedAreaCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new UtilizationMemView({
             collection: this.testCollection,

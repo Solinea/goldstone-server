@@ -24,51 +24,7 @@ describe('logAnalysis.js spec', function() {
             '<div id="log-viewer-table"></div>'
         );
 
-        // to answer GET requests
-        this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
-            "Content-Type": "application/json"
-        }, '[]']);
-
-        // confirm that dom is clear of view elements before each test:
-        expect($('svg').length).to.equal(0);
-        expect($('#spinner').length).to.equal(0);
-
-        this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
-
-        var testEnd = (+new Date());
-        var testStart = (testEnd - (15 * 60 * 1000));
-
-
-        this.testCollection = new SearchObserverCollection({
-            urlBase: '/core/logs/',
-            skipFetch: true
-        });
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
-
-        this.testView = new LogBrowserViz({
-            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
-            collection: this.testCollection,
-            el: '#log-viewer-visualization',
-            infoText: 'logBrowser',
-            marginLeft: 70,
-            width: $('#log-viewer-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
-        });
-
-        this.testDataTableView = new LogBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
-            collectionMixin: this.testCollection,
-            el: '#log-viewer-table',
-            width: $('#log-viewer-table').width()
-        });
-
-        this.testCollection.linkedDataTable = this.testDataTableView;
-
-        this.testCollection.reset();
-        this.testCollection.add({
+        var serverResponse = {
             "count": 7322,
             "next": "http://localhost:8000/core/logs/?%40timestamp__range=%7B%22gte%22%3A1452554745165%2C%22lte%22%3A1452555645165%7D&page=2&page_size=10&syslog_severity__terms=%5B%22emergency%22%2C%22alert%22%2C%22critical%22%2C%22error%22%2C%22warning%22%2C%22notice%22%2C%22info%22%2C%22debug%22%5D",
             "previous": null,
@@ -177,16 +133,63 @@ describe('logAnalysis.js spec', function() {
                     }]
                 }
             }
+        };
+
+        this.clock = sinon.useFakeTimers(900000);
+
+        // to answer GET requests
+        this.server = sinon.fakeServer.create();
+        this.server.respondWith("GET", '/core/logs/?@timestamp__range={"gte":0,"lte":900000}&interval=45s&syslog_severity__terms=["emergency","alert","critical","error","warning","notice","info","debug"]&page_size=10&page=1&ordering=-@timestamp', [200, {
+            "Content-Type": "application/json"
+        }, JSON.stringify(serverResponse)]);
+
+        // confirm that dom is clear of view elements before each test:
+        expect($('svg').length).to.equal(0);
+        expect($('#spinner').length).to.equal(0);
+
+        this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
+
+        var testEnd = (+new Date());
+        var testStart = (testEnd - (15 * 60 * 1000));
+
+
+        this.testCollection = new SearchObserverCollection({
+            urlBase: '/core/logs/',
+            skipFetch: true
         });
+
+        this.testView = new LogBrowserViz({
+            chartTitle: goldstone.contextTranslate('Logs vs Time', 'logbrowserpage'),
+            collection: this.testCollection,
+            el: '#log-viewer-visualization',
+            infoText: 'logBrowser',
+            marginLeft: 70,
+            width: $('#log-viewer-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('Log Events', 'logbrowserpage')
+        });
+
+        this.testDataTableView = new LogBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('Log Browser', 'logbrowserpage'),
+            collectionMixin: this.testCollection,
+            el: '#log-viewer-table',
+            width: $('#log-viewer-table').width()
+        });
+
+        this.testCollection.linkedDataTable = this.testDataTableView;
+
+        this.testCollection.reset();
+        this.testCollection.add();
 
     });
     afterEach(function() {
         $('body').html('');
         this.server.restore();
         this.protoFetchSpy.restore();
+        this.clock.restore();
     });
     describe('collection is constructed', function() {
         it('should exist', function() {
+            this.server.respond();
             var dataTest = JSON.stringify('hello');
             assert.isDefined(this.testCollection, 'this.testCollection has been defined');
             expect(this.testCollection.parse).to.be.a('function');
@@ -224,6 +227,7 @@ describe('logAnalysis.js spec', function() {
     });
     describe('collectionPrep test', function() {
         it('should exist', function() {
+            this.server.respond();
             assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
             var test1 = this.testView.collectionPrep();
             expect(test1).to.deep.equal([{
@@ -253,6 +257,7 @@ describe('logAnalysis.js spec', function() {
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
+            this.server.respond();
             this.testView.update();
             expect($('svg').length).to.equal(1);
             expect($('g.x axis').find('text').text()).to.equal('');
@@ -275,6 +280,7 @@ describe('logAnalysis.js spec', function() {
             this.update_spy.restore();
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
+            this.server.respond();
             this.testView.update();
 
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
@@ -330,6 +336,7 @@ describe('logAnalysis.js spec', function() {
             this.paintNewChart_spy.restore();
         });
         it('should construct new collection url\'s appropriately via paintNewChart functionality', function() {
+            this.server.respond();
             var time2 = 1421085130000;
             var time1 = time2 - (1000 * 60 * 60);
             this.testView.render();

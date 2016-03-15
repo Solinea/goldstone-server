@@ -33,7 +33,7 @@ describe('multiMetricBarView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection = new MultiMetricComboCollection({
             metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
