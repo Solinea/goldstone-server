@@ -235,6 +235,32 @@ describe('alertsMenuView.js spec', function() {
             var test2 = this.testView.extractRecentAlerts(this.testView.model.get('alerts'), 1457548107731);
             expect(test2).to.deep.equal([]);
         });
+        it('properly formats an alert', function() {
+            var test1 = {
+                short_message: '',
+                created: 0,
+                cruft: 'crust'
+            };
+            var answer1 = '' +
+                '<li>' +
+                '<div class="msg-block">' +
+                '<span class="msg"></span>' +
+                '</div>' +
+                '</li>';
+            var test2 = {
+                short_message: 'Your refrigerator is running',
+                created: 0,
+                cruft: 'You\'d better catch it.'
+            };
+            var answer2 = '' +
+                '<li>' +
+                '<div class="msg-block">' +
+                '<span class="msg">Your refrigerator is running</span>' +
+                '</div>' +
+                '</li>';
+            expect(this.testView.alertTemplate(test2)).to.equal(answer2);
+            expect(this.testView.alertTemplate(test1)).to.equal(answer1);
+        });
 
     });
 });
