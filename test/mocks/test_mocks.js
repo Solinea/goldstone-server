@@ -19,6 +19,8 @@ goldstone.i18nJSON = {
     }
 };
 
+blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+
 goldstone.userPrefsView = new UserPrefsView();
 
 // Create mocked version with 'missing key callback' commented out

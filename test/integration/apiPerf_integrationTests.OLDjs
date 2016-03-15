@@ -72,7 +72,7 @@ describe('apiPerfView.js spec', function() {
             urlPrefix: 'cinder'
         });
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testView = new ApiPerfView({
             chartTitle: "Tester API Performance",

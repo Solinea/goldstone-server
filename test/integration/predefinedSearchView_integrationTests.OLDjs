@@ -43,7 +43,7 @@ describe('predefinedSearchView.js', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection = new SearchObserverCollection({
             urlBase: '/blah/de/blah/',

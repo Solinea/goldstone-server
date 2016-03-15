@@ -76,7 +76,7 @@ describe('savedSearchDataTableView.js', function() {
             JSON.stringify(dData)
         ]);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        
 
         this.testCollection = new GoldstoneBaseCollection({
             skipFetch: true,
