@@ -81,6 +81,8 @@ describe('NodeReportView.js spec', function() {
         this.server.restore();
     });
     describe('view is constructed', function() {
+        // update pending return of node report view to project
+        /*
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
@@ -131,5 +133,6 @@ describe('NodeReportView.js spec', function() {
             expect($('#reportsReport').css('display')).to.equal('block');
             expect($('#eventsReport').css('display')).to.equal('block');
         });
+        */
     });
 });

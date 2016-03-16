@@ -23,7 +23,7 @@ describe('goldstoneRouter.js spec', function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 

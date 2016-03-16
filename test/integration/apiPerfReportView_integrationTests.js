@@ -58,8 +58,7 @@ describe('apiPerfReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -79,7 +78,7 @@ describe('apiPerfReportView.js spec', function() {
         $('body').html('');
         this.server.restore();
     });
-    describe('view is constructed', function() {
+    /*describe('view is constructed', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
@@ -102,6 +101,6 @@ describe('apiPerfReportView.js spec', function() {
 
             this.getGlobalLookbackRefresh_spy.restore();
         });
-    });
+    });*/
 
 });

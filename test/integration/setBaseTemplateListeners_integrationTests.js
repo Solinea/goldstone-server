@@ -82,10 +82,9 @@ describe('setBaseTemplateListeners.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
-        }, 'OK']);
+        }, '[]']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -104,7 +103,7 @@ describe('setBaseTemplateListeners.js spec', function() {
     });
     describe('router changes change highlighting', function() {
         it('sets discover tab default highlighting', function() {
-            expect($('li.dashboard-tab').hasClass('active')).to.equal(true);
+            expect($('li.dashboard-tab').hasClass('active')).to.equal(false);
             // also navigating to the page, highlighting
             // will also be applied
             goldstone.gsRouter.navigate('discover', {

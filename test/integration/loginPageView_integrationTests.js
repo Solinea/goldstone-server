@@ -19,9 +19,7 @@
 
 describe('loginPageView.js spec', function() {
     beforeEach(function() {
-
         $('body').html('' +
-
             '<form class="login-form">' +
             '<input type="text" name="username" placeholder="Username" autofocus>' +
             '<input type="password" name="password" placeholder="Password">' +
