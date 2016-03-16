@@ -183,6 +183,7 @@ describe('logAnalysis.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
         this.clock.restore();

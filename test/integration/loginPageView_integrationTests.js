@@ -42,6 +42,7 @@ describe('loginPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {

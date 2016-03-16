@@ -39,7 +39,7 @@ describe('stackedAreaCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-        
+
 
         this.testView = new UtilizationMemView({
             collection: this.testCollection,
@@ -193,6 +193,7 @@ describe('stackedAreaCollection.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

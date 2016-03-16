@@ -41,7 +41,7 @@ describe('predefinedSearchView.js', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testCollection = new SearchObserverCollection({
             urlBase: '/blah/de/blah/',
@@ -70,6 +70,7 @@ describe('predefinedSearchView.js', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
 

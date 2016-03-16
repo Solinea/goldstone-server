@@ -135,6 +135,7 @@ describe('logBrowserDataTableView.js', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
 

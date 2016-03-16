@@ -29,10 +29,9 @@ describe('chartSet.js spec', function() {
             "Content-Type": "application/json"
         }, 'OK']);
 
-        
 
-        this.testCollection = new GoldstoneBaseCollection({
-        });
+
+        this.testCollection = new GoldstoneBaseCollection({});
 
         this.testView = new ChartSet({
             el: '.container',
@@ -41,6 +40,7 @@ describe('chartSet.js spec', function() {
         // this.protoFetchSpy = sinon.spy(GoldstoneBaseCollection.prototype, "fetch");
     });
     afterEach(function() {
+        this.server.respond();
         this.server.restore();
         // this.protoFetchSpy.restore();
     });

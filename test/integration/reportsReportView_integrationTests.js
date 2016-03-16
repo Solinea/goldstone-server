@@ -67,7 +67,7 @@ describe('reportsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testCollection = new ReportsReportCollection({
             globalLookback: 60,
@@ -83,6 +83,7 @@ describe('reportsReportView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

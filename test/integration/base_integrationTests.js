@@ -28,7 +28,7 @@ describe('base.js spec', function() {
             "Content-Type": "application/json"
         }, 'OK']);
 
-        
+
 
         $('body').append('<form class="global-lookback-selector role="form"><div class="form-group"><div class="col-xl-1"><div class="input-group"><select class="form-control" id="global-lookback-range"><option value="20"></select></div></div></div></form>');
 
@@ -39,6 +39,7 @@ describe('base.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('alerts are raised', function() {

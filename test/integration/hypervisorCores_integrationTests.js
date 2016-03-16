@@ -37,7 +37,7 @@ describe('UtilizationMem.js spec', function() {
             url: '/something/fancy'
         });
 
-        
+
 
         this.testView = new HypervisorView({
             collection: this.testCollection,
@@ -75,6 +75,7 @@ describe('UtilizationMem.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {
@@ -138,30 +139,30 @@ describe('UtilizationMem.js spec', function() {
             this.testView.update();
             expect($('#noDataReturned').text()).to.equal('NoDataReturned');
             this.testCollection.add([{
-            "date": 1412815619263,
-            "VM1": 41.62,
-            "VM2": 22.36,
-            "VM3": 25.58,
-            "VM4": 9.13,
-        }, {
-            "date": 1412818619263,
-            "VM1": 41.62,
-            "VM2": 22.36,
-            "VM3": 25.58,
-            "VM4": 9.13,
-        }, {
-            "date": 1412823619263,
-            "VM1": 41.62,
-            "VM2": 22.36,
-            "VM3": 25.58,
-            "VM4": 9.13,
-        }, {
-            "date": 1412828619263,
-            "VM1": 41.62,
-            "VM2": 22.36,
-            "VM3": 25.58,
-            "VM4": 9.13,
-        }]);
+                "date": 1412815619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412818619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412823619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412828619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }]);
             this.testView.update();
             this.testCollection.trigger('sync');
             expect($('#noDataReturned').text()).to.equal('');

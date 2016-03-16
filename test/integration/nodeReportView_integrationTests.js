@@ -78,6 +78,7 @@ describe('NodeReportView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

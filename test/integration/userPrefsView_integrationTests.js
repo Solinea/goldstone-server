@@ -28,6 +28,7 @@ describe('settingsPageView.js spec', function() {
         this.testView = new UserPrefsView();
     });
     afterEach(function() {
+        this.server.respond();
         this.server.restore();
         localStorage.clear();
     });

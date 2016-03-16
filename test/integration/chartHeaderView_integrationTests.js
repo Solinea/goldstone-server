@@ -29,7 +29,7 @@ describe('ChartHeaderView.js spec', function() {
             "Content-Type": "application/json"
         }, '[]']);
 
-        
+
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -57,6 +57,7 @@ describe('ChartHeaderView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

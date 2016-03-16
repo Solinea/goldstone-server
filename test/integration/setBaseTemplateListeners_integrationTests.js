@@ -98,6 +98,7 @@ describe('setBaseTemplateListeners.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
         Backbone.history.stop();
     });

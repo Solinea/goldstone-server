@@ -31,6 +31,7 @@ describe('goldstoneRouter.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('router is instantiated properly', function() {

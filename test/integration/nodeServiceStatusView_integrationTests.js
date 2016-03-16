@@ -38,7 +38,7 @@ describe('nodeServiceStatusView.js spec', function() {
             url: '/null/and/void'
         });
 
-        
+
 
         this.testView = new NodeServiceStatusView({
             collection: this.testCollection,
@@ -48,6 +48,7 @@ describe('nodeServiceStatusView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
     });

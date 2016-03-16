@@ -68,7 +68,7 @@ describe('goldstoneBaseView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testCollection = new ApiPerfCollection({
             urlPrefix: 'cinder'
@@ -86,6 +86,7 @@ describe('goldstoneBaseView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
 
@@ -315,7 +316,9 @@ describe('goldstoneBaseView.js spec', function() {
 
             var test1 = this.testView.templateButtonConstructor(testRouteArray);
             expect(test1).to.equal('<div class="btn-group" role="group"><a href="/#reports/logbrowser" class="active btn btn-default">Log Browser</a><a href="/#reports/eventbrowser" class="btn btn-default">Event Browser</a><a href="/#reports/apibrowser" class="btn btn-default">Api Browser</a></div><br><br>');
-            testRouteArray = [['','']];
+            testRouteArray = [
+                ['', '']
+            ];
             var test2 = this.testView.templateButtonConstructor(testRouteArray);
             expect(test2).to.equal('<div class="btn-group" role="group"><a href="" class="btn btn-default"></a></div><br><br>');
         });

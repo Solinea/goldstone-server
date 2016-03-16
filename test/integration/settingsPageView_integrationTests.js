@@ -64,6 +64,7 @@ describe('settingsPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
         this.protoSetLanguage.restore();
         localStorage.clear();

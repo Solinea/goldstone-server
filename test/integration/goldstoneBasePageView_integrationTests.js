@@ -86,7 +86,7 @@
     });
     afterEach(function() {
         $('body').html('');
-        this.server.restore();
+        this.server.respond(); this.server.restore();
     });
     describe('view is constructed', function() {
         it('should exist', function() {

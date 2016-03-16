@@ -74,7 +74,7 @@ describe('spawnsView.js spec', function() {
 
         this.mockZerosSpy = sinon.spy(this.testCollection, "mockZeros");
 
-        
+
 
         this.testView = new SpawnsView({
             chartTitle: "Tester API Performance",
@@ -89,6 +89,7 @@ describe('spawnsView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.mockZerosSpy.restore();
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

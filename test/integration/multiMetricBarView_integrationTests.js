@@ -33,7 +33,7 @@ describe('multiMetricBarView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testCollection = new MultiMetricComboCollection({
             metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
@@ -54,6 +54,7 @@ describe('multiMetricBarView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('tests methods', function() {

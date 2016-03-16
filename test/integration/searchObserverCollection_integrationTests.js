@@ -30,6 +30,7 @@ describe('searchObserverCollection.js spec', function() {
         this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
     });
     afterEach(function() {
+        this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
     });

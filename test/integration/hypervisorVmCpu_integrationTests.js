@@ -37,7 +37,7 @@ describe('HypervisorVmCpu spec', function() {
             url: '/something/fancy'
         });
 
-        
+
 
         this.testCollection.reset();
         this.testCollection.add([{
@@ -107,6 +107,7 @@ describe('HypervisorVmCpu spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

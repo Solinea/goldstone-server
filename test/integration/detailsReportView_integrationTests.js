@@ -45,13 +45,14 @@ describe('reportsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testView = new DetailsReportView({});
     });
     afterEach(function() {
         $('body').html('');
         localStorage.removeItem('detailsTabData');
+        this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

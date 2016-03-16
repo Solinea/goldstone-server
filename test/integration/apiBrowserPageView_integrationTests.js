@@ -71,7 +71,7 @@ describe('ApiBrowserPageView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new ApiBrowserPageView({
@@ -80,6 +80,7 @@ describe('ApiBrowserPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
         this.clock.restore();
     });

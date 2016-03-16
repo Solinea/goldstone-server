@@ -29,7 +29,7 @@ describe('LogoutIcon.js spec', function() {
             "Content-Type": "application/json"
         }, 'test unauthorized']);
 
-        
+
 
         this.testView = new LogoutIcon({
             el: '.test-container'
@@ -37,6 +37,7 @@ describe('LogoutIcon.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {

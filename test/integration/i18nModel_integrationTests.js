@@ -49,7 +49,7 @@ describe('i18nModel.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        // this.server.restore();
+        // this.server.respond(); this.server.restore();
         localStorage.clear();
         goldstone.i18nJSON = goldstone.i18nJSONorig;
     });

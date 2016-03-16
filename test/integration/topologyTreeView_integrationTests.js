@@ -36,7 +36,7 @@ describe('eventsReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
 
         this.testCollection = new GoldstoneBaseCollection({
             urlBase: "/go/team/"
@@ -56,6 +56,7 @@ describe('eventsReportView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {
