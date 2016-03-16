@@ -263,6 +263,11 @@ msgid "Alerts"
 msgstr "アラート"
 
 #: base.html
+#. alert menu tooltip to close alert menu
+msgid "Close"
+msgstr "クローズ"
+
+#: base.html
 #. side-menu icon to view cloud topology graph
 msgid "Topology"
 msgstr "トポロジー"
