@@ -141,5 +141,9 @@ rm -rf %{buildroot}
 /var/log/goldstone/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
+%attr(700, -, -) %dir /var/lib/goldstone
+%attr(700, -, -) %dir /var/lib/goldstone/%{version}
+%attr(700, -, -) %dir /var/lib/goldstone/%{version}/sql_data
+%attr(700, -, -) %dir /var/lib/goldstone/%{version}/es_data
 
 %changelog
