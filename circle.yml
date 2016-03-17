@@ -42,9 +42,6 @@ machine:
 ## custom checkout
 checkout:
   post:
-    - git tag -d 1.1.0
-    - git fetch origin tag 1.1.0
-    - git rev-parse 1.1.0
     - git submodule init
     - git submodule update
 
