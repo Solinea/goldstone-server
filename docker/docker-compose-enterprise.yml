@@ -86,10 +86,23 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+  volumes_from:
+    - gssearchdvc
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"
     syslog-tag: "gssearch"
+
+# Elasticsearch Data Volume Container
+gssearchdvc:
+  image: solinea/goldstone-search:1.0.0-SNAPSHOT
+  entrypoint: /bin/true
+  volumes:
+    - /usr/share/elasticsearch/data
+  log_driver: "syslog"
+  log_opt:
+    syslog-facility: "local0"
+    syslog-tag: "gssearchdvc"
 
 # Celery Task Queue Container
 gstaskq:
