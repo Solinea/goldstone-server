@@ -10,12 +10,12 @@ build
 eggs
 
 parts
-var
 sdist
 develop-eggs
 .installed.cfg
-lib
-lib64
+/var
+/lib
+/lib64
 
 # Installer logs
 pip-log.txt
@@ -62,7 +62,7 @@ Icon
 .Python
 # [Bb]in
 [Ii]nclude
-[Ll]ib
+/[Ll]ib
 [Ss]cripts
 
 
