@@ -61,10 +61,12 @@ declare -a priv_to_push=( goldstone-app-e )
 
 
 for name in "${open_to_push[@]}" ; do
-    docker push ${OPEN_REGISTRY_ORG}/${name}:${TAG}
+    docker push ${OPEN_REGISTRY_ORG}/${name}:${TAG} &
 done
 
 for name in "${priv_to_push[@]}" ; do
-    docker push ${PRIV_REGISTRY_ORG}/${name}:${TAG}
+    docker push ${PRIV_REGISTRY_ORG}/${name}:${TAG} &
 done
+
+wait
 
