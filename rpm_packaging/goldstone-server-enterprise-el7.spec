@@ -121,6 +121,9 @@ install -d -m 755 %{buildroot}/usr/lib/systemd/system/
 install -d -m 755 %{buildroot}/etc/rsyslog.d/
 install -d -m 755 %{buildroot}/var/log/goldstone/
 install -d -m 750 %{buildroot}/opt/goldstone/config/
+install -d -m 700 %{buildroot}/var/lib/goldstone/
+install -d -m 700 %{buildroot}/var/lib/goldstone/es_data/
+install -d -m 700 %{buildroot}/var/lib/goldstone/sql_data/
 
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
@@ -146,9 +149,9 @@ rm -rf %{buildroot}
 /opt/goldstone/docker-compose.yml
 /opt/goldstone/config/
 /var/log/goldstone/
-%attr(700, -, -) /var/lib/goldstone/
-%attr(700, -, -) /var/lib/goldstone/sql_data/
-%attr(700, -, -) /var/lib/goldstone/es_data/
+/var/lib/goldstone/
+/var/lib/goldstone/sql_data/
+/var/lib/goldstone/es_data/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
 
