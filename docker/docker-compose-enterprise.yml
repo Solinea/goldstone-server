@@ -17,6 +17,7 @@
 gsweb:
   image: solinea/goldstone-web:1.0.0-SNAPSHOT
   ports:
+    - "8443:8443"
     - "8888:8888"
   links:
     - gsapp:gsapp

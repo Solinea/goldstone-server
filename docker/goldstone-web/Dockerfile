@@ -29,10 +29,16 @@ RUN preReqs=' \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN openssl req -x509 -sha256 -newkey rsa:2048 \
+  -keyout /etc/ssl/private/gsweb.pem \
+  -out /etc/ssl/certs/gsweb.pem \
+  -days 3650 -nodes \
+  -subj '/C=US/ST=California/O=Solinea/OU=Goldstone/CN=gsweb' 
+
 COPY config/nginx.conf /etc/nginx/nginx.conf
 
 COPY config/conf.d /etc/nginx/conf.d
 
 COPY static /usr/share/nginx/html/static
 
-EXPOSE 8888
+EXPOSE 8443 8888
