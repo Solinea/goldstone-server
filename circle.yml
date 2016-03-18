@@ -19,25 +19,8 @@ machine:
     GS_PROJ_TOP_DIR:    $HOME/goldstone-server
     # Docker image directories for staging
     DOCKER_DIR:   $GS_PROJ_TOP_DIR/docker
-    STAGE_APP:    $DOCKER_DIR/goldstone-app
-    STAGE_DB:     $DOCKER_DIR/goldstone-db
-    STAGE_LOG:    $DOCKER_DIR/goldstone-log
-    STAGE_SEARCH: $DOCKER_DIR/goldstone-search
-    STAGE_TASK:   $DOCKER_DIR/goldstone-task
-    STAGE_TASKQ:  $DOCKER_DIR/goldstone-task-queue
-    STAGE_WEB:    $DOCKER_DIR/goldstone-web
     # Docker runtime args
     COMPOSE_CONF: $DOCKER_DIR/docker-compose-ci.yml
-  # /etc/hosts
-  hosts:
-    gsapp: 127.0.0.1
-    gsdb: 127.0.0.1
-    gsdbdvc: 127.0.0.1
-    gslog: 127.0.0.1
-    gssearch: 127.0.0.1
-    gstask: 127.0.0.1
-    gstaskq: 127.0.0.1
-    gsweb: 127.0.0.1
 
 ## custom checkout
 checkout:
@@ -53,29 +36,12 @@ dependencies:
     - sudo service redis-server stop              # stop default redis-server service
     - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
     - sudo pip install docker-compose             # circleci env fix, install docker-compose
-    - pip install -r docker/goldstone-base/config/test-requirements.txt
     - docker info && docker-compose version
-  override:
-    - bin/build_images.sh --docker-vm=false
-  post:
-    - docker images
 
 ## test config
 test:
-  pre:
-    - docker-compose -f $COMPOSE_CONF -p gs up:
-        background: true
-    - sleep 60 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
-    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
-    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh short` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
-    - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
-    - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
-  post:
-    - docker-compose -f $COMPOSE_CONF -p gs stop
-    - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
-    # TODO: uncomment when priv env logon is added to solinea/goldstone-server
-    #- docker login -u $DOCKER_USER -p $DOCKER_PASS -e $DOCKER_EMAIL gs-docker-oss.bintray.io
+    - /bin/true
 
 ## deployment config
 deployment:
