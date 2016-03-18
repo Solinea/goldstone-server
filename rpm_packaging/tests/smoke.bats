@@ -55,6 +55,21 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
   [ "$status" -eq 0 ]
 }
 
+@test "log dir in place" {
+  run stat /var/log/goldstone
+  [ "$status" -eq 0 ]
+}
+
+@test "sql_data dir in place" {
+  run stat /var/lib/goldstone/sql_data
+  [ "$status" -eq 0 ]
+}
+
+@test "es_data dir in place" {
+  run stat /var/lib/goldstone/es_data
+  [ "$status" -eq 0 ]
+}
+
 @test "goldstone user created" {
   run getent passwd goldstone
   [ "$status" -eq 0 ]

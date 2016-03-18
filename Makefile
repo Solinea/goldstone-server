@@ -62,6 +62,10 @@ gse_native: PKGLIC=Core Server: Apache 2.0, Addons: Solinea 1.0
 gse_native: DCFILE=docker/docker-compose-enterprise.yml=/opt/goldstone/docker-compose.yml
 gse_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server-enterprise.service=/usr/lib/systemd/system/goldstone-server-enterprise.service
 gse_native: GSE_START=rpm_packaging/goldstone-server-enterprise=/usr/bin/goldstone-server-enterprise
+gse_native: GSE_LOG=rpm_packaging/var/log/goldstone/=/var/log/goldstone/
+gse_native: GSE_LIB_BASE=rpm_packaging/var/lib/goldstone/=/var/lib/goldstone/
+gse_native: GSE_SQL_DATA=rpm_packaging/var/lib/goldstone/sql_data/=/var/lib/goldstone/sql_data/
+gse_native: GSE_ES_DATA=rpm_packaging/var/lib/goldstone/es_data/=/var/lib/goldstone/es_data/
 gse_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server-enterprise
 gse_native: GSE_SYSTEMD_ATTR=--rpm-attr 0644,root,root:/usr/lib/systemd/system/goldstone-server-enterprise.service
 gse_native: version rpm_build rpm_test
@@ -72,6 +76,10 @@ rpm_native: PKGLIC=Apache 2.0
 rpm_native: DCFILE=docker/docker-compose.yml=/opt/goldstone/docker-compose.yml
 rpm_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server.service=/usr/lib/systemd/system/goldstone-server.service
 rpm_native: GSE_START=rpm_packaging/goldstone-server=/usr/bin/goldstone-server
+rpm_native: GSE_LOG=rpm_packaging/var/log/goldstone/=/var/log/goldstone/
+rpm_native: GSE_LIB_BASE=rpm_packaging/var/lib/goldstone/=/var/lib/goldstone/
+rpm_native: GSE_SQL_DATA=rpm_packaging/var/lib/goldstone/sql_data/=/var/lib/goldstone/sql_data/
+rpm_native: GSE_ES_DATA=rpm_packaging/var/lib/goldstone/es_data/=/var/lib/goldstone/es_data/
 rpm_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server
 rpm_native: GSE_SYSTEMD_ATTR=--rpm-attr 0644,root,root:/usr/lib/systemd/system/goldstone-server.service
 rpm_native: version rpm_build rpm_test
@@ -106,6 +114,7 @@ rpm_build:
 	--after-install rpm_packaging/after-install.sh \
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
+    --rpm-defattrdir 0750 \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
 	$(GSE_START_ATTR) \
 	$(GSE_SYSTEMD_ATTR) \
@@ -113,14 +122,16 @@ rpm_build:
 	$(DCFILE) \
 	$(GSE_SYSTEMD) \
 	$(GSE_START) \
+    $(GSE_LOG) \
+    $(GSE_LIB_BASE) \
+    $(GSE_SQL_DATA) \
+    $(GSE_ES_DATA) \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
 	docs/CHANGELOG.md=/opt/goldstone/CHANGELOG.md \
 	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
 	LICENSE=/opt/goldstone/LICENSE \
 	README.md=/opt/goldstone/README.md \
-	docker/config/goldstone-dev.env=/opt/goldstone/config/goldstone-dev.env \
 	docker/config/goldstone-prod.env=/opt/goldstone/config/goldstone-prod.env \
-	docker/config/goldstone-test.env=/opt/goldstone/config/goldstone-test.env \
 	docker/goldstone-search/config/templates/api_stats_template.json=/usr/share/elasticsearch/config/templates/api_stats_template.json \
 	docker/goldstone-search/config/templates/ceilo_events_template.json=/usr/share/elasticsearch/config/templates/ \
 	docker/goldstone-search/config/templates/goldstone_metrics_template.json=/usr/share/elasticsearch/config/templates/ \
