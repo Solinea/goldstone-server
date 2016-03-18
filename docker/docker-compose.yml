@@ -28,7 +28,7 @@ gsweb:
 # Goldstone Server Container
 gsapp:
   image: solinea/goldstone-app:1.0.0-SNAPSHOT
-  env_file: ./config/goldstone-prod.env
+  env_file: ./config/goldstone-dev.env
   ports:
     - "8000:8000"
   links:
@@ -44,7 +44,7 @@ gsapp:
 # Database Container
 gsdb:
   image: solinea/goldstone-db:1.0.0-SNAPSHOT
-  env_file: ./config/goldstone-prod.env
+  env_file: ./config/goldstone-dev.env
   volumes_from:
     - gsdbdvc
   ports:
