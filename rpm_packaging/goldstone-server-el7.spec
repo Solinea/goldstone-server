@@ -142,9 +142,9 @@ rm -rf %{buildroot}
 /opt/goldstone/docker-compose.yml
 /opt/goldstone/config/
 /var/log/goldstone/
-/var/lib/goldstone/
-/var/lib/goldstone/sql_data/
-/var/lib/goldstone/es_data/
+%dir /var/lib/goldstone/
+%dir /var/lib/goldstone/sql_data/
+%dir /var/lib/goldstone/es_data/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
 
