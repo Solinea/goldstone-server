@@ -146,10 +146,10 @@ rm -rf %{buildroot}
 /opt/goldstone/docker-compose.yml
 /opt/goldstone/config/
 /var/log/goldstone/
+%attr(700, -, -) /var/lib/goldstone/
+%attr(700, -, -) /var/lib/goldstone/sql_data/
+%attr(700, -, -) /var/lib/goldstone/es_data/
 %config %attr(-, root, root) /usr/lib/systemd/system/goldstone-server.service
 %config %attr(-, root, root) /etc/rsyslog.d/goldstone.conf
-%attr(700, goldstone, goldstone) %dir /var/lib/goldstone
-%attr(700, goldstone, goldstone) %dir /var/lib/goldstone/sql_data
-%attr(700, goldstone, goldstone) %dir /var/lib/goldstone/es_data
 
 %changelog
