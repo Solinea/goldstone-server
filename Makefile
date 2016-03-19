@@ -158,3 +158,11 @@ test:
 cover:
 	coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' \
 		manage.py test goldstone --settings=goldstone.settings.docker_dev
+
+run-desktop:
+	./node_modules/.bin/electron desktop/
+
+build-desktop:
+	cp -rv node_modules desktop/node_modules
+	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.36.9 --icon=desktop/Icon.icns
+	rm -rf desktop/node_modules

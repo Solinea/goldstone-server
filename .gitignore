@@ -112,3 +112,6 @@ ChangeLog
 # packaging
 rpm_packaging/temp/
 rpm_packaging/pkg/
+
+# desktop binary
+Goldstone-darwin-x64
