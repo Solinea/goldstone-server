@@ -164,5 +164,5 @@ run-desktop:
 
 build-desktop:
 	cp -rv node_modules desktop/node_modules
-	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.36.9 --icon=desktop/Icon.icns
+	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.36.9 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*'
 	rm -rf desktop/node_modules
