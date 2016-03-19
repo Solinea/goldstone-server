@@ -60,13 +60,38 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
   [ "$status" -eq 0 ]
 }
 
+@test "log placeholder is not present" {
+  run stat /var/log/goldstone/placeholder
+  [ "$status" -ne 0 ]
+}
+
 @test "sql_data dir in place" {
   run stat /var/lib/goldstone/sql_data
   [ "$status" -eq 0 ]
 }
 
+@test "sql_data placeholder is not present" {
+  run stat /var/lib/goldstone/sql_data/placeholder
+  [ "$status" -ne 0 ]
+}
+
 @test "es_data dir in place" {
   run stat /var/lib/goldstone/es_data
+  [ "$status" -eq 0 ]
+}
+
+@test "es_data placeholder is not present" {
+  run stat /var/lib/goldstone/es_data/placeholder
+  [ "$status" -ne 0 ]
+}
+
+@test "license file in place" {
+  run stat /opt/goldstone/LICENSE
+  [ "$status" -eq 0 ]
+}
+
+@test "oss disclosure file in place" {
+  run stat /opt/goldstone/OSS_DISCLOSURE.pdf
   [ "$status" -eq 0 ]
 }
 
