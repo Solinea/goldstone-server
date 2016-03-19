@@ -163,6 +163,9 @@ run-desktop:
 	./node_modules/.bin/electron desktop/
 
 build-desktop:
-	cp -rv node_modules desktop/node_modules
-	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.36.9 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*'
+	@echo "copying libraries to build directory ..."
+	cp -r node_modules desktop/node_modules
+	@echo "compiling mac application ..."
+	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.37.2 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*|karma*|casper'
 	rm -rf desktop/node_modules
+	@echo "done."
