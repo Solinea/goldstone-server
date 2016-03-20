@@ -41,4 +41,4 @@ COPY config/conf.d /etc/nginx/conf.d
 
 COPY static /usr/share/nginx/html/static
 
-EXPOSE 8443 8888
+EXPOSE 8443
