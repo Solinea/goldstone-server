@@ -24,10 +24,12 @@ echo ""
 
 if [ $PKGNAME="goldstone-server-enterprise" ]; then
   echo " Before starting $PKGNAME you must set your Goldstone license variables."
-  echo " You can do this via the following commands:     "
-  echo "      # export GOLDSTONE_REPO_USER=<<YOUR_REPO_USER>> "
-  echo "      # export GOLDSTONE_REPO_PASS=<<YOUR_REPO_PASS>>"
-  echo "      # export GOLDSTONE_REPO_EMAIL=<<YOUR_REPO_EMAIL>>"
+  echo " and login into the custom repository."
+  echo " You can do this via the following commands:        "
+  echo "   # export GOLDSTONE_REPO_USER=<<YOUR_REPO_USER>>  "
+  echo "   # export GOLDSTONE_REPO_PASS=<<YOUR_REPO_PASS>>  "
+  echo "   # export GOLDSTONE_REPO_EMAIL=<<YOUR_REPO_EMAIL>>"
+  echo "   # docker login -u "${GOLDSTONE_REPO_USER}" -p "${GOLDSTONE_REPO_PASS}" -e "${GOLDSTONE_REPO_EMAIL}" gs-docker-ent.bintray.io"
   echo ""
   echo "Please contact your Goldstone sales rep is you have any questions."
 fi
