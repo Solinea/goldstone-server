@@ -112,3 +112,4 @@ ChangeLog
 # packaging
 rpm_packaging/temp/
 rpm_packaging/pkg/
+rpm_packaging/.vagrant/
