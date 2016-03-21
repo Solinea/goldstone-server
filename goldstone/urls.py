@@ -58,4 +58,3 @@ if 'goldstone.compliance' in settings.INSTALLED_APPS:
 if settings.DEBUG:
     # API documentation.
     urlpatterns += url(r'^docs/', include("rest_framework_swagger.urls")),
-
