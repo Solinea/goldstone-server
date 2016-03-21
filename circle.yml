@@ -56,7 +56,8 @@ dependencies:
     - pip install -r docker/goldstone-base/config/test-requirements.txt
     - docker info && docker-compose version
   override:
-    - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; bin/build_images.sh --tag=${GOLDSTONE_VERSION} --docker-vm=false)
+    - bin/build_images.sh --docker-vm=false
+    # - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; bin/build_images.sh --tag=${GOLDSTONE_VERSION} --docker-vm=false)
   post:
     - docker images
 
@@ -67,8 +68,10 @@ test:
         background: true
     - sleep 60 && docker-compose -f $COMPOSE_CONF -p gs ps
   override:
-    - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GOLDSTONE_VERSION} -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci")
-    - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GOLDSTONE_VERSION} -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml")
+    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh full` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci"
+    - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh full` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
+    # - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GOLDSTONE_VERSION} -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' manage.py test --settings=goldstone.settings.ci")
+    # - (GOLDSTONE_VERSION=`cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = '\''\(.*\)'\''/\1/'`; docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:${GOLDSTONE_VERSION} -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml")
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
   post:
