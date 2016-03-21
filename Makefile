@@ -158,3 +158,14 @@ test:
 cover:
 	coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' \
 		manage.py test goldstone --settings=goldstone.settings.docker_dev
+
+run-desktop:
+	./node_modules/.bin/electron desktop/
+
+build-desktop:
+	@echo "copying libraries to build directory ..."
+	cp -r node_modules desktop/node_modules
+	@echo "compiling mac application ..."
+	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.37.2 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*|karma*|casper'
+	rm -rf desktop/node_modules
+	@echo "done."
