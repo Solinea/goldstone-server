@@ -31,7 +31,7 @@ if [ $PKGNAME="goldstone-server-enterprise" ]; then
   echo "   # export GOLDSTONE_REPO_EMAIL=<<YOUR_REPO_EMAIL>>"
   echo "   # docker login -u "${GOLDSTONE_REPO_USER}" -p "${GOLDSTONE_REPO_PASS}" -e "${GOLDSTONE_REPO_EMAIL}" gs-docker-ent.bintray.io"
   echo ""
-  echo "Please contact your Goldstone sales rep is you have any questions."
+  echo "Please contact sales@solinea.com if you have any questions."
 fi
 
 echo "*****************************************************************************"
