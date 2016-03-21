@@ -57,6 +57,7 @@ dependencies:
     - docker info && docker-compose version
   override:
     - export GOLDSTONE_VERSION=$(cat goldstone/settings/base.py | grep GOLDSTONE_VERSION | sed -e 's/GOLDSTONE_VERSION = \(.*\)/\1/')
+    - echo $GOLDSTONE_VERSION
     - bin/build_images.sh --tag=${GOLDSTONE_VERSION} --docker-vm=false
   post:
     - docker images
