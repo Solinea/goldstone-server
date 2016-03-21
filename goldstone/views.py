@@ -117,6 +117,21 @@ class TopLevelView(TemplateView):
                                                 })
 
 
+class LoginView(TemplateView):
+    """Return the Goldstone Login page."""
+    template_name = "login.html"
+
+    def get_context_data(self, **kwargs):
+        """Return template context data.
+
+                :rtype: dict
+
+        """
+        context = super(LoginView, self).get_context_data(**kwargs)
+        context['goldstone_version'] = settings.GOLDSTONE_VERSION
+        return context
+
+
 class RouterView(TemplateView):
     """Return the Goldstone Router page."""
 

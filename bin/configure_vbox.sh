@@ -73,7 +73,7 @@ COMMON_RULE_LIST='es_9200_local,tcp,,9200,,9200
                   redis_local,tcp,,6379,,6379
                   kibana_local,tcp,,5601,,5601
                   gs_8000_local,tcp,,8000,,8000
-                  gs_8888_local,tcp,,8888,,8888 
+                  gs_8443_local,tcp,,8443,,8443 
                   flower_local,tcp,,5555,,5555' 
 
 if [[ $STACK == "true" ]] ; then
