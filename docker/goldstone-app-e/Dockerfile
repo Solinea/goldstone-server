@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-base:1.0.0-SNAPSHOT.178.g3e4925c.issue.374
+FROM solinea/goldstone-base:1.0.0-SNAPSHOT.180.gcf73d12.issue.374
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 

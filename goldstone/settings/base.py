@@ -24,7 +24,7 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 # this version should be managed by the bump_version.sh script
-GOLDSTONE_VERSION = '1.0.0-SNAPSHOT.178.g3e4925c.issue.374'
+GOLDSTONE_VERSION = '1.0.0-SNAPSHOT.180.gcf73d12.issue.374'
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
