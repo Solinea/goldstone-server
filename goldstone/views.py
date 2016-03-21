@@ -130,6 +130,7 @@ class RouterView(TemplateView):
         """
 
         context = super(RouterView, self).get_context_data(**kwargs)
+        context['goldstone_version'] = settings.GOLDSTONE_VERSION
 
         # check for existance of compliance module and add to context so
         # templates can sew in JS and CSS as necessary.

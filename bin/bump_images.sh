@@ -31,9 +31,8 @@ declare -a composefile_list=(
                        $TOP_DIR/docker/docker-compose.yml 
     )
 
-declare -a templatefile_list=(
-                       $TOP_DIR/goldstone/templates/base.html \
-                       $TOP_DIR/goldstone/templates/login.html
+declare -a settingsfile_list=(
+                       $TOP_DIR/goldstone/settings/base.py 
     )
 
 cd $TOP_DIR || exit 1
@@ -94,8 +93,8 @@ for file in "${composefile_list[@]}" ; do
     fi
 done
 
-for file in "${templatefile_list[@]}" ; do
-    cat $file | sed -e "s?\>Version: [^\<]*?\>Version: ${TAG}?" > ${file}.new
+for file in "${settingsfile_list[@]}" ; do
+    cat $file | sed -e "s/GOLDSTONE_VERSION = \('\).*\('\)/GOLDSTONE_VERSION = \1${TAG}\2/" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
        mv ${file}.new $file

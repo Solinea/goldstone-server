@@ -37,11 +37,17 @@ urlpatterns = patterns(
     url(r'^neutron/', include('goldstone.neutron.urls')),
     url(r'^nova/', include('goldstone.nova.urls')),
     url(r'^user/', include("goldstone.user.urls")),
-    url(r'^login/', TemplateView.as_view(template_name='login.html')),
+    url(r'^login/', TemplateView.as_view(
+        template_name='login.html',
+        extra_context= {'goldstone_version': settings.GOLDSTONE_VERSION})),
     url(r'^password/confirm/',
-        TemplateView.as_view(template_name="password-confirm.html")),
+        TemplateView.as_view(
+            template_name="password-confirm.html",
+            extra_context={'goldstone_version': settings.GOLDSTONE_VERSION})),
     url(r'^password/',
-        TemplateView.as_view(template_name="password-reset.html")),
+        TemplateView.as_view(
+            template_name="password-reset.html",
+            extra_context={'goldstone_version': settings.GOLDSTONE_VERSION})),
     url(r'^$', RouterView.as_view()),
 )
 
