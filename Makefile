@@ -126,6 +126,7 @@ rpm_build:
     rpm_packaging/var/lib/goldstone/sql_data/=/var/lib/goldstone/sql_data/ \
     rpm_packaging/var/lib/goldstone/es_data/=/var/lib/goldstone/es_data/ \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
+	docs/RELEASE_NOTES.md=/opt/goldstone/RELEASE_NOTES.md \
 	docs/CHANGELOG.md=/opt/goldstone/CHANGELOG.md \
 	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
 	LICENSE=/opt/goldstone/LICENSE \
