@@ -53,7 +53,8 @@ dependencies:
     - sudo service redis-server stop              # stop default redis-server service
     - pip install -U pip setuptools virtualenv    # circleci env fix, if specifying python version
     - sudo pip install docker-compose             # circleci env fix, install docker-compose
-    - pip install Django==1.8.7
+    - pip install Django==0.8.7
+    - pip install lockfile==0.9.1
     - pip install -r docker/goldstone-base/config/test-requirements.txt
     - docker info && docker-compose version
   override:
