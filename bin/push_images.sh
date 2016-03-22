@@ -15,7 +15,10 @@
 
 DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
-TAG=$(${TOP_DIR}/bin/semver.sh short)
+
+
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
+TAG=$(${TOP_DIR}/bin/semver.sh full)
 
 REGISTRY_ORG=solinea
 

@@ -23,6 +23,9 @@ from django.core.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
+# this version should be managed by the bump_version.sh script
+GOLDSTONE_VERSION = '1.0.0-SNAPSHOT.185.g72cfe7d.issue.374'
+
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
 

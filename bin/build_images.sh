@@ -47,7 +47,9 @@ declare -a priv_to_build=( $GS_APP_E_DIR )
 
 cd $TOP_DIR || exit 1
 
-TAG=$(${TOP_DIR}/bin/semver.sh short)
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
+TAG=$(${TOP_DIR}/bin/semver.sh full)
+
 
 for arg in "$@" ; do
     case $arg in
