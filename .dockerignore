@@ -6,6 +6,4 @@
 .eggs
 .leases-installed
 .opentrail-installed
-CLA
-design_docs
 dist

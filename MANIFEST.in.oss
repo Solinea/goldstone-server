@@ -15,12 +15,8 @@ exclude npm-shrinkwrap.json
 exclude package.json
 exclude tox.ini
 prune bin
-prune CLA
-prune design_docs
 prune docker
 prune rpm_packaging
 prune test
-prune test_data
-prune utils
 prune goldstone/compliance
 prune desktop

@@ -1,1 +1,0 @@
-controller-01 <140>2014-09-23T07:53:02.758371+00:00 controller-01 2014-09-23 07:53:02.758 8583 WARNING keystoneclient.middleware.auth_token [-] Authorization failed for token

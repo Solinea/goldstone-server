@@ -1,1 +1,0 @@
-compute-01 <132>Sep 23 07:57:44 compute-01 2014-09-23 07:57:44.238 7095 WARNING nova.compute.manager [-] Found 3 in the database and 0 on the hypervisor.
