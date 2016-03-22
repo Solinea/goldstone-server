@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# To use this vagrantfile, you must first set your repo credentials
+# export GOLDSTONE_REPO_USER=<<userpass>>
+# export GOLDSTONE_REPO_PASS=<<repopass>>
+# export GOLDSTONE_REPO_EMAIL=<<repoemail>>
+
+Vagrant.configure(2) do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  config.vm.box = "centos/7"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  config.vm.synced_folder ".", "/vagrant_data"
+
+   config.vm.provider "virtualbox" do |vb|
+     vb.memory = "4096"
+     vb.name = "goldstone-rpm-test"
+     vb.cpus = "2"
+   end
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  config.vm.provision "shell" do |s|
+    s.env = Hash["GOLDSTONE_REPO_USER" => ENV['GOLDSTONE_REPO_USER'], "GOLDSTONE_REPO_PASS" => ENV['GOLDSTONE_REPO_PASS'], "GOLDSTONE_REPO_EMAIL" => ENV['GOLDSTONE_REPO_EMAIL']]
+    s.inline = <<-SHELL
+    sudo -i
+    curl -fsSL https://get.docker.com/ | sh
+    service docker start
+    yum install -y wget
+    wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+    rpm -ivh epel-release-7-5.noarch.rpm
+    yum install -y bats htop
+    docker login -u "${GOLDSTONE_REPO_USER}" -p "${GOLDSTONE_REPO_PASS}" -e "${GOLDSTONE_REPO_EMAIL}" gs-docker-ent.bintray.io
+    bats --tap /vagrant_data/tests/fullinstall.bats
+    SHELL
+  end
+end

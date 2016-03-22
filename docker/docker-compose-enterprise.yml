@@ -45,25 +45,14 @@ gsapp:
 gsdb:
   image: solinea/goldstone-db:1.0.0-SNAPSHOT.185.g72cfe7d.issue.374
   env_file: ./config/goldstone-prod.env
-  volumes_from:
-    - gsdbdvc
+  volumes:
+    - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
   ports:
     - "5432:5432"
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"
     syslog-tag: "gsdb"
-
-# Database Data Volume Container
-gsdbdvc:
-  image: solinea/goldstone-db:1.0.0-SNAPSHOT.185.g72cfe7d.issue.374
-  entrypoint: /bin/true
-  volumes:
-    - /var/lib/postgresql/data
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gsdbdvc"
 
 # Logstash Container
 gslog:
@@ -86,6 +75,8 @@ gssearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+  volumes:
+    - /var/lib/goldstone/es_data:/usr/share/elasticsearch/data
   log_driver: "syslog"
   log_opt:
     syslog-facility: "local0"

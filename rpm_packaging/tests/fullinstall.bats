@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
-# expects to be run as
-# bats [this file name] [GSA_RPMNAME] [GSA_BINARY] [GSA_CONF_FILE]
+export PKGNAME=goldstone-server-enterprise
 export GS_BINARY=${3-/opt/goldstone/bin/docker-compose}
 export GS_CONF_FILE=${4-/etc/rsyslog.d/goldstone.conf}
 export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
+export GSA_RPMNAME=`ls /vagrant_data/pkg/redhat/goldstone-server-enterprise-*.rpm | head -1`
 
 @test "rpmname env exists" {
   run echo $GSA_RPMNAME
@@ -30,6 +30,7 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
 }
 
 @test "server is running" {
+  skip
   skip "not yet implemented"
   run stat $GS_BINARY
   [ "$status" -eq 0 ]
@@ -55,46 +56,6 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
   [ "$status" -eq 0 ]
 }
 
-@test "log dir in place" {
-  run stat /var/log/goldstone
-  [ "$status" -eq 0 ]
-}
-
-@test "log placeholder is not present" {
-  run stat /var/log/goldstone/placeholder
-  [ "$status" -ne 0 ]
-}
-
-@test "sql_data dir in place" {
-  run stat /var/lib/goldstone/sql_data
-  [ "$status" -eq 0 ]
-}
-
-@test "sql_data placeholder is not present" {
-  run stat /var/lib/goldstone/sql_data/placeholder
-  [ "$status" -ne 0 ]
-}
-
-@test "es_data dir in place" {
-  run stat /var/lib/goldstone/es_data
-  [ "$status" -eq 0 ]
-}
-
-@test "es_data placeholder is not present" {
-  run stat /var/lib/goldstone/es_data/placeholder
-  [ "$status" -ne 0 ]
-}
-
-@test "license file in place" {
-  run stat /opt/goldstone/LICENSE
-  [ "$status" -eq 0 ]
-}
-
-@test "oss disclosure file in place" {
-  run stat /opt/goldstone/OSS_DISCLOSURE.pdf
-  [ "$status" -eq 0 ]
-}
-
 @test "goldstone user created" {
   run getent passwd goldstone
   [ "$status" -eq 0 ]
@@ -105,7 +66,38 @@ export STARTUP_SCRIPT="/usr/lib/systemd/system/${PKGNAME}.service"
   [ "$status" -eq 0 ]
 }
 
+@test "ensure docker login to bintray" {
+  # check that $HOME/.docker/config.json contain gs-docker-ent.bintray.io
+  run grep bintray.io /root/.docker/config.json
+  [ "$status" -eq 0 ]
+}
+
+@test "docker images retrieved" {
+  # docker images contains all images
+  systemctl start goldstone-server-enterprise
+  sleep 600
+  run bash -c "docker images | grep gs-docker-ent.bintray.io/goldstone-app-e | wc -l"
+  [[ ${output} = "1"  ]]
+}
+
+@test "docker containers running" {
+  # docker containers running
+  run bash -c "docker ps | grep goldstone_gsapp_1 | wc -l"
+  [[ ${output} = "1" ]]
+}
+
 @test "server rpm removes" {
   run yum remove -y $PKGNAME
   [ "$status" -eq 0 ]
+}
+
+@test "docker containers stopped" {
+  sleep 60
+  run bash -c "docker ps | wc -l"
+  [[ ${output} = 1  ]]
+}
+
+@test "docker images removed" {
+  run bash -c "docker images | wc -l"
+  [[ ${output} = "1"  ]]
 }
