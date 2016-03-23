@@ -18,6 +18,7 @@ from django.conf import settings
 from rest_framework import filters
 import django_filters
 from rest_framework.decorators import detail_route
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -462,7 +463,7 @@ class SavedSearchViewSet(ModelViewSet):
 
         # Get the model for the requested uuid
         obj = self.query_model.objects.get(uuid=uuid)
-
+        logging.warning('uui:         ' + uuid)
         # To use as much Goldstone code as possible, we now override the class
         # to create a "drfes environment" for filtering, pagination, and
         # serialization. We then create an elasticsearch_dsl Search object from
@@ -536,6 +537,17 @@ class SavedSearchViewSet(ModelViewSet):
         serializer = self.get_serializer(page)
         return self.get_paginated_response(serializer.data)
 
+    def update(self, request, *args, **kwargs):
+          instance = self.get_object()
+          if getattr(instance, 'protected', False):
+              raise MethodNotAllowed(request.method, "Can not edit protected Saved Searches")
+          return super(SavedSearchViewSet, self).update(self, request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if getattr(instance, 'protected', False):
+            raise MethodNotAllowed(request.method, "Can not delete protected Saved Searches")
+        return super(SavedSearchViewSet, self).destroy(self, request, *args, **kwargs)
 
 class AlertDefinitionViewSet(ReadOnlyModelViewSet):
     """Provide the /core/alert_definition/ endpoints."""
