@@ -1,4 +1,4 @@
-Goldstone Server Release Notes
+# Goldstone Server Release Notes
 
 This page documents core features included in the Goldstone Server and Goldstone Server Enterprise release.
 
