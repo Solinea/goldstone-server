@@ -1,3 +1,0 @@
-compute-02 <131>Sep 23 18:26:58 compute-02 2014-09-23 18:26:58.088 10128 ERROR oslo.messaging._drivers.impl_qpid [-] Unable to connect to AMQP server: connection aborted. Sleeping 1 seconds
-
-controller-01 <131>2014-09-23T18:26:59.082789+00:00 controller-01 2014-09-23 18:26:59.082 8803 ERROR oslo.messaging._drivers.impl_qpid [-] Unable to connect to AMQP server: [Errno 111] ECONNREFUSED. Sleeping 1 seconds

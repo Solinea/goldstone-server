@@ -1,2 +1,0 @@
-compute-01 <7>2014-10-21T16:15:26.007223+00:00 compute-01 kernel: tapbaba8ae3-bd: no IPv6 routers present
-compute-01 <30>2014-10-21T16:15:18.144213+00:00 compute-01 ntpd[2407]: Listen normally on 477 qvo5b960634-fa fe80::55:e1ff:fe58:27b3 UDP 123

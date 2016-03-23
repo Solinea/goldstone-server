@@ -1,1 +1,0 @@
-controller-01 <180>2014-09-23T07:55:09.822332+00:00 controller-01 2014-09-23 07:55:09.822 8330 WARNING keystone.common.wsgi [-] The request you have made requires authentication.
