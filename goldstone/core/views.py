@@ -463,7 +463,7 @@ class SavedSearchViewSet(ModelViewSet):
 
         # Get the model for the requested uuid
         obj = self.query_model.objects.get(uuid=uuid)
-        logging.warning('uui:         ' + uuid)
+
         # To use as much Goldstone code as possible, we now override the class
         # to create a "drfes environment" for filtering, pagination, and
         # serialization. We then create an elasticsearch_dsl Search object from
