@@ -10,4 +10,10 @@ Future plans including adding the ability to:
 * Analyze and diagnose common issues
 * Automate common cloud management and maintenance tasks
 
-Documentation is maintained [HERE](http://goldstone-server.readthedocs.org/en/latest/)
+Goldstone Server is licensed under the Apached 2.0 license (see LICENSE file)
+
+Goldstone Server Enterprise components are licensed under the Solinea Software License Agreement v1 (see GSE_LICENSE.pdf)
+
+Third party open source packages used within Goldstone Server and/or Goldstone Server Enterprise are identified in OSS_DISCLOSURES.pdf 
+
+Goldstone Server documentation is currently maintained [HERE](http://goldstone-server.readthedocs.org/en/latest/)

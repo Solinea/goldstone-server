@@ -19,7 +19,7 @@ MAINTAINER Luke Heidecke <luke@solinea.com>
 
 # Install admin plugins
 RUN plugin install mobz/elasticsearch-head \
-  && plugin install lukas-vlcek/bigdesk
+  && plugin -install royrusso/elasticsearch-HQ
 
 ENV ES_CLUSTERNAME goldstone \
     ES_HEAP_SIZE 256M

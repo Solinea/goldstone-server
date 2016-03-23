@@ -27,12 +27,9 @@ ratings:
   - "**.py"
 
 exclude_paths:
-- CLA/**/*
 - bin/**/*
 - client/js/site-lib/**/*
 - config/**/*
 - dist/**/*
 - test/**/*
-- test_data/**/*
 - goldstone/**/static/**/*
-- utils/**/*

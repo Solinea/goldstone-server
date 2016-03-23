@@ -196,6 +196,11 @@ goldstone.setBaseTemplateListeners = function() {
         $('.tab-content').find('.tab').show();
     });
 
+    // listener for left pointing close icon in alert menu
+    $('.alert-close').on('click', function() {
+        $('.tab-content').removeClass('open');
+    });
+
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
     var addMenuIconHighlighting = function(selector) {
@@ -3957,7 +3962,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         '<li>' +
         '<div class="msg-block">' +
         '<span class="msg"><%= short_message %></span>' +
-        '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
+        // '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
         '</div>' +
         // '<i class="remove-btn">&nbsp;</i>' +
         '</li>'

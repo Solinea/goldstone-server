@@ -1,8 +1,0 @@
-# start
-compute-01 <133>Sep 25 21:23:50 compute-01 2014-09-25 21:23:50.974 7095 INFO nova.virt.libvirt.driver [req-54428eea-d711-4b94-8b1f-cd7660e6c74a f5734077b04d4f9f95cb8fec7699f6f8 3aa3b6e4ce0048a7997d900ddde95d41] [instance: b9fa65f4-394e-4a83-958c-e04c87a2af93] Creating image
-
-# abort
-
-
-# fail
-compute-01 <131>Sep 25 21:29:08 compute-01 2014-09-25 21:29:08.546 7095 ERROR nova.compute.manager [req-54428eea-d711-4b94-8b1f-cd7660e6c74a f5734077b04d4f9f95cb8fec7699f6f8 3aa3b6e4ce0048a7997d900ddde95d41] [instance: b9fa65f4-394e-4a83-958c-e04c87a2af93] Instance failed to spawn

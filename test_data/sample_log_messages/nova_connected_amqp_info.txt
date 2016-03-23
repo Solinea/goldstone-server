@@ -1,1 +1,0 @@
-controller-01 <134>2014-09-24T00:22:04.127126+00:00 controller-01 2014-09-24 00:22:04.126 4159 INFO oslo.messaging._drivers.impl_qpid [-] Connected to AMQP server on 10.10.11.230:5672

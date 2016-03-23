@@ -625,6 +625,12 @@ naturally respect vertical placement for Japanese text.
 }
 */
 
+.alert-close {
+    position: absolute;
+    left: 21em;
+    top: 0.1em;
+}
+
 .btn-grp .btn-icon-block {
     width: 56px;
     padding: 14px 18px;
