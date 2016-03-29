@@ -18,7 +18,10 @@ from types import NoneType
 
 from mock import patch
 
-from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from rest_framework.status import HTTP_200_OK, \
+    HTTP_401_UNAUTHORIZED, \
+    HTTP_405_METHOD_NOT_ALLOWED, \
+    HTTP_204_NO_CONTENT
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from goldstone.core.models import SavedSearch
@@ -40,6 +43,18 @@ class SearchSetup(Setup):
 
     # load the system saved searches
     fixtures = ['core_initial_data.yaml']
+
+    def setUp(self):
+
+        self.protected_saved_searchs = \
+            SavedSearch.objects.filter(protected=True)
+
+        self.unprotected_saved_searchs = \
+            SavedSearch.objects.filter(protected=False)
+
+        self.basic_post_body = {
+            'name': 'basic test test saved search'
+        }
 
 
 class PermissionsTest(SearchSetup):
@@ -246,3 +261,67 @@ class GetPostTests(SearchSetup):
                          response_content["timestamp_field"])
         self.assertEqual(row.target_interval,
                          response_content["target_interval"])
+
+    def test_patch_unprotected_allowed(self):
+        """PATCH an unprotected saved search operation tests"""
+
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try updating an unprotected resource with a valid token.
+        response = self.client.patch(
+            SEARCH_URL + '%s/' % self.unprotected_saved_searchs[0].uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         HTTP_200_OK)
+
+    def test_patch_protected_not_allowed(self):
+        """PATCH a protected saved search operation tests"""
+
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try updating a protected resource with a valid token.
+        response = self.client.patch(
+            SEARCH_URL + '%s/' % self.protected_saved_searchs[0].uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete_unprotected_allowed(self):
+        """DELETE an unprotected saved search operation tests"""
+
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try delete an unprotected resource with a valid token.
+        response = self.client.delete(
+            SEARCH_URL + '%s/' % self.unprotected_saved_searchs[0].uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         HTTP_204_NO_CONTENT)
+
+    def test_delete_protected_not_allowed(self):
+        """DELETE an unprotected saved search operation tests"""
+
+        # Create a user and get the authorization token. Then do the test.
+        token = create_and_login()
+
+        # Try delete a protected resource with a valid token.
+        response = self.client.delete(
+            SEARCH_URL + '%s/' % self.protected_saved_searchs[0].uuid,
+            json.dumps(self.basic_post_body),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code,
+                         HTTP_405_METHOD_NOT_ALLOWED)

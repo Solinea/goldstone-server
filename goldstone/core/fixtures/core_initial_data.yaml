@@ -471,3 +471,21 @@
         name: service status UP
         description: 'one or more services have changed status to UP'
         search: de730aab-e0f9-40c7-81c0-4289ddb67e96
+
+  - model: core.SavedSearch
+    pk: 21f5c6db-5a2e-41d4-9462-c3cdc03a837b
+    fields:
+      name: nova spawns
+      description: 'Nova spawns.'
+      owner: core
+      index_prefix: goldstone-*
+      doc_type: nova_spawns
+      timestamp_field: '@timestamp'
+      protected: False
+      query: '{
+    "query": {
+       "term": {
+          "event": "finish"
+       }
+    }
+  }'

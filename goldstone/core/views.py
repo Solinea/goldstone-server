@@ -505,7 +505,7 @@ class SavedSearchViewSet(ModelViewSet):
             queryset = queryset.sort(ordering_value)
 
         # if an interval parameter was provided, assume that it is meant to
-        # be a change to the saved search data_histogram aggregation interval
+        # be a change to the saved search date_histogram aggregation interval
         # if present.
         if 'interval' in self.request.query_params:
             try:
@@ -538,16 +538,25 @@ class SavedSearchViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-          instance = self.get_object()
-          if getattr(instance, 'protected', False):
-              raise MethodNotAllowed(request.method, "Can not edit protected Saved Searches")
-          return super(SavedSearchViewSet, self).update(self, request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
+        """override PATCH methods to not allow updates to
+        protected searches"""
         instance = self.get_object()
         if getattr(instance, 'protected', False):
-            raise MethodNotAllowed(request.method, "Can not delete protected Saved Searches")
-        return super(SavedSearchViewSet, self).destroy(self, request, *args, **kwargs)
+            raise MethodNotAllowed(request.method,
+                                   "Can not edit protected Saved Searches")
+        return super(SavedSearchViewSet, self)\
+            .update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """override DELETE methods to not allow deletes of
+        protected searches"""
+        instance = self.get_object()
+        if getattr(instance, 'protected', False):
+            raise MethodNotAllowed(request.method,
+                                   "Can not delete protected Saved Searches")
+        return super(SavedSearchViewSet, self)\
+            .destroy(request, *args, **kwargs)
+
 
 class AlertDefinitionViewSet(ReadOnlyModelViewSet):
     """Provide the /core/alert_definition/ endpoints."""
