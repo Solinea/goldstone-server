@@ -984,7 +984,7 @@ msgstr ""
 #: multiMetricBarView.js
 
 #: multiMetricBarView.js
-msgid "Physical"
+msgid "Available"
 msgstr ""
 
 #: multiMetricBarView.js
@@ -993,10 +993,6 @@ msgstr ""
 
 #: multiMetricBarView.js
 msgid "Used"
-msgstr ""
-
-#: multiMetricBarView.js
-msgid "Total"
 msgstr ""
 
 #: multiRscsView.js
