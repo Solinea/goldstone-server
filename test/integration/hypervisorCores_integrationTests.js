@@ -166,7 +166,7 @@ describe('UtilizationMem.js spec', function() {
             this.testCollection.trigger('sync');
             expect($('#noDataReturned').text()).to.equal('');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('0102030405060708090Total CoresTest: 98.6910/08/201410/08/201410/08/201410/08/2014');
+            expect($('g').find('text').text()).to.include('0102030405060708090Total CoresTest: 98.69');
             this.update_spy.restore();
         });
     });
