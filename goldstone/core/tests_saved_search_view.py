@@ -46,6 +46,12 @@ class SearchSetup(Setup):
 
     def setUp(self):
 
+        self.saved_search = SavedSearch(name='test',
+                                        description='test123',
+                                        protected=False)
+
+        self.saved_search.save()
+
         self.protected_saved_searchs = \
             SavedSearch.objects.filter(protected=True)
 
