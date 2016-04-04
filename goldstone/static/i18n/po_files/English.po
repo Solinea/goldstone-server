@@ -988,11 +988,19 @@ msgid "Available"
 msgstr ""
 
 #: multiMetricBarView.js
+msgid "Physical"
+msgstr ""
+
+#: multiMetricBarView.js
 msgid "Value"
 msgstr ""
 
 #: multiMetricBarView.js
 msgid "Used"
+msgstr ""
+
+#: multiMetricBarView.js
+msgid "Total"
 msgstr ""
 
 #: multiRscsView.js
