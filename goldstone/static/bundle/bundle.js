@@ -451,9 +451,9 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
 
         if (errorMessage !== undefined) {
+            message = '';
 
             if (errorMessage.responseJSON) {
-                message = '';
                 if (errorMessage.responseJSON.status_code) {
                     message += errorMessage.responseJSON.status_code + ' error: ';
                 }
@@ -471,7 +471,6 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
 
             } else {
-                message = '';
                 if (errorMessage.status) {
                     message += errorMessage.status + ' error:';
                 }
