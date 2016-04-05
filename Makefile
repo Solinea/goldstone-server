@@ -108,12 +108,8 @@ rpm_build:
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
     --exclude '**placeholder' \
-    --rpm-defattrdir 0750 \
+    --rpm-defattrdir 0700 \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
-	--rpm-attr 0750,goldstone,goldstone:/var/log/goldstone/ \
-	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/ \
-	--rpm-attr 0700,goldstone,goldstone:/var/lib/goldstone/es_data/ \
-	--rpm-attr 0700,goldstone,goldstone:/var/lib/goldstone/sql_data/ \
 	$(GSE_START_ATTR) \
 	$(GSE_SYSTEMD_ATTR) \
 	-p $(RPMFILENAME) \
