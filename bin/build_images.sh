@@ -39,15 +39,19 @@ PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 declare -a need_open_source=( $GS_APP_DIR )
 declare -a need_closed_source=( $GS_APP_E_DIR )
 
+declare -a base_to_build=( $GS_BASE_DIR )
+
 declare -a open_to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_BASE_DIR $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
+              $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
 
 declare -a priv_to_build=( $GS_APP_E_DIR )
 
 
 cd $TOP_DIR || exit 1
 
-TAG=$(${TOP_DIR}/bin/semver.sh short)
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
+TAG=$(${TOP_DIR}/bin/semver.sh full)
+
 
 for arg in "$@" ; do
     case $arg in
@@ -133,19 +137,28 @@ done
 # build images
 #
 
+echo "Building base containers"
+for folder in "${base_to_build[@]}" ; do
+    cd $folder || exit 1
+    echo "*** Building $folder ***"
+    docker build -t ${OPEN_REGISTRY_ORG}/${folder##*/}:${TAG} . 
+done
+
 echo "Building open source containers"
 for folder in "${open_to_build[@]}" ; do
     cd $folder || exit 1
     echo "*** Building $folder ***"
-    docker build -t ${OPEN_REGISTRY_ORG}/${folder##*/}:${TAG} .
+    docker build -t ${OPEN_REGISTRY_ORG}/${folder##*/}:${TAG} . &
 done
 
 echo "Building private containers"
 for folder in "${priv_to_build[@]}" ; do
     cd $folder || exit 1
     echo "*** Building $folder ***"
-    docker build -t ${PRIV_REGISTRY_ORG}/${folder##*/}:${TAG} .
+    docker build -t ${PRIV_REGISTRY_ORG}/${folder##*/}:${TAG} . &
 done
+
+wait 
 
 #
 # clean up the containers that need access to source

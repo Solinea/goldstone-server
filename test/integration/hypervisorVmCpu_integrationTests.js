@@ -221,11 +221,11 @@ describe('HypervisorVmCpu spec', function() {
             }]);
             this.testView.update();
             this.testCollection.trigger('sync');
-            expect($(this.testView.el).text()).to.equal('UserSystemWait06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($(this.testView.el).text()).to.include('UserSystemWait');
             $(this.testView.el).find('button').next().click();
-            expect($(this.testView.el).text()).to.equal('UserSystemWait06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($(this.testView.el).text()).to.include('percent utilization (%)vm1vm2vm3');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($('g').find('text').text()).to.include('0102030405060708090100percent utilization (%)vm1vm2vm3');
             this.update_spy.restore();
         });
     });

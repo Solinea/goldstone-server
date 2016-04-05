@@ -107,7 +107,7 @@ The following files are modified by the `configure_stack` task.  For the complet
 
 Point your browser at the Goldstone server IP address or name and begin using Goldstone. You can log in as the `gsadmin` user with the password you configured in the `goldstone-prod.env` file.  It may take a few minutes for data to be populated in the client, but within 5 minutes, you should see charts and tables start to fill in.
 
-`http://{your ip address}:8888`
+`http://{your ip address}:8443`
 
 ## Uninstallation (as root)
 

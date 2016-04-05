@@ -263,6 +263,11 @@ msgid "Alerts"
 msgstr ""
 
 #: base.html
+#. alert menu tooltip to close alert menu
+msgid "Close"
+msgstr ""
+
+#: base.html
 #. side-menu icon to view cloud topology graph
 msgid "Topology"
 msgstr ""
@@ -977,6 +982,10 @@ msgid "Select chart parameters"
 msgstr ""
 
 #: multiMetricBarView.js
+
+#: multiMetricBarView.js
+msgid "Available"
+msgstr ""
 
 #: multiMetricBarView.js
 msgid "Physical"

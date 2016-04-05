@@ -23,6 +23,9 @@ from django.core.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
+# this version should be managed by the bump_version.sh script
+GOLDSTONE_VERSION = '1.1.0-SNAPSHOT.96.g7ae8d2e.develop'
+
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
 
@@ -287,8 +290,8 @@ REST_FRAMEWORK = {
 
 # Settings for Django REST Swagger.
 SWAGGER_SETTINGS = {
-    'api_version': "3.0",
-    "info": {"title": "Goldstone",
+    'api_version': "1",
+    "info": {"title": "Goldstone Server",
              "description":
              "Goldstone is a monitoring, management and analytics platform for"
              " operating OpenStack clouds.",

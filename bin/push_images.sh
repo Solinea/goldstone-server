@@ -15,7 +15,10 @@
 
 DOCKER_VM=default
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
-TAG=$(${TOP_DIR}/bin/semver.sh short)
+
+
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
+TAG=$(${TOP_DIR}/bin/semver.sh full)
 
 REGISTRY_ORG=solinea
 
@@ -61,10 +64,12 @@ declare -a priv_to_push=( goldstone-app-e )
 
 
 for name in "${open_to_push[@]}" ; do
-    docker push ${OPEN_REGISTRY_ORG}/${name}:${TAG}
+    docker push ${OPEN_REGISTRY_ORG}/${name}:${TAG} &
 done
 
 for name in "${priv_to_push[@]}" ; do
-    docker push ${PRIV_REGISTRY_ORG}/${name}:${TAG}
+    docker push ${PRIV_REGISTRY_ORG}/${name}:${TAG} &
 done
+
+wait
 

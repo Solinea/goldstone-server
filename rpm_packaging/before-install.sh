@@ -1,6 +1,6 @@
-/usr/bin/getent group goldstone || /usr/sbin/groupadd -r goldstone
+/usr/bin/getent group goldstone || /usr/sbin/groupadd -r -g 9010 goldstone
 /usr/bin/getent passwd goldstone \
-    || /usr/sbin/useradd -r -g goldstone -d %{prefix}/goldstone -s /sbin/nologin goldstone
+    || /usr/sbin/useradd -r -u 9010 -g goldstone -d %{prefix}/goldstone -s /sbin/nologin goldstone
 
 # install docker-compose
 export GS_PATH="/opt"

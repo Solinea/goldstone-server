@@ -60,6 +60,7 @@ gse_native: PKGNAME=goldstone-server-enterprise
 gse_native: PKGSUMMARY=Solinea Goldstone Server Enterprise
 gse_native: PKGLIC=Core Server: Apache 2.0, Addons: Solinea 1.0
 gse_native: DCFILE=docker/docker-compose-enterprise.yml=/opt/goldstone/docker-compose.yml
+gse_native: GSE_LIC=rpm_packaging/GSE_LICENSE.pdf=/opt/goldstone/GSE_LICENSE.pdf
 gse_native: GSE_SYSTEMD=rpm_packaging/systemd/system/goldstone-server-enterprise.service=/usr/lib/systemd/system/goldstone-server-enterprise.service
 gse_native: GSE_START=rpm_packaging/goldstone-server-enterprise=/usr/bin/goldstone-server-enterprise
 gse_native: GSE_START_ATTR=--rpm-attr 0750,root,root:/usr/bin/goldstone-server-enterprise
@@ -106,21 +107,32 @@ rpm_build:
 	--after-install rpm_packaging/after-install.sh \
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
+    --exclude '**placeholder' \
+    --rpm-defattrdir 0750 \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
+	--rpm-attr 0750,goldstone,goldstone:/var/log/goldstone/ \
+	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/ \
+	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/es_data/ \
+	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/sql_data/ \
 	$(GSE_START_ATTR) \
 	$(GSE_SYSTEMD_ATTR) \
 	-p $(RPMFILENAME) \
 	$(DCFILE) \
 	$(GSE_SYSTEMD) \
 	$(GSE_START) \
+	$(GSE_LIC) \
+    rpm_packaging/var/log/goldstone/=/var/log/goldstone/ \
+    rpm_packaging/var/lib/goldstone/=/var/lib/goldstone/ \
+    rpm_packaging/var/lib/goldstone/sql_data/=/var/lib/goldstone/sql_data/ \
+    rpm_packaging/var/lib/goldstone/es_data/=/var/lib/goldstone/es_data/ \
 	rpm_packaging/rsyslog/goldstone.conf=/etc/rsyslog.d/goldstone.conf \
+	docs/RELEASE_NOTES.md=/opt/goldstone/RELEASE_NOTES.md \
 	docs/CHANGELOG.md=/opt/goldstone/CHANGELOG.md \
 	docs/INSTALL.md=/opt/goldstone/INSTALL.md \
 	LICENSE=/opt/goldstone/LICENSE \
+    OSS_DISCLOSURE.pdf=/opt/goldstone/OSS_DISCLOSURE.pdf \
 	README.md=/opt/goldstone/README.md \
-	docker/config/goldstone-dev.env=/opt/goldstone/config/goldstone-dev.env \
 	docker/config/goldstone-prod.env=/opt/goldstone/config/goldstone-prod.env \
-	docker/config/goldstone-test.env=/opt/goldstone/config/goldstone-test.env \
 	docker/goldstone-search/config/templates/api_stats_template.json=/usr/share/elasticsearch/config/templates/api_stats_template.json \
 	docker/goldstone-search/config/templates/ceilo_events_template.json=/usr/share/elasticsearch/config/templates/ \
 	docker/goldstone-search/config/templates/goldstone_metrics_template.json=/usr/share/elasticsearch/config/templates/ \
@@ -158,3 +170,14 @@ test:
 cover:
 	coverage run --source='./goldstone' --omit='./goldstone/settings/*,*/test*' \
 		manage.py test goldstone --settings=goldstone.settings.docker_dev
+
+run-desktop:
+	./node_modules/.bin/electron desktop/
+
+build-desktop:
+	@echo "copying libraries to build directory ..."
+	cp -r node_modules desktop/node_modules
+	@echo "compiling mac application ..."
+	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.37.2 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*|karma*|casper'
+	rm -rf desktop/node_modules
+	@echo "done."

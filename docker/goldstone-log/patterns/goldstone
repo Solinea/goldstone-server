@@ -73,9 +73,9 @@ NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.|Instance fa
 # Make some metrics out of API call data
 # Nova uses a slightly different format than Neutron, Cinder, and Glance for API call logging
 #
-API_CALL %{URIHOST:client_ip} - - \[%{GREEDYDATA}\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" %{NUMBER:response_status:int} %{NUMBER:response_length:int} %{NUMBER:response_time:float}
+API_CALL (%{URIHOST:client_ip}((?:[,]*)%{URIHOST:client_ip})*) - - \[%{GREEDYDATA}\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" %{NUMBER:response_status:int} %{NUMBER:response_length:int} %{NUMBER:response_time:float}
 
-NOVA_API_CALL %{URIHOST:client_ip} [\\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+NOVA_API_CALL (%{URIHOST:client_ip}((?:[,]*)%{URIHOST:client_ip})*) [\\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
 
 OPENSTACK_API_CALL %{API_CALL}|%{NOVA_API_CALL}
 

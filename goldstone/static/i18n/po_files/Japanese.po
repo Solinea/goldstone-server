@@ -263,6 +263,11 @@ msgid "Alerts"
 msgstr "アラート"
 
 #: base.html
+#. alert menu tooltip to close alert menu
+msgid "Close"
+msgstr "クローズ"
+
+#: base.html
 #. side-menu icon to view cloud topology graph
 msgid "Topology"
 msgstr "トポロジー"
@@ -977,6 +982,10 @@ msgid "Select chart parameters"
 msgstr "チャートパラメターの選択"
 
 #: multiMetricBarView.js
+
+#: multiMetricBarView.js
+msgid "Available"
+msgstr "可用"
 
 #: multiMetricBarView.js
 msgid "Physical"
