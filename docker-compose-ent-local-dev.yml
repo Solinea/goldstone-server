@@ -13,25 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Goldstone Server Container
-gsappdev:
-  build: ./docker/goldstone-app-e
-  env_file: ./docker/config/goldstone-dev.env
-  volumes:
-    - .:/home/app
-    - ./docker/goldstone-base/config:/home/app/config
-  ports:
-    - "8000:8000"
-  links:
-    - gsdb
-    - gssearch
-    - gstaskq
-    - gslog
-  log_driver: "json-file"
-  log_opt:
-    max-size: "100k"
-    max-file: "10"
-
 # Database Container
 gsdb:
   build: ./docker/goldstone-db
@@ -65,7 +46,7 @@ gslog:
 gscanary:
   image: gs-docker-ent.bintray.io/goldstone-canary:latest
   env_file: ./docker/config/goldstone-dev.env
-  links: 
+  links:
     - gslog
   log_driver: "json-file"
   log_opt:
