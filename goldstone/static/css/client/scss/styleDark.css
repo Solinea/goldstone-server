@@ -382,7 +382,7 @@ a.logo-header { text-decoration: none; }
 .btn-grp li.diff.active { border-left-color: #4f376e; }
 .btn-grp li.diff .icon { margin-bottom: 8px; margin-top: 7px; }
 .btn-grp .alerts-tab.alert-active { background: #d50612; }
-.btn-grp .icon { height: 20px; width: 20px; background-size: 14px 14px; }
+.btn-grp .icon { height: 20px; width: 20px; }
 
 .dashboard-icon { background: url(../../../images/icon-dashboard-active.png) no-repeat center center; }
 
@@ -524,4 +524,4 @@ naturally respect vertical placement for Japanese text.
   .topology:hover { background-image: url(../../../images/icon-topology-active@2x.png); }
   .btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1@2x.png); }
   .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
-  .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; } }
+  .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
