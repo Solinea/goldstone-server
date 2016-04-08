@@ -443,12 +443,14 @@ a.logo-header {
     white-space: normal;
     cursor: pointer;
     .btn-txt {
-        display: none;
+        opacity: 0;
     }
 }
 
 .sidebar.expand-menu .btn-grp li .btn-txt {
-    display: inline-block;
+    opacity: 1;
+    transition:opacity 1s;
+    transition-delay: 300ms;
 }
 
 .btn-grp {

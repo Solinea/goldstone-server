@@ -368,9 +368,9 @@ a.logo-header { text-decoration: none; }
 .sidebar.open { width: inherit !important; }
 
 .btn-grp li { border-left: 4px solid transparent; height: 48px; white-space: normal; cursor: pointer; }
-.btn-grp li .btn-txt { display: none; }
+.btn-grp li .btn-txt { opacity: 0; }
 
-.sidebar.expand-menu .btn-grp li .btn-txt { display: inline-block; }
+.sidebar.expand-menu .btn-grp li .btn-txt { opacity: 1; transition: opacity 1s; transition-delay: 300ms; }
 
 .btn-grp li.active-page { border-color: #1c9ca4 !important; }
 .btn-grp li:hover { border-color: #eeeeee; }
