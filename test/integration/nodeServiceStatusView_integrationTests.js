@@ -23,8 +23,7 @@ describe('nodeServiceStatusView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '{absolutely: "nothing"}']);
 
@@ -38,8 +37,6 @@ describe('nodeServiceStatusView.js spec', function() {
             url: '/null/and/void'
         });
 
-
-
         this.testView = new NodeServiceStatusView({
             collection: this.testCollection,
             el: '.testContainer',
@@ -48,7 +45,7 @@ describe('nodeServiceStatusView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
     });

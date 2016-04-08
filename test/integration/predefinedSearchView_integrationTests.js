@@ -41,8 +41,6 @@ describe('predefinedSearchView.js', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-
-
         this.testCollection = new SearchObserverCollection({
             urlBase: '/blah/de/blah/',
             skipFetch: true
@@ -66,11 +64,10 @@ describe('predefinedSearchView.js', function() {
 
         this.testCollection.linkedDataTable = this.testDataTable;
 
-
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
 

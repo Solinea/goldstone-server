@@ -24,8 +24,8 @@ describe('UtilizationMem.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        // this.server.autoRespond = true;
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -36,8 +36,6 @@ describe('UtilizationMem.js spec', function() {
         this.testCollection = new HypervisorCollection({
             url: '/something/fancy'
         });
-
-
 
         this.testView = new HypervisorView({
             collection: this.testCollection,
@@ -75,7 +73,7 @@ describe('UtilizationMem.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

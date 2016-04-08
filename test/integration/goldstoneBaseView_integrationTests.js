@@ -59,7 +59,7 @@ describe('goldstoneBaseView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
+        // this.server.autoRespond = true;
         this.server.respondWith("GET", "/something/fancy", [200, {
             "Content-Type": "application/json"
         }, '[]']);
@@ -67,8 +67,6 @@ describe('goldstoneBaseView.js spec', function() {
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
-
-
 
         this.testCollection = new ApiPerfCollection({
             urlPrefix: 'cinder'
@@ -86,7 +84,7 @@ describe('goldstoneBaseView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
 

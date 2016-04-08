@@ -24,12 +24,9 @@ describe('chartSet.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
-
-
 
         this.testCollection = new GoldstoneBaseCollection({});
 
@@ -40,7 +37,7 @@ describe('chartSet.js spec', function() {
         // this.protoFetchSpy = sinon.spy(GoldstoneBaseCollection.prototype, "fetch");
     });
     afterEach(function() {
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         // this.protoFetchSpy.restore();
     });

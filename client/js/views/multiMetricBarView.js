@@ -177,6 +177,11 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var finalData = [];
 
+        // in case of empty set
+        if(!data[0].aggregations) {
+          return finalData;
+        }
+
         if (self.featureSet === 'cpu') {
         // data morphed through collectionPrep into:
         // {

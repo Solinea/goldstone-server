@@ -60,8 +60,7 @@ describe('NodeReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, 'OK']);
 
@@ -78,7 +77,7 @@ describe('NodeReportView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

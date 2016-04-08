@@ -133,13 +133,12 @@ describe('apiBrowserDataTableView.js', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
         this.server.restore();
     });
 
     describe('testing methods', function() {
         it('serverSideDataPrep', function() {
-            this.server.respond();
+            // this.server.respond();
             var test1 = this.testView.serverSideDataPrep({
                 results: [1, 2, 3],
                 count: 42,

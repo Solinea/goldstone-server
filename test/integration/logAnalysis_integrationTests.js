@@ -152,7 +152,6 @@ describe('logAnalysis.js spec', function() {
         var testEnd = (+new Date());
         var testStart = (testEnd - (15 * 60 * 1000));
 
-
         this.testCollection = new SearchObserverCollection({
             urlBase: '/core/logs/',
             skipFetch: true
@@ -183,7 +182,7 @@ describe('logAnalysis.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
         this.clock.restore();

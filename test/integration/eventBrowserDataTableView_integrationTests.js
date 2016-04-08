@@ -108,7 +108,6 @@ describe('eventsBrowserDataTableView.js', function() {
             skipFetch: true
         });
 
-
         this.testView = new EventsBrowserDataTableView({
             chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
             collectionMixin: this.eventsSearchObserverCollection,
@@ -116,11 +115,10 @@ describe('eventsBrowserDataTableView.js', function() {
             width: $('.events-browser-table').width()
         });
 
-
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         this.clock.restore();
     });

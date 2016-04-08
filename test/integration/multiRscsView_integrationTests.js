@@ -24,7 +24,6 @@ describe('MultiRscsView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith("GET", "/something/fancy", [200, {
             "Content-Type": "application/json"
         }, '[]']);
@@ -38,7 +37,7 @@ describe('MultiRscsView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {

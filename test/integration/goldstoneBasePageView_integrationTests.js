@@ -68,7 +68,7 @@
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        
+
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         var testGoldstoneBasePageView = GoldstoneBasePageView.extend({

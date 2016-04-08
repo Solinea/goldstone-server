@@ -124,7 +124,7 @@ describe('alertsMenuView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.testCollection.reset();
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
     describe('view tests', function() {
@@ -209,7 +209,7 @@ describe('alertsMenuView.js spec', function() {
         });
         it('filters alerts older than a day from the "recent" column', function() {
 
-            // less than one day, add it 
+            // less than one day, add it
             this.testCollection.reset();
             this.testCollection.add({
                 results: [{

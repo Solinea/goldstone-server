@@ -17,15 +17,14 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('stackedAreaCollection.js spec', function() {
+describe('MultiMetricComboCollection.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 

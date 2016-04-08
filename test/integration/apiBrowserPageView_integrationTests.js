@@ -80,7 +80,7 @@ describe('ApiBrowserPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         this.clock.restore();
     });

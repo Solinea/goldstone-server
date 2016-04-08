@@ -33,7 +33,6 @@ describe('loginPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith(404, '{auth_token: 12345}');
         data = [];
 
@@ -42,7 +41,7 @@ describe('loginPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {

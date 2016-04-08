@@ -51,7 +51,6 @@ describe('settingsPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith('{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}');
 
         goldstone.userPrefsView = new UserPrefsView();
@@ -64,7 +63,7 @@ describe('settingsPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
-        this.server.respond();
+        // this.server.respond();
         this.server.restore();
         this.protoSetLanguage.restore();
         localStorage.clear();
