@@ -38,10 +38,29 @@
         margin-bottom: 8px;
         margin-right: 10px;
     }
-    .dashboard h3 {
-        line-height: 24px;
-        font-size: 15px;
+    .dashboard {
+        .footer {
+            .version {
+                text-align: center;
+                width: 100%;
+            }
+            .copyright {
+                text-align: left;
+                width: 80%;
+                margin: 0;
+            }
+            .license {
+                text-align: right;
+                width: 20%;
+            }
+        }
+        h3 {
+            line-height: 24px;
+            font-size: 15px;
+        }
     }
+
+
     .setting-btn {
         background-position: left 5px;
     }
@@ -110,14 +129,6 @@
 	.dashboard {
 		h4 {
 			margin-bottom: 15px;
-		}
-		.footer {
-			.copyright {
-				width: 70%;
-			}
-			.license {
-				width: 20%;
-			}
 		}
 	}
     .list-content .msg {

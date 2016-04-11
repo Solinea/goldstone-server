@@ -201,7 +201,7 @@ css stylesheets supporting redesign
 /* footer */
 .footer { position: absolute; bottom: 25px; left: 0; width: 100%; }
 .footer .version { float: left; color: rgba(255, 255, 255, 0.54); }
-.footer .copyright { float: left; margin-left: 27%; font-size: 14px; color: #fff; }
+.footer .copyright { float: right; margin-right: 50px; font-size: 14px; color: #fff; }
 .footer .copyright strong { font-weight: 400; color: rgba(255, 255, 255, 0.54); }
 .footer .license { float: right; color: #fff; font-size: 14px; }
 
@@ -453,6 +453,9 @@ naturally respect vertical placement for Japanese text.
   .service-status-table li { padding: 1.41em 15px; font-size: 12px; }
   .service-status-table .table-header { font-size: 14px; }
   .node { margin-bottom: 8px; margin-right: 10px; }
+  .dashboard .footer .version { text-align: center; width: 100%; }
+  .dashboard .footer .copyright { text-align: left; width: 80%; margin: 0; }
+  .dashboard .footer .license { text-align: right; width: 20%; }
   .dashboard h3 { line-height: 24px; font-size: 15px; }
   .setting-btn { background-position: left 5px; }
   .map-data { padding: 12px; }
@@ -472,8 +475,6 @@ naturally respect vertical placement for Japanese text.
   .map-data { width: 100%; padding-left: 5px; padding-right: 5px; }
   .map-data .stats { display: inline-block; margin-bottom: 0; margin-right: 15px; }
   .dashboard h4 { margin-bottom: 15px; }
-  .dashboard .footer .copyright { width: 70%; }
-  .dashboard .footer .license { width: 20%; }
   .list-content .msg { white-space: inherit; } }
 @media only screen and (max-width: 767px) { html, body { min-height: 430px; }
   .login-page, .login-alternate, .login-secondary-alt { overflow: inherit; } }
