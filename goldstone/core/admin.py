@@ -15,11 +15,7 @@
 
 from django.contrib import admin
 from goldstone.core.models import SavedSearch, AlertDefinition, \
-    EmailProducer, Alert, MonitoredService, PolyResource, Producer
-
-
-class PolyResourceAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'native_id', 'native_name')
+    EmailProducer, Alert, MonitoredService, Producer
 
 
 class SavedSearchAdmin(admin.ModelAdmin):
@@ -46,7 +42,6 @@ class EmailProducerAdmin(admin.ModelAdmin):
 class MonitoredServiceAdmin(admin.ModelAdmin):
     list_display = ('uuid', 'name', 'host', 'state', 'updated')
 
-admin.site.register(PolyResource, PolyResourceAdmin)
 admin.site.register(SavedSearch, SavedSearchAdmin)
 admin.site.register(AlertDefinition, AlertDefinitionAdmin)
 admin.site.register(Alert, AlertAdmin)
