@@ -561,7 +561,7 @@
          "must": [
             {
                "term": {
-                  "facility": "testflight"
+                  "short_message": "testflight"
                }
             }
          ]
