@@ -20,8 +20,8 @@ from django.utils import timezone
 from jinja2 import Template
 
 from django.db import models
-from django.db.models import CharField, ForeignKey, DecimalField, UUIDField
-from django_extensions.db.fields import CreationDateTimeField, \
+from django.db.models import CharField, ForeignKey, DecimalField
+from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from elasticsearch_dsl import String, Date, Integer, Nested, Search
 
@@ -44,7 +44,8 @@ class SavedSearch(models.Model):
      field can be used by the task subsystem to determine if a search should
      be executed."""
 
-    uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
 
     name = models.CharField(max_length=64)
 
@@ -165,7 +166,8 @@ class SavedSearch(models.Model):
 class AlertDefinition(models.Model):
     """The definition of alert conditions based on a SavedSearch."""
 
-    uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
 
     name = models.CharField(max_length=64)
 
@@ -232,7 +234,8 @@ class AlertDefinition(models.Model):
 class Alert(models.Model):
     """An alert derived from an AlertDefinition."""
 
-    uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
 
     short_message = models.TextField()
 
@@ -268,7 +271,8 @@ class Producer(PolymorphicModel):
         class with specific connection attributes
     """
 
-    uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
 
     alert_def = models.ForeignKey(AlertDefinition)
 
@@ -385,7 +389,8 @@ class MonitoredService(models.Model):
         (MAINTENANCE, MAINTENANCE),
     )
 
-    uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # uuid = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = UUIDField(version=4, auto=True, primary_key=True)
 
     name = CharField(max_length=128, null=False, blank=False, editable=False)
 

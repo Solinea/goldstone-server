@@ -55,6 +55,10 @@ urlpatterns += staticfiles_urlpatterns()
 if 'goldstone.compliance' in settings.INSTALLED_APPS:
     urlpatterns += url(r'^compliance/', include("goldstone.compliance.urls")),
 
+# if the topology module is here, let's bring it its URLs.
+if 'goldstone.topology' in settings.INSTALLED_APPS:
+    urlpatterns += url(r'^topology/', include("goldstone.topology.urls")),
+
 if settings.DEBUG:
     # API documentation.
     urlpatterns += url(r'^docs/', include("rest_framework_swagger.urls")),
