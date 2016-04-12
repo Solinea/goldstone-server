@@ -556,16 +556,24 @@
         timestamp_field: '@timestamp'
         protected: true
         query: '{
-  "query": {
-     "match_all": {}   ### put in clause "testflight"
-  },
-  "aggs": {
-     "all_results": {
-        "terms": {
-	       "field": "result",
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "term": {
+                  "facility": "testflight"
+               }
+            }
+         ]
+      }
+   },
+   "aggs": {
+      "all_results": {
+         "terms": {
+	    "field": "result",
 	       "size": "0"
-	    }
-	  }
+	 }
+      },
       "per_interval": {
          "date_histogram": {
             "field": "@timestamp",
