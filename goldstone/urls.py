@@ -30,12 +30,7 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
-    url(r'^cinder/', include('goldstone.cinder.urls')),
     url(r'^core/', include('goldstone.core.urls')),
-    url(r'^glance/', include('goldstone.glance.urls')),
-    url(r'^keystone/', include('goldstone.keystone.urls')),
-    url(r'^neutron/', include('goldstone.neutron.urls')),
-    url(r'^nova/', include('goldstone.nova.urls')),
     url(r'^user/', include("goldstone.user.urls")),
     url(r'^login/', LoginView.as_view(template_name='login.html')),
     url(r'^password/confirm/',
@@ -57,7 +52,15 @@ if 'goldstone.compliance' in settings.INSTALLED_APPS:
 
 # if the topology module is here, let's bring it its URLs.
 if 'goldstone.topology' in settings.INSTALLED_APPS:
-    urlpatterns += url(r'^topology/', include("goldstone.topology.urls")),
+    urlpatterns += patterns(
+        '',
+        url(r'^topology/', include("goldstone.topology.urls")),
+        url(r'^cinder/', include('goldstone.topology.cinder.urls')),
+        url(r'^glance/', include('goldstone.topology.glance.urls')),
+        url(r'^keystone/', include('goldstone.topology.keystone.urls')),
+        url(r'^neutron/', include('goldstone.topology.neutron.urls')),
+        url(r'^nova/', include('goldstone.topology.nova.urls')),
+    )
 
 if settings.DEBUG:
     # API documentation.
