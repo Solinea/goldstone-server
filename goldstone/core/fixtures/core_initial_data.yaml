@@ -485,7 +485,7 @@
     pk: adceb329-6760-4e2b-a34e-1d4a49c5b53e
     fields:
         name: elapsed time exceeds limit
-        description: 'a canary test has exceeded the elaspsed time limit'
+        description: 'a canary test has exceeded the elapsed time limit'
         search: 836717be-a1ac-4ab7-92ed-46923abcc383
 
   - model: core.SavedSearch
