@@ -475,24 +475,30 @@ naturally respect vertical placement for Japanese text.
 
 /* Table Of Contents 1.) Media Query for Handheld Devices 2.) Media Query for Tablet 3.) Media Query for mobile ===============================================*/
 /* 1.) Media Query for Handheld Devices ===============================*/
-@media only screen and (max-width: 1348px) { .dashboard .container { width: 100%; } }
-@media only screen and (max-width: 1230px) { .service-status-table li { padding: 1.41em 15px; }
+@media only screen and (max-width: 1348px) { .dashboard .container { width: 100%; }
+  .dashboard .content.open .col-md-3 { width: 35%; }
+  .dashboard .content.open .col-md-9 { width: 65%; } }
+@media only screen and (max-width: 1230px) { .service-status-table .table-header { font-size: 13px; }
+  .service-status-table li { padding: 1.41em 12px; }
+  .dashboard .content.open .service-status-table li { padding: 1.41em 15px; font-size: 14px; }
+  .dashboard .content.open .service-status-table .table-header { font-size: 16px; }
   .node { margin-right: 15px; margin-bottom: 14.3px; } }
-@media only screen and (max-width: 1030px) { .node-block { padding: 10px 5px 0 7px; }
-  .service-status-table li { padding: 1.41em 15px; font-size: 12px; }
-  .service-status-table .table-header { font-size: 14px; }
+@media only screen and (max-width: 991px) { .node-block { padding: 10px 5px 0 7px; }
+  .service-status-table li { padding: 1.41em 15px; font-size: 14px; }
+  .service-status-table .table-header { font-size: 16px; }
   .node { margin-bottom: 8px; margin-right: 10px; }
   .dashboard .footer .version { text-align: center; width: 100%; }
   .dashboard .footer .copyright { text-align: left; width: 80%; margin: 0; }
   .dashboard .footer .license { text-align: right; width: 20%; }
   .dashboard h3 { line-height: 24px; font-size: 15px; }
+  .dashboard .content.open .col-md-3 { width: 100%; }
+  .dashboard .content.open .col-md-9 { width: 100%; }
   .setting-btn { background-position: left 5px; }
   .map-data { padding: 12px; }
   .stats.time { margin-bottom: 10px; }
   .stats.logs { margin-bottom: 15px; }
   .stats.events { margin-bottom: 15px; } }
-@media only screen and (min-width: 768px) and (max-width: 820px) { .service-status-table li { padding: 3.7px 15px; }
-  .node { margin-bottom: 6px; margin-right: 8px; } }
+@media only screen and (min-width: 768px) and (max-width: 820px) { .node { margin-bottom: 6px; margin-right: 8px; } }
 @media only screen and (max-width: 767px) { .login-form { padding: 0 0; }
   .footer { padding: 0 10px; }
   .sidebar .tab-content.open { width: 256px; }
