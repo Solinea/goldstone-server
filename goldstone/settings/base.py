@@ -33,6 +33,7 @@ TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
 COMPLIANCE_INIT_FILE = os.path.join(CURRENT_DIR, '../compliance/__init__.py')
 TOPOLOGY_INIT_FILE = os.path.join(CURRENT_DIR, '../topology/__init__.py')
 
+
 def get_env_variable(var_name):
     """Return an environment variable or exception."""
 

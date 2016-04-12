@@ -32,8 +32,6 @@ from goldstone.drfes.filters import ElasticFilter
 from goldstone.drfes.serializers import ElasticResponseSerializer
 
 
-
-
 ##################
 # Saved Search   #
 ##################

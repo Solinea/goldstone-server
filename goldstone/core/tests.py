@@ -150,8 +150,6 @@ class DailyIndexDocTypeTests(SimpleTestCase):
         # to avoid worrying about searching the raw field, let's use a
         # lowercase string with no special chars.
         message = ''.join([c for c in str(uuid.uuid4()) if c != '-'])
-        print "test_lifecycle() : message "
-        print message
         created = arrow.utcnow().isoformat()
 
         # instantiate and persist the LogMessage
@@ -326,8 +324,6 @@ class SavedSearchModelTests(TestCase):
             self.assertIsInstance(search_obj, elasticsearch_dsl.search.Search)
             self.assertIsInstance(start, datetime.datetime)
             self.assertIsInstance(end, datetime.datetime)
-
-
 
 
 class CustomExceptionHandlerTests(APISimpleTestCase):

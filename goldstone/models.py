@@ -12,11 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
-import logging
 
+import logging
 from django.conf import settings
-from elasticsearch_dsl import Search
 from elasticsearch_dsl.connections import connections
 import redis
 
@@ -87,6 +85,3 @@ class RedisConnection(object):
                  db=settings.REDIS_DB):
 
         self.conn = redis.StrictRedis(host=host, port=port, db=db)
-
-
-

@@ -27,7 +27,7 @@ from elasticsearch_dsl.connections import connections, Connections
 from mock import patch
 import mock
 
-from goldstone.models import es_conn, daily_index, es_indices, TopologyData
+from goldstone.models import es_conn, daily_index, es_indices
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 
@@ -175,4 +175,3 @@ class ElasticSearchTests(SimpleTestCase):
         result = es_indices('index', es_conn())
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
-
