@@ -993,11 +993,6 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
     template_dir = os.path.join(config_loc, "ceilometer")
     template_files = [
         {
-            "file": "/etc/ceilometer/pipeline.yaml",
-            "template": "pipeline.yaml.template",
-            "context": {"goldstone_addr": goldstone_addr}
-        },
-        {
             "file": "/etc/ceilometer/event_pipeline.yaml",
             "template": "event_pipeline.yaml.template"
         },
