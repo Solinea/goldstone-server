@@ -176,18 +176,3 @@ class ElasticSearchTests(SimpleTestCase):
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
 
-
-class TopologyDataTest(SimpleTestCase):
-    """Topology data tests."""
-
-    def test_sort_arg(self):
-        """Test the _sort_arg method."""
-
-        # pylint: disable=W0212
-        with self.assertRaises(ValueError):
-            TopologyData._sort_arg("key", "bad")
-
-        self.assertEquals(TopologyData._sort_arg("key", "+"), "key")
-        self.assertEquals(TopologyData._sort_arg("key", "asc"), "key")
-        self.assertEquals(TopologyData._sort_arg("key", "-"), "-key")
-        self.assertEquals(TopologyData._sort_arg("key", "desc"), "-key")
