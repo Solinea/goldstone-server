@@ -505,7 +505,7 @@
             {
                "range": {
                   "elapsed": {
-                     "gte": 50
+                     "gte": 60
                   }
                }
             }
@@ -537,7 +537,7 @@
          "must": [
             {
                "term": {
-                  "result": "false"
+                  "result": false
                }
             }
          ]
@@ -557,7 +557,7 @@
         protected: true
         query: '{
   "query": {
-     "match_all": {}
+     "match_all": {}   ### put in clause "testflight"
   },
   "aggs": {
      "all_results": {
