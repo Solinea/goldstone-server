@@ -17,15 +17,14 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('stackedAreaCollection.js spec', function() {
+describe('MultiMetricComboCollection.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -39,7 +38,7 @@ describe('stackedAreaCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+
 
         this.testView = new UtilizationMemView({
             collection: this.testCollection,
@@ -193,6 +192,7 @@ describe('stackedAreaCollection.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

@@ -25,15 +25,13 @@ describe('multiMetricBarView.js spec', function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection = new MultiMetricComboCollection({
             metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
@@ -50,10 +48,10 @@ describe('multiMetricBarView.js spec', function() {
             yAxisLabel: 'mult met bar view'
         });
 
-
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('tests methods', function() {

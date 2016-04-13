@@ -65,8 +65,12 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
         // grab data from collection
         var data = this.collection.toJSON()[0];
-        // set model attributes based on hash of statuses
-        this.model.set('alerts', data.results);
+
+        if (data.results) {
+            // set model attributes based on hash of statuses
+            this.model.set('alerts', data.results);
+        }
+
     },
 
     iconAddHighlight: function() {
@@ -93,7 +97,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         _.each(alerts, function(alert) {
             if (moment(now).diff(alert.created) <= oneDay) {
                 result.push(alert);
-            } 
+            }
         });
         return result;
     },

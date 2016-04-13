@@ -23,12 +23,9 @@ describe('base.js spec', function() {
         $('body').html('<div class="test-container"></div>');
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         $('body').append('<form class="global-lookback-selector role="form"><div class="form-group"><div class="col-xl-1"><div class="input-group"><select class="form-control" id="global-lookback-range"><option value="20"></select></div></div></div></form>');
 
@@ -39,6 +36,7 @@ describe('base.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('alerts are raised', function() {
