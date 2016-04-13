@@ -537,6 +537,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             $(this.el).find('#populateEventFilters').empty();
         }
 
+        var check_all_marked = "checked";
+
         _.each(_.keys(self.filter), function(item) {
 
             if (item === 'none') {
@@ -547,6 +549,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 if (self.filter[item]) {
                     return 'checked';
                 } else {
+                    check_all_marked = ""
                     return '';
                 }
             };
@@ -570,7 +573,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             );
         });
 
-        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
+        $(this.el).find('#populateEventFilters input:checkbox').not("#check-all").on('click', function() {
             var checkboxId = this.id;
             self.filter[checkboxId] = !self.filter[checkboxId];
             self.collection.filter = self.filter;
@@ -579,6 +582,32 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             // but have dataTable refetch ajax
             // with filter params incluced
             self.constructUrl();
+        });
+
+       $(this.el).find('#populateEventFilters').
+            prepend(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color: white">' +
+                '<input id="check-all" type="checkbox" ' + check_all_marked + '/>' +
+                '</span>' +
+                '<span type="text" class="form-control">Select All</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+
+        $(this.el).find('#populateEventFilters #check-all').on('click', function() {
+            var check_all = $(this);
+            $("#populateEventFilters input:checkbox").not("#check-all").each(function(){
+                if($(this).prop("checked") != check_all.prop("checked")){
+                    $(this).prop("checked", true).trigger( "click" );
+                }
+            })
+                //.prop('checked', $(this).prop("checked"));
         });
 
         this.redraw();
