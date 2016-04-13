@@ -195,7 +195,7 @@ class AlertViewTests(APITestCase):
         token = create_and_login()
 
         # Try creating resource with a valid token.
-        response = self.client.put(
+        response = self.client.patch(
             ALERT_URL + '%s/' % self.alert_def.uuid,
             json.dumps(self.basic_post_body),
             content_type="application/json",

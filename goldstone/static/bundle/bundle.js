@@ -451,10 +451,14 @@ var GoldstoneBaseView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
+        if (errorMessage === undefined && (_.isObject(message))) {
+            errorMessage = message;
+        }
+
         if (errorMessage !== undefined) {
+            message = '';
 
             if (errorMessage.responseJSON) {
-                message = '';
                 if (errorMessage.responseJSON.status_code) {
                     message += errorMessage.responseJSON.status_code + ' error: ';
                 }
@@ -472,7 +476,6 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
 
             } else {
-                message = '';
                 if (errorMessage.status) {
                     message += errorMessage.status + ' error:';
                 }
@@ -482,10 +485,10 @@ var GoldstoneBaseView = Backbone.View.extend({
                 if (errorMessage.responseText) {
                     message += ' ' + errorMessage.responseText + '.';
                 }
-                if(errorMessage.message) {
+                if (errorMessage.message) {
                     message += ' ' + errorMessage.message + '.';
                 }
-                if(errorMessage.detail) {
+                if (errorMessage.detail) {
                     message += ' ' + errorMessage.detail + '.';
                 }
             }
@@ -9246,17 +9249,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             cpu: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             disk: [
-                [goldstone.translate('Total'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             spawn: [
