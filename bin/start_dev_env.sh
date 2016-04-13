@@ -16,6 +16,8 @@
 export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
+APP_LOCATION="container"
+APP_EDITION="oss"
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 
@@ -30,6 +32,15 @@ function stop_dev_env() {
     exit 0
 }
 
+function usage {
+    echo "Usage: $0 [--app-edition=oss|gse] [--app-location=container|local] [--docker-vm=name] [--stack-vm=name]"
+    echo "    --app-edition defaults to 'oss'"
+    echo "    --app-location defaults to 'container'"
+    echo "    --docker-vm defaults to 'default'"
+    echo "    --stack-vm defaults to 'RDO-kilo'"
+    exit 255
+}
+
 
 for arg in "$@" ; do
     case $arg in
@@ -41,23 +52,48 @@ for arg in "$@" ; do
             STACK_VM="${arg#*=}"
             shift
         ;;
+        --app-location=*)
+            APP_LOCATION="${arg#*=}"
+            shift
+        ;;
+        --app-edition=*)
+            APP_EDITION="${arg#*=}"
+            shift
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
-            exit 0
+            usage
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
-            exit 1
+            usage
         ;;
     esac
 done
 
-echo ""
-echo "The first time this is run (or after removing docker images), it will"
-echo "take several minutes to build the containers.  Subsequent runs should"
-echo "be faster."
-echo ""
+if [[ ${APP_LOCATION} != "local" && ${APP_LOCATION} != "container" ]] ; then
+    usage
+fi
+
+if [[ ${APP_EDITION} != "oss" && ${APP_EDITION} != "gse" ]] ; then
+    usage
+fi
+
+if [[ ${APP_LOCATION} == "local" ]] ; then
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+else
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
+fi
+
+COMPOSE_FILE=compose-${APP_LOCATION}app-${APP_EDITION}.yml
+
+echo 
+echo "Running with the following settings:"
+echo "    APP_EDITION = ${APP_EDITION}"
+echo "    APP_LOCATION = ${APP_LOCATION}"
+echo "    COMPOSE_FILE = ${COMPOSE_FILE}"
+echo "    DOCKER_VM = ${DOCKER_VM}"
+echo "    STACK_VM = ${STACK_VM}"
+echo 
 
 cd $TOP_DIR || exit 1
 
@@ -81,9 +117,9 @@ sleep 10
 eval "$(docker-machine env ${DOCKER_VM})"
 
 # this dir must exist for the app container to start
-if [ ! -d docker/goldstone-app/goldstone-server ] ; then
+if [[ ${APP_LOCATION} == "local" && ! -d docker/goldstone-app/goldstone-server ]] ; then
     mkdir docker/goldstone-app/goldstone-server
 fi
 
-docker-compose -f docker-compose-dev.yml up
+docker-compose -f ${COMPOSE_FILE} up
 
