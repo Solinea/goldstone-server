@@ -448,14 +448,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to up"
                   }
                }
