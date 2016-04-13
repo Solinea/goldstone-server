@@ -496,7 +496,7 @@
         owner: core
         index_prefix: internal-*
         doc_type: canary
-        timestamp_field: '@timestamp'
+        timestamp_field: 'ingest_time'
         protected: true
         query: '{
    "query": {
@@ -529,7 +529,7 @@
         owner: core
         index_prefix: internal-*
         doc_type: canary
-        timestamp_field: '@timestamp'
+        timestamp_field: 'ingest_time'
         protected: true
         query: '{
    "query": {
@@ -553,7 +553,7 @@
         owner: core
         index_prefix: internal-*
         doc_type: canary
-        timestamp_field: '@timestamp'
+        timestamp_field: 'ingest_time'
         protected: true
         query: '{
    "query": {
@@ -576,7 +576,7 @@
       },
       "per_interval": {
          "date_histogram": {
-            "field": "@timestamp",
+            "field": "ingest_time",
             "interval": "1d",
             "min_doc_count": 0
          },
