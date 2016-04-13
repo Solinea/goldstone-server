@@ -602,12 +602,11 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         $(this.el).find('#populateEventFilters #check-all').on('click', function() {
             var check_all = $(this);
-            $("#populateEventFilters input:checkbox").not("#check-all").each(function(){
+            $("#populateEventFilters input:checkbox").not(this).each(function(){
                 if($(this).prop("checked") != check_all.prop("checked")){
                     $(this).prop("checked", true).trigger( "click" );
                 }
             })
-                //.prop('checked', $(this).prop("checked"));
         });
 
         this.redraw();
