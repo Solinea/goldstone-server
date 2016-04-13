@@ -249,7 +249,6 @@ def docker_install():
     print(green("DJANGO_SETTINGS_MODULE = %s" % django_settings))
     print(green("OS_TENANT_NAME = %s" % stack_tenant))
     print(green("OS_USERNAME = %s" % stack_user))
-    print(green("OS_PASSWORD = %s" % stack_password))
     print(green("OS_AUTH_URL = %s" % stack_auth_url))
 
     print(green("Initializing connection to OpenStack cloud."))
