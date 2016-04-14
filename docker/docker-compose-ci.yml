@@ -15,7 +15,7 @@
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-db:1.1.1-SNAPSHOT.70.gb1a4692.extract_topology
   env_file: ./config/goldstone-test.env
   volumes_from:
     - gsdbdvc
@@ -24,14 +24,14 @@ gsdb:
 
 # Database Data Volume Container
 gsdbdvc:
-  image: solinea/goldstone-db:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-db:1.1.1-SNAPSHOT.70.gb1a4692.extract_topology
   entrypoint: /bin/true
   volumes:
     - /var/lib/postgresql/data
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-log:1.1.1-SNAPSHOT.70.gb1a4692.extract_topology
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -42,13 +42,13 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-search:1.1.1-SNAPSHOT.70.gb1a4692.extract_topology
   ports:
     - "9200:9200"
     - "9300:9300"
 
 # Celery Task Queue Container
 gstaskq:
-  image: solinea/goldstone-task-queue:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.70.gb1a4692.extract_topology
   ports:
     - "6379:6379"
