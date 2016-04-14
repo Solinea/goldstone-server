@@ -472,14 +472,6 @@
         description: 'one or more services have changed status to UP'
         search: de730aab-e0f9-40c7-81c0-4289ddb67e96
 
-  - model: core.AlertDefinition
-    pk: f053951a-2834-43e1-a5dc-a6faf36260ed
-    fields:
-        name: service status UP
-        description: 'one or more services have changed status to UP'
-        search: de730aab-e0f9-40c7-81c0-4289ddb67e96
-
-
 
   - model: core.AlertDefinition
     pk: adceb329-6760-4e2b-a34e-1d4a49c5b53e
