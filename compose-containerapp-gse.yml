@@ -124,6 +124,20 @@ services:
         max-file: "10"
 
   #
+  # Canary Container
+  #
+  gscanary:
+    image: gs-docker-ent.bintray.io/goldstone-canary:latest
+    env_file: ./docker/config/goldstone-dev.env
+    links:
+      - gslog
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100k"
+        max-file: "10"
+
+  #
   # Kibana for developer debugging
   #
   gskibana:
