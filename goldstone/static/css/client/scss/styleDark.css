@@ -283,6 +283,7 @@ body { position: relative; min-height: 100%; font-family: 'Roboto', sans-serif; 
 
 /* 2.) Dashboard ----------------------------------------*/
 .dashboard { background: #eeeeee; }
+.dashboard .container { width: 100%; }
 .dashboard .content { padding-top: 20px; margin-bottom: 40px; transition: all 0.3s ease; -webkit-transition: all 0.3s ease; -ms-transition: all 0.3s ease; -moz-transition: all 0.3s ease; -o-transition: all 0.3s ease; margin-left: 64px; }
 .dashboard .content.open { margin-left: 180px; }
 .dashboard h3 { font-size: 24px; color: #424242; margin: 0 -0.5em 5px; border-radius: 8px 8px 0 0; }
@@ -475,8 +476,7 @@ naturally respect vertical placement for Japanese text.
 
 /* Table Of Contents 1.) Media Query for Handheld Devices 2.) Media Query for Tablet 3.) Media Query for mobile ===============================================*/
 /* 1.) Media Query for Handheld Devices ===============================*/
-@media only screen and (max-width: 1348px) { .dashboard .container { width: 100%; }
-  .dashboard .content.open .col-md-3 { width: 35%; }
+@media only screen and (max-width: 1348px) { .dashboard .content.open .col-md-3 { width: 35%; }
   .dashboard .content.open .col-md-9 { width: 65%; } }
 @media only screen and (max-width: 1230px) { .service-status-table .table-header { font-size: 13px; }
   .service-status-table li { padding: 1.41em 12px; }

@@ -162,6 +162,9 @@ body {
 
 .dashboard {
     background: #eeeeee;
+    .container {
+        width: 100%;
+    }
     .content {
         padding-top: 20px;
         margin-bottom: 40px;
