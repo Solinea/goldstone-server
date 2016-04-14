@@ -7659,7 +7659,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 if (self.filter[item]) {
                     return 'checked';
                 } else {
-                    check_all_marked = ""
+                    check_all_marked = "";
                     return '';
                 }
             };
@@ -7716,8 +7716,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 if($(this).prop("checked") != check_all.prop("checked")){
                     $(this).prop("checked", true).trigger( "click" );
                 }
-            })
-                //.prop('checked', $(this).prop("checked"));
+            });
         });
 
         this.redraw();
