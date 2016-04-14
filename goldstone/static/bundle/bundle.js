@@ -7714,7 +7714,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             var check_all = $(this);
             $("#populateEventFilters input:checkbox").not(this).each(function(){
                 if($(this).prop("checked") != check_all.prop("checked")){
-                    $(this).prop("checked", true).trigger( "click" );
+                    $(this).prop("checked", true).trigger( "click");
                 }
             });
         });
