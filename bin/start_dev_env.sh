@@ -123,10 +123,10 @@ if [[ $DOCKER_VM != "none" ]] ; then
     eval "$(docker-machine env ${DOCKER_VM})"
 fi
 
-# this dir must exist for the app container to start
-if [[ ${APP_LOCATION} == "local" && ! -d docker/goldstone-app/goldstone-server ]] ; then
-    mkdir docker/goldstone-app/goldstone-server
-fi
+# these need to exist in order to build
+mkdir docker/goldstone-app/goldstone-server 2> /dev/null
+mkdir docker/goldstone-app-e/goldstone-server |2> /dev/null
+mkdir docker/goldstone-task/goldstone-server |2> /dev/null
 
 docker-compose -f ${COMPOSE_FILE} up &
 COMPOSE_PID=$!
