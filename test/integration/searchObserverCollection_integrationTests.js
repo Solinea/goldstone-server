@@ -21,7 +21,6 @@ describe('searchObserverCollection.js spec', function() {
     beforeEach(function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith([200, {
             "Content-Type": "application/json"
         }, 'OK']);
@@ -30,6 +29,7 @@ describe('searchObserverCollection.js spec', function() {
         this.protoFetchSpy = sinon.spy(SearchObserverCollection.prototype, "fetch");
     });
     afterEach(function() {
+        // this.server.respond();
         this.server.restore();
         this.protoFetchSpy.restore();
     });

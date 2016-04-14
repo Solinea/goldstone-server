@@ -24,8 +24,9 @@ describe('tenantSettingsPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith([200,{'Content-Type': 'application/json'}, '{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}']);
+        this.server.respondWith([200, {
+            'Content-Type': 'application/json'
+        }, '{date_joined: "2015-03-16T20:50:24Z", default_tenant_admin: false, email: "", first_name: "", last_login: "2015-03-16T20:50:24Z", last_name: "", tenant_admin: true, username: "test", uuid: "dd25bce27a094a868c9ccbb0a698972f"}']);
 
         this.testView = new TenantSettingsPageView({
             el: '.test-container'
@@ -33,6 +34,7 @@ describe('tenantSettingsPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
@@ -51,8 +53,7 @@ describe('tenantSettingsPageView.js spec', function() {
                 owner: "testowner",
                 owner_contact: "testowner@sol.com",
                 uuid: "b6c904adf1744753b70960c5e10a7d3e"
-            },
-            {
+            }, {
                 name: "testtenantname2",
                 owner: "testowner2",
                 owner_contact: "testowner@sol.com2",

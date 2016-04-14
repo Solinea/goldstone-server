@@ -99,7 +99,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.hideSpinner();
 
                     // having the results of the last render that fit the
-                    // current heading structure will allow to return it to 
+                    // current heading structure will allow to return it to
                     // the table that is about to be destroyed and overwritten.
                     // just returning an empty set will cause a disorienting
                     // flash when the table is destroyed, prior to the next
@@ -133,7 +133,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
 
-                    // cache ordering column and direction to highlight the 
+                    // cache ordering column and direction to highlight the
                     // selected column upon next table rendering
                     self.cachedSortAscDesc = sortAscDesc;
                     self.cachedSortByColumnNumber = parseInt(sortByColumnNumber, 10);
@@ -220,7 +220,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         }; // end standardAjaxOptions
 
         // in the case of their being cached data from the last call,
-        // deferLoading will skip the ajax call and use the 
+        // deferLoading will skip the ajax call and use the
         // data already present in the dom
         if (self.cachedResults) {
 
@@ -245,8 +245,8 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                 return item === self.cachedColumnHeadingByName;
             });
 
-            // if the sort column is no longer existent, don't 
-            // impose a sort order on the table 
+            // if the sort column is no longer existent, don't
+            // impose a sort order on the table
             if (newIndexOfSortColumn !== undefined) {
                 standardAjaxOptions.order = [
                     [newIndexOfSortColumn, this.cachedSortAscDesc]
@@ -278,13 +278,15 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // initialize container for formatted results
         var finalResult = [];
 
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
+        if (data && data.aggregations && data.aggregations.per_interval) {
+            // for each array index in the 'data' key
+            _.each(data.aggregations.per_interval.buckets, function(item) {
+                var tempObj = {};
+                tempObj.time = item.key;
+                tempObj.count = item.doc_count;
+                finalResult.push(tempObj);
+            });
+        }
 
         return finalResult;
     },
@@ -448,7 +450,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     renderFreshTable: function() {
 
-        // the main table template only needs to be added once, to avoid 
+        // the main table template only needs to be added once, to avoid
         // poor UX from erasing and re-rendering entire table.
         if (!$('.data-table-body').length) {
             $(this.el).find('.refreshed-report-container').html(this.dataTableTemplate());
@@ -484,7 +486,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                 $('input.form-control')[0].setSelectionRange(len, len);
             } else {
 
-                // IE hack, replace input with itself, hopefully to 
+                // IE hack, replace input with itself, hopefully to
                 // end up with cursor at end of input element
                 $('input.form-control').val($('input.form-control').val());
             }
