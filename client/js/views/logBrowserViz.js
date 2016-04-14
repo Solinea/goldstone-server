@@ -1,4 +1,3 @@
-
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -299,8 +298,15 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-        // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.aggregations.per_interval.buckets;
+
+        var data = [];
+
+        if (collectionDataPayload.aggregations && collectionDataPayload.aggregations.per_interval) {
+            // we use only the 'data' for the construction of the chart
+            data = collectionDataPayload.aggregations.per_interval.buckets;
+        } else {
+            return [];
+        }
 
         // prepare empty array to return at end
         var finalData = [];

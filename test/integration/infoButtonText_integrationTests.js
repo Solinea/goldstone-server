@@ -20,7 +20,6 @@
 describe('infoButtonText.js spec', function() {
     beforeEach(function() {
 
-
         this.testView = new InfoButtonText();
 
     });

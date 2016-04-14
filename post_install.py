@@ -215,10 +215,6 @@ def docker_install():
     OS_AUTH_URL (default: http://172.24.4.100:5000/v2.0/)
 
     """
-    # test to see that this really is a docker container.
-    if not os.path.isfile('/.dockerinit'):
-        print(red('This Does not appear to be a docker container. Exiting.'))
-        exit(1)
 
     # pull params out of the environment
     django_admin_user = os.environ.get('DJANGO_ADMIN_USER', 'admin')
@@ -233,8 +229,7 @@ def docker_install():
     stack_tenant = os.environ.get('OS_TENANT_NAME')
     stack_user = os.environ.get('OS_USERNAME')
     stack_password = os.environ.get('OS_PASSWORD')
-    stack_auth_url = os.environ.get(
-        'OS_AUTH_URL')
+    stack_auth_url = os.environ.get('OS_AUTH_URL', None)
 
     print(green("Setting up Django admin account."))
     django_admin_init(
@@ -249,6 +244,12 @@ def docker_install():
         gs_tenant_admin,
         gs_tenant_admin_password
     )
+
+    django_settings = os.environ.get('DJANGO_SETTINGS_MODULE', None)
+    print(green("DJANGO_SETTINGS_MODULE = %s" % django_settings))
+    print(green("OS_TENANT_NAME = %s" % stack_tenant))
+    print(green("OS_USERNAME = %s" % stack_user))
+    print(green("OS_AUTH_URL = %s" % stack_auth_url))
 
     print(green("Initializing connection to OpenStack cloud."))
     cloud_init(

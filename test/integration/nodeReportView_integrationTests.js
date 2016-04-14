@@ -60,8 +60,7 @@ describe('NodeReportView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, 'OK']);
 
@@ -69,7 +68,6 @@ describe('NodeReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        // blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";app = {};
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         this.testView = new NodeReportPageView({
@@ -79,9 +77,12 @@ describe('NodeReportView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {
+        // update pending return of node report view to project
+        /*
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
@@ -132,5 +133,6 @@ describe('NodeReportView.js spec', function() {
             expect($('#reportsReport').css('display')).to.equal('block');
             expect($('#eventsReport').css('display')).to.equal('block');
         });
+        */
     });
 });
