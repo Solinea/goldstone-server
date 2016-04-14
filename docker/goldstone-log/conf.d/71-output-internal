@@ -17,9 +17,18 @@
 # 
 output {
     if [type] == "internal" {
-        elasticsearch {
-            hosts => ["gssearch:9200"]
-            index => "internal-%{+YYYY.MM.dd}"
+        # stdout { codec => "rubydebug" }
+        if [facility] == "GSC" {
+             elasticsearch {
+                 hosts => ["gssearch:9200"]
+                 index => "internal-%{+YYYY.MM.dd}"
+                 document_type => "canary"
+             }
+        } else {
+             elasticsearch {
+                 hosts => ["gssearch:9200"]
+                 index => "internal-%{+YYYY.MM.dd}"
+             }
         }
     }
 }

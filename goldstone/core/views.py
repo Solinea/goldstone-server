@@ -18,6 +18,7 @@ from django.conf import settings
 from rest_framework import filters
 import django_filters
 from rest_framework.decorators import detail_route
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -535,6 +536,26 @@ class SavedSearchViewSet(ModelViewSet):
 
         serializer = self.get_serializer(page)
         return self.get_paginated_response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """override PATCH methods to not allow updates to
+        protected searches"""
+        instance = self.get_object()
+        if getattr(instance, 'protected', False):
+            raise MethodNotAllowed(request.method,
+                                   "Can not edit protected Saved Searches")
+        return super(SavedSearchViewSet, self)\
+            .update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """override DELETE methods to not allow deletes of
+        protected searches"""
+        instance = self.get_object()
+        if getattr(instance, 'protected', False):
+            raise MethodNotAllowed(request.method,
+                                   "Can not delete protected Saved Searches")
+        return super(SavedSearchViewSet, self)\
+            .destroy(request, *args, **kwargs)
 
 
 class AlertDefinitionViewSet(ReadOnlyModelViewSet):

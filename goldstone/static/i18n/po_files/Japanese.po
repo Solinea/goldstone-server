@@ -984,6 +984,10 @@ msgstr "チャートパラメターの選択"
 #: multiMetricBarView.js
 
 #: multiMetricBarView.js
+msgid "Available"
+msgstr "可用"
+
+#: multiMetricBarView.js
 msgid "Physical"
 msgstr "物理"
 

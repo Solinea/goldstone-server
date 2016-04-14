@@ -30,7 +30,8 @@ var NodeServiceStatusCollection = Backbone.Collection.extend({
                 remove: false
             });
         }
-        return data.results;
+
+        return data.results ? data.results : [];
     },
 
     model: GoldstoneBaseModel,

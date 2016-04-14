@@ -20,7 +20,6 @@ Registering clicks on the menus and handling css changes that
 govern the expanding menu actions.
 */
 
-
 goldstone.setBaseTemplateListeners = function() {
 
     // tooltips for side-menu bar icons
@@ -46,7 +45,7 @@ goldstone.setBaseTemplateListeners = function() {
         $('.footer').toggleClass('open');
     });
 
-    // icon / username top-right menu functionality 
+    // icon / username top-right menu functionality
     $('.user-control').click(function() {
         $('.menu-wrapper').slideToggle('fast');
     });

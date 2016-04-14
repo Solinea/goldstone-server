@@ -28,6 +28,7 @@ GS_SEARCH_DIR=${TOP_DIR}/docker/goldstone-search
 GS_LOG_DIR=${TOP_DIR}/docker/goldstone-log
 GS_DB_DIR=${TOP_DIR}/docker/goldstone-db
 GS_TASK_Q_DIR=${TOP_DIR}/docker/goldstone-task-queue
+GS_TASK_DIR=${TOP_DIR}/docker/goldstone-task
 GS_APP_E_DIR=${TOP_DIR}/docker/goldstone-app-e
 
 DJANGO_SETTINGS=goldstone.settings.ci
@@ -36,13 +37,13 @@ STATIC_ROOT=$(DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS} python -c 'from django.c
 OPEN_REGISTRY_ORG=solinea
 PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 
-declare -a need_open_source=( $GS_APP_DIR )
+declare -a need_open_source=( $GS_APP_DIR $GS_TASK_DIR )
 declare -a need_closed_source=( $GS_APP_E_DIR )
 
 declare -a base_to_build=( $GS_BASE_DIR )
 
 declare -a open_to_build=( $GS_SEARCH_DIR $GS_LOG_DIR $GS_DB_DIR \
-              $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR )
+              $GS_APP_DIR $GS_WEB_DIR $GS_TASK_Q_DIR $GS_TASK_DIR )
 
 declare -a priv_to_build=( $GS_APP_E_DIR )
 
