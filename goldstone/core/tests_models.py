@@ -117,7 +117,6 @@ class ModelTests(TestCase):
         self.assertIsInstance(start1, datetime)
         self.assertIsInstance(end1, datetime)
         self.assertWithinASecond(start1, end1)
-        self.assertNotEqual(search._doc_type, [])
 
         def find_range_dict(a, z):
             """Helper function that extracts the dict with range key."""

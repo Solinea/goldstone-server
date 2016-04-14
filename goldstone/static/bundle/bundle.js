@@ -135,7 +135,6 @@ Registering clicks on the menus and handling css changes that
 govern the expanding menu actions.
 */
 
-
 goldstone.setBaseTemplateListeners = function() {
 
     // tooltips for side-menu bar icons
@@ -161,7 +160,7 @@ goldstone.setBaseTemplateListeners = function() {
         $('.footer').toggleClass('open');
     });
 
-    // icon / username top-right menu functionality 
+    // icon / username top-right menu functionality
     $('.user-control').click(function() {
         $('.menu-wrapper').slideToggle('fast');
     });
@@ -451,10 +450,14 @@ var GoldstoneBaseView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
+        if (errorMessage === undefined && (_.isObject(message))) {
+            errorMessage = message;
+        }
+
         if (errorMessage !== undefined) {
+            message = '';
 
             if (errorMessage.responseJSON) {
-                message = '';
                 if (errorMessage.responseJSON.status_code) {
                     message += errorMessage.responseJSON.status_code + ' error: ';
                 }
@@ -472,7 +475,6 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
 
             } else {
-                message = '';
                 if (errorMessage.status) {
                     message += errorMessage.status + ' error:';
                 }
@@ -482,10 +484,10 @@ var GoldstoneBaseView = Backbone.View.extend({
                 if (errorMessage.responseText) {
                     message += ' ' + errorMessage.responseText + '.';
                 }
-                if(errorMessage.message) {
+                if (errorMessage.message) {
                     message += ' ' + errorMessage.message + '.';
                 }
-                if(errorMessage.detail) {
+                if (errorMessage.detail) {
                     message += ' ' + errorMessage.detail + '.';
                 }
             }
@@ -998,7 +1000,8 @@ var DataTableBaseView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-        console.log('MUST DEFINE UPDATE IN SUBCLASS');
+        if (!goldstone.inTestEnv)
+            console.log('MUST DEFINE UPDATE IN SUBCLASS');
     },
 
     // search for headingsToPin anywhere in column heading
@@ -2516,7 +2519,7 @@ var I18nModel = Backbone.Model.extend({
 
         // if goldstone.translate is called on a key not in the .po file
         finalResult.missing_key_callback = function(key, language) {
-            if (!goldstone.skipI18nLog) {
+            if (!goldstone.inTestEnv) {
                 console.error('missing ' + language + ' .po file translation for: `' + key + '`');
             }
         };
@@ -2870,7 +2873,7 @@ this.novaApiPerfChart = new ApiPerfCollection({
 var ApiPerfCollection = GoldstoneBaseCollection.extend({
 
     preProcessData: function(data) {
-        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
+        if ((data !== undefined) && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
             return data.aggregations.per_interval.buckets;
         } else {
             return [];
@@ -3362,7 +3365,8 @@ var NodeServiceStatusCollection = Backbone.Collection.extend({
                 remove: false
             });
         }
-        return data.results;
+
+        return data.results ? data.results : [];
     },
 
     model: GoldstoneBaseModel,
@@ -3925,8 +3929,12 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
         // grab data from collection
         var data = this.collection.toJSON()[0];
-        // set model attributes based on hash of statuses
-        this.model.set('alerts', data.results);
+
+        if (data.results) {
+            // set model attributes based on hash of statuses
+            this.model.set('alerts', data.results);
+        }
+
     },
 
     iconAddHighlight: function() {
@@ -3953,7 +3961,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         _.each(alerts, function(alert) {
             if (moment(now).diff(alert.created) <= oneDay) {
                 result.push(alert);
-            } 
+            }
         });
         return result;
     },
@@ -4119,7 +4127,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    
+
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'host',
@@ -4136,7 +4144,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         'desc': '-'
                     };
                     settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    
+
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -4157,13 +4165,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         // initialize container for formatted results
         var finalResult = [];
 
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
+            // for each array index in the 'data' key
+            _.each(data.aggregations.per_interval.buckets, function(item) {
+                var tempObj = {};
+                tempObj.time = item.key;
+                tempObj.count = item.doc_count;
+                finalResult.push(tempObj);
+            });
+        }
 
         return finalResult;
     },
@@ -5351,7 +5361,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.hideSpinner();
 
                     // having the results of the last render that fit the
-                    // current heading structure will allow to return it to 
+                    // current heading structure will allow to return it to
                     // the table that is about to be destroyed and overwritten.
                     // just returning an empty set will cause a disorienting
                     // flash when the table is destroyed, prior to the next
@@ -5385,7 +5395,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                     self.cachedPageSize = parseInt(pageSize, 10);
                     self.cachedPaginationStart = parseInt(paginationStart, 10);
 
-                    // cache ordering column and direction to highlight the 
+                    // cache ordering column and direction to highlight the
                     // selected column upon next table rendering
                     self.cachedSortAscDesc = sortAscDesc;
                     self.cachedSortByColumnNumber = parseInt(sortByColumnNumber, 10);
@@ -5472,7 +5482,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         }; // end standardAjaxOptions
 
         // in the case of their being cached data from the last call,
-        // deferLoading will skip the ajax call and use the 
+        // deferLoading will skip the ajax call and use the
         // data already present in the dom
         if (self.cachedResults) {
 
@@ -5497,8 +5507,8 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                 return item === self.cachedColumnHeadingByName;
             });
 
-            // if the sort column is no longer existent, don't 
-            // impose a sort order on the table 
+            // if the sort column is no longer existent, don't
+            // impose a sort order on the table
             if (newIndexOfSortColumn !== undefined) {
                 standardAjaxOptions.order = [
                     [newIndexOfSortColumn, this.cachedSortAscDesc]
@@ -5530,13 +5540,15 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
         // initialize container for formatted results
         var finalResult = [];
 
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
+        if (data && data.aggregations && data.aggregations.per_interval) {
+            // for each array index in the 'data' key
+            _.each(data.aggregations.per_interval.buckets, function(item) {
+                var tempObj = {};
+                tempObj.time = item.key;
+                tempObj.count = item.doc_count;
+                finalResult.push(tempObj);
+            });
+        }
 
         return finalResult;
     },
@@ -5700,7 +5712,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
 
     renderFreshTable: function() {
 
-        // the main table template only needs to be added once, to avoid 
+        // the main table template only needs to be added once, to avoid
         // poor UX from erasing and re-rendering entire table.
         if (!$('.data-table-body').length) {
             $(this.el).find('.refreshed-report-container').html(this.dataTableTemplate());
@@ -5736,7 +5748,7 @@ var EventsBrowserDataTableView = DataTableBaseView.extend({
                 $('input.form-control')[0].setSelectionRange(len, len);
             } else {
 
-                // IE hack, replace input with itself, hopefully to 
+                // IE hack, replace input with itself, hopefully to
                 // end up with cursor at end of input element
                 $('input.form-control').val($('input.form-control').val());
             }
@@ -7105,7 +7117,6 @@ var LogBrowserDataTableView = DataTableBaseView.extend({
     )
 });
 ;
-
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -7406,8 +7417,15 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-        // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.aggregations.per_interval.buckets;
+
+        var data = [];
+
+        if (collectionDataPayload.aggregations && collectionDataPayload.aggregations.per_interval) {
+            // we use only the 'data' for the construction of the chart
+            data = collectionDataPayload.aggregations.per_interval.buckets;
+        } else {
+            return [];
+        }
 
         // prepare empty array to return at end
         var finalData = [];
@@ -8714,6 +8732,11 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var finalData = [];
 
+        // in case of empty set
+        if(!data[0].aggregations) {
+          return finalData;
+        }
+
         if (self.featureSet === 'cpu') {
         // data morphed through collectionPrep into:
         // {
@@ -9246,17 +9269,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             cpu: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             disk: [
-                [goldstone.translate('Total'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             spawn: [

@@ -177,6 +177,11 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var finalData = [];
 
+        // in case of empty set
+        if(!data[0].aggregations) {
+          return finalData;
+        }
+
         if (self.featureSet === 'cpu') {
         // data morphed through collectionPrep into:
         // {
@@ -709,17 +714,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             cpu: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
-                [goldstone.translate('Physical'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             disk: [
-                [goldstone.translate('Total'), 1],
+                [goldstone.translate('Available'), 1],
                 [goldstone.translate('Used'), 0]
             ],
             spawn: [

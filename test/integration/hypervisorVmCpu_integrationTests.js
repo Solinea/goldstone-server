@@ -25,7 +25,7 @@ describe('HypervisorVmCpu spec', function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -36,8 +36,6 @@ describe('HypervisorVmCpu spec', function() {
         this.testCollection = new HypervisorVmCpuCollection({
             url: '/something/fancy'
         });
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection.reset();
         this.testCollection.add([{
@@ -107,6 +105,7 @@ describe('HypervisorVmCpu spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {
@@ -220,11 +219,11 @@ describe('HypervisorVmCpu spec', function() {
             }]);
             this.testView.update();
             this.testCollection.trigger('sync');
-            expect($(this.testView.el).text()).to.equal('UserSystemWait06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($(this.testView.el).text()).to.include('UserSystemWait');
             $(this.testView.el).find('button').next().click();
-            expect($(this.testView.el).text()).to.equal('UserSystemWait06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($(this.testView.el).text()).to.include('percent utilization (%)vm1vm2vm3');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('06 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)vm1vm2vm306 PMThu 0906 AM12 PM06 PM0102030405060708090100percent utilization (%)');
+            expect($('g').find('text').text()).to.include('0102030405060708090100percent utilization (%)vm1vm2vm3');
             this.update_spy.restore();
         });
     });

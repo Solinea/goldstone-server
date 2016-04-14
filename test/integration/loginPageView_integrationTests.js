@@ -19,9 +19,7 @@
 
 describe('loginPageView.js spec', function() {
     beforeEach(function() {
-
         $('body').html('' +
-
             '<form class="login-form">' +
             '<input type="text" name="username" placeholder="Username" autofocus>' +
             '<input type="password" name="password" placeholder="Password">' +
@@ -35,7 +33,6 @@ describe('loginPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith(404, '{auth_token: 12345}');
         data = [];
 
@@ -44,6 +41,7 @@ describe('loginPageView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {

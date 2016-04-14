@@ -19,5 +19,6 @@ input {
     gelf {
         port => 5517
         type => internal
+        remap => false
     }
 }

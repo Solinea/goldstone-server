@@ -8,6 +8,8 @@ machine:
     - sudo chmod 0755 /usr/bin/docker
   python:
     version: 2.7.10
+  node:
+    version: 4.2.6
   services:
     - docker
   # environment variables
@@ -59,6 +61,7 @@ dependencies:
   override:
     - bin/bump_images.sh
     - bin/build_images.sh --docker-vm=false
+    - npm install && npm install -g grunt-cli     # client js test reqs
   post:
     - docker images
 
@@ -73,6 +76,8 @@ test:
     - docker run -it --volume=${DJANGO_DIR}:/reports --link=gs_gsdb_1:gsdb --link=gs_gssearch_1:gssearch --link=gs_gstaskq_1:gstaskq -p 8000:8000 --entrypoint=bash gs-docker-ent.bintray.io/goldstone-app-e:`bin/semver.sh full` -c ". /venv/bin/activate && COVERAGE_FILE=/reports/coverage coverage xml -o /reports/coverage.xml"
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
+    - grunt lint
+    - grunt karma
   post:
     - docker-compose -f $COMPOSE_CONF -p gs stop
     - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
