@@ -143,7 +143,6 @@ describe('AddonMenuView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        // blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         goldstone.gsRouter = new GoldstoneRouter();
@@ -154,6 +153,7 @@ describe('AddonMenuView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

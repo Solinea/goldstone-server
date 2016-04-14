@@ -22,8 +22,8 @@ describe('goldstoneRouter.js spec', function() {
         $('body').html('<div class="router-content-container"></div>');
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        // this.server.autoRespond = true;
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -31,6 +31,7 @@ describe('goldstoneRouter.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('router is instantiated properly', function() {

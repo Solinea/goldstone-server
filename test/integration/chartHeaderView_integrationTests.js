@@ -24,17 +24,13 @@ describe('ChartHeaderView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
-
 
         this.InfoButtonText = Backbone.Model.extend({
             defaults: {
@@ -45,7 +41,6 @@ describe('ChartHeaderView.js spec', function() {
             }
         });
 
-
         this.testView = new ChartHeaderView({
             chartTitle: 'Test Chart',
             infoText: 'testText',
@@ -53,10 +48,10 @@ describe('ChartHeaderView.js spec', function() {
 
         $('.testContainer').append(this.testView.el);
 
-
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('view is constructed', function() {

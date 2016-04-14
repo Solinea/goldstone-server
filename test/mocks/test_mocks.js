@@ -1,7 +1,7 @@
 // mock i18n
 var goldstone = goldstone || {};
 
-goldstone.skipI18nLog = true;
+goldstone.inTestEnv = true;
 
 goldstone.i18nJSON = {
     "English": {
@@ -18,6 +18,8 @@ goldstone.i18nJSON = {
         }
     }
 };
+
+blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
 goldstone.userPrefsView = new UserPrefsView();
 

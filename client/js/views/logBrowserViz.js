@@ -1,4 +1,3 @@
-
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -299,8 +298,15 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-        // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.aggregations.per_interval.buckets;
+
+        var data = [];
+
+        if (collectionDataPayload.aggregations && collectionDataPayload.aggregations.per_interval) {
+            // we use only the 'data' for the construction of the chart
+            data = collectionDataPayload.aggregations.per_interval.buckets;
+        } else {
+            return [];
+        }
 
         // prepare empty array to return at end
         var finalData = [];
@@ -537,6 +543,8 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             $(this.el).find('#populateEventFilters').empty();
         }
 
+        var check_all_marked = "checked";
+
         _.each(_.keys(self.filter), function(item) {
 
             if (item === 'none') {
@@ -547,6 +555,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 if (self.filter[item]) {
                     return 'checked';
                 } else {
+                    check_all_marked = "";
                     return '';
                 }
             };
@@ -570,7 +579,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             );
         });
 
-        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
+        $(this.el).find('#populateEventFilters input:checkbox').not("#check-all").on('click', function() {
             var checkboxId = this.id;
             self.filter[checkboxId] = !self.filter[checkboxId];
             self.collection.filter = self.filter;
@@ -579,6 +588,31 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             // but have dataTable refetch ajax
             // with filter params incluced
             self.constructUrl();
+        });
+
+       $(this.el).find('#populateEventFilters').
+            prepend(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color: white">' +
+                '<input id="check-all" type="checkbox" ' + check_all_marked + '/>' +
+                '</span>' +
+                '<span type="text" class="form-control">Select All</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+
+        $(this.el).find('#populateEventFilters #check-all').on('click', function() {
+            var check_all = $(this);
+            $("#populateEventFilters input:checkbox").not(this).each(function(){
+                if($(this).prop("checked") != check_all.prop("checked")){
+                    $(this).prop("checked", true).trigger( "click");
+                }
+            });
         });
 
         this.redraw();
