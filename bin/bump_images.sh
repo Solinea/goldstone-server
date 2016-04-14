@@ -19,10 +19,12 @@
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
 GS_APP_E_DIR=${TOP_DIR}/docker/goldstone-app-e
+GS_TASK_DIR=${TOP_DIR}/docker/goldstone-task
 
 declare -a dockerfile_list=( 
                        $GS_APP_DIR/Dockerfile \
-                       $GS_APP_E_DIR/Dockerfile 
+                       $GS_APP_E_DIR/Dockerfile \
+                       $GS_TASK_DIR/Dockerfile
     )
 
 declare -a composefile_list=( 
