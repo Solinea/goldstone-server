@@ -25,7 +25,7 @@ describe('HypervisorVmCpu spec', function() {
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -36,8 +36,6 @@ describe('HypervisorVmCpu spec', function() {
         this.testCollection = new HypervisorVmCpuCollection({
             url: '/something/fancy'
         });
-
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection.reset();
         this.testCollection.add([{
@@ -107,6 +105,7 @@ describe('HypervisorVmCpu spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

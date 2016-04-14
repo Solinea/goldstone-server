@@ -59,7 +59,6 @@ describe('spawnsView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
         this.server.respondWith("GET", "/something/fancy", [200, {
             "Content-Type": "application/json"
         }, '[]']);
@@ -74,8 +73,6 @@ describe('spawnsView.js spec', function() {
 
         this.mockZerosSpy = sinon.spy(this.testCollection, "mockZeros");
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
-
         this.testView = new SpawnsView({
             chartTitle: "Tester API Performance",
             collection: this.testCollection,
@@ -89,6 +86,7 @@ describe('spawnsView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.mockZerosSpy.restore();
+        // this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {

@@ -24,7 +24,7 @@ describe('serviceStatusView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             'Content-Type': 'application/json'
         }, '{"auth_token":12345}']);
 
@@ -42,6 +42,7 @@ describe('serviceStatusView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
     describe('view tests', function() {
