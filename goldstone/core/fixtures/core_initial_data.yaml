@@ -337,7 +337,7 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update discovered",
                      "slop": 10
                   }
@@ -370,14 +370,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to down"
                   }
                }
@@ -409,14 +409,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to unknown"
                   }
                }
@@ -448,14 +448,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to up"
                   }
                }
