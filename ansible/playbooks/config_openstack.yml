@@ -1,0 +1,160 @@
+---
+- hosts: openstack
+  sudo: True
+  user: vagrant
+  gather_facts: no
+
+  tasks:
+
+  - name: copy backup_rdo_config.sh files
+    copy: src=../scripts/backup_rdo_config.sh dest=/var/tmp/ mode=0755
+
+  - name: execute backup_rdo_config.sh
+    command: sh /var/tmp/backup_rdo_config.sh
+
+  - name: copy config_openstack.sh files
+    copy: src=../scripts/config_openstack.sh dest=/var/tmp/ mode=0755
+
+  - name: execute config_openstack.sh
+    command: '/var/tmp/config_openstack.sh {{ goldstone_addr }}'
+    register: config_openstack_result
+    failed_when: "config_openstack_result.rc != 0 and config_openstack_result.rc != 1"
+    changed_when: "config_openstack_result.rc == 1"
+    notify: restart all
+
+  - name: add goldstone syslog.conf file
+    template: src=../files/rsyslog/10-goldstone.conf.j2 dest=/etc/rsyslog.d/10-goldstone.conf mode=0644
+    notify: restart rsyslog
+
+  - name: check if ceilometer directory exists
+    stat: path=/etc/ceilometer/
+    register: s_ce
+    
+  - name: Copy configuration templates
+    template: src={{ item.src }} dest={{ item.dest }}
+    when: s_ce.stat.isdir is defined and s_ce.stat.isdir
+    notify: '{{ item.notify }}'
+    with_items: 
+      - { src: '../files/ceilometer/pipeline.yaml.j2', dest: '/etc/ceilometer' , notify: 'restart ceilometer'}
+
+  - name: Copy configuration files for ceilometer
+    copy: src={{ item.src }} dest={{ item.dest }}
+    when: s_ce.stat.isdir is defined and s_ce.stat.isdir
+    notify: 'restart ceilometer'
+    with_items: 
+      - { src: '../files/ceilometer/event_pipeline.yaml', dest: '/etc/ceilometer/' }
+      - { src: '../files/ceilometer/ceilometer_api_audit_map.conf', dest: '/etc/ceilometer/' }
+
+  - name: check if cinder directory exists
+    stat: path=/etc/cinder/
+    register: s_ci
+
+  - name: Copy configuration files for cinder
+    copy: src={{ item.src }} dest={{ item.dest }}
+    when: s_ci.stat.isdir is defined and s_ci.stat.isdir
+    notify: 'restart cinder'
+    with_items: 
+      - { src: '../files/cinder/cinder_api_audit_map.conf', dest: '/etc/cinder/' , notify: 'restart cinder' }
+
+  - name: check if glance directory exists
+    stat: path=/etc/glance/
+    register: s_gl
+    
+  - name: Copy configuration files for glance
+    copy: src={{ item.src }} dest={{ item.dest }}
+    when: s_gl.stat.isdir is defined and s_gl.stat.isdir
+    notify: 'restart glance'
+    with_items: 
+      - { src: '../files/glance/glance_api_audit_map.conf', dest: '/etc/glance/' , notify: 'restart glance' }
+
+  - name: Copy configuration files for neutron
+    copy: src={{ item.src }} dest={{ item.dest }}
+    notify: 'restart neutron'
+    with_items: 
+      - { src: '../files/neutron/neutron_api_audit_map.conf', dest: '/etc/neutron/' , notify: 'restart neutron' }
+
+  - name: Copy configuration files for nova
+    copy: src={{ item.src }} dest={{ item.dest }}
+    notify: 'restart nova'
+    with_items: 
+      - { src: '../files/nova/nova_api_audit_map.conf', dest: '/etc/nova/' , notify: 'restart nova' }
+
+  handlers:
+    - name: restart all
+      debug: msg="restarting all"
+      changed_when: true
+      notify:
+        - restart rsyslog
+        - restart ceilometer
+        - restart cinder
+        - restart glance
+        - restart neutron
+        - restart nova
+        - restart trove
+        - restart keystone
+    - name: restart rsyslog
+      service: name=rsyslog state=restarted
+      ignore_errors: yes
+    - name: restart ceilometer
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - openstack-ceilometer-alarm-evaluator
+        - openstack-ceilometer-alarm-notifier
+        - openstack-ceilometer-api
+        - openstack-ceilometer-central
+        - openstack-ceilometer-collector
+        - openstack-ceilometer-compute
+        - openstack-ceilometer-notification
+    - name: restart cinder
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - openstack-cinder-api
+        - openstack-cinder-backup
+        - openstack-cinder-scheduler
+        - openstack-cinder-volume
+    - name: restart glance
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - openstack-glance-api
+        - openstack-glance-registry
+    - name: restart nova
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - openstack-nova-api
+        - openstack-nova-cert
+        - openstack-nova-compute
+        - openstack-nova-conductor
+        - openstack-nova-consoleauth
+        - openstack-nova-novncproxy
+        - openstack-nova-scheduler
+    - name: restart keystone
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - httpd
+        - keystone-all
+
+    - name: restart neutron
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - neutron-server
+        - neutron-openvswitch-agent
+        - neutron-metadata-agent
+        - neutron-dhcp-agent
+        - neutron-l3-agent
+
+    - name: restart trove
+      ignore_errors: yes
+      service: name={{ item }} state=restarted
+      with_items:
+        - openstack-trove-api
+
+
+
+
+

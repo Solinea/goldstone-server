@@ -1,0 +1,16 @@
+---
+- hosts: openstack
+  sudo: True
+  user: vagrant
+  gather_facts: no
+
+  tasks:
+
+  - name: copy revert_rdo_config.sh files
+    copy: src=/home/vagrant/revert_rdo_config.sh dest=/home/vagrant/ owner=vagrant group=vagrant mode=0777
+
+  - name: execute revert_rdo_config.sh
+    command: sh /home/vagrant/revert_rdo_config.sh
+
+
+   
