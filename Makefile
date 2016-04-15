@@ -156,9 +156,9 @@ rpm_collect:
 
 test:
 	if [ $(USE_CONTAINER) ]; then \
-		if [ `bin/check_for_containers.sh goldstoneserver_gsappdev_1` -gt 0 ] ; \
+		if [ `bin/check_for_containers.sh goldstoneserver_gsapp_1` -gt 0 ] ; \
 			then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
-		docker exec goldstoneserver_gsappdev_1 python manage.py test \
+		docker exec goldstoneserver_gsapp_1 python manage.py test \
 	else \
 		python manage.py test; \
 	fi
