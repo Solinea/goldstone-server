@@ -27,7 +27,7 @@ var TopologyPageView = GoldstoneBasePageView.extend({
         // instantiate Cloud Topology chart
 
         this.discoverTreeCollection = new GoldstoneBaseCollection({
-            urlBase: "/core/topology/"
+            urlBase: "/topology/topology/"
         });
 
         this.topologyTreeView = new TopologyTreeView({
@@ -47,7 +47,7 @@ var TopologyPageView = GoldstoneBasePageView.extend({
         '<div id="goldstone-discover-r1" class="row">' +
         '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
         '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
-        '</div>' 
+        '</div>'
     )
 
 });
