@@ -17,12 +17,33 @@ filter {
         if [type] == "syslog" {
             grok {
                 patterns_dir => "/opt/logstash/patterns"
-                match => { "log_message" => "%{OPENSTACK_RFC5424_MESSAGE}" }
+                match => { "log_message" => "%{OPENSTACK__MESSAGE}" }
             }
-# check to see if we have a known component, in which case we probably are using the RFC5424 format
-# otherwise the next rule will parse it in the normal manner
-            if ("_grokparsefailure" not in [tags] and
-		[component] in ["nova","glance","neutron","ceilometer","swift","cinder","keystone" ] ) {
+ 
+            if ("_grokparsefailure" not in [tags]) {
+                if ! [component] {
+                    # not an RFC5424 message.  we need to do mappings based on the log level
+                    translate {
+                    field => "syslog_facility"
+                    dictionary => [
+                        "local0", "nova",
+                        "local1", "glance",
+                        "local2", "neutron",
+                        "local3", "ceilometer",
+                        "local4", "swift",
+                        "local5", "cinder",
+                        "local6", "keystone"
+                    ]
+                    fallback => "unknown"
+                    destination => "component"
+                    mutate {
+                        add_tag => ["openstack_syslog_oldstyle"]
+                    }
+                } else {
+                    mutate {
+                        add_tag => ["openstack_syslog_rfc5424"]
+                    }
+                }
 
                 if ([syslog_severity] == "NOTICE") {
                     mutate {
@@ -36,7 +57,7 @@ filter {
                 }
                 mutate {
                     replace => [ "host", "%{syslog5424_host}" ]
-                    add_tag => ["openstack_syslog", "filter_33_pass","openstack_syslog_rfc5424"]
+                    add_tag => ["openstack_syslog", "filter_33_pass"]
                 }
 
                 # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
