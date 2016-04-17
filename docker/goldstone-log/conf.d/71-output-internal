@@ -17,7 +17,7 @@
 # 
 output {
     if [type] == "internal" {
-        stdout { codec => "rubydebug" }
+        # stdout { codec => "rubydebug" }
         if [facility] == "GSC" {
              elasticsearch {
                  hosts => ["gssearch:9200"]
