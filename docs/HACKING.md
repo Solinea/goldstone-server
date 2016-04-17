@@ -21,7 +21,7 @@ In a terminal window:
     $ bin/setup_dev_env.sh
     $ source ~/.bash_profile
     $ workon goldstone-server
-    $ bin/start_dev_env.sh
+    $ bin/start_dev_env.sh --help   # and select the most appropriate runtime flags 
 
 Open another terminal window and execute:
 

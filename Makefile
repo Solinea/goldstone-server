@@ -108,12 +108,8 @@ rpm_build:
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
     --exclude '**placeholder' \
-    --rpm-defattrdir 0750 \
+    --rpm-defattrdir 0700 \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
-	--rpm-attr 0750,goldstone,goldstone:/var/log/goldstone/ \
-	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/ \
-	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/es_data/ \
-	--rpm-attr 0750,goldstone,goldstone:/var/lib/goldstone/sql_data/ \
 	$(GSE_START_ATTR) \
 	$(GSE_SYSTEMD_ATTR) \
 	-p $(RPMFILENAME) \
@@ -160,9 +156,9 @@ rpm_collect:
 
 test:
 	if [ $(USE_CONTAINER) ]; then \
-		if [ `bin/check_for_containers.sh goldstoneserver_gsappdev_1` -gt 0 ] ; \
+		if [ `bin/check_for_containers.sh goldstoneserver_gsapp_1` -gt 0 ] ; \
 			then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
-		docker exec goldstoneserver_gsappdev_1 python manage.py test \
+		docker exec goldstoneserver_gsapp_1 python manage.py test \
 	else \
 		python manage.py test; \
 	fi

@@ -984,6 +984,10 @@ msgstr ""
 #: multiMetricBarView.js
 
 #: multiMetricBarView.js
+msgid "Available"
+msgstr ""
+
+#: multiMetricBarView.js
 msgid "Physical"
 msgstr ""
 

@@ -68,7 +68,7 @@
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        // blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+
         goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
         var testGoldstoneBasePageView = GoldstoneBasePageView.extend({
@@ -86,7 +86,7 @@
     });
     afterEach(function() {
         $('body').html('');
-        this.server.restore();
+        this.server.respond(); this.server.restore();
     });
     describe('view is constructed', function() {
         it('should exist', function() {

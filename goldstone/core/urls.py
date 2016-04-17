@@ -58,4 +58,6 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': '7906893c-16dc-4ab3-96e0-8f0054bd4cc1'}),
     url(r'^metrics/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+    url(r'^canary/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '139851f2-1329-4826-9c70-c154a6c102f2'}),
 )

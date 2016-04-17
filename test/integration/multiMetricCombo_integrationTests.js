@@ -17,15 +17,14 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('stackedAreaCollection.js spec', function() {
+describe('MultiMetricComboCollection.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", "", [200, {
             "Content-Type": "application/json"
         }, '[]']);
 
@@ -39,7 +38,7 @@ describe('stackedAreaCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-        blueSpinnerGif = "../../../goldstone/static/images/ajax-loader-solinea-blue.gif";
+
 
         this.testView = new UtilizationMemView({
             collection: this.testCollection,
@@ -193,6 +192,7 @@ describe('stackedAreaCollection.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        this.server.respond();
         this.server.restore();
     });
     describe('collection is constructed', function() {
@@ -303,7 +303,8 @@ describe('stackedAreaCollection.js spec', function() {
             this.testCollection.trigger('sync');
             expect($('#noDataReturned').text()).to.equal('');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('usedTotal: 0GB09 AM09:1509:3009:4510 AM0.000000000.000000010.000000020.000000030.000000040.000000050.000000060.000000070.00000008');
+            expect($('g').find('text').text()).to.include('usedTotal: 0GB');
+            expect($('g').find('text').text()).to.include('0.000000000.000000010.000000020.000000030.000000040.000000050.000000060.000000070.00000008');
             this.update_spy.restore();
         });
     });

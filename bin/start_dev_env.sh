@@ -16,6 +16,8 @@
 export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
 STACK_VM="RDO-kilo"
 DOCKER_VM="default"
+APP_LOCATION="container"
+APP_EDITION="oss"
 
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 
@@ -26,8 +28,17 @@ trap stop_dev_env INT
 
 function stop_dev_env() {
     echo "Shutting down Goldstone dev env"
-    ${TOP_DIR}/bin/stop_dev_env.sh
+    kill -INT $COMPOSE_PID
     exit 0
+}
+
+function usage {
+    echo "Usage: $0 [--app-edition=oss|gse] [--app-location=container|local] [--docker-vm=name|none] [--stack-vm=name|none]"
+    echo "    --app-edition defaults to 'oss'"
+    echo "    --app-location defaults to 'container'"
+    echo "    --docker-vm defaults to 'default'"
+    echo "    --stack-vm defaults to 'RDO-kilo'"
+    exit 255
 }
 
 
@@ -41,49 +52,120 @@ for arg in "$@" ; do
             STACK_VM="${arg#*=}"
             shift
         ;;
+        --app-location=*)
+            APP_LOCATION="${arg#*=}"
+            shift
+        ;;
+        --app-edition=*)
+            APP_EDITION="${arg#*=}"
+            shift
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
-            exit 0
+            usage
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--docker-vm=name] [--stack-vm=name]"
-            exit 1
+            usage
         ;;
     esac
 done
 
-echo ""
-echo "The first time this is run (or after removing docker images), it will"
-echo "take several minutes to build the containers.  Subsequent runs should"
-echo "be faster."
-echo ""
+if [[ ${APP_LOCATION} != "local" && ${APP_LOCATION} != "container" ]] ; then
+    usage
+fi
+
+if [[ ${APP_EDITION} != "oss" && ${APP_EDITION} != "gse" ]] ; then
+    usage
+fi
+
+COMPOSE_FILE=compose-${APP_LOCATION}app-${APP_EDITION}.yml
+
+echo 
+echo "Running with the following settings:"
+
+if [[ ${APP_EDITION} == "gse" ]] ; then
+    echo "    APP_EDITION = $(tput setaf 190)${APP_EDITION}$(tput sgr 0)"
+else 
+    echo "    APP_EDITION = $(tput setaf 153)${APP_EDITION}$(tput sgr 0)"
+fi
+if [[ ${APP_LOCATION} == "local" ]] ; then
+    echo "    APP_LOCATION = $(tput setaf 5)${APP_LOCATION}$(tput sgr 0)"
+else 
+    echo "    APP_LOCATION = $(tput setaf 6)${APP_LOCATION}$(tput sgr 0)"
+fi
+echo "    COMPOSE_FILE = ${COMPOSE_FILE}"
+echo "    DOCKER_VM = ${DOCKER_VM}"
+echo "    STACK_VM = ${STACK_VM}"
+echo 
 
 cd $TOP_DIR || exit 1
 
-VBoxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
-if [[ $RC != 0 ]] ; then
-    # No matches, start the VM
-    VBoxManage startvm ${STACK_VM} --type headless
-else
-    echo "${STACK_VM} is already running"
+if [[ $STACK_VM != "none" ]] ; then
+    VBoxManage list runningvms | grep \"${STACK_VM}\" ; RC=$?
+    if [[ $RC != 0 ]] ; then
+        # No matches, start the VM
+        VBoxManage startvm ${STACK_VM} --type headless
+    else
+        echo "${STACK_VM} is already running"
+    fi
 fi
 
-VBoxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
-if [[ $RC != 0 ]] ; then
-    # No matches, start the VM
-    docker-machine start ${DOCKER_VM}
-else
-    echo "${DOCKER_VM} is already running"
+if [[ $DOCKER_VM != "none" ]] ; then
+    VBoxManage list runningvms | grep \"${DOCKER_VM}\" ; RC=$?
+    if [[ $RC != 0 ]] ; then
+        # No matches, start the VM
+        docker-machine start ${DOCKER_VM}
+    else
+        echo "${DOCKER_VM} is already running"
+    fi
+
+    sleep 10
+    eval "$(docker-machine env ${DOCKER_VM})"
 fi
 
-sleep 10
-eval "$(docker-machine env ${DOCKER_VM})"
+# these need to exist in order to build
+mkdir docker/goldstone-app/goldstone-server 2> /dev/null
+mkdir docker/goldstone-app-e/goldstone-server |2> /dev/null
+mkdir docker/goldstone-task/goldstone-server |2> /dev/null
 
-# this dir must exist for the app container to start
-if [ ! -d docker/goldstone-app/goldstone-server ] ; then
-    mkdir docker/goldstone-app/goldstone-server
+docker-compose -f ${COMPOSE_FILE} up &
+COMPOSE_PID=$!
+
+if [[ ${APP_LOCATION} == "local" ]] ; then
+    
+    # set up environment for running app server locally
+    cat docker/config/goldstone-dev.env | sed -e '/^[#]/d' -e '/^$/d' > /var/tmp/gsenv
+    while read v; do
+       export $v
+    done < /var/tmp/gsenv
+    rm /var/tmp/gsenv
+
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+    export ENVDIR=${HOME}/.virtualenvs/goldstone-server
+    export APPDIR=${ENVDIR}
+    DB_PORT=5432
+    DB_HOST=localhost
+
+    # wait for postgres to come up
+    status="DOWN"
+
+    while [ "$status" == "DOWN" ] ; do
+       status=`(echo > /dev/tcp/$DB_HOST/$DB_PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
+       echo -e "Database connection status: $status"
+       sleep 5
+       let i++
+    done
+   
+    # allow a little time for the initial DB setup to happen
+    sleep 15
+
+    # then set up the database
+    python manage.py migrate --noinput  # Apply database migrations
+    python manage.py loaddata $(find goldstone -regex '.*/fixtures/.*' | xargs)
+    python manage.py collectstatic  --noinput
+    python post_install.py
+    
 fi
 
-docker-compose -f docker-compose-dev.yml up
+wait # for the compose process to never end, but we can still trap ctrl-C
 

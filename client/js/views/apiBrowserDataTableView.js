@@ -130,7 +130,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    
+
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'host',
@@ -147,7 +147,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         'desc': '-'
                     };
                     settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    
+
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -168,13 +168,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         // initialize container for formatted results
         var finalResult = [];
 
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
+            // for each array index in the 'data' key
+            _.each(data.aggregations.per_interval.buckets, function(item) {
+                var tempObj = {};
+                tempObj.time = item.key;
+                tempObj.count = item.doc_count;
+                finalResult.push(tempObj);
+            });
+        }
 
         return finalResult;
     },
