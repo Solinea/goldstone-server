@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Increase max message size to 64k
+$MaxMessageSize 64k
+
+# Preserve full domain names
+$PreserveFQDN on
+# Use high resolution timestamp for forwarded
+$ActionForwardDefaultTemplate RSYSLOG_ForwardFormat
+
+
 $WorkDirectory /var/lib/rsyslog    # where to place spool files
 $ActionQueueFileName fwdGoldstone  # unique name prefix for spool files
 $ActionQueueMaxDiskSpace 1g        # 1gb space limit (use as much as possible)

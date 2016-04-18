@@ -30,13 +30,6 @@
     stat: path=/etc/ceilometer/
     register: s_ce
     
-  - name: Copy configuration templates
-    template: src={{ item.src }} dest={{ item.dest }}
-    when: s_ce.stat.isdir is defined and s_ce.stat.isdir
-    notify: '{{ item.notify }}'
-    with_items: 
-      - { src: '../files/ceilometer/pipeline.yaml.j2', dest: '/etc/ceilometer' , notify: 'restart ceilometer'}
-
   - name: Copy configuration files for ceilometer
     copy: src={{ item.src }} dest={{ item.dest }}
     when: s_ce.stat.isdir is defined and s_ce.stat.isdir
@@ -90,7 +83,6 @@
         - restart glance
         - restart neutron
         - restart nova
-        - restart trove
         - restart keystone
     - name: restart rsyslog
       service: name=rsyslog state=restarted
@@ -147,12 +139,6 @@
         - neutron-metadata-agent
         - neutron-dhcp-agent
         - neutron-l3-agent
-
-    - name: restart trove
-      ignore_errors: yes
-      service: name={{ item }} state=restarted
-      with_items:
-        - openstack-trove-api
 
 
 
