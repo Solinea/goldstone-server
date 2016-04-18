@@ -17,29 +17,45 @@ filter {
         if [type] == "syslog" {
             grok {
                 patterns_dir => "/opt/logstash/patterns"
-                match => { "log_message" => "%{OPENSTACK__MESSAGE}" }
+                match => { "log_message" => [ "%{OPENSTACK_MESSAGE}", "%{OPENSTACK_RFC5424_MESSAGE}"] }
             }
  
             if ("_grokparsefailure" not in [tags]) {
                 if ! [component] {
                     # not an RFC5424 message.  we need to do mappings based on the log level
                     translate {
-                    field => "syslog_facility"
-                    dictionary => [
-                        "local0", "nova",
-                        "local1", "glance",
-                        "local2", "neutron",
-                        "local3", "ceilometer",
-                        "local4", "swift",
-                        "local5", "cinder",
-                        "local6", "keystone"
-                    ]
-                    fallback => "unknown"
-                    destination => "component"
+                        field => "syslog_facility"
+                        dictionary => [
+                            "local0", "nova",
+                            "local1", "glance",
+                            "local2", "neutron",
+                            "local3", "ceilometer",
+                            "local4", "swift",
+                            "local5", "cinder",
+                            "local6", "keystone"
+                        ]
+                        fallback => "unknown"
+                        destination => "component"
+                    }
                     mutate {
                         add_tag => ["openstack_syslog_oldstyle"]
                     }
                 } else {
+                    translate {
+                        field => "component"
+                        dictionary => [
+                            "admin", "keystone",
+                            "main", "keystone"
+                        ]
+                        destination => "new_component"
+                        add_tag => [ "keystone_translated" ]
+                    }
+                    if ("keystone_translated" in [tags]) {
+                        mutate {
+                            replace => { "component" => "%{new_component}" }
+                            remove_field => [ "new_component" ]
+                        }
+                    }
                     mutate {
                         add_tag => ["openstack_syslog_rfc5424"]
                     }

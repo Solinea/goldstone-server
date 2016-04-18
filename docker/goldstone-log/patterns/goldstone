@@ -24,20 +24,24 @@ OPENSTACK_PID ( %{POSINT:pid:int})?
 
 OPENSTACK_LOGLEVEL ([D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|[A|a]udit|AUDIT)
 
-OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:openstack_message}
+OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp} %{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:openstack_message}
 
 RAW_TRACE (?:^[^0-9].*$|^$)
 
 # treat errors separately to account for trace following
-OPENSTACK_ERROR %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid:int} ERROR %{OPENSTACK_SOURCE:program} %{GREEDYDATA:openstack_error_message}
+OPENSTACK_ERROR %{TIMESTAMP_ISO8601:timestamp} %{OPENSTACK_PID} ERROR %{OPENSTACK_SOURCE:program} %{GREEDYDATA:openstack_error_message}
 
-OPENSTACK_TRACE %{TIMESTAMP_ISO8601} %{POSINT} TRACE %{OPENSTACK_SOURCE} %{GREEDYDATA:openstack_trace_message}
+OPENSTACK_TRACE %{TIMESTAMP_ISO8601} %{OPENSTACK_PID} TRACE %{OPENSTACK_SOURCE} %{GREEDYDATA:openstack_trace_message}
 
 OPENSTACK_ROOTWRAP sudo:  %{GREEDYDATA:component} : TTY=%{GREEDYDATA:tty} ; PWD=%{GREEDYDATA:pwd} ; USER=%{GREEDYDATA:user} ; COMMAND=%{GREEDYDATA:command}
 
 OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_ERROR}|%{OPENSTACK_ROOTWRAP}
-OPENSTACK_COMPONENT %{NOTSPACE:component}-%{NOTSPACE:subcomponent}
-OPENSTACK_RFC5424_MESSAGE %{OPENSTACK_COMPONENT}: %{OPENSTACK_MESSAGE}|%{OPENSTACK_COMPONENT}: %{GREEDYDATA}
+
+# See: http://docs.openstack.org/developer/keystone/configuration.html
+KEYSTONE_COMPONENT (admin|main)
+
+OPENSTACK_COMPONENT %{NOTSPACE:component}-%{NOTSPACE:subcomponent}|%{KEYSTONE_COMPONENT:component}
+OPENSTACK_RFC5424_MESSAGE %{OPENSTACK_COMPONENT}: %{OPENSTACK_MESSAGE}|%{OPENSTACK_COMPONENT}: %{GREEDYDATA:openstack_message}
 
 
 NOT_OVSW_SEPARATOR (?:[^|]*)
