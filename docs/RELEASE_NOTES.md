@@ -1,10 +1,22 @@
 # Goldstone Server Release Notes
 
-This page documents core features included in the Goldstone Server and Goldstone Server Enterprise release.
+This page documents core features included in the Goldstone Server and Goldstone Server Enterprise release. For detailed information on using any of Goldstone Server’s features, please refer to the User Guide.
+
+## 1.1.0
+
+### Requirements
+
+* Adds integration with RedHat RDO Liberty with EPEL enabled
+
+Due to a bug in RDO Liberty, a manual patch is required to successfully manage this distribution.  This bug does not affect RDO Kilo.  The bug is documented here: [https://bugzilla.redhat.com/show_bug.cgi?id=1282093]. The bug has been fixed in the community version of OpenStack, and during testing of Goldstone Server, the patch released by the community has been manually applied to RDO Liberty deployments successfully. Goldstone Server Enterprise customers can contact support@solinea.com for assistance.
+
+### Goldstone Server Enterprise 
+
+* Goldstone Canary
+
+* Goldstone Topology
 
 ## 1.0.0
-
-For detailed information on using any of Goldstone Server’s features, please refer to the User Guide.
 
 ### Requirements
 
@@ -16,9 +28,7 @@ The host OS for Goldstone Server 1.0.0 requires:
 
 Goldstone Server can manage the following OpenStack distros:
 
-* RedHat RDO Kilo (2015.1.1-1.el7)
-
-* Crudini >= 0.7 (from EPEL repo)
+* RedHat RDO Kilo (2015.1.1-1.el7) with crudini >= 0.7 (from EPEL repo)
 
 ### Goldstone Server Open Source Additions
 

@@ -337,7 +337,7 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update discovered",
                      "slop": 10
                   }
@@ -370,14 +370,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to down"
                   }
                }
@@ -409,14 +409,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to unknown"
                   }
                }
@@ -448,14 +448,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to up"
                   }
                }
@@ -471,14 +471,6 @@
         name: service status UP
         description: 'one or more services have changed status to UP'
         search: de730aab-e0f9-40c7-81c0-4289ddb67e96
-
-  - model: core.AlertDefinition
-    pk: f053951a-2834-43e1-a5dc-a6faf36260ed
-    fields:
-        name: service status UP
-        description: 'one or more services have changed status to UP'
-        search: de730aab-e0f9-40c7-81c0-4289ddb67e96
-
 
 
   - model: core.AlertDefinition
