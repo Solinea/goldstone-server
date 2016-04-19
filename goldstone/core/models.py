@@ -2411,8 +2411,12 @@ class SavedSearch(models.Model):
                                     help_text='True if this is system-defined')
 
     hidden = models.BooleanField(blank=True, default=False,
-                                 help_text='True if this search should not be'
+                                 help_text='True if this search should not be '
                                            'presented via the view')
+
+    viewer_enabled = models.BooleanField(blank=True, default=True,
+                                         help_text='True if this search should be'
+                                                   'displayed in the client UI')
 
     index_prefix = models.CharField(max_length=64)
 
