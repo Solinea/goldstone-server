@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ('core', '0002_savedsearch_viewer_enabled'),
     ]
 
     operations = [
-        migrations.AddField(
+        migrations.AlterField(
             model_name='savedsearch',
-            name='viewer_enabled',
-            field=models.BooleanField(default=True, help_text=b'True if this search should be presented via the view'),
+            name='hidden',
+            field=models.BooleanField(default=False, help_text=b'True if this search should not be presented via the view'),
         ),
     ]
