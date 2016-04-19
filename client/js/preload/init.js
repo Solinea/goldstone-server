@@ -31,7 +31,6 @@ goldstone.init = function() {
 
     goldstone.authLogoutIcon = new LogoutIcon();
 
-
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
         var userInfo = item.email;
@@ -59,15 +58,12 @@ goldstone.init = function() {
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
-    goldstone.addonMenuView = new AddonMenuView({
-        el: ".addon-menu-view-container"
-    });
+    goldstone.addonMenuView = new AddonMenuView({});
 
     // re-translate the base template when switching pages to make sure
     // the possibly hidden lookback/refresh selectors are translated
@@ -97,7 +93,6 @@ goldstone.init = function() {
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
-
 
     // start the population of the sidebar alerts menu
     var alertsMenuCollection = new AlertsMenuCollection({
