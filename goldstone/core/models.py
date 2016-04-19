@@ -2414,6 +2414,10 @@ class SavedSearch(models.Model):
                                  help_text='True if this search should not be'
                                            'presented via the view')
 
+    viewer_enabled = models.BooleanField(blank=True, default=False,
+                                         help_text='False if this search should not be'
+                                         'presented via the view')
+
     index_prefix = models.CharField(max_length=64)
 
     doc_type = models.CharField(max_length=64, blank=True, null=True,

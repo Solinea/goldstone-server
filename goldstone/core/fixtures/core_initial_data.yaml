@@ -80,6 +80,8 @@
       doc_type: syslog
       timestamp_field: '@timestamp'
       protected: true
+      hidden: false
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -120,6 +122,8 @@
       index_prefix: events_*
       timestamp_field: 'timestamp'
       protected: true
+      hidden: false
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -166,6 +170,8 @@
       doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
+      hidden: false
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -286,6 +292,7 @@
       timestamp_field: '@timestamp'
       protected: true
       hidden: false
+      viewer_enabled: false
       query: '{
    "size": 0,
    "query": {
