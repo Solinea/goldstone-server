@@ -126,49 +126,54 @@ describe('predefinedSearchView.js', function() {
             test1 = this.testView.pruneSearchList(['a', 'b', 'c']);
             expect(test1).to.deep.equal(['a', 'b', 'c']);
 
-            var bannedSearchList = {
-                'pistachio': true
-            };
             test1 = this.testView.pruneSearchList([{
                 'name': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'pistachio',
-                'hopeToSee': 'nope'
-            }], bannedSearchList);
+                'hopeToSee': 'nope',
+                'viewer_enabled': false
+            }]);
             expect(test1).to.deep.equal([{
                 'name': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }]);
 
-            bannedSearchList = {
-                'pistachio': true
-            };
             test1 = this.testView.pruneSearchList([{
                 'nameFake': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'pistachio',
-                'hopeToSee': 'yep'
-            }], bannedSearchList);
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
+            }]);
             expect(test1).to.deep.equal([{
                 'nameFake': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'pistachio',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }]);
         });
     });
