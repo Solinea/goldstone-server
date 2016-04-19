@@ -7532,125 +7532,9 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         }));
     },
 
-    update: function() {
+    draw_filters: function() {
 
         var self = this;
-
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        this.hideSpinner();
-
-        // define allthelogs and self.data even if
-        // rendering is halted due to empty data set
-        var allthelogs = this.collectionPrep();
-        self.data = allthelogs;
-        self.loglevel = d3.scale.ordinal()
-            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
-            .range(self.colorArray.distinct.openStackSeverity8);
-
-        // clear viz
-        self.chart.selectAll('.component')
-            .remove();
-
-        // If we didn't receive any valid files, append "No Data Returned" and halt
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
-        }
-
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
-
-        self.color.domain(d3.keys(self.data[0]).filter(function(key) {
-
-            return (self.filter[key] && key !== "date" && key !== "total" && key !== "time");
-        }));
-
-        var components;
-        var curr = false;
-        var anyLiveFilter = _.reduce(self.filter, function(curr, status) {
-            return status || curr;
-        });
-
-        if (!anyLiveFilter) {
-            self.chart.selectAll('.component')
-                .remove();
-            return;
-        }
-
-        components = self.stack(self.color.domain().map(function(name) {
-            return {
-                name: name,
-                values: self.data.map(function(d) {
-                    return {
-                        date: d.date,
-                        y: d[name]
-                    };
-                })
-            };
-        }));
-
-        $(this.el).find('.axis').remove();
-
-        self.x.domain(d3.extent(self.data, function(d) {
-            return d.date;
-        }));
-
-        self.y.domain([
-            0,
-            d3.max(self.data.map(function(d) {
-                return self.sums(d);
-            }))
-        ]);
-
-        var component = self.chart.selectAll(".component")
-            .data(components)
-            .enter().append("g")
-            .attr("class", "component");
-
-        component.append("path")
-            .attr("class", "area")
-            .attr("d", function(d) {
-                return self.area(d.values);
-            })
-            .style("stroke", function(d) {
-                return self.loglevel(d.name);
-            })
-            .style("stroke-width", function(d) {
-                return 1.5;
-            })
-            .style("stroke-opacity", function(d) {
-                return 1;
-            })
-            .style("fill", function(d) {
-                return self.loglevel(d.name);
-            });
-
-        component.append("text")
-            .datum(function(d) {
-                return {
-                    name: d.name,
-                    value: d.values[d.values.length - 1]
-                };
-            })
-            .attr("transform", function(d) {
-                return "translate(" + self.x(d.value.date) + "," + self.y(d.value.y0 + d.value.y / 2) + ")";
-            })
-            .attr("x", 1)
-            .attr("y", function(d, i) {
-                // make space between the labels
-                return 0;
-            })
-            .style("font-size", ".8em");
-
-        self.chart.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + self.mh + ")")
-            .call(self.xAxis);
-
-        self.chart.append("g")
-            .attr("class", "y axis")
-            .call(self.yAxis);
 
         // IMPORTANT: the order of the entries in the
         // Log Severity Filters modal is set by the order
@@ -7733,6 +7617,132 @@ var LogBrowserViz = GoldstoneBaseView.extend({
                 }
             });
         });
+
+    },
+
+    update: function() {
+
+        var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        this.hideSpinner();
+
+        // define allthelogs and self.data even if
+        // rendering is halted due to empty data set
+        var allthelogs = this.collectionPrep();
+        self.data = allthelogs;
+        self.loglevel = d3.scale.ordinal()
+            .domain(["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"])
+            .range(self.colorArray.distinct.openStackSeverity8);
+
+        // clear viz
+        self.chart.selectAll('.component')
+            .remove();
+
+        // If we didn't receive any valid files, append "No Data Returned" and halt
+        if (this.checkReturnedDataSet(allthelogs) === false) {
+            this.draw_filters();
+            return;
+        }
+
+        // remove No Data Returned once data starts flowing again
+        this.clearDataErrorMessage();
+
+        self.color.domain(d3.keys(self.data[0]).filter(function(key) {
+
+            return (self.filter[key] && key !== "date" && key !== "total" && key !== "time");
+        }));
+
+        var components;
+        var curr = false;
+        var anyLiveFilter = _.reduce(self.filter, function(curr, status) {
+            return status || curr;
+        });
+
+        if (!anyLiveFilter) {
+            this.draw_filters();
+            self.chart.selectAll('.component')
+                .remove();
+            return;
+        }
+
+        components = self.stack(self.color.domain().map(function(name) {
+            return {
+                name: name,
+                values: self.data.map(function(d) {
+                    return {
+                        date: d.date,
+                        y: d[name]
+                    };
+                })
+            };
+        }));
+
+        $(this.el).find('.axis').remove();
+
+        self.x.domain(d3.extent(self.data, function(d) {
+            return d.date;
+        }));
+
+        self.y.domain([
+            0,
+            d3.max(self.data.map(function(d) {
+                return self.sums(d);
+            }))
+        ]);
+
+        var component = self.chart.selectAll(".component")
+            .data(components)
+            .enter().append("g")
+            .attr("class", "component");
+
+        component.append("path")
+            .attr("class", "area")
+            .attr("d", function(d) {
+                return self.area(d.values);
+            })
+            .style("stroke", function(d) {
+                return self.loglevel(d.name);
+            })
+            .style("stroke-width", function(d) {
+                return 1.5;
+            })
+            .style("stroke-opacity", function(d) {
+                return 1;
+            })
+            .style("fill", function(d) {
+                return self.loglevel(d.name);
+            });
+
+        component.append("text")
+            .datum(function(d) {
+                return {
+                    name: d.name,
+                    value: d.values[d.values.length - 1]
+                };
+            })
+            .attr("transform", function(d) {
+                return "translate(" + self.x(d.value.date) + "," + self.y(d.value.y0 + d.value.y / 2) + ")";
+            })
+            .attr("x", 1)
+            .attr("y", function(d, i) {
+                // make space between the labels
+                return 0;
+            })
+            .style("font-size", ".8em");
+
+        self.chart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + self.mh + ")")
+            .call(self.xAxis);
+
+        self.chart.append("g")
+            .attr("class", "y axis")
+            .call(self.yAxis);
+
+        this.draw_filters();
 
         this.redraw();
 
