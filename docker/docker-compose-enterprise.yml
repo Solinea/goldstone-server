@@ -34,7 +34,7 @@ services:
 
   # Goldstone Proxy & Static
   gsweb:
-    image: solinea/goldstone-web:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-web:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     ports:
       - "8443:8443"
     links:
@@ -47,7 +47,7 @@ services:
 
   # Goldstone Server Container
   gsapp:
-    image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     env_file: ./config/goldstone-prod.env
     ports:
       - "8000:8000"
@@ -64,7 +64,7 @@ services:
 
   # Database Container
   gsdb:
-    image: solinea/goldstone-db:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-db:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     env_file: ./config/goldstone-prod.env
     volumes:
       - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
@@ -78,7 +78,7 @@ services:
 
   # Logstash Container
   gslog:
-    image: solinea/goldstone-log:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-log:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     ports:
       - "5514:5514"
       - "5515:5515"
@@ -94,7 +94,7 @@ services:
 
   # Elasticsearch Container
   gssearch:
-    image: solinea/goldstone-search:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-search:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -108,7 +108,7 @@ services:
 
   # Celery Task Queue Container
   gstaskq:
-    image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     ports:
       - "6379:6379"
     logging:
@@ -121,7 +121,7 @@ services:
   # Celery container
   #
   gstask:
-    image: solinea/goldstone-task:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: solinea/goldstone-task:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     env_file: ./docker/config/goldstone-prod.env
     links:
       - gsdb
@@ -138,7 +138,7 @@ services:
   # Canary Container
   #
   gscanary:
-    image: gs-docker-ent.bintray.io/goldstone-canary:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    image: gs-docker-ent.bintray.io/goldstone-canary:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     env_file: ./config/goldstone-prod.env
     links:
       - gslog
