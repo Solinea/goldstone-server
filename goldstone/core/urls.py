@@ -52,4 +52,6 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
     url(r'^canary/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': '139851f2-1329-4826-9c70-c154a6c102f2'}),
+    url(r'^hypervisor/spawns/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '21f5c6db-5a2e-41d4-9462-c3cdc03a837b'})
 )
