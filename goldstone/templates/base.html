@@ -208,7 +208,7 @@ limitations under the License.
                     <!-- </div> -->
                 </footer>
                 <!--Footer End-->
-                
+
             </div>
             <!--Content Area End-->
 
@@ -221,9 +221,13 @@ limitations under the License.
 
         <script src="{% static 'bundle/libs.js' %}"></script>
         <script src="{% static 'bundle/bundle.js' %}"></script>
-        <!-- append addon script tags here -->
+        <!-- conditional compliance script tag -->
         {% if compliance_installed %}
             <script src="{% static 'client-js/compliance.js' %}"></script>
+        {% endif %}
+        <!-- conditional topology script tag -->
+        {% if topology_installed %}
+            <script src="{% static 'client-js/topology.js' %}"></script>
         {% endif %}
         <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
 
@@ -237,9 +241,9 @@ limitations under the License.
 
         // defined on init.js
         goldstone.init();
-        
+
         });
         </script>
-        
+
     </body>
 </html>
