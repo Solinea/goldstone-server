@@ -22,14 +22,12 @@ goldstone.init = function() {
     the Auth token on all subsequent api calls. It also serves to handle
     401 auth errors, removing any existing token, and redirecting to
     the login page.
-    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-    router.html. Following that, only if there is a token
-    present (expired or not), it will use css to show/hide the logout
-    icon in the top-right corner of the page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter on
+    init.js.
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
 

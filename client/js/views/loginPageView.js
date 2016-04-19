@@ -50,7 +50,7 @@ var LoginPageView = GoldstoneBaseView.extend({
             type: 'get',
             url: '/compliance/'
         }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify([{
+            localStorage.setItem('compliance', JSON.stringify([{
                 url_root: 'compliance'
             }]));
 
@@ -101,7 +101,7 @@ var LoginPageView = GoldstoneBaseView.extend({
                 self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
-                // after a successful login, check for installed apps BEFORE 
+                // after a successful login, check for installed apps BEFORE
                 // redirecting to dashboard. Chrome can handle the async
                 // request to /addons/ but firefox/safari fail.
 

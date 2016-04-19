@@ -39,10 +39,12 @@ var AddonMenuView = GoldstoneBaseView.extend({
         // Backbone router corresponding with the .routes param in the
         // addon's .js file.
         this.refreshAddonsMenu(true);
+
+        this.addNewRoute(goldstone.topology.routes[0], "topology");
     },
 
     refreshAddonsMenu: function(addNewRoute) {
-        var addons = localStorage.getItem('addons');
+        var addons = localStorage.getItem('compliance');
 
         // the 'else' case will be triggered due to any of the various ways that
         // local storage might return a missing key, or a null set.
@@ -53,7 +55,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
-            
+
             this.generateRoutesPerAddon(addNewRoute);
 
         } else {
@@ -66,7 +68,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     generateRoutesPerAddon: function(addNewRoute) {
         var self = this;
-        var list = localStorage.getItem('addons');
+        var list = localStorage.getItem('compliance');
         list = JSON.parse(list);
         var result = '';
 
@@ -81,7 +83,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
                     if (addNewRoute === true) {
                         // pass along the route array
                         // and the name of the addon
-                        // which is needed for 
+                        // which is needed for
                         // proper side-menu highlighting
                         self.addNewRoute(route, item.url_root);
                     }

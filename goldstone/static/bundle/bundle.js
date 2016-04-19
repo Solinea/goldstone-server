@@ -3765,10 +3765,12 @@ var AddonMenuView = GoldstoneBaseView.extend({
         // Backbone router corresponding with the .routes param in the
         // addon's .js file.
         this.refreshAddonsMenu(true);
+
+        this.addNewRoute(goldstone.topology.routes[0], "topology");
     },
 
     refreshAddonsMenu: function(addNewRoute) {
-        var addons = localStorage.getItem('addons');
+        var addons = localStorage.getItem('compliance');
 
         // the 'else' case will be triggered due to any of the various ways that
         // local storage might return a missing key, or a null set.
@@ -3779,7 +3781,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
             // render appends the 'Add-ons' main menu-bar dropdown
             this.render();
-            
+
             this.generateRoutesPerAddon(addNewRoute);
 
         } else {
@@ -3792,7 +3794,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     generateRoutesPerAddon: function(addNewRoute) {
         var self = this;
-        var list = localStorage.getItem('addons');
+        var list = localStorage.getItem('compliance');
         list = JSON.parse(list);
         var result = '';
 
@@ -3807,7 +3809,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
                     if (addNewRoute === true) {
                         // pass along the route array
                         // and the name of the addon
-                        // which is needed for 
+                        // which is needed for
                         // proper side-menu highlighting
                         self.addNewRoute(route, item.url_root);
                     }
@@ -7963,7 +7965,7 @@ var LoginPageView = GoldstoneBaseView.extend({
             type: 'get',
             url: '/compliance/'
         }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify([{
+            localStorage.setItem('compliance', JSON.stringify([{
                 url_root: 'compliance'
             }]));
 
@@ -8014,7 +8016,7 @@ var LoginPageView = GoldstoneBaseView.extend({
                 self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
-                // after a successful login, check for installed apps BEFORE 
+                // after a successful login, check for installed apps BEFORE
                 // redirecting to dashboard. Chrome can handle the async
                 // request to /addons/ but firefox/safari fail.
 
@@ -13066,14 +13068,12 @@ goldstone.init = function() {
     the Auth token on all subsequent api calls. It also serves to handle
     401 auth errors, removing any existing token, and redirecting to
     the login page.
-    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-    router.html. Following that, only if there is a token
-    present (expired or not), it will use css to show/hide the logout
-    icon in the top-right corner of the page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter on
+    init.js.
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
 
