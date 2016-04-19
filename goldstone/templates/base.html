@@ -227,7 +227,10 @@ limitations under the License.
         {% endif %}
         <!-- conditional topology script tag -->
         {% if topology_installed %}
-            <script src="{% static 'client-js/topology.js' %}"></script>
+
+            <script src="{% static 'client-js/topology.js' %}">
+            console.log("it was installed");
+            </script>
         {% endif %}
         <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
 
