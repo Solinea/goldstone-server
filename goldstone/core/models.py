@@ -2415,8 +2415,8 @@ class SavedSearch(models.Model):
                                            'presented via the view')
 
     viewer_enabled = models.BooleanField(blank=True, default=True,
-                                         help_text='True if this search should be '
-                                         'presented via the view')
+                                         help_text='True if this search should be'
+                                                   'displayed in the client UI')
 
     index_prefix = models.CharField(max_length=64)
 
