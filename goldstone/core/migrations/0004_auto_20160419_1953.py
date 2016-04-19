@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='savedsearch',
             name='viewer_enabled',
-            field=models.BooleanField(default=True, help_text=b'True if this search should bedisplayed in the client UI'),
+            field=models.BooleanField(default=True, help_text=b'True if this search should be displayed in the client UI'),
         ),
     ]
