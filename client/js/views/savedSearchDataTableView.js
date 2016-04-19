@@ -446,10 +446,22 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         return '&index_prefix=' + this.form_index_prefix;
     },
 
+    pruneSearchList: function(list) {
+        if (Array.isArray(list)) {
+            list = list.filter(function(search) {
+
+                // only render results that have a viewer_enabled
+                // value of true or undefined
+                return search.viewer_enabled === undefined || search.viewer_enabled === true;
+            });
+        }
+        return list;
+    },
+
     serverSideDataPrep: function(data) {
         data = JSON.parse(data);
         var result = {
-            results: data.results,
+            results: this.pruneSearchList(data.results),
             recordsTotal: data.count,
             recordsFiltered: data.count
         };

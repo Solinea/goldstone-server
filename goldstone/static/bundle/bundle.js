@@ -10391,20 +10391,13 @@ PredefinedSearchView = GoldstoneBaseView.extend({
         this.getPredefinedSearches();
     },
 
-    // do not render these searches in any of the dropdown lists
-    bannedSearchList: {
-        'service status': true,
-        'api call query': true,
-        'event query': true,
-        'log query': true
-    },
-
-    pruneSearchList: function(list, filterSet) {
-        filterSet = filterSet || {};
-
+    pruneSearchList: function(list) {
         if (Array.isArray(list)) {
             list = list.filter(function(search) {
-                return filterSet[search.name] !== true;
+
+                // only render results that have a viewer_enabled
+                // value of true or undefined
+                return search.viewer_enabled === undefined || search.viewer_enabled === true;
             });
         }
         return list;
@@ -10428,7 +10421,7 @@ PredefinedSearchView = GoldstoneBaseView.extend({
                 function(result) {
                     if (result.results && result.results.length) {
                         // prune out eponymous and non-user searches
-                        self.predefinedSearches = self.pruneSearchList(result.results, self.bannedSearchList);
+                        self.predefinedSearches = self.pruneSearchList(result.results);
                     } else {
                         self.predefinedSearches = failAppend;
                     }
@@ -11305,10 +11298,22 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         return '&index_prefix=' + this.form_index_prefix;
     },
 
+    pruneSearchList: function(list) {
+        if (Array.isArray(list)) {
+            list = list.filter(function(search) {
+
+                // only render results that have a viewer_enabled
+                // value of true or undefined
+                return search.viewer_enabled === undefined || search.viewer_enabled === true;
+            });
+        }
+        return list;
+    },
+
     serverSideDataPrep: function(data) {
         data = JSON.parse(data);
         var result = {
-            results: data.results,
+            results: this.pruneSearchList(data.results),
             recordsTotal: data.count,
             recordsFiltered: data.count
         };
