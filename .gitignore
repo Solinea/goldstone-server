@@ -64,6 +64,7 @@ Icon
 [Ii]nclude
 /[Ll]ib
 [Ss]cripts
+!ansible/scripts
 
 
 # JetBrains
