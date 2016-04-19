@@ -27,7 +27,7 @@ goldstone.init = function() {
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['compliance', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
 

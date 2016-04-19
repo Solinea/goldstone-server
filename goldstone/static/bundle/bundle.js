@@ -7949,29 +7949,47 @@ var LoginPageView = GoldstoneBaseView.extend({
     checkForInstalledApps: function() {
         var self = this;
 
-        // this call returns BEFORE redirecting to '/' to avoid async
-        // issue with firefox/safari where the addons dict wasn't
-        // added to localStorage
+        // deferred object that will resolve after all intermediate
+        // deferred objects have resolved, success or failure
+        $.whenAll = function(deferreds) {
+            var lastResolved = 0;
 
-        $.ajax({
-            type: 'get',
-            url: '/compliance/'
-        }).done(function(success) {
-            localStorage.setItem('compliance', JSON.stringify([{
-                url_root: 'compliance'
-            }]));
+            var wrappedDeferreds = [];
 
-            self.redirectPostSuccessfulAuth();
-        }).fail(function(fail) {
-            self.redirectPostSuccessfulAuth();
-        });
+            for (var i = 0; i < deferreds.length; i++) {
+                wrappedDeferreds.push($.Deferred());
+
+                deferreds[i].always(function() { //jshint ignore:line
+                    wrappedDeferreds[lastResolved++].resolve(arguments);
+                });
+            }
+
+            return $.when.apply($, wrappedDeferreds).promise();
+        };
+
+        // determine whether the compliance and topology modules are installed
+        $.whenAll([$.get('/compliance/'), $.get('/topology/topology/')])
+            .done(
+                function(result1, result2) {
+
+                    // localStorage keys for compliance and topology
+                    // will be as follows, or null if call fails.
+                    localStorage.setItem('compliance', result1[1] === 'success' ? JSON.stringify([{
+                        url_root: 'compliance'
+                    }]) : null);
+                    localStorage.setItem('topology', result2[1] === 'success' ? JSON.stringify([{
+                        url_root: 'topology'
+                    }]) : null);
+
+                    self.redirectPostSuccessfulAuth();
+                });
     },
 
     addHandlers: function() {
         var self = this;
 
         // sets auth token with each xhr request.
-        // remove this if returning to SPA architecture with one main template
+        // necessary for checking submodules
 
         var $doc = $(document);
         $doc.ajaxSend(function(event, xhr) {
@@ -13065,7 +13083,7 @@ goldstone.init = function() {
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['compliance', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
 
