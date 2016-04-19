@@ -42,7 +42,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gsweb"
 
   # Goldstone Server Container
@@ -59,7 +59,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gsapp"
 
   # Database Container
@@ -73,7 +73,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gsdb"
 
   # Logstash Container
@@ -89,7 +89,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gslog"
 
   # Elasticsearch Container
@@ -103,7 +103,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gssearch"
 
   # Celery Task Queue Container
@@ -114,18 +114,15 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gstaskq"
 
   #
   # Celery container
   #
   gstask:
-    build: ./docker/goldstone-task
-    env_file: ./docker/config/goldstone-dev.env
-    volumes:
-      - .:/home/app
-      - ./docker/goldstone-base/config:/home/app/config
+    image: solinea/goldstone-task:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    env_file: ./docker/config/goldstone-prod.env
     links:
       - gsdb
       - gssearch
@@ -134,7 +131,7 @@ services:
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gstask"
 
   #
@@ -142,11 +139,11 @@ services:
   #
   gscanary:
     image: gs-docker-ent.bintray.io/goldstone-canary:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
-    env_file: ./docker/config/goldstone-prod.env
+    env_file: ./config/goldstone-prod.env
     links:
       - gslog
     logging:
       driver: "syslog"
       options:
-        facility: "local0"
+        syslog-facility: "local0"
         tag: "gscanary"

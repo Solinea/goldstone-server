@@ -49,14 +49,14 @@ services:
     ports:
       - "6379:6379"
 
-    #
-    # Celery container
-    #
-    gstask:
-      image: solinea/goldstone-task:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
-      env_file: ./docker/config/goldstone-test.env
-      links:
-        - gsdb
-        - gssearch
-        - gstaskq
-        - gslog
+  #
+  # Celery container
+  #
+  gstask:
+    image: solinea/goldstone-task:1.1.1-SNAPSHOT.63.g4010677.issue.473.update.compose.files
+    env_file: ./config/goldstone-test.env
+    links:
+      - gsdb
+      - gssearch
+      - gstaskq
+      - gslog
