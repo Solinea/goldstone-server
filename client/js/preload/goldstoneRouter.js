@@ -93,7 +93,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
-        // .router-content-container is a div set in router.html
+        // .router-content-container is a div set in base.html
         $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates

@@ -25,7 +25,7 @@ var I18nModel = Backbone.Model.extend({
 
     createTranslationObject: function() {
 
-        // goldstone.i18nJSON is assigned on router.html, and is
+        // goldstone.i18nJSON is assigned on init.js, and is
         // the contents of the json object stored in the
         // goldstone/static/i18n/po_json/ directory
         var originalObject = goldstone.i18nJSON;
@@ -58,7 +58,7 @@ var I18nModel = Backbone.Model.extend({
             finalResult.locale_data[key] = result;
         });
 
-        // the final object that will be passed to Jed.js 
+        // the final object that will be passed to Jed.js
         this.combinedPoJsonFiles = finalResult;
 
         /*

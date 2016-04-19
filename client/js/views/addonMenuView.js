@@ -15,12 +15,7 @@
  */
 
 /*
-This view will be re-invoked upon initial page load, and every full page
-refresh, as it is baked into router.html .
-*/
-
-/*
-instantiated on router.html as:
+instantiated in init.js as:
 goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });

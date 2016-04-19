@@ -1403,7 +1403,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
-        // .router-content-container is a div set in router.html
+        // .router-content-container is a div set in base.html
         $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates
@@ -2508,7 +2508,7 @@ var I18nModel = Backbone.Model.extend({
 
     createTranslationObject: function() {
 
-        // goldstone.i18nJSON is assigned on router.html, and is
+        // goldstone.i18nJSON is assigned on init.js, and is
         // the contents of the json object stored in the
         // goldstone/static/i18n/po_json/ directory
         var originalObject = goldstone.i18nJSON;
@@ -2541,7 +2541,7 @@ var I18nModel = Backbone.Model.extend({
             finalResult.locale_data[key] = result;
         });
 
-        // the final object that will be passed to Jed.js 
+        // the final object that will be passed to Jed.js
         this.combinedPoJsonFiles = finalResult;
 
         /*
@@ -3741,12 +3741,7 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
  */
 
 /*
-This view will be re-invoked upon initial page load, and every full page
-refresh, as it is baked into router.html .
-*/
-
-/*
-instantiated on router.html as:
+instantiated in init.js as:
 goldstone.addonMenuView = new AddonMenuView({
     el: ".addon-menu-view-container"
 });
@@ -4815,9 +4810,6 @@ errors, removing any existing token, and redirecting to the login page.
 
 The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
-
-On router.html, this view is subscribed to the gsRouter object
-which will emit a trigger when a view is switched out.
 */
 
 var LogoutIcon = GoldstoneBaseView.extend({
@@ -4839,7 +4831,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        // localStorageKeys is defined in router.html
+        // localStorageKeys is defined in init.js
         if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
             return;
         }

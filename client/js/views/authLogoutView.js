@@ -28,9 +28,6 @@ errors, removing any existing token, and redirecting to the login page.
 
 The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
-
-On router.html, this view is subscribed to the gsRouter object
-which will emit a trigger when a view is switched out.
 */
 
 var LogoutIcon = GoldstoneBaseView.extend({
@@ -52,7 +49,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        // localStorageKeys is defined in router.html
+        // localStorageKeys is defined in init.js
         if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
             return;
         }
