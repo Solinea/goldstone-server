@@ -17,16 +17,10 @@ import logging
 from django.conf import settings
 import curator
 from goldstone.celery import app as celery_app
-from celery.utils.log import get_task_logger
 from goldstone.core.models import AlertDefinition, SavedSearch, \
     MonitoredService
 from django.db.models import Q
 from goldstone.models import es_conn
-from goldstone.cinder.utils import update_nodes as update_cinder_nodes
-from goldstone.glance.utils import update_nodes as update_glance_nodes
-from goldstone.keystone.utils import update_nodes as update_keystone_nodes
-from goldstone.nova.utils import update_nodes as update_nova_nodes
-from goldstone.neutron.utils import update_nodes as update_neutron_nodes
 
 # do not user get_task_logger here as it does not honor the Django settings
 logger = logging.getLogger(__name__)
@@ -77,33 +71,6 @@ def prune_es_indices():
         working_list = all_indices  # reset for the next loop iteration
 
     return deleted_indices
-
-
-@celery_app.task()
-def update_persistent_graph():
-    """Update the Resource graph's persistent data from the current OpenStack
-    cloud state.
-
-    Nodes are:
-       - deleted if they are no longer in the OpenStack cloud
-       - added if they are in the OpenStack cloud, but not in the graph.
-       - updated from the cloud if they are already in the graph.
-
-    """
-
-    graph_resource_funcs = [update_cinder_nodes,
-                            update_glance_nodes,
-                            update_keystone_nodes,
-                            update_nova_nodes,
-                            update_neutron_nodes]
-
-    for f in graph_resource_funcs:
-        try:
-            f()
-        except Exception as e:
-            logger.exception(e)
-
-    logger.info("update_persistent_graph task completed successfully")
 
 
 @celery_app.task()
