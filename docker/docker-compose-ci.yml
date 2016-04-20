@@ -20,8 +20,6 @@ services:
   gsdb:
     image: solinea/goldstone-db:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
     env_file: ./config/goldstone-test.env
-    volumes_from:
-      - gsdbdvc
     ports:
       - "5432:5432"
 
