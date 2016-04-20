@@ -122,7 +122,7 @@ services:
   #
   gstask:
     image: solinea/goldstone-task:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
-    env_file: ./docker/config/goldstone-prod.env
+    env_file: ./config/goldstone-prod.env
     links:
       - gsdb
       - gssearch
