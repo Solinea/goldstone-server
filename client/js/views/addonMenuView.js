@@ -32,15 +32,10 @@ topology: [{
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-
-        // passing true will also dynamically generate new routes in
-        // Backbone router corresponding with the .routes param in the
-        // addon's .js file.
-        this.generateAddonIconAndRoute();
-        // this.addNewRoute(goldstone.topology.routes[0], "topology");
+        this.generateAddonIconsAndRoute();
     },
 
-    generateAddonIconAndRoute: function() {
+    generateAddonIconsAndRoute: function() {
         var compliance = JSON.parse(localStorage.getItem('compliance'));
         var topology = JSON.parse(localStorage.getItem('topology'));
 
@@ -50,7 +45,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             $(".compliance-icon-container").html(this.complianceTemplate());
             this.generateRoutesPerAddon(compliance[0]);
         }
-        
+
         if (topology) {
 
             // render the topology icon and set the routes
