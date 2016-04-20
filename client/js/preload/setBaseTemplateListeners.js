@@ -103,6 +103,7 @@ goldstone.setBaseTemplateListeners = function() {
         "savedSearchEvent": '.reports-tab',
         "apiBrowser": '.reports-tab',
         "savedSearchApi": '.reports-tab',
+        "alertBrowser": '.reports-tab',
         "settings": '',
         "tenant": '',
         compliance: '.compliance-tab'

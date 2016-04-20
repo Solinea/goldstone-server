@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-var EventsBrowserPageView = GoldstoneBasePageView.extend({
+var AlertBrowserPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.eventsBrowserView.trigger('lookbackSelectorChanged');
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
         }
     },
 
     renderCharts: function() {
 
-        this.eventsSearchObserverCollection = new SearchObserverCollection({
-
-            // overwriting to call timestamp instead of "@timestamp"
-            addRange: function() {
-                return '?timestamp__range={"gte":' + this.gte + ',"lte":' + this.epochNow + '}';
-            },
-
-            urlBase: '/core/events/',
+        this.apiSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/api-calls/',
             skipFetch: true
         });
 
-        this.eventsBrowserView = new ChartSet({
+        this.apiBrowserView = new ChartSet({
 
             // overwrite processListeners
             processListeners: function() {
@@ -53,47 +47,45 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
                 });
             },
 
-            chartTitle: goldstone.contextTranslate('Event Search', 'eventsbrowser'),
-            collection: this.eventsSearchObserverCollection,
-            el: '#events-histogram-visualization',
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
+            collection: this.apiSearchObserverCollection,
+            el: '#api-histogram-visualization',
             marginLeft: 60,
-            width: $('#events-histogram-visualization').width(),
-            yAxisLabel: goldstone.contextTranslate('Number of Events', 'eventsbrowser')
+            width: $('#api-histogram-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
         });
 
-        this.eventsBrowserTable = new EventsBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('Events Browser', 'eventsbrowser'),
-            collectionMixin: this.eventsSearchObserverCollection,
-            el: '#events-browser-table',
-            width: $('#events-browser-table').width()
+        this.apiBrowserTable = new ApiBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
+            collectionMixin: this.apiSearchObserverCollection,
+            el: '#api-browser-table',
+            width: $('#api-browser-table').width()
         });
 
         // render predefinedSearch Dropdown
         this.predefinedSearchDropdown = new PredefinedSearchView({
-            collection: this.eventsSearchObserverCollection,
-            index_prefix: 'events_*',
-            settings_redirect: '/#reports/eventbrowser/search'
+            collection: this.apiSearchObserverCollection,
+            index_prefix: 'api_stats-*',
+            settings_redirect: '/#reports/apibrowser/search'
         });
 
-        this.eventsBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
         // create linkages from the master collection back to the viz'
-        this.eventsSearchObserverCollection.linkedViz = this.eventsBrowserView;
-        this.eventsSearchObserverCollection.linkedDataTable = this.eventsBrowserTable;
-        this.eventsSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
+        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [
-            this.eventsSearchObserverCollection, this.eventsBrowserView, this.eventsBrowserTable, this.predefinedSearchDropdown
-        ];
+        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
     },
 
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
-        ['/#reports/eventbrowser', 'Event Viewer', 'active'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
         ['/#reports/apibrowser', 'API Call Viewer'],
-        ['/#reports/alertbrowser', 'Alert Viewer']
+        ['/#reports/alertbrowser', 'Alert Viewer', 'active']
     ],
 
     template: _.template('' +
@@ -104,10 +96,10 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
         // end tabbed nav selectors
 
         '<div class="row">' +
-        '<div id="events-histogram-visualization" class="col-md-12"></div>' +
+        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
         '</div>' +
         '<div class="row">' +
-        '<div id="events-browser-table" class="col-md-12"></div>' +
+        '<div id="api-browser-table" class="col-md-12"></div>' +
         '</div>'
     )
 

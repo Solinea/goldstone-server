@@ -84,7 +84,8 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer', 'active']
+        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
+        ['/#reports/alertbrowser', 'Alert Viewer']
     ],
 
     template: _.template('' +

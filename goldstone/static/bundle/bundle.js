@@ -218,6 +218,7 @@ goldstone.setBaseTemplateListeners = function() {
         "savedSearchEvent": '.reports-tab',
         "apiBrowser": '.reports-tab',
         "savedSearchApi": '.reports-tab',
+        "alertBrowser": '.reports-tab',
         "settings": '',
         "tenant": '',
         compliance: '.compliance-tab'
@@ -1344,6 +1345,8 @@ var LauncherView = Backbone.View.extend({
         '<div class="launcher-container"></div>')
 });
 
+// IMPORTANT: when adding a new route be sure to map to side menu highlighting
+// on setBaseTemplateListeners 'routeNameToIconClassHash'
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
@@ -1356,6 +1359,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         "reports/eventbrowser/search": "savedSearchEvent",
         "reports/apibrowser": "apiBrowser",
         "reports/apibrowser/search": "savedSearchApi",
+        "reports/alertbrowser": "alertBrowser",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -1440,6 +1444,9 @@ var GoldstoneRouter = Backbone.Router.extend({
     be added as an object. The extra options will be extended
     */
 
+    alertBrowser: function() {
+        this.switchView(AlertBrowserPageView);
+    },
     apiBrowser: function() {
         this.switchView(ApiBrowserPageView);
     },
@@ -3863,6 +3870,113 @@ var AddonMenuView = GoldstoneBaseView.extend({
 });
 ;
 /**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var AlertBrowserPageView = GoldstoneBasePageView.extend({
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.apiBrowserView.trigger('lookbackSelectorChanged');
+        }
+    },
+
+    renderCharts: function() {
+
+        this.apiSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/api-calls/',
+            skipFetch: true
+        });
+
+        this.apiBrowserView = new ChartSet({
+
+            // overwrite processListeners
+            processListeners: function() {
+                var self = this;
+
+                // registers 'sync' event so view 'watches' collection for data update
+                if (this.collection) {
+                    this.listenTo(this.collection, 'sync', this.update);
+                    this.listenTo(this.collection, 'error', this.dataErrorMessage);
+                }
+
+                this.listenTo(this, 'lookbackSelectorChanged', function() {
+                    self.showSpinner();
+                    self.collection.triggerDataTableFetch();
+                });
+            },
+
+            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
+            collection: this.apiSearchObserverCollection,
+            el: '#api-histogram-visualization',
+            marginLeft: 60,
+            width: $('#api-histogram-visualization').width(),
+            yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
+        });
+
+        this.apiBrowserTable = new ApiBrowserDataTableView({
+            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
+            collectionMixin: this.apiSearchObserverCollection,
+            el: '#api-browser-table',
+            width: $('#api-browser-table').width()
+        });
+
+        // render predefinedSearch Dropdown
+        this.predefinedSearchDropdown = new PredefinedSearchView({
+            collection: this.apiSearchObserverCollection,
+            index_prefix: 'api_stats-*',
+            settings_redirect: '/#reports/apibrowser/search'
+        });
+
+        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+
+        // create linkages from the master collection back to the viz'
+        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
+        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+
+        // triggered on GoldstoneBasePageView2, itereates through array
+        // and calls stopListening() and off() for memory management
+        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
+    },
+
+    templateButtonSelectors: [
+        ['/#reports/logbrowser', 'Log Viewer'],
+        ['/#reports/eventbrowser', 'Event Viewer'],
+        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/alertbrowser', 'Alert Viewer', 'active']
+    ],
+
+    template: _.template('' +
+
+        // tabbed nav selectors
+        // references this.templateButtonSelectors
+        '<%=  this.templateButtonConstructor(this.templateButtonSelectors) %>' +
+        // end tabbed nav selectors
+
+        '<div class="row">' +
+        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
+        '</div>' +
+        '<div class="row">' +
+        '<div id="api-browser-table" class="col-md-12"></div>' +
+        '</div>'
+    )
+
+});
+;
+/**
  * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4299,7 +4413,8 @@ var ApiBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer', 'active']
+        ['/#reports/apibrowser', 'API Call Viewer', 'active'],
+        ['/#reports/alertbrowser', 'Alert Viewer']
     ],
 
     template: _.template('' +
@@ -5861,7 +5976,8 @@ var EventsBrowserPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer'],
         ['/#reports/eventbrowser', 'Event Viewer', 'active'],
-        ['/#reports/apibrowser', 'API Call Viewer']
+        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/alertbrowser', 'Alert Viewer']
     ],
 
     template: _.template('' +
@@ -7849,7 +7965,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        
+
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable
@@ -7892,7 +8008,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
         this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
         this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
-        
+
         // destroy listeners and views upon page close
         this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
 
@@ -7901,7 +8017,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer', 'active'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer']
+        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/alertbrowser', 'Alert Viewer']
     ],
 
     template: _.template('' +

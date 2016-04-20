@@ -34,6 +34,8 @@ var LauncherView = Backbone.View.extend({
         '<div class="launcher-container"></div>')
 });
 
+// IMPORTANT: when adding a new route be sure to map to side menu highlighting
+// on setBaseTemplateListeners 'routeNameToIconClassHash'
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
@@ -46,6 +48,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         "reports/eventbrowser/search": "savedSearchEvent",
         "reports/apibrowser": "apiBrowser",
         "reports/apibrowser/search": "savedSearchApi",
+        "reports/alertbrowser": "alertBrowser",
         "settings": "settings",
         "settings/tenants": "tenant",
         "*default": "redirect"
@@ -130,6 +133,9 @@ var GoldstoneRouter = Backbone.Router.extend({
     be added as an object. The extra options will be extended
     */
 
+    alertBrowser: function() {
+        this.switchView(AlertBrowserPageView);
+    },
     apiBrowser: function() {
         this.switchView(ApiBrowserPageView);
     },

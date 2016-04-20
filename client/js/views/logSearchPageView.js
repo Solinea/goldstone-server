@@ -33,7 +33,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        
+
         // this is the single collection that holds state about
         // zoom/filter/lookback/predefinedSearch/specificHost when
         // url generation occurs in the dataTable
@@ -76,7 +76,7 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
         this.logSearchObserverCollection.linkedViz = this.logBrowserViz;
         this.logSearchObserverCollection.linkedDataTable = this.logBrowserTable;
         this.logSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
-        
+
         // destroy listeners and views upon page close
         this.viewsToStopListening = [this.logSearchObserverCollection, this.logBrowserViz, this.logBrowserTable, this.predefinedSearchDropdown];
 
@@ -85,7 +85,8 @@ var LogSearchPageView = GoldstoneBasePageView.extend({
     templateButtonSelectors: [
         ['/#reports/logbrowser', 'Log Viewer', 'active'],
         ['/#reports/eventbrowser', 'Event Viewer'],
-        ['/#reports/apibrowser', 'API Call Viewer']
+        ['/#reports/apibrowser', 'API Call Viewer'],
+        ['/#reports/alertbrowser', 'Alert Viewer']
     ],
 
     template: _.template('' +
