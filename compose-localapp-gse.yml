@@ -106,7 +106,7 @@ services:
   # Canary Container
   #
   gscanary:
-    image: gs-docker-ent.bintray.io/goldstone-canary:latest
+    image: gs-docker-ent.bintray.io/goldstone-svc-canary:latest
     env_file: ./docker/config/goldstone-dev.env
     links:
       - gslog

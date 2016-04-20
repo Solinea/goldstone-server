@@ -138,7 +138,7 @@ services:
   # Canary Container
   #
   gscanary:
-    image: gs-docker-ent.bintray.io/goldstone-canary:1.1.1-SNAPSHOT.95.g68e3516.issue.473.update.compose.files
+    image: gs-docker-ent.bintray.io/goldstone-svc-canary:latest
     env_file: ./config/goldstone-prod.env
     links:
       - gslog
