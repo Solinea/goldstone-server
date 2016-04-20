@@ -102,7 +102,6 @@ describe('alertsMenuView.js spec', function() {
             }]
         };
 
-
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.respondWith("GET", "/core/alert/?page_size=1000", [200, {

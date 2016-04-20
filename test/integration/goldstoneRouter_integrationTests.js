@@ -72,9 +72,8 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.savedSearchLog();
             this.testRouter.settings();
             this.testRouter.tenant();
-            this.testRouter.topology();
 
-            expect(tranlateSpy.callCount).to.equal(12);
+            expect(tranlateSpy.callCount).to.equal(11);
             tranlateSpy.restore();
         });
     });

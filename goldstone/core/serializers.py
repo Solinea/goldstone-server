@@ -16,33 +16,12 @@ import logging
 from rest_framework import serializers
 from goldstone.core.models import SavedSearch, Alert, \
     AlertDefinition, Producer, EmailProducer, MonitoredService
-from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
-    SimpleAggSerializer
-from .models import PolyResource
+
 
 logger = logging.getLogger(__name__)
 
+
 # pylint: disable=W0223
-
-
-class PolyResourceSerializer(serializers.ModelSerializer):
-    """The PolyResource class serializer."""
-
-    class Meta:             # pylint: disable=C1001,C0111,W0232
-        model = PolyResource
-        lookup_field = 'uuid'
-        exclude = ['polymorphic_ctype']
-
-
-class PassthruSerializer(serializers.Serializer):
-    """A serializer for DRF views where no work is needed."""
-
-    def to_representation(self, instance):
-        """Return an already-serialized object."""
-
-        return instance
-
-
 class SavedSearchSerializer(serializers.ModelSerializer):
     """The Saved Search serializer."""
 

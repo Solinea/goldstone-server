@@ -14,9 +14,11 @@
 # limitations under the License.
 from django.test import TestCase
 from mock import patch
+from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 
 from goldstone.core.models import AlertDefinition, SavedSearch
 from goldstone.core.tasks import process_alerts
+from goldstone.test_utils import Setup, create_and_login, AUTHORIZATION_PAYLOAD
 
 
 class TaskTests(TestCase):
@@ -44,3 +46,33 @@ class TaskTests(TestCase):
         process_alerts()
 
         self.assertTrue(mock_logger.called)
+
+
+class AuthToken(Setup):
+    """Test authorization token expiration."""
+
+    fixtures = ['core_initial_data.yaml']
+
+    def test_expiration(self):
+        """The authorization tokens expire."""
+        from .tasks import expire_auth_tokens
+
+        # Create a user.
+        token = create_and_login()
+
+        response = self.client.get(
+            "/core/saved_search/",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # pylint: disable=E1101
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Call the token-expiration task, then try to do an API call again. It
+        # should fail because of the tokens' expiration.
+        expire_auth_tokens()
+
+        response = self.client.get(
+            "/core/saved_search/",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)

@@ -22,17 +22,14 @@ goldstone.init = function() {
     the Auth token on all subsequent api calls. It also serves to handle
     401 auth errors, removing any existing token, and redirecting to
     the login page.
-    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-    router.html. Following that, only if there is a token
-    present (expired or not), it will use css to show/hide the logout
-    icon in the top-right corner of the page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter on
+    init.js.
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
-
 
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
@@ -61,15 +58,12 @@ goldstone.init = function() {
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
-    goldstone.addonMenuView = new AddonMenuView({
-        el: ".addon-menu-view-container"
-    });
+    goldstone.addonMenuView = new AddonMenuView({});
 
     // re-translate the base template when switching pages to make sure
     // the possibly hidden lookback/refresh selectors are translated
@@ -99,7 +93,6 @@ goldstone.init = function() {
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
-
 
     // start the population of the sidebar alerts menu
     var alertsMenuCollection = new AlertsMenuCollection({
