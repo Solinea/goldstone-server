@@ -153,6 +153,7 @@ describe('apiBrowserDataTableView.js', function() {
             );
             // sanity check
             this.testView.update();
+            this.server.respond();
         });
     });
 });
