@@ -8,49 +8,35 @@ Before installing Goldstone, your environment must meet the following prerequisi
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 7.x
-* Docker >= 1.9.1 ([Install instructions](https://docs.docker.com/installation/centos/))
+* Docker >= 1.11.0 ([Install instructions](https://docs.docker.com/installation/centos/))
 * Docker running (`systemctl start docker`)
 * Docker configured to start at boot (`systemctl enable docker`)
 
 **Cloud requirements**
 
 * RDO Kilo
-* OpenStack hosts must be permitted send data to Goldstone on ports:
+* OpenStack hosts must allow connections from Goldstone Server on ports:
+ * TCP/5000
+* Goldstone Server must allow connections from OpenStack server on ports:
  * TCP/5514
  * TCP/5515
  * TCP/5516
+ * UDP/5517
  * TCP/9200
-* Goldstone server must be permitted to access OpenStack API
+* Goldstone Server must allow connections from UI Clients on port:
+ * TCP/8443
+
 
 **Browser requirements**
 
 The Goldstone web client is developed and tested with [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).  We do not currently have a definitive list of supported browser versions, but the [compatibility chart](http://caniuse.com/#feat=es5) reflects what we think should work.
 
-## Open Source Version Installation (as root)
+## Package Installation (as root)
 
-This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
-
-1. Download the [latest release](https://github.com/Solinea/goldstone-server/releases)
-1. `yum localinstall -y goldstone-server-{version}.rpm`
-1. Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
-1. `systemctl enable goldstone-server`
-1. `systemctl start goldstone-server`
-
-
-## Enterprise Version Installation (as root)
-
-This process downloads assets from the internet, and can take quite a while.  Due to RPM restrictions, you may not see any output until the postinstall steps have completed.  
-
-The enterprise version of Goldstone Server requires a username and password associated with an email address.  Prior to installing the software, you will need to set some environment variables to the values provided by Solinea.  
-
-1. Obtain license credentials from Solinea
-1. `export GOLDSTONE_REPO_EMAIL=your_email    # provided to Solinea`
-1. `export GOLDSTONE_REPO_USER=your_username  # provided by Solinea`
-1. `export GOLDSTONE_REPO_PASS=your_password  # provided by Solinea`
+1. Obtain license credentials from Solinea (Enterprise version only)
 1. `yum localinstall -y link_provided_by_solinea`
 1. Edit `/opt/goldstone/docker/config/goldstone-prod.env`, and set values appropriate for your environment. 
-1. `systemctl enable goldstone-server`
-1. `systemctl start goldstone-server`
+1. Follow the post-install steps as directed in the RPM installer output 
 
 
 ## Direct Logs and Events to the Goldstone Server
@@ -59,10 +45,9 @@ This procedure will modify the configuration of your OpenStack server(s).  All c
 
 
 With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting appropriate values for names and addresses:
-The final configuration 
+
 ```bash
 root# docker exec -i -t docker_gsapp_1 bash
-app@2f31cd23f422:~$ . /venv/bin/activate  # inside the docker container
 (venv)app@2f31cd23f422:~$ fab -f post_install.py -H {OpenStack_controller_IP,OpenStack_compute_IP,...} configure_stack:{goldstone_addr}
 
 Executing task 'configure_stack'
@@ -82,7 +67,6 @@ The following files are modified by the `configure_stack` task.  For the complet
 * /etc/rsyslog.conf
 * /etc/rsyslog.d/10-goldstone.conf
 * /etc/ceilometer/ceilometer.conf
-* /etc/ceilometer/pipeline.yaml
 * /etc/ceilometer/event_pipeline.yaml
 * /etc/ceilometer/event_definitions.yaml
 * /etc/ceilometer/api_paste.ini
@@ -107,13 +91,17 @@ The following files are modified by the `configure_stack` task.  For the complet
 
 Point your browser at the Goldstone server IP address or name and begin using Goldstone. You can log in as the `gsadmin` user with the password you configured in the `goldstone-prod.env` file.  It may take a few minutes for data to be populated in the client, but within 5 minutes, you should see charts and tables start to fill in.
 
-`http://{your ip address}:8443`
+`https://{your ip address}:8443`
 
 ## Uninstallation (as root)
 
 This process may take a long time while it removes the Goldstone containers and images. It does not revert configuration changes made to OpenStack via the configure_stack task.
 
-* `yum remove goldstone-server`
+* `yum remove goldstone-server` # for open source version
+
+or 
+
+* `yum remove goldstone-server` # for enterprise version
 
 ## Appendix A - OpenStack Configuration Changes
 
