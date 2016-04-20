@@ -101,7 +101,7 @@ This process may take a long time while it removes the Goldstone containers and 
 
 or 
 
-* `yum remove goldstone-server` # for enterprise version
+* `yum remove goldstone-server-enterprise` # for enterprise version
 
 ## Appendix A - OpenStack Configuration Changes
 
