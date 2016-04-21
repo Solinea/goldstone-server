@@ -18,18 +18,18 @@ var AlertBrowserPageView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
-            this.apiBrowserView.trigger('lookbackSelectorChanged');
+            this.alertBrowserView.trigger('lookbackSelectorChanged');
         }
     },
 
     renderCharts: function() {
 
-        this.apiSearchObserverCollection = new SearchObserverCollection({
-            urlBase: '/core/api-calls/',
+        this.alertSearchObserverCollection = new SearchObserverCollection({
+            urlBase: '/core/api-calls/', // tbd
             skipFetch: true
         });
 
-        this.apiBrowserView = new ChartSet({
+        this.alertBrowserView = new ChartSet({
 
             // overwrite processListeners
             processListeners: function() {
@@ -47,38 +47,40 @@ var AlertBrowserPageView = GoldstoneBasePageView.extend({
                 });
             },
 
-            chartTitle: goldstone.contextTranslate('API Call Search', 'apibrowserpage'),
-            collection: this.apiSearchObserverCollection,
-            el: '#api-histogram-visualization',
+            chartTitle: goldstone.translate('Alert Search'),
+            collection: this.alertSearchObserverCollection,
+            el: '#alert-histogram-visualization',
             marginLeft: 60,
-            width: $('#api-histogram-visualization').width(),
+            width: $('#alert-histogram-visualization').width(),
             yAxisLabel: goldstone.contextTranslate('API Calls by Range', 'apibrowserpage')
         });
 
         this.apiBrowserTable = new ApiBrowserDataTableView({
-            chartTitle: goldstone.contextTranslate('API Browser', 'apibrowserpage'),
-            collectionMixin: this.apiSearchObserverCollection,
-            el: '#api-browser-table',
-            width: $('#api-browser-table').width()
+            chartTitle: goldstone.translate('Alert Browser'),
+            collectionMixin: this.alertSearchObserverCollection,
+            el: '#alert-browser-table',
+            width: $('#alert-browser-table').width()
         });
 
         // render predefinedSearch Dropdown
-        this.predefinedSearchDropdown = new PredefinedSearchView({
-            collection: this.apiSearchObserverCollection,
-            index_prefix: 'api_stats-*',
-            settings_redirect: '/#reports/apibrowser/search'
-        });
+        // this.predefinedSearchDropdown = new PredefinedSearchView({
+        //     collection: this.alertSearchObserverCollection,
+        //     index_prefix: 'api_stats-*',
+        //     settings_redirect: '/#reports/apibrowser/search'
+        // });
 
-        this.apiBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
+        // this.alertBrowserView.$el.find('.panel-primary').prepend(this.predefinedSearchDropdown.el);
 
         // create linkages from the master collection back to the viz'
-        this.apiSearchObserverCollection.linkedViz = this.apiBrowserView;
-        this.apiSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
-        this.apiSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
+        this.alertSearchObserverCollection.linkedViz = this.alertBrowserView;
+        this.alertSearchObserverCollection.linkedDataTable = this.apiBrowserTable;
+        // this.alertSearchObserverCollection.linkedDropdown = this.predefinedSearchDropdown;
 
         // triggered on GoldstoneBasePageView2, itereates through array
         // and calls stopListening() and off() for memory management
-        this.viewsToStopListening = [this.apiSearchObserverCollection, this.apiBrowserView, this.apiBrowserTable, this.predefinedSearchDropdown];
+        this.viewsToStopListening = [this.alertSearchObserverCollection, this.alertBrowserView, this.apiBrowserTable
+        // , this.predefinedSearchDropdown
+        ];
     },
 
     templateButtonSelectors: [
@@ -96,10 +98,10 @@ var AlertBrowserPageView = GoldstoneBasePageView.extend({
         // end tabbed nav selectors
 
         '<div class="row">' +
-        '<div id="api-histogram-visualization" class="col-md-12"></div>' +
+        '<div id="alert-histogram-visualization" class="col-md-12"></div>' +
         '</div>' +
         '<div class="row">' +
-        '<div id="api-browser-table" class="col-md-12"></div>' +
+        '<div id="alert-browser-table" class="col-md-12"></div>' +
         '</div>'
     )
 
