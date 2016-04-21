@@ -83,7 +83,8 @@ for file in "${dockerfile_list[@]}" ; do
 done
 
 for file in "${composefile_list[@]}" ; do
-    cat $file | sed -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
+    cat $file | sed -e "/[[:space:]]*image:[[:space:]]*.*\/goldstone-svc-.*:.*$/b" \
+                    -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
                     -e "s/^\([[:space:]]*image:[[:space:]]*gs-docker-ent.bintray.io\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
     RC=`diff $file $file.new`
     if [[ $RC != 0 ]] ; then
