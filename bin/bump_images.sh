@@ -73,35 +73,20 @@ fi
 # We will replace the version with our $TAG, and if any files have changed, 
 # exit with a non-zero code to make the hook fail.
 for file in "${dockerfile_list[@]}" ; do
-    cat $file | sed -e "s/^\(FROM solinea\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
-    RC=`diff $file $file.new`
-    if [[ $RC != 0 ]] ; then
-       mv ${file}.new $file
-    else
-       rm ${file}.new
-    fi
+    sed -i.bak -e "s/^\(FROM solinea\/goldstone-.*:\).*$/\1${TAG}/" ${file}
+    rm -f ${file}.bak
 done
 
 for file in "${composefile_list[@]}" ; do
-    cat $file | sed -e "/[[:space:]]*image:[[:space:]]*.*\/goldstone-svc-.*:.*$/b" \
-                    -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
-                    -e "s/^\([[:space:]]*image:[[:space:]]*gs-docker-ent.bintray.io\/goldstone-.*:\).*$/\1${TAG}/" > ${file}.new
-    RC=`diff $file $file.new`
-    if [[ $RC != 0 ]] ; then
-       mv ${file}.new $file
-    else
-       rm ${file}.new
-    fi
+    sed -i.bak -e "/[[:space:]]*image:[[:space:]]*.*\/goldstone-svc-.*:.*$/b" \
+             -e "s/^\([[:space:]]*image:[[:space:]]*solinea\/goldstone-.*:\).*$/\1${TAG}/" \
+             -e "s/^\([[:space:]]*image:[[:space:]]*gs-docker-ent.bintray.io\/goldstone-.*:\).*$/\1${TAG}/" ${file}
+    rm -f ${file}.bak
 done
 
 for file in "${settingsfile_list[@]}" ; do
-    cat $file | sed -e "s/GOLDSTONE_VERSION = \('\).*\('\)/GOLDSTONE_VERSION = \1${TAG}\2/" > ${file}.new
-    RC=`diff $file $file.new`
-    if [[ $RC != 0 ]] ; then
-       mv ${file}.new $file
-    else
-       rm ${file}.new
-    fi
+    sed -i.bak -e "s/GOLDSTONE_VERSION = \('\).*\('\)/GOLDSTONE_VERSION = \1${TAG}\2/" ${file}
+    rm -f ${file}.bak
 done
 
 git status --short
