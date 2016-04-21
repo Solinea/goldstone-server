@@ -125,8 +125,9 @@ fi
 
 # these need to exist in order to build
 mkdir docker/goldstone-app/goldstone-server 2> /dev/null
-mkdir docker/goldstone-app-e/goldstone-server |2> /dev/null
-mkdir docker/goldstone-task/goldstone-server |2> /dev/null
+mkdir docker/goldstone-app-e/goldstone-server 2> /dev/null
+mkdir docker/goldstone-task/goldstone-server 2> /dev/null
+mkdir docker/goldstone-task-e/goldstone-server 2> /dev/null
 
 docker-compose -f ${COMPOSE_FILE} up &
 COMPOSE_PID=$!
