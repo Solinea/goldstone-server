@@ -1351,7 +1351,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",
-        "topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/logbrowser/search": "savedSearchLog",
@@ -1408,7 +1407,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
-        // .router-content-container is a div set in router.html
+        // .router-content-container is a div set in base.html
         $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates
@@ -2516,7 +2515,7 @@ var I18nModel = Backbone.Model.extend({
 
     createTranslationObject: function() {
 
-        // goldstone.i18nJSON is assigned on router.html, and is
+        // goldstone.i18nJSON is assigned on init.js, and is
         // the contents of the json object stored in the
         // goldstone/static/i18n/po_json/ directory
         var originalObject = goldstone.i18nJSON;
@@ -2549,7 +2548,7 @@ var I18nModel = Backbone.Model.extend({
             finalResult.locale_data[key] = result;
         });
 
-        // the final object that will be passed to Jed.js 
+        // the final object that will be passed to Jed.js
         this.combinedPoJsonFiles = finalResult;
 
         /*
@@ -3733,7 +3732,7 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
 });
 ;
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3749,93 +3748,69 @@ var SpawnsCollection = GoldstoneBaseCollection.extend({
  */
 
 /*
-This view will be re-invoked upon initial page load, and every full page
-refresh, as it is baked into router.html .
-*/
 
-/*
-instantiated on router.html as:
-goldstone.addonMenuView = new AddonMenuView({
-    el: ".addon-menu-view-container"
-});
+instantiated in init.js as:
+goldstone.addonMenuView = new AddonMenuView({});
 
-if compliance module installed, after login, localStorage will contain:
-addons: [{
+if compliance and/or topology module installed, after login, localStorage will contain:
+compliance: [{
     url_root: 'compliance'
 }]
+topology: [{
+    url_root: 'topology'
+}]
+
 */
 
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-
-        // passing true will also dynamically generate new routes in
-        // Backbone router corresponding with the .routes param in the
-        // addon's .js file.
-        this.refreshAddonsMenu(true);
+        this.generateAddonIconsAndRoute();
     },
 
-    refreshAddonsMenu: function(addNewRoute) {
-        var addons = localStorage.getItem('addons');
+    generateAddonIconsAndRoute: function() {
+        var compliance = JSON.parse(localStorage.getItem('compliance'));
+        var topology = JSON.parse(localStorage.getItem('topology'));
 
-        // the 'else' case will be triggered due to any of the various ways that
-        // local storage might return a missing key, or a null set.
-        if (addons && addons !== null && addons !== "null" && addons !== "[]" && addons !== []) {
+        if (compliance) {
 
-            // clear list before re-rendering in case app list has changed
-            this.$el.html('');
-
-            // render appends the 'Add-ons' main menu-bar dropdown
-            this.render();
-            
-            this.generateRoutesPerAddon(addNewRoute);
-
-        } else {
-
-            // in the case that the addons key in localStorage
-            // is falsy, just remove the dropdown and links
-            this.$el.html('');
+            // render the compliance icon and set the routes
+            $(".compliance-icon-container").html(this.complianceTemplate());
+            this.generateRoutesPerAddon(compliance[0]);
         }
-    },
 
-    generateRoutesPerAddon: function(addNewRoute) {
-        var self = this;
-        var list = localStorage.getItem('addons');
-        list = JSON.parse(list);
-        var result = '';
+        if (topology) {
 
-        // for each object in the array of addons in 'list', do the following:
-        _.each(list, function(item) {
-
-            if (goldstone[item.url_root]) {
-
-                // for each sub-array in the array of 'routes' in
-                // the addon's javascript file, do the following:
-                _.each(goldstone[item.url_root].routes, function(route) {
-                    if (addNewRoute === true) {
-                        // pass along the route array
-                        // and the name of the addon
-                        // which is needed for 
-                        // proper side-menu highlighting
-                        self.addNewRoute(route, item.url_root);
-                    }
-                });
-            }
-        });
+            // render the topology icon and set the routes
+            $(".topology-icon-container").html(this.topologyTemplate());
+            this.generateRoutesPerAddon(topology[0]);
+        }
 
         // initialize tooltip connected to new menu item
         $('[data-toggle="tooltip"]').tooltip({
             trigger: 'hover'
         });
+    },
 
-        // return backbone template of html string that will
-        // construct the drop down menu and submenus of
-        // the add-ons menu item
-        return _.template(result);
+    generateRoutesPerAddon: function(module) {
+        var self = this;
+        // if the module is installed this should be true
+        if (goldstone[module.url_root]) {
+
+            // for each sub-array in the array of 'routes' in
+            // the addon's javascript file, do the following:
+            _.each(goldstone[module.url_root].routes, function(route) {
+                // pass along the route array
+                // and the name of the addon
+                // which is needed for
+                // proper side-menu highlighting
+                self.addNewRoute(route, module.url_root);
+            });
+        }
+
     },
 
     addNewRoute: function(routeToAdd, eventName) {
-
         /*
         .route will dynamically add a new route where the
         url is index 0 of the passed in route array, and
@@ -3858,7 +3833,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         });
     },
 
-    template: _.template('' +
+    topologyTemplate: _.template('' +
+        '<a href="#topology">' +
+        '<li class="topology-tab" data-toggle="tooltip" data-i18n-tooltip="Topology" data-placement="right" title="Topology">' +
+        '<span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>' +
+        '<span data-i18n="Topology" class="btn-txt i18n">Topology</span>' +
+        '</li>' +
+        '</a>'
+    ),
+
+    complianceTemplate: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
         '<li class="compliance-tab" data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
@@ -4929,9 +4913,6 @@ errors, removing any existing token, and redirecting to the login page.
 
 The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
-
-On router.html, this view is subscribed to the gsRouter object
-which will emit a trigger when a view is switched out.
 */
 
 var LogoutIcon = GoldstoneBaseView.extend({
@@ -4953,7 +4934,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        // localStorageKeys is defined in router.html
+        // localStorageKeys is defined in init.js
         if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
             return;
         }
@@ -5332,7 +5313,7 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new SpawnsCollection({
-            urlBase: '/nova/hypervisor/spawns/'
+            urlBase: '/core/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new SpawnsView({
@@ -8083,29 +8064,47 @@ var LoginPageView = GoldstoneBaseView.extend({
     checkForInstalledApps: function() {
         var self = this;
 
-        // this call returns BEFORE redirecting to '/' to avoid async
-        // issue with firefox/safari where the addons dict wasn't
-        // added to localStorage
+        // deferred object that will resolve after all intermediate
+        // deferred objects have resolved, success or failure
+        $.whenAll = function(deferreds) {
+            var lastResolved = 0;
 
-        $.ajax({
-            type: 'get',
-            url: '/compliance/'
-        }).done(function(success) {
-            localStorage.setItem('addons', JSON.stringify([{
-                url_root: 'compliance'
-            }]));
+            var wrappedDeferreds = [];
 
-            self.redirectPostSuccessfulAuth();
-        }).fail(function(fail) {
-            self.redirectPostSuccessfulAuth();
-        });
+            for (var i = 0; i < deferreds.length; i++) {
+                wrappedDeferreds.push($.Deferred());
+
+                deferreds[i].always(function() { //jshint ignore:line
+                    wrappedDeferreds[lastResolved++].resolve(arguments);
+                });
+            }
+
+            return $.when.apply($, wrappedDeferreds).promise();
+        };
+
+        // determine whether the compliance and topology modules are installed
+        $.whenAll([$.get('/compliance/'), $.get('/topology/topology/')])
+            .done(
+                function(result1, result2) {
+
+                    // localStorage keys for compliance and topology
+                    // will be as follows, or null if call fails.
+                    localStorage.setItem('compliance', result1[1] === 'success' ? JSON.stringify([{
+                        url_root: 'compliance'
+                    }]) : null);
+                    localStorage.setItem('topology', result2[1] === 'success' ? JSON.stringify([{
+                        url_root: 'topology'
+                    }]) : null);
+
+                    self.redirectPostSuccessfulAuth();
+                });
     },
 
     addHandlers: function() {
         var self = this;
 
         // sets auth token with each xhr request.
-        // remove this if returning to SPA architecture with one main template
+        // necessary for checking submodules
 
         var $doc = $(document);
         $doc.ajaxSend(function(event, xhr) {
@@ -8142,7 +8141,7 @@ var LoginPageView = GoldstoneBaseView.extend({
                 self.storeUsernameIfChecked();
                 self.storeAuthToken(success.auth_token);
 
-                // after a successful login, check for installed apps BEFORE 
+                // after a successful login, check for installed apps BEFORE
                 // redirecting to dashboard. Chrome can handle the async
                 // request to /addons/ but firefox/safari fail.
 
@@ -12894,800 +12893,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
-var TopologyPageView = GoldstoneBasePageView.extend({
-
-    // overwritten as there is not trigger functionality to topology
-    triggerChange: function(change) {
-        return true;
-    },
-
-    renderCharts: function() {
-
-        //---------------------------
-        // instantiate Cloud Topology chart
-
-        this.discoverTreeCollection = new GoldstoneBaseCollection({
-            urlBase: "/core/topology/"
-        });
-
-        this.topologyTreeView = new TopologyTreeView({
-            blueSpinnerGif: blueSpinnerGif,
-            collection: this.discoverTreeCollection,
-            chartTitle: goldstone.translate('Cloud Topology'),
-            el: '#goldstone-discover-r1-c1',
-            height: 700,
-            infoText: 'discoverCloudTopology',
-            multiRsrcViewEl: '#goldstone-discover-r1-c2',
-            width: $('#goldstone-discover-r1-c2').width(),
-        });
-
-    },
-
-    template: _.template('' +
-        '<div id="goldstone-discover-r1" class="row">' +
-        '<div id="goldstone-discover-r1-c1" class="col-md-6"></div>' +
-        '<div id="goldstone-discover-r1-c2" class="col-md-6"></div>' +
-        '</div>' 
-    )
-
-});
-;
-/**
- * Copyright 2016 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-instantiated on topologyPageView.js as:
-
-this.discoverTreeCollection = new GoldstoneBaseCollection({
-    urlBase: "/core/topology/"
-});
-
-this.topologyTreeView = new TopologyTreeView({
-    blueSpinnerGif: blueSpinnerGif,
-    collection: this.discoverTreeCollection,
-    chartTitle: goldstone.translate('Cloud Topology'),
-    el: '#goldstone-discover-r1-c1',
-    height: 700,
-    infoText: 'discoverCloudTopology',
-    multiRsrcViewEl: '#goldstone-discover-r1-c2',
-    width: $('#goldstone-discover-r1-c2').width(),
-});
-
-*/
-
-
-var TopologyTreeView = GoldstoneBaseView.extend({
-
-    // this block is run upon instantiating the object
-    // and called by 'initialize' on the parent object
-    instanceSpecificInit: function() {
-        this.processOptions();
-        this.processListeners();
-        this.render();
-        this.appendChartHeading();
-        this.addModalAndHeadingIcons();
-        this.setSpinner();
-        this.initSvg();
-        this.hideSpinner();
-    },
-
-    filterMultiRsrcData: function(data) {
-
-        // this allows for passing in arrays of paramaters
-        // to omit from the returned data before rendering
-        // as a data table in 'resource list'
-
-        var self = this;
-
-        if (self.filterMultiRsrcDataOverride === null) {
-            return data;
-        } else {
-            var newData = jQuery.extend(true, {}, data);
-            newData = _.map(newData, function(item) {
-                return _.omit(item, self.filterMultiRsrcDataOverride);
-            });
-            return newData;
-        }
-
-    },
-
-    initSvg: function() {
-        var self = this;
-
-        self.margin = {
-            top: 10,
-            bottom: 45,
-            right: 10,
-            left: 35
-        };
-        self.mw = self.width - self.margin.left - self.margin.right;
-        self.mh = self.height - self.margin.top - self.margin.bottom;
-        self.svg = d3.select(self.el).select('.panel-body')
-            .append("svg")
-            .attr("width", self.width)
-            .attr("height", self.height);
-        self.tree = d3.layout.tree()
-            .size([self.mh, self.mw])
-            .separation(function(a, b) {
-                var sep = a.parent === b.parent ? 3 : 2;
-                return sep;
-            });
-        self.i = 0; // used in processTree for node id
-        self.diagonal = d3.svg.diagonal()
-            .projection(function(d) {
-                return [d.y, d.x];
-            });
-        self.chart = self.svg.append("g")
-            .attr('class', 'chart')
-            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
-    },
-    hasRemovedChildren: function(d) {
-        return d._children && _.findWhere(d._children, {
-            'lifeStage': 'removed'
-        });
-    },
-    isRemovedChild: function(d) {
-        return d.lifeStage === 'removed';
-    },
-    toggleAll: function(d) {
-        var self = this;
-        if (d.children) {
-            d.children.forEach(self.toggleAll, this);
-            self.toggle(d);
-        }
-    },
-    toggle: function(d) {
-        if (d.children) {
-            d._children = d.children;
-            d.children = null;
-        } else {
-            d.children = d._children;
-            d._children = null;
-        }
-    },
-    drawSingleRsrcInfoTable: function(json, click) {
-        // make a dataTable
-        var self = this;
-        var location = '#single-rsrc-table';
-        var oTable;
-        var keys = Object.keys(json);
-        var data = _.map(keys, function(k) {
-            return [k, json[k]];
-        });
-
-        $(self.multiRsrcViewEl).find(".panel-heading").popover({
-            trigger: "manual",
-            placement: "left",
-            html: true,
-            title: '<div>Resource Info<button type="button" style="color:#000; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
-                'aria-hidden="true">&times;</button></div>',
-            content: '<div id="single-rsrc-body" class="panel-body">' +
-                '<table id="single-rsrc-table" class="table table-hover"></table>' +
-                '</div>'
-        });
-        $(self.multiRsrcViewEl).find('.panel-heading').popover('show');
-
-        // shift popover to the left
-        $(self.multiRsrcViewEl).find('.popover').css('margin-left', '-172px');
-
-        $('#popover-close').on("click", function() {
-            $(self.multiRsrcViewEl).find(".panel-heading").popover("hide");
-        });
-        if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(location).DataTable();
-            oTable.clear().rows.add(data).draw();
-        } else {
-            var oTableParams = {
-                "data": data,
-                "scrollY": "400px",
-                "autoWidth": true,
-                "info": false,
-                "paging": false,
-                "searching": false,
-                "columns": [{
-                    "title": "Key"
-                }, {
-                    "title": "Value"
-                }]
-            };
-            oTable = $(location).dataTable(oTableParams);
-        }
-    },
-
-    loadLeafData: function(dataUrl) {
-        var self = this;
-
-        $(self.multiRsrcViewEl).find('#spinner').show();
-
-        // This .get call has been converted to take advantage of
-        // the 'promise' format that it supports. The 'success' and
-        // 'fail' pathways will be followed based on the response
-        // from the dataUrl API call. The 'always' route pathway
-        // will be followed in every case, removing the loading
-        // spinner from the chart.
-
-        $.get(dataUrl, function() {}).success(function(payload) {
-            // a click listener shall be appended below which
-            // will determine if the data associated with the
-            // leaf contains "hypervisor_hostname" or "host_name"
-            // and if so, a click will redirect, instead of
-            // merely appending a resource info chart popup
-
-            // clear any existing error message
-            self.clearDataErrorMessage(self.multiRsrcViewEl);
-
-            // the response may have multiple lists of services for different
-            // timestamps.  The first one will be the most recent.
-            var firstTsData = payload[0] !== undefined ? payload[0] : [];
-            var filteredFirstTsData;
-            var keys;
-            var columns;
-            var columnDefs;
-            var oTable;
-
-            // firstTsData[0] if it exists, contains key/values representative
-            // of table structure.
-            // otherwise it will === undefined
-            if (firstTsData[0] !== undefined) {
-                firstTsData = _.map(firstTsData, function(e) {
-                    e.datatableRecId = goldstone.uuid();
-                    return e;
-                });
-
-                if ($.fn.dataTable.isDataTable("#multi-rsrc-table")) {
-                    oTable = $("#multi-rsrc-table").DataTable();
-                    oTable.destroy(true);
-                }
-
-                filteredFirstTsData = self.filterMultiRsrcData(firstTsData);
-                if (filteredFirstTsData.length > 0) {
-                    keys = Object.keys(filteredFirstTsData[0]);
-                    columns = _.map(keys, function(k) {
-                        if (k === 'datatableRecId') {
-                            return {
-                                'data': k,
-                                'title': k,
-                                'visible': false,
-                                'searchable': false
-                            };
-                        } else {
-                            return {
-                                'data': k,
-                                'title': k
-                            };
-                        }
-                    });
-
-                    // missing values will generate a dataTables error
-                    // so fill in with empty string
-                    _.each(filteredFirstTsData, function(record) {
-                        _.each(columns, function(col) {
-
-                            // if the data record is
-                            // missing that column attribute...
-                            if (!record[col.title]) {
-                                record[col.title] = '';
-                            }
-                        });
-                    });
-
-                    $(self.multiRsrcViewEl).find(".mainContainer").html('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
-                    oTable = $(self.multiRsrcViewEl).find("#multi-rsrc-table").DataTable({
-                        "processing": true,
-                        "serverSide": false,
-                        "data": filteredFirstTsData,
-                        "columns": columns,
-                        "scrollX": true
-                    });
-                    $("#multi-rsrc-table tbody").on('click', 'tr', function() {
-                        // we want to identify the row, find the datatable id,
-                        // then find the matching element in the full data.s
-                        var row = oTable.row(this).data();
-                        var data = _.where(firstTsData, {
-                            'datatableRecId': row.datatableRecId
-                        });
-                        var singleRsrcData = jQuery.extend(true, {}, data[0]);
-                        if (singleRsrcData !== 'undefined') {
-                            delete singleRsrcData.datatableRecId;
-
-                            var supress;
-
-                            // uncomment the following block to forward to
-                            // node page for host or hypervisor
-                            /*
-                            var storeDataLocally = function(data) {
-                                localStorage.setItem('detailsTabData', JSON.stringify(data));
-                            };
-                            // if hypervisor or instance with hypervisor in
-                            // the name, redirect to report page
-                            _.each(_.keys(data[0]), function(item) {
-                                if (item.indexOf('hypervisor_hostname') !== -1) {
-                                    storeDataLocally(data[0]);
-                                    self.reportRedirect(data[0], item);
-                                    supress = true;
-                                }
-                                if (item.indexOf('host_name') !== -1) {
-                                    storeDataLocally(data[0]);
-                                    self.reportRedirect(data[0], item);
-                                    supress = true;
-                                }
-                            });
-                            */
-
-                            // otherwise, render usual resource info    popover
-                            if (!supress) {
-                                self.drawSingleRsrcInfoTable(data[0], $(this));
-                            }
-                        }
-                    });
-                }
-            } else {
-
-                // if dataTable previously initialized, just clear and 
-                // append 'no data returned' message.
-                // but if never initialized, just raise alert for 'no data'
-                var loc = '#multi-rsrc-table';
-                if ($.fn.dataTable.isDataTable(loc)) {
-                    oTable = $(loc).DataTable();
-                    oTable.clear().draw();
-                } else {
-                    goldstone.raiseAlert($(self.multiRsrcViewEl).find('.popup-message'), goldstone.translate('No data'));
-                }
-            }
-
-        }).fail(function(error) {
-
-            // self.multiRscsView is defined in this.render
-            if (self.multiRscsView !== undefined) {
-
-                // there is a listener defined in the
-                // multiRsrcView that will append the
-                // error message to that div
-
-                // trigger takes 2 args:
-                // 1: 'triggerName'
-                // 2: array of additional params to pass
-                self.multiRscsView.trigger('errorTrigger', [error]);
-            }
-
-            // NOTE: if this view is instantiated in a case where there
-            // is no multiRscsViewEl defined, there will be no
-            // self.multiRscsView defined. In that case, error messages
-            // will need to be appended to THIS view. So there will need
-            // to be a fallback instantiation of this.dataErrorMessage that will render on THIS view.
-
-        }).always(function() {
-
-            // always remove the spinner after the API
-            // call returns
-            $(self.multiRsrcViewEl).find('#spinner').hide();
-        });
-    },
-    reportRedirect: function(data, keyName) {
-
-        // used to redirect to nodeReports when relevant
-        // dataTable results are clicked
-        var redirectNodeName = data[keyName];
-        if (redirectNodeName.indexOf('.') !== -1) {
-            redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
-        }
-        window.location.href = '#report/node/' + redirectNodeName;
-    },
-
-    appendLeafNameToResourceHeader: function(text, location) {
-
-        // appends the name of the resource list currently being displayed
-        location = location || $(this.multiRsrcViewEl).find('.title-extra');
-        $(location).text(': ' + text);
-    },
-
-    kebabCase: function(name) {
-        return name.split(' ').join('-');
-    },
-
-    processTree: function(json) {
-        var self = this;
-        var duration = d3.event && d3.event.altKey ? 5000 : 500;
-
-        // Compute the new tree layout.
-        var nodes = self.tree.nodes(self.data).reverse();
-
-        // Normalize for fixed-depth.
-        nodes.forEach(function(d) {
-            d.y = d.depth * 100;
-        });
-
-        // Update the nodes…
-        var node = self.chart.selectAll("g.node")
-            .data(nodes, function(d) {
-                return d.id || (d.id = ++self.i);
-            });
-
-        // Enter any new nodes at the parent's previous position.
-        var nodeEnter = node.enter().append("svg:g")
-            .attr("class", function(d) {
-                if (d.children === null && d._children === undefined) {
-                    return "data-leaf node";
-                } else {
-                    return "node";
-                }
-            })
-            .attr("id", function(d, i) {
-                return "node-" + d.label + i;
-            })
-            .attr("transform", function(d) {
-                return "translate(" + json.y0 + "," + json.x0 + ")";
-            })
-            .on("click", function(d) {
-
-                // for appending to resource chart header
-                var origClickedLabel = d.label;
-
-                if (d.children === undefined && d._children === undefined && d.resource_list_url !== undefined) {
-                    var url = d.resource_list_url;
-                    if (url !== undefined) {
-
-                        if (self.overrideSets[d.integration.toLowerCase()]) {
-                            self.filterMultiRsrcDataOverride = self.overrideSets[d.integration.toLowerCase()];
-                        } else {
-                            self.filterMultiRsrcDataOverride = null;
-                        }
-
-                        // loadLeafData on TopologyTreeView
-                        self.loadLeafData(url);
-
-                        // appendLeafNameToResourceHeader on TopologyTreeView
-                        self.appendLeafNameToResourceHeader(origClickedLabel);
-                    }
-
-                } else {
-                    self.toggle(d);
-                    self.processTree(d);
-                }
-            });
-
-        // add a circle to make clicking cleaner
-        nodeEnter.append("svg:circle")
-            .attr("id", function(d, i) {
-                return "circle" + i;
-            })
-            .attr("cx", 8)
-            .attr("cy", 2)
-            .attr("r", 15)
-            .style("fill-opacity", 1e-6)
-            .style("stroke-opacity", 1e-6);
-
-        // Add the text label (initially transparent)
-        nodeEnter.append("svg:text")
-            .attr("x", function(d) {
-                return d.children ? 0 : 40;
-            })
-            .attr("dy", function(d) {
-                return d.children ? "-1em" : ".5em";
-            })
-            .attr("text-anchor", function(d) {
-                return d.children ? "middle" : "left";
-            })
-            .text(function(d) {
-                return d.label;
-            })
-            .style("fill-opacity", 1e-6);
-
-        // Add the main icon (initially miniscule)
-        nodeEnter
-            .append("g")
-            .attr("class", function(d) {
-
-                // main cloud won't have a resouce type, but needs
-                // the cloud icon
-                d.resourcetype = d.resourcetype || "cloud";
-
-                // kebab-case-the-class-name
-                d.resourcetype = self.kebabCase(d.resourcetype);
-                // append icon based on resourcetype, mapped to the d3.map
-                return "icon main " + d.resourcetype + "-icon";
-            })
-            .attr("transform", "scale(0.0000001)");
-
-        // Map of icons to the classes in which they'll be used
-        d3.map({
-            icon_backup: ['backups', 'snapshots'],
-            icon_cloud: ['cloud'],
-            icon_endpoint: ['endpoints', 'internal', 'public', 'admin', 'floating-ip-addresses', 'ports'],
-            icon_host: ['host', 'hosts', 'hypervisors',
-                'servers', 'nova', 'glance', 'neutron', 'keystone', 'cinder', 'region', 'regions'
-            ],
-            icon_image: ['images'],
-            icon_module: ['module', 'secgroups', 'interfaces', 'add-ons', 'subnets'],
-            icon_role: ['roles'],
-            icon_service: ['services', 'security-group-rules', 'routers'],
-            icon_tenant: ['tenants', 'security-groups'],
-            icon_types: ['volume-types', 'subnet-pools', 'extensions'],
-            icon_user: ['users'],
-            icon_volume: ['quotas'],
-            icon_vol_transfer: ['agents', 'transfers'],
-            icon_zone: ['zone', 'aggregates', 'cloudpipes',
-                'flavors', 'floating-ip-pools', 'networks', 'subnets', 'zones'
-            ]
-
-        }).forEach(function(icon, classes) {
-            // Acutally attach the icons to the classes
-            d3.xml(imgFile(icon), "image/svg+xml", function(img) {
-                classes.forEach(function(c) {
-                    self.chart.selectAll(".icon.main." + c + "-icon")
-                        .each(function() {
-                            d3.select(this).node().appendChild(
-                                img.getElementsByTagName("svg")[0].cloneNode(true));
-                        });
-                });
-            }); // d3.xml()
-        }); // forEach
-
-        function imgFile(icon) {
-            return "/static/discover-tree-icons/" + icon + ".svg";
-        }
-
-        // Transition nodes to their new position.
-        var nodeUpdate = node;
-
-        nodeUpdate.select(".icon.main")
-            .attr("transform", 'translate(-5, -10) scale(0.05)')
-            .style("fill", function(d) {
-                return d._children ? "lightsteelblue" : "#fff";
-            });
-
-        nodeUpdate.select("text")
-            .attr("x", function(d) {
-                return d.children ? 0 : 25;
-            })
-            .attr("dy", function(d) {
-                return d.children ? "-1em" : ".5em";
-            })
-            .attr("text-anchor", function(d) {
-                return d.children ? "middle" : "left";
-            })
-            .style("fill-opacity", 1)
-            .style("text-decoration", function(d) {
-                return (self.hasRemovedChildren(d) || self.isRemovedChild(d)) ?
-                    "line-through" : "";
-            });
-
-        nodeUpdate.transition()
-            .duration(duration)
-            .attr("transform", function(d) {
-                return "translate(" + d.y + "," + d.x + ")";
-            });
-
-        // Transition exiting nodes to the parent's new position.
-        var nodeExit = node.exit().transition()
-            .duration(duration)
-            .attr("transform", function(d) {
-                return "translate(" + json.y + "," + json.x + ")";
-            })
-            .remove();
-
-        nodeExit.select("text")
-            .style("fill-opacity", 1e-6);
-
-        // Update the links…
-        var link = self.chart.selectAll("path.link")
-            .data(self.tree.links(nodes), function(d) {
-                return d.target.id;
-            });
-
-        // Enter any new links at the parent's previous position.
-        link.enter().insert("svg:path", "g")
-            .attr("class", "link")
-            .attr("d", function(d) {
-                var o = {
-                    x: json.x0,
-                    y: json.y0
-                };
-                return self.diagonal({
-                    source: o,
-                    target: o
-                });
-            })
-            .transition()
-            .duration(duration)
-            .attr("d", self.diagonal);
-
-        // Transition links to their new position.
-        link.transition()
-            .duration(duration)
-            .attr("d", self.diagonal);
-
-        // Transition exiting nodes to the parent's new position.
-        link.exit().transition()
-            .duration(duration)
-            .attr("d", function(d) {
-                var o = {
-                    x: json.x,
-                    y: json.y
-                };
-                return self.diagonal({
-                    source: o,
-                    target: o
-                });
-            })
-            .remove();
-
-        // Stash the old positions for transition.
-        nodes.forEach(function(d) {
-            d.x0 = d.x;
-            d.y0 = d.y;
-        });
-    },
-    update: function() {
-        var self = this;
-        self.data = self.collection.toJSON();
-
-        // append error message if no data returned
-        this.checkReturnedDataSet(self.data);
-
-        // convert after checking array length
-        self.data = self.data[0];
-        if (self.data !== undefined) {
-            if (Object.keys(self.data).length === 0) {
-                $(self.el).find('.panel-body').prepend("<p> Response was empty.");
-            } else {
-                self.data.x0 = self.height / 2;
-                self.data.y0 = 0;
-                self.processTree(self.data);
-            }
-        }
-    },
-
-    render: function() {
-
-        var self = this;
-
-        // appends Resource List dataTable View if applicable
-        if (self.multiRsrcViewEl !== null) {
-            self.multiRscsView = new MultiRscsView({
-                el: self.multiRsrcViewEl,
-                chartTitle: goldstone.translate("Resource List"),
-                height: self.height
-            });
-
-            var appendSpinnerLocation = $(self.multiRsrcViewEl);
-            $('<img id="spinner" src="' + self.blueSpinnerGif + '">').load(function() {
-                $(this).appendTo(appendSpinnerLocation).css({
-                    'position': 'absolute',
-                    'margin-left': (self.width / 2),
-                    'margin-top': self.height / 2,
-                    'display': 'none'
-                });
-            });
-
-        }
-
-        $(this.el).append(this.template());
-        return this;
-    },
-
-    overrideSets: {
-        // works with filterMultiRsrcData method in topologyTreeView
-        // these params will be omitted from the returned data before
-        // rendering as a data table in 'resource list'
-
-        neutron: [
-            'region',
-            'security_group_rules',
-            'external_gateway_info'
-        ],
-
-        nova: ['@timestamp',
-            'metadata',
-            'region',
-            'links',
-            'swap',
-            'rxtx_factor',
-            'OS-FLV-EXT-DATA:ephemeral',
-            'service',
-            'cpu_info',
-            'hypervisor_version',
-            'bridge',
-            'bridge_interface',
-            'broadcast',
-            'cidr_v6',
-            'deleted',
-            'deleted_at',
-            'dhcp_start',
-            'dns1',
-            'dns2',
-            'gateway_v6',
-            'host',
-            'injected',
-            'multi_host',
-            'netmask_v6',
-            'priority',
-            'region',
-            'rxtx_base',
-            'vpn_private_address',
-            'vpn_public_address',
-            'vpn_public_port',
-            'accessIPv4',
-            'accessIPv6',
-            'addresses',
-            'config_drive',
-            'flavor',
-            'hostId',
-            'image',
-            'key_name',
-            'links',
-            'metadata',
-            'OS-DCF:diskConfig',
-            'OS-EXT-AZ:availability_zone',
-            'OS-EXT-SRV-ATTR:hypervisor_hostname',
-            'OS-EXT-STS:power_state',
-            'OS-EXT-STS:task_state',
-            'OS-EXT-STS:vm_state',
-            'os-extended-volumes:volumes_attached',
-            'OS-SRV-USG:launched_at',
-            'OS-SRV-USG:terminated_at',
-            'progress',
-            'region',
-            'security_groups',
-            'rules'
-        ],
-        cinder: ['@timestamp',
-            'metadata',
-            'region',
-            'extra_specs',
-            'display_description',
-            'os-extended-snapshot-attributes:progress',
-            'links',
-            'attachments',
-            'availability_zone',
-            'os-vol-mig-status-attr:migstat',
-            'os-vol-mig-status-attr:name_id',
-            'snapshot_id',
-            'source_volid'
-        ],
-        keystone: ['@timestamp', 'links', 'interface'],
-        glance: ['@timestamp',
-            'metadata',
-            'region',
-            'tags',
-            'checksum',
-            'owner',
-            'schema',
-            'file'
-        ]
-    }
-
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 var UserPrefsView = Backbone.View.extend({
 
     defaults: {},
@@ -13993,17 +13198,14 @@ goldstone.init = function() {
     the Auth token on all subsequent api calls. It also serves to handle
     401 auth errors, removing any existing token, and redirecting to
     the login page.
-    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
-    router.html. Following that, only if there is a token
-    present (expired or not), it will use css to show/hide the logout
-    icon in the top-right corner of the page.
+    authLogoutIcon is subscibed to a trigger emmitted by the gsRouter on
+    init.js.
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
-    goldstone.localStorageKeys = ['addons', 'userToken', 'userPrefs', 'rem'];
+    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
-
 
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
@@ -14032,15 +13234,12 @@ goldstone.init = function() {
     // set selected language.
     goldstone.i18n = new I18nModel();
 
-
     // define the router
     goldstone.gsRouter = new GoldstoneRouter();
 
     // contains the machinery for appending/maintaining
     // 'add-ons' dropdown menu
-    goldstone.addonMenuView = new AddonMenuView({
-        el: ".addon-menu-view-container"
-    });
+    goldstone.addonMenuView = new AddonMenuView({});
 
     // re-translate the base template when switching pages to make sure
     // the possibly hidden lookback/refresh selectors are translated
@@ -14070,7 +13269,6 @@ goldstone.init = function() {
         }
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
-
 
     // start the population of the sidebar alerts menu
     var alertsMenuCollection = new AlertsMenuCollection({

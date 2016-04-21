@@ -73,6 +73,11 @@ module.exports = function(grunt) {
                 options: {
                     message: "Compliance tasks complete"
                 }
+            },
+            topology: {
+                options: {
+                    message: "Topology tasks complete"
+                }
             }
         },
 
@@ -166,13 +171,18 @@ module.exports = function(grunt) {
                 files: clientIncludeOrder.poSourceFiles,
                 tasks: ['pojson']
             },
+            // compliance and topology
+            addOnModuleTests: {
+                files: clientIncludeOrder.testAddons,
+                tasks: ['lint', 'karma']
+            },
             compliance: {
                 files: clientIncludeOrder.complianceWatch,
                 tasks: ['concat:compliance', 'notify:compliance']
             },
-            complianceTest: {
-                files: clientIncludeOrder.testAddons,
-                tasks: ['lint', 'karma']
+            topology: {
+                files: clientIncludeOrder.topologyWatch,
+                tasks: ['concat:topology', 'notify:topology']
             }
         },
 
@@ -202,22 +212,6 @@ module.exports = function(grunt) {
                 src: clientIncludeOrder.clientWildcards,
                 dest: clientIncludeOrder.clientBundle
             },
-            ot: {
-                nonull: true,
-                options: {
-                    separator: '\n'
-                },
-                src: clientIncludeOrder.opentrailConcatWildcards,
-                dest: clientIncludeOrder.otConcatBundle
-            },
-            leases: {
-                nonull: true,
-                options: {
-                    separator: '\n'
-                },
-                src: clientIncludeOrder.leasesConcatWildcards,
-                dest: clientIncludeOrder.leasesConcatBundle
-            },
             compliance: {
                 nonull: true,
                 options: {
@@ -225,6 +219,14 @@ module.exports = function(grunt) {
                 },
                 src: clientIncludeOrder.complianceConcatWildcards,
                 dest: clientIncludeOrder.complianceConcatBundle
+            },
+            topology: {
+                nonull: true,
+                options: {
+                    separator: '\n'
+                },
+                src: clientIncludeOrder.topologyConcatWildcards,
+                dest: clientIncludeOrder.topologyConcatBundle
             }
         },
 

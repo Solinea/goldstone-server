@@ -61,7 +61,7 @@ describe('apiPerfView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith('GET', '/core/api-calls/?@timestamp__range={"gte":0,"lte":3600000}&interval=60s&component=cinder', [200, {
+        this.server.respondWith('GET', '', [200, {
                 "Content-Type": "application/json"
             },
             JSON.stringify([])

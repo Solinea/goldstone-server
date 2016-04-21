@@ -54,15 +54,8 @@ class Setup(APITransactionTestCase):
 
     def setUp(self):
         """Do additional inter-test resetting."""
-        from goldstone.core import resource
 
         get_user_model().objects.all().delete()
-
-        resource.types = resource.Types()
-
-        # Resource.instances may have been used before this test, so force it
-        # into a virgin state.
-        resource.instances._graph = None        # pylint: disable=W0212
 
 
 def login(username, password):

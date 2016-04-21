@@ -151,6 +151,8 @@ class RouterView(TemplateView):
         # templates can sew in JS and CSS as necessary.
         if 'goldstone.compliance' in settings.INSTALLED_APPS:
             context['compliance_installed'] = True
+        if 'goldstone.topology' in settings.INSTALLED_APPS:
+            context['topology_installed'] = True
 
         # The i18n JSON file we read, and the template variable we load its
         # contents into.

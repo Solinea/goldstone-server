@@ -15,7 +15,7 @@
 
 # Goldstone Proxy & Static
 gsweb:
-  image: solinea/goldstone-web:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-web:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   ports:
     - "8443:8443"
   links:
@@ -27,7 +27,7 @@ gsweb:
 
 # Goldstone Server Container
 gsapp:
-  image: gs-docker-ent.bintray.io/goldstone-app-e:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   env_file: ./config/goldstone-prod.env
   ports:
     - "8000:8000"
@@ -43,7 +43,7 @@ gsapp:
 
 # Database Container
 gsdb:
-  image: solinea/goldstone-db:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-db:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   env_file: ./config/goldstone-prod.env
   volumes:
     - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
@@ -56,7 +56,7 @@ gsdb:
 
 # Logstash Container
 gslog:
-  image: solinea/goldstone-log:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-log:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   ports:
     - "5514:5514"
     - "5515:5515"
@@ -71,7 +71,7 @@ gslog:
 
 # Elasticsearch Container
 gssearch:
-  image: solinea/goldstone-search:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-search:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   ports:
     - "9200:9200"
     - "9300:9300"
@@ -84,7 +84,7 @@ gssearch:
 
 # Celery Task Queue Container
 gstaskq:
-  image: solinea/goldstone-task-queue:1.0.1-SNAPSHOT.33.gf857d73.local_dev
+  image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
   ports:
     - "6379:6379"
   log_driver: "syslog"

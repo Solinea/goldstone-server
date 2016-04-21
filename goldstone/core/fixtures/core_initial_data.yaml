@@ -479,13 +479,12 @@
         description: 'one or more services have changed status to UP'
         search: de730aab-e0f9-40c7-81c0-4289ddb67e96
 
-
   - model: core.AlertDefinition
-    pk: adceb329-6760-4e2b-a34e-1d4a49c5b53e
+    pk: f053951a-2834-43e1-a5dc-a6faf36260ed
     fields:
-        name: elapsed time exceeds limit
-        description: 'a canary test has exceeded the elapsed time limit'
-        search: 836717be-a1ac-4ab7-92ed-46923abcc383
+        name: service status UP
+        description: 'one or more services have changed status to UP'
+        search: de730aab-e0f9-40c7-81c0-4289ddb67e96
 
   - model: core.SavedSearch
     pk: 836717be-a1ac-4ab7-92ed-46923abcc383
@@ -514,11 +513,11 @@
 }'
 
   - model: core.AlertDefinition
-    pk: d5663d34-46fa-4302-bd76-3a8942525c93
+    pk: adceb329-6760-4e2b-a34e-1d4a49c5b53e
     fields:
-        name: canary test returns false
-        description: 'a canary test has returned false'
-        search: b233986f-ebd5-4815-8c89-0b3f2a81445e
+        name: elapsed time exceeds limit
+        description: 'a canary test has exceeded the elapsed time limit'
+        search: 836717be-a1ac-4ab7-92ed-46923abcc383
 
   - model: core.SavedSearch
     pk: b233986f-ebd5-4815-8c89-0b3f2a81445e
@@ -543,6 +542,13 @@
       }
    }
 }'
+
+  - model: core.AlertDefinition
+    pk: d5663d34-46fa-4302-bd76-3a8942525c93
+    fields:
+        name: canary test returns false
+        description: 'a canary test has returned false'
+        search: b233986f-ebd5-4815-8c89-0b3f2a81445e
 
   - model: core.SavedSearch
     pk: 139851f2-1329-4826-9c70-c154a6c102f2
@@ -583,6 +589,42 @@
             "statistics": {
                "stats": {
                   "field": "elapsed"
+               }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 21f5c6db-5a2e-41d4-9462-c3cdc03a837b
+    fields:
+      name: nova spawns
+      owner: core
+      index_prefix: goldstone-*
+      doc_type: nova_spawns
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "term": {
+         "event": "finish"
+      }
+   },
+   "aggs": {
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "success": {
+               "terms": {
+                  "field": "success.raw",
+                  "shard_min_doc_count": 0,
+                  "min_doc_count": 0,
+                  "size": 0
                }
             }
          }
