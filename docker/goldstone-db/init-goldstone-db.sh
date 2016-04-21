@@ -48,4 +48,3 @@ echo "local all all     trust" > /var/lib/postgresql/data/pg_hba.conf
 echo "host  all all 0.0.0.0/0   md5" >> /var/lib/postgresql/data/pg_hba.conf 
 
 su - postgres -c 'export PGDATA=/var/lib/postgresql/data;/usr/lib/postgresql/9.4/bin/pg_ctl reload'
-
