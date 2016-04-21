@@ -178,3 +178,7 @@ build-desktop:
 	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.37.2 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*|karma*|casper'
 	rm -rf desktop/node_modules
 	@echo "done."
+
+migrations:
+	python manage.py makemigrations accounts core drfes tenants user compliance topology
+
