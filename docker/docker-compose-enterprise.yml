@@ -13,81 +13,122 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Goldstone Proxy & Static
-gsweb:
-  image: solinea/goldstone-web:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  ports:
-    - "8443:8443"
-  links:
-    - gsapp:gsapp
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gsweb"
+version: '2'
 
-# Goldstone Server Container
-gsapp:
-  image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  env_file: ./config/goldstone-prod.env
-  ports:
-    - "8000:8000"
-  links:
-    - gsdb
-    - gssearch
-    - gstaskq
-    - gslog
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gsapp"
+services:
 
-# Database Container
-gsdb:
-  image: solinea/goldstone-db:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  env_file: ./config/goldstone-prod.env
-  volumes:
-    - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
-  ports:
-    - "5432:5432"
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gsdb"
+  # Goldstone Proxy & Static
+  gsweb:
+    image: solinea/goldstone-web:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    ports:
+      - "8443:8443"
+    links:
+      - gsapp:gsapp
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gsweb"
 
-# Logstash Container
-gslog:
-  image: solinea/goldstone-log:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  ports:
-    - "5514:5514"
-    - "5515:5515"
-    - "5516:5516"
-    - "5517:5517/udp"
-  links:
-    - gssearch
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gslog"
+  # Goldstone Server Container
+  gsapp:
+    image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    env_file: ./config/goldstone-prod.env
+    ports:
+      - "8000:8000"
+    links:
+      - gsdb
+      - gssearch
+      - gstaskq
+      - gslog
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gsapp"
 
-# Elasticsearch Container
-gssearch:
-  image: solinea/goldstone-search:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-  volumes:
-    - /var/lib/goldstone/es_data:/usr/share/elasticsearch/data
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gssearch"
+  # Database Container
+  gsdb:
+    image: solinea/goldstone-db:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    env_file: ./config/goldstone-prod.env
+    volumes:
+      - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gsdb"
 
-# Celery Task Queue Container
-gstaskq:
-  image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.71.geaa4d21.extract_topology
-  ports:
-    - "6379:6379"
-  log_driver: "syslog"
-  log_opt:
-    syslog-facility: "local0"
-    syslog-tag: "gstaskq"
+  # Logstash Container
+  gslog:
+    image: solinea/goldstone-log:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    ports:
+      - "5514:5514"
+      - "5515:5515"
+      - "5516:5516"
+      - "5517:5517/udp"
+    links:
+      - gssearch
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gslog"
+
+  # Elasticsearch Container
+  gssearch:
+    image: solinea/goldstone-search:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /var/lib/goldstone/es_data:/usr/share/elasticsearch/data
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gssearch"
+
+  # Celery Task Queue Container
+  gstaskq:
+    image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    ports:
+      - "6379:6379"
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gstaskq"
+
+  #
+  # Celery container
+  #
+  gstask:
+    image: gs-docker-ent.bintray.io/goldstone-task-e:1.1.1-SNAPSHOT.147.gee0bca5.develop
+    env_file: ./config/goldstone-prod.env
+    links:
+      - gsdb
+      - gssearch
+      - gstaskq
+      - gslog
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gstask"
+
+  #
+  # Canary Container
+  #
+  gscanary:
+    image: gs-docker-ent.bintray.io/goldstone-svc-canary:latest
+    env_file: ./config/goldstone-prod.env
+    links:
+      - gslog
+    logging:
+      driver: "syslog"
+      options:
+        syslog-facility: "local0"
+        tag: "gscanary"

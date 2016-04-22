@@ -94,6 +94,7 @@ desktop/
 docker/goldstone-app/goldstone-server/
 docker/goldstone-app-e/goldstone-server/
 docker/goldstone-task/goldstone-server/
+docker/goldstone-task-e/goldstone-server/
 docker/goldstone-web/static/
 docker/goldstone-web-e/static/
 
