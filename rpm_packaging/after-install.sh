@@ -22,7 +22,7 @@ echo "     systemctl enable $PKGNAME"
 echo "     systemctl start $PKGNAME"
 echo ""
 
-if [ $PKGNAME="goldstone-server-enterprise" ]; then
+if [ "$PKGNAME" = "goldstone-server-enterprise" ]; then
   echo " Before starting $PKGNAME you must set your Goldstone license variables."
   echo " and login into the custom repository."
   echo " You can do this via the following commands:        "
