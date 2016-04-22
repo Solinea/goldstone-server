@@ -24,13 +24,14 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 # this version should be managed by the bump_version.sh script
-GOLDSTONE_VERSION = '1.0.1-SNAPSHOT.33.gf857d73.local_dev'
+GOLDSTONE_VERSION = '1.1.1-SNAPSHOT.147.gee0bca5.develop'
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
 
 # support testing for installed and available submodule
 COMPLIANCE_INIT_FILE = os.path.join(CURRENT_DIR, '../compliance/__init__.py')
+TOPOLOGY_INIT_FILE = os.path.join(CURRENT_DIR, '../topology/__init__.py')
 
 
 def get_env_variable(var_name):
@@ -75,13 +76,8 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'goldstone.accounts',
-    'goldstone.cinder',
     'goldstone.core',
     'goldstone.drfes',
-    'goldstone.glance',
-    'goldstone.keystone',
-    'goldstone.neutron',
-    'goldstone.nova',
     'goldstone.tenants',
     'goldstone.user',
 )
@@ -89,6 +85,14 @@ INSTALLED_APPS = (
 # Handle known submodules
 if os.path.exists(COMPLIANCE_INIT_FILE):
     INSTALLED_APPS = INSTALLED_APPS + ('goldstone.compliance',)
+
+if os.path.exists(COMPLIANCE_INIT_FILE):
+    INSTALLED_APPS = INSTALLED_APPS + ('goldstone.topology',
+                                       'goldstone.topology.nova',
+                                       'goldstone.topology.cinder',
+                                       'goldstone.topology.glance',
+                                       'goldstone.topology.neutron',
+                                       'goldstone.topology.keystone',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -185,34 +189,6 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.core.tasks.prune_es_indices',
         'schedule': EVERY_MIDNIGHT,
     },
-    'nova-hypervisors-stats': {
-        'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
-        'schedule': EVERY_MINUTE,
-    },
-    'discover_keystone_topology': {
-        'task': 'goldstone.keystone.tasks.discover_keystone_topology',
-        'schedule': EVERY_5_MINUTES
-    },
-    'discover_glance_topology': {
-        'task': 'goldstone.glance.tasks.discover_glance_topology',
-        'schedule': EVERY_5_MINUTES
-    },
-    'discover_cinder_topology': {
-        'task': 'goldstone.cinder.tasks.discover_cinder_topology',
-        'schedule': EVERY_5_MINUTES
-    },
-    'discover_nova_topology': {
-        'task': 'goldstone.nova.tasks.discover_nova_topology',
-        'schedule': EVERY_5_MINUTES
-    },
-    'discover_neutron_topology': {
-        'task': 'goldstone.neutron.tasks.discover_neutron_topology',
-        'schedule': EVERY_5_MINUTES
-    },
-    'update_persistent_graph': {
-        'task': 'goldstone.core.tasks.update_persistent_graph',
-        'schedule': EVERY_5_MINUTES
-    },
     'expire_auth_tokens': {
         'task': 'goldstone.core.tasks.expire_auth_tokens',
         'schedule': EVERY_MIDNIGHT
@@ -228,12 +204,18 @@ CELERYBEAT_SCHEDULE = {
 }
 
 
-# Tasks for compliance are imported from the compliance module settings if
+# Tasks for submodules are imported from the module settings if
 # the module is present.
 if os.path.exists(COMPLIANCE_INIT_FILE):
     from goldstone.compliance.settings import \
         CELERYBEAT_SCHEDULE as COMPLIANCE_CELERYBEAT
     CELERYBEAT_SCHEDULE.update(COMPLIANCE_CELERYBEAT)
+
+if os.path.exists(TOPOLOGY_INIT_FILE):
+    from goldstone.topology.settings import \
+        CELERYBEAT_SCHEDULE as TOPOLOGY_CELERYBEAT
+
+    CELERYBEAT_SCHEDULE.update(TOPOLOGY_CELERYBEAT)
 
 # Database row settings.
 OS_NAME_MAX_LENGTH = 60
@@ -372,7 +354,7 @@ class IntegrationNames(ConstantDict):
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
 
-    # The attributes to attache (that are attached) to an edge.
+    # The attributes to attach (that are attached) to an edge.
     KEYSTONE = "Keystone"
     NOVA = "Nova"
     CINDER = "Cinder"

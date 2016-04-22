@@ -93,6 +93,15 @@ module.exports = {
         'goldstone/compliance/static/client-dev/tail/*.js'
     ],
     complianceConcatBundle: 'goldstone/compliance/static/client-js/compliance.js',
-    complianceCopyFolder: 'goldstone/compliance/static/',
-    complianceWatch: 'goldstone/compliance/static/**/*'
+    complianceWatch: 'goldstone/compliance/static/**/*',
+
+    // location of source and destination of topology files
+    // files in `/head/` will come first, `/middle/` next, and `/tail/` last
+    topologyConcatWildcards: [
+        'goldstone/topology/static/client-dev/head/*.js',
+        'goldstone/topology/static/client-dev/middle/*.js',
+        'goldstone/topology/static/client-dev/tail/*.js'
+    ],
+    topologyConcatBundle: 'goldstone/topology/static/client-js/topology.js',
+    topologyWatch: 'goldstone/topology/static/**/*'
 };

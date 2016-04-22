@@ -94,7 +94,7 @@ services:
   # Celery container
   # 
   gstask:
-    build: ./docker/goldstone-task
+    build: ./docker/goldstone-task-e
     env_file: ./docker/config/goldstone-dev.env
     volumes:
       - .:/home/app
@@ -127,7 +127,7 @@ services:
   # Canary Container
   #
   gscanary:
-    image: gs-docker-ent.bintray.io/goldstone-canary:latest
+    image: gs-docker-ent.bintray.io/goldstone-svc-canary:latest
     env_file: ./docker/config/goldstone-dev.env
     links:
       - gslog

@@ -4,3 +4,6 @@
 [submodule "desktop"]
 	path = desktop
 	url = git@github.com:Solinea/goldstone-desktop.git
+[submodule "topology"]
+	path = goldstone/topology
+	url = git@github.com:Solinea/goldstone-topology.git

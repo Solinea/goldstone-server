@@ -124,7 +124,7 @@ var DiscoverPageView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new SpawnsCollection({
-            urlBase: '/nova/hypervisor/spawns/'
+            urlBase: '/core/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new SpawnsView({

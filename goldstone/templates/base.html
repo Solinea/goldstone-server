@@ -113,13 +113,10 @@ limitations under the License.
                             <span data-i18n="Reports" class="btn-txt i18n">Reports</span>
                         </li>
                     </a>
-                    <a href="#topology">
-                     <li class="topology-tab" data-toggle="tooltip" data-i18n-tooltip="Topology" data-placement="right" title="Topology">
-                            <span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>
-                            <span data-i18n="Topology" class="btn-txt i18n">Topology</span>
-                        </li>
-                    </a>
-                    <span class="addon-menu-view-container">
+                    <span class="topology-icon-container">
+                    <!-- dynamically inserted by addonMenuView -->
+                    </span>
+                    <span class="compliance-icon-container">
                    <!-- dynamically inserted by addonMenuView -->
                     </span>
                         <li class="menu-toggle" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Expand" title="Expand">
@@ -208,7 +205,7 @@ limitations under the License.
                     <!-- </div> -->
                 </footer>
                 <!--Footer End-->
-                
+
             </div>
             <!--Content Area End-->
 
@@ -221,9 +218,16 @@ limitations under the License.
 
         <script src="{% static 'bundle/libs.js' %}"></script>
         <script src="{% static 'bundle/bundle.js' %}"></script>
-        <!-- append addon script tags here -->
+        <!-- conditional compliance script tag -->
         {% if compliance_installed %}
             <script src="{% static 'client-js/compliance.js' %}"></script>
+        {% endif %}
+        <!-- conditional topology script tag -->
+        {% if topology_installed %}
+
+            <script src="{% static 'client-js/topology.js' %}">
+            console.log("it was installed");
+            </script>
         {% endif %}
         <!-- all goldstone and addon JavsScript libraries are loaded prior to here. -->
 
@@ -237,9 +241,9 @@ limitations under the License.
 
         // defined on init.js
         goldstone.init();
-        
+
         });
         </script>
-        
+
     </body>
 </html>
