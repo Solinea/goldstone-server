@@ -145,8 +145,29 @@ if [[ ${APP_LOCATION} == "local" ]] ; then
     export ENVDIR=${HOME}/.virtualenvs/goldstone-server
     export APPDIR=${ENVDIR}
     DB_PORT=5432
-    DB_HOST=localhost
 
+    if [[ $DOCKER_VM != "none" ]] ; then
+        DB_HOST=localhost
+    else
+        # wait for postgres to come up
+        status="DOWN"
+        while [ "$status" == "DOWN" ] ; do
+            RC=`docker ps | grep _gsdb_`
+            if [[ $RC -eq 0 ]] ; then
+                status=UP
+            else
+                status=DOWN
+            fi
+            echo -e "Database container status: $status"
+            sleep 5
+        done
+
+        DB_HOST=`docker port $(docker ps | grep gsdb | awk '{print $1}') 5432 | cut -f1 -d:`
+        export GS_DOCKER_HOST=$DB_HOST
+        echo "DB_HOST = $DB_HOST"
+
+    fi
+    
     # wait for postgres to come up
     status="DOWN"
 
@@ -154,7 +175,6 @@ if [[ ${APP_LOCATION} == "local" ]] ; then
        status=`(echo > /dev/tcp/$DB_HOST/$DB_PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
        echo -e "Database connection status: $status"
        sleep 5
-       let i++
     done
    
     # allow a little time for the initial DB setup to happen
