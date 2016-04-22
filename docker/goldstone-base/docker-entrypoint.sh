@@ -21,8 +21,6 @@ fi
 GS_DEV_ENV=${GS_DEV_ENV:-false}
 GS_DEV_DJANGO_PORT=${GS_DEV_DJANGO_PORT:-8000}
 GS_DB_HOST=${GS_DB_HOST:-gsdb}
-GS_START_CELERY=${GS_START_CELERY:-true}
-CELERY_BG=${CELERY_BG:-true}
 GS_START_RUNSERVER=${GS_START_RUNSERVER:-${GS_DEV_ENV}}
 GS_START_GUNICORN=${GS_START_GUNICORN:-true}
 
@@ -35,7 +33,7 @@ HOST=${GS_DB_HOST}
 status="DOWN"
 i="0"
 
-while [ "$status" == "DOWN" -a $i -lt 20 ] ; do
+while [ "$status" == "DOWN" -a $i -lt 120 ] ; do
      status=`(echo > /dev/tcp/$HOST/$PORT) >/dev/null 2>&1 && echo "UP" || echo "DOWN"`
      echo -e "Database connection status: $status"
      sleep 5
@@ -66,20 +64,6 @@ fi
 if [ ! -f /var/tmp/goldstone-postinstall ] ; then
     python post_install.py
     touch /var/tmp/goldstone-postinstall
-fi
-
-if [[ $GS_START_CELERY == 'true' ]] ; then
-    if [[ ${CELERY_BG} == 'true' ]] ; then
-        echo Starting Celery in the background.
-        exec celery worker --app goldstone --queues default --beat --purge \
-            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
-            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@" &
-    else
-        echo Starting Celery in the foreground.
-        exec celery worker --app goldstone --queues default --beat --purge \
-            --workdir ${APPDIR} --config ${DJANGO_SETTINGS_MODULE} \
-            --without-heartbeat --loglevel=${CELERY_LOGLEVEL} -s /tmp/celerybeat-schedule "$@"
-    fi
 fi
 
 if [[ $GS_START_RUNSERVER == 'true' && $GS_DEV_ENV == 'true' ]] ; then

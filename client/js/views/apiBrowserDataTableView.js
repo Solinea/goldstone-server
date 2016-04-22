@@ -93,12 +93,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.component",
                     "targets": 7,
                     "sortable": true
-                }, {
-                    "data": "_source.type",
-                    "targets": 8,
-                    "sortable": true
                 }
-
             ],
             "serverSide": true,
             "ajax": {
@@ -130,7 +125,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     }
 
                     // uncomment for ordering by column
-                    
+
                     var columnLabelHash = {
                         0: '@timestamp',
                         1: 'host',
@@ -140,14 +135,13 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         5: 'response_time',
                         6: 'response_length',
                         7: 'component',
-                        8: 'type',
                     };
                     var ascDec = {
                         asc: '',
                         'desc': '-'
                     };
                     settings.url = settings.url + "&ordering=" + ascDec[sortAscDesc] + columnLabelHash[sortByColumnNumber];
-                    
+
                 },
                 dataSrc: "results",
                 dataFilter: function(data) {
@@ -168,13 +162,15 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         // initialize container for formatted results
         var finalResult = [];
 
-        // for each array index in the 'data' key
-        _.each(data.aggregations.per_interval.buckets, function(item) {
-            var tempObj = {};
-            tempObj.time = item.key;
-            tempObj.count = item.doc_count;
-            finalResult.push(tempObj);
-        });
+        if (data && data.aggregations && data.aggregations.per_interval && data.aggregations.per_interval.buckets) {
+            // for each array index in the 'data' key
+            _.each(data.aggregations.per_interval.buckets, function(item) {
+                var tempObj = {};
+                tempObj.time = item.key;
+                tempObj.count = item.doc_count;
+                finalResult.push(tempObj);
+            });
+        }
 
         return finalResult;
     },
@@ -209,7 +205,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });

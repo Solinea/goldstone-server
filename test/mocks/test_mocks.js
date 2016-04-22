@@ -1,7 +1,7 @@
 // mock i18n
 var goldstone = goldstone || {};
 
-goldstone.skipI18nLog = true;
+goldstone.inTestEnv = true;
 
 goldstone.i18nJSON = {
     "English": {
@@ -18,6 +18,8 @@ goldstone.i18nJSON = {
         }
     }
 };
+
+blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
 goldstone.userPrefsView = new UserPrefsView();
 
@@ -94,6 +96,13 @@ goldstone.sidebarHTMLMock = '<div class="sidebar clearfix">' +
     '<span data-i18n="Topology" class="btn-txt i18n">Topology</span>' +
     '</li>' +
     '</a>' +
+    '<span class="topology-icon-container">' +
+    '<!-- dynamically inserted by addonMenuView -->' +
+    '</span>' +
+    '<span class="compliance-icon-container">' +
+    '<!-- dynamically inserted by addonMenuView -->' +
+    '</span>' +
+
     '<span class="addon-menu-view-container">' +
     '</span>' +
     '<li class="menu-toggle" data-toggle="tooltip" data-placement="right" title="" data-original-title="Expand">' +

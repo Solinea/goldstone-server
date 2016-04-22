@@ -38,7 +38,6 @@ var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",
-        "topology": "topology",
         "report/node/:nodeId": "nodeReport",
         "reports/logbrowser": "logSearch",
         "reports/logbrowser/search": "savedSearchLog",
@@ -94,7 +93,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         goldstone.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
-        // .router-content-container is a div set in router.html
+        // .router-content-container is a div set in base.html
         $('.router-content-container').append(goldstone.currentLauncherView.el);
 
         // new views will pass 'options' which at least designates

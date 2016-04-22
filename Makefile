@@ -107,6 +107,7 @@ rpm_build:
 	--after-install rpm_packaging/after-install.sh \
 	--before-remove rpm_packaging/before-remove.sh \
 	--after-remove rpm_packaging/after-remove.sh \
+    --config-files /opt/goldstone/config/goldstone-prod.env \
     --exclude '**placeholder' \
     --rpm-defattrdir 0700 \
 	--rpm-attr 0750,root,root:/etc/rsyslog.d/goldstone.conf \
@@ -156,9 +157,9 @@ rpm_collect:
 
 test:
 	if [ $(USE_CONTAINER) ]; then \
-		if [ `bin/check_for_containers.sh goldstoneserver_gsappdev_1` -gt 0 ] ; \
+		if [ `bin/check_for_containers.sh goldstoneserver_gsapp_1` -gt 0 ] ; \
 			then docker rm -f $(DOCKER_CONTAINER_NAME) 2>/dev/null; fi; \
-		docker exec goldstoneserver_gsappdev_1 python manage.py test \
+		docker exec goldstoneserver_gsapp_1 python manage.py test \
 	else \
 		python manage.py test; \
 	fi
@@ -177,3 +178,7 @@ build-desktop:
 	./node_modules/.bin/electron-packager desktop/ Goldstone --overwrite --platform=darwin --arch=x64 --version=0.37.2 --icon=desktop/Icon.icns --app-version $(PKGVER) --ignore 'grunt*|karma*|casper'
 	rm -rf desktop/node_modules
 	@echo "done."
+
+migrations:
+	python manage.py makemigrations accounts core drfes tenants user compliance topology
+

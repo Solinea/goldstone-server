@@ -32,18 +32,14 @@ describe('predefinedSearchView.js', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondImmediately = true;
-        this.server.respondWith("GET", "*", [200, {
+        this.server.respondWith("GET", '/core/saved_search/?page_size=1000&index_prefix=logstash-*', [200, {
                 "Content-Type": "application/json"
             },
             JSON.stringify(dData)
         ]);
-
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
-
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testCollection = new SearchObserverCollection({
             urlBase: '/blah/de/blah/',
@@ -53,7 +49,8 @@ describe('predefinedSearchView.js', function() {
         this.testView = new PredefinedSearchView({
             className: 'compliance-predefined-search nav nav-pills',
             tagName: 'ul',
-            collection: this.testCollection
+            collection: this.testCollection,
+            index_prefix: 'logstash-*'
         });
 
         $('.predefined-search-container').append(this.testView.el);
@@ -67,17 +64,16 @@ describe('predefinedSearchView.js', function() {
 
         this.testCollection.linkedDataTable = this.testDataTable;
 
-
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
     });
 
     describe('testing methods', function() {
         it('tests methods', function() {
             this.testView.instanceSpecificInit();
-            this.server.respond();
             this.testView.render();
             this.testView.processListeners();
         });
@@ -100,6 +96,7 @@ describe('predefinedSearchView.js', function() {
                 '<li data-uuid=null></li>');
         });
         it('places "None" at the top of the list', function() {
+            this.server.respond();
             this.testView.populatePredefinedSearches();
             this.testView.renderUpdatedResultList();
             expect($('.predefined-search-container').text()).to.include('Predefined Searches None (reset)');
@@ -129,49 +126,54 @@ describe('predefinedSearchView.js', function() {
             test1 = this.testView.pruneSearchList(['a', 'b', 'c']);
             expect(test1).to.deep.equal(['a', 'b', 'c']);
 
-            var bannedSearchList = {
-                'pistachio': true
-            };
             test1 = this.testView.pruneSearchList([{
                 'name': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'pistachio',
-                'hopeToSee': 'nope'
-            }], bannedSearchList);
+                'hopeToSee': 'nope',
+                'viewer_enabled': false
+            }]);
             expect(test1).to.deep.equal([{
                 'name': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'name': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }]);
 
-            bannedSearchList = {
-                'pistachio': true
-            };
             test1 = this.testView.pruneSearchList([{
                 'nameFake': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'pistachio',
-                'hopeToSee': 'yep'
-            }], bannedSearchList);
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
+            }]);
             expect(test1).to.deep.equal([{
                 'nameFake': 'chocolate',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'vanilla',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }, {
                 'nameFake': 'pistachio',
-                'hopeToSee': 'yep'
+                'hopeToSee': 'yep',
+                'viewer_enabled': true
             }]);
         });
     });

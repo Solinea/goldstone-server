@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,93 +15,69 @@
  */
 
 /*
-This view will be re-invoked upon initial page load, and every full page
-refresh, as it is baked into router.html .
-*/
 
-/*
-instantiated on router.html as:
-goldstone.addonMenuView = new AddonMenuView({
-    el: ".addon-menu-view-container"
-});
+instantiated in init.js as:
+goldstone.addonMenuView = new AddonMenuView({});
 
-if compliance module installed, after login, localStorage will contain:
-addons: [{
+if compliance and/or topology module installed, after login, localStorage will contain:
+compliance: [{
     url_root: 'compliance'
 }]
+topology: [{
+    url_root: 'topology'
+}]
+
 */
 
 var AddonMenuView = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
-
-        // passing true will also dynamically generate new routes in
-        // Backbone router corresponding with the .routes param in the
-        // addon's .js file.
-        this.refreshAddonsMenu(true);
+        this.generateAddonIconsAndRoute();
     },
 
-    refreshAddonsMenu: function(addNewRoute) {
-        var addons = localStorage.getItem('addons');
+    generateAddonIconsAndRoute: function() {
+        var compliance = JSON.parse(localStorage.getItem('compliance'));
+        var topology = JSON.parse(localStorage.getItem('topology'));
 
-        // the 'else' case will be triggered due to any of the various ways that
-        // local storage might return a missing key, or a null set.
-        if (addons && addons !== null && addons !== "null" && addons !== "[]" && addons !== []) {
+        if (compliance) {
 
-            // clear list before re-rendering in case app list has changed
-            this.$el.html('');
-
-            // render appends the 'Add-ons' main menu-bar dropdown
-            this.render();
-            
-            this.generateRoutesPerAddon(addNewRoute);
-
-        } else {
-
-            // in the case that the addons key in localStorage
-            // is falsy, just remove the dropdown and links
-            this.$el.html('');
+            // render the compliance icon and set the routes
+            $(".compliance-icon-container").html(this.complianceTemplate());
+            this.generateRoutesPerAddon(compliance[0]);
         }
-    },
 
-    generateRoutesPerAddon: function(addNewRoute) {
-        var self = this;
-        var list = localStorage.getItem('addons');
-        list = JSON.parse(list);
-        var result = '';
+        if (topology) {
 
-        // for each object in the array of addons in 'list', do the following:
-        _.each(list, function(item) {
-
-            if (goldstone[item.url_root]) {
-
-                // for each sub-array in the array of 'routes' in
-                // the addon's javascript file, do the following:
-                _.each(goldstone[item.url_root].routes, function(route) {
-                    if (addNewRoute === true) {
-                        // pass along the route array
-                        // and the name of the addon
-                        // which is needed for 
-                        // proper side-menu highlighting
-                        self.addNewRoute(route, item.url_root);
-                    }
-                });
-            }
-        });
+            // render the topology icon and set the routes
+            $(".topology-icon-container").html(this.topologyTemplate());
+            this.generateRoutesPerAddon(topology[0]);
+        }
 
         // initialize tooltip connected to new menu item
         $('[data-toggle="tooltip"]').tooltip({
             trigger: 'hover'
         });
+    },
 
-        // return backbone template of html string that will
-        // construct the drop down menu and submenus of
-        // the add-ons menu item
-        return _.template(result);
+    generateRoutesPerAddon: function(module) {
+        var self = this;
+        // if the module is installed this should be true
+        if (goldstone[module.url_root]) {
+
+            // for each sub-array in the array of 'routes' in
+            // the addon's javascript file, do the following:
+            _.each(goldstone[module.url_root].routes, function(route) {
+                // pass along the route array
+                // and the name of the addon
+                // which is needed for
+                // proper side-menu highlighting
+                self.addNewRoute(route, module.url_root);
+            });
+        }
+
     },
 
     addNewRoute: function(routeToAdd, eventName) {
-
         /*
         .route will dynamically add a new route where the
         url is index 0 of the passed in route array, and
@@ -124,7 +100,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         });
     },
 
-    template: _.template('' +
+    topologyTemplate: _.template('' +
+        '<a href="#topology">' +
+        '<li class="topology-tab" data-toggle="tooltip" data-i18n-tooltip="Topology" data-placement="right" title="Topology">' +
+        '<span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>' +
+        '<span data-i18n="Topology" class="btn-txt i18n">Topology</span>' +
+        '</li>' +
+        '</a>'
+    ),
+
+    complianceTemplate: _.template('' +
         '<a href="#compliance/opentrail/manager/">' +
         '<li class="compliance-tab" data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
         '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +

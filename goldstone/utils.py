@@ -153,3 +153,90 @@ def partition_hostname(hostname):
     parts = hostname.partition('.')
     return dict(hostname=parts[0],
                 domainname=parts[2] if parts[1] == '.' else None)
+
+
+def get_keystone_region():
+    """Currently assumes that the cloud is a single region and takes the first
+    one from the list returned from the keystone client regions manager."""
+
+    client = get_keystone_client()
+    return client.regions.list()[0].id
+
+
+def get_keystone_session(cloud=None):
+    """Get a keystone session that can be used to create clients for this and
+    other services.  Assumes v2 semantics."""
+
+    from goldstone.utils import get_cloud
+    from keystoneclient.auth.identity import v2
+    from keystoneclient import session
+
+    if cloud is None:
+        cloud = get_cloud()
+
+    auth = v2.Password(
+        username=cloud.username,
+        tenant_name=cloud.tenant_name,
+        password=cloud.password,
+        auth_url=cloud.auth_url)
+
+    return session.Session(auth=auth)
+
+
+def get_keystone_client(session=None):
+    """Get a client object from the keystone service"""
+
+    from goldstone.utils import get_cloud
+    from keystoneclient.v3 import client
+    if session is None:
+        cloud = get_cloud()
+        session = get_keystone_session(cloud=cloud)
+
+    return client.Client(session=session)
+
+
+def get_cinder_client(session=None):
+    """Get a cinder v1 client from a keystone session."""
+
+    from goldstone.utils import get_keystone_session
+    from cinderclient import client
+
+    if session is None:
+        session = get_keystone_session()
+
+    return client.Client('1', session=session)
+
+
+def get_glance_client(session=None):
+    """Get a glance v2 client from a keystone session."""
+
+    from goldstone.utils import get_keystone_session
+    from glanceclient import client
+
+    if session is None:
+        session = get_keystone_session()
+
+    return client.Client(version='2', session=session)
+
+
+def get_neutron_client(session=None):
+    """Get a neutron v2 client from a keystone session."""
+
+    from goldstone.utils import get_keystone_session
+    from neutronclient.v2_0 import client
+
+    if session is None:
+        session = get_keystone_session()
+
+    return client.Client(session=session)
+
+
+def get_nova_client(session=None):
+    """Get a nova v2 client from a keystone session."""
+
+    from goldstone.utils import get_keystone_session
+    from novaclient import client
+
+    if session is None:
+        session = get_keystone_session()
+    return client.Client('2', session=session)

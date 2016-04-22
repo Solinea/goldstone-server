@@ -40,7 +40,7 @@ for arg in "$@" ; do
     esac
 done
 
-if [[ ${DOCKER_VM} != "false" ]] ; then
+if [[ ${DOCKER_VM} != "none" ]] ; then
     docker-machine start ${DOCKER_VM}
     eval "$(docker-machine env ${DOCKER_VM})"
 fi
@@ -58,9 +58,9 @@ OPEN_REGISTRY_ORG=solinea
 PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io
 
 declare -a open_to_push=( goldstone-base goldstone-search goldstone-log goldstone-db \
-              goldstone-app goldstone-web goldstone-task-queue )
+              goldstone-app goldstone-web goldstone-task-queue goldstone-task )
 
-declare -a priv_to_push=( goldstone-app-e )
+declare -a priv_to_push=( goldstone-app-e goldstone-task-e )
 
 
 for name in "${open_to_push[@]}" ; do

@@ -57,22 +57,24 @@ describe('apiPerfView.js spec', function() {
             '</form>' +
             '</div>');
 
+        this.clock = sinon.useFakeTimers(3600000);
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.autoRespond = true;
-        this.server.respondWith('GET', '/*', [200, {
-            "Content-Type": "application/json"
-        }, 'OK']);
+        this.server.respondWith('GET', '', [200, {
+                "Content-Type": "application/json"
+            },
+            JSON.stringify([])
+        ]);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
         this.testCollection = new ApiPerfCollection({
-            urlPrefix: 'cinder'
+            componentParam: 'cinder',
+            urlBase: '/core/api-calls/'
         });
-
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new ApiPerfView({
             chartTitle: "Tester API Performance",
@@ -89,10 +91,15 @@ describe('apiPerfView.js spec', function() {
     });
     afterEach(function() {
         $('body').html('');
+        // this.server.respond();
         this.server.restore();
+        this.clock.restore();
     });
+
     describe('collection is constructed', function() {
         it('should exist', function() {
+            this.server.respond();
+            this.server.respond();
             var dataTest = {
                 aggregations: {
                     per_interval: {
@@ -105,16 +112,6 @@ describe('apiPerfView.js spec', function() {
             var dataTest1 = {
                 'hello': 'hi'
             };
-            assert.isDefined(this.testCollection, 'this.testCollection has been defined');
-            expect(this.testCollection.parse).to.be.a('function');
-            this.testCollection.initialize({
-                urlPrefix: 'glance'
-            });
-            expect(this.testCollection.length).to.equal(1);
-            this.testCollection.add({
-                test1: 'test1'
-            });
-            expect(this.testCollection.length).to.equal(2);
             expect(this.testCollection.preProcessData(dataTest)).to.deep.equal({
                 'hello': 'hi'
             });
@@ -124,6 +121,7 @@ describe('apiPerfView.js spec', function() {
 
     describe('view is constructed', function() {
         it('should exist', function() {
+            this.server.respond();
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('body');

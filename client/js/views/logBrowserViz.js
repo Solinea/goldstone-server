@@ -1,4 +1,3 @@
-
 /**
  * Copyright 2015 Solinea, Inc.
  *
@@ -299,8 +298,15 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // this.collection.toJSON() returns the collection data
         var collectionDataPayload = this.collection.toJSON()[0];
-        // we use only the 'data' for the construction of the chart
-        var data = collectionDataPayload.aggregations.per_interval.buckets;
+
+        var data = [];
+
+        if (collectionDataPayload.aggregations && collectionDataPayload.aggregations.per_interval) {
+            // we use only the 'data' for the construction of the chart
+            data = collectionDataPayload.aggregations.per_interval.buckets;
+        } else {
+            return [];
+        }
 
         // prepare empty array to return at end
         var finalData = [];
@@ -407,6 +413,94 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         }));
     },
 
+    draw_filters: function() {
+
+        var self = this;
+
+        // IMPORTANT: the order of the entries in the
+        // Log Severity Filters modal is set by the order
+        // of the event types in self.filter
+
+        // populate the modal based on the event types.
+        // clear out the modal and reapply based on the unique events
+        if ($(this.el).find('#populateEventFilters').length) {
+            $(this.el).find('#populateEventFilters').empty();
+        }
+
+        var check_all_marked = "checked";
+
+        _.each(_.keys(self.filter), function(item) {
+
+            if (item === 'none') {
+                return null;
+            }
+
+            var addCheckIfActive = function(item) {
+                if (self.filter[item]) {
+                    return 'checked';
+                } else {
+                    check_all_marked = "";
+                    return '';
+                }
+            };
+
+            var checkMark = addCheckIfActive(item);
+
+            $(self.el).find('#populateEventFilters').
+            append(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color:' + self.loglevel([item]) + '">' +
+                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
+                '</span>' +
+                '<span type="text" class="form-control">' + item + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+        });
+
+        $(this.el).find('#populateEventFilters input:checkbox').not("#check-all").on('click', function() {
+            var checkboxId = this.id;
+            self.filter[checkboxId] = !self.filter[checkboxId];
+            self.collection.filter = self.filter;
+
+            // after changing filter, do not have d3 re-render,
+            // but have dataTable refetch ajax
+            // with filter params incluced
+            self.constructUrl();
+        });
+
+       $(this.el).find('#populateEventFilters').
+            prepend(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color: white">' +
+                '<input id="check-all" type="checkbox" ' + check_all_marked + '/>' +
+                '</span>' +
+                '<span type="text" class="form-control">Select All</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+
+        $(this.el).find('#populateEventFilters #check-all').on('click', function() {
+            var check_all = $(this);
+            $("#populateEventFilters input:checkbox").not(this).each(function(){
+                if($(this).prop("checked") != check_all.prop("checked")){
+                    $(this).prop("checked", true).trigger( "click");
+                }
+            });
+        });
+
+    },
+
     update: function() {
 
         var self = this;
@@ -430,6 +524,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
         if (this.checkReturnedDataSet(allthelogs) === false) {
+            this.draw_filters();
             return;
         }
 
@@ -448,6 +543,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         });
 
         if (!anyLiveFilter) {
+            this.draw_filters();
             self.chart.selectAll('.component')
                 .remove();
             return;
@@ -527,59 +623,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
             .attr("class", "y axis")
             .call(self.yAxis);
 
-        // IMPORTANT: the order of the entries in the
-        // Log Severity Filters modal is set by the order
-        // of the event types in self.filter
-
-        // populate the modal based on the event types.
-        // clear out the modal and reapply based on the unique events
-        if ($(this.el).find('#populateEventFilters').length) {
-            $(this.el).find('#populateEventFilters').empty();
-        }
-
-        _.each(_.keys(self.filter), function(item) {
-
-            if (item === 'none') {
-                return null;
-            }
-
-            var addCheckIfActive = function(item) {
-                if (self.filter[item]) {
-                    return 'checked';
-                } else {
-                    return '';
-                }
-            };
-
-            var checkMark = addCheckIfActive(item);
-
-            $(self.el).find('#populateEventFilters').
-            append(
-
-                '<div class="row">' +
-                '<div class="col-lg-12">' +
-                '<div class="input-group">' +
-                '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + self.loglevel([item]) + '">' +
-                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
-                '</span>' +
-                '<span type="text" class="form-control">' + item + '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>'
-            );
-        });
-
-        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
-            var checkboxId = this.id;
-            self.filter[checkboxId] = !self.filter[checkboxId];
-            self.collection.filter = self.filter;
-
-            // after changing filter, do not have d3 re-render,
-            // but have dataTable refetch ajax
-            // with filter params incluced
-            self.constructUrl();
-        });
+        this.draw_filters();
 
         this.redraw();
 

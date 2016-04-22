@@ -80,6 +80,8 @@
       doc_type: syslog
       timestamp_field: '@timestamp'
       protected: true
+      hidden: true
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -120,6 +122,8 @@
       index_prefix: events_*
       timestamp_field: 'timestamp'
       protected: true
+      hidden: true
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -166,6 +170,8 @@
       doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
+      hidden: true
+      viewer_enabled: false
       query: '{
    "query": {
       "match_all": {}
@@ -285,7 +291,8 @@
       doc_type: api_stats
       timestamp_field: '@timestamp'
       protected: true
-      hidden: false
+      hidden: true
+      viewer_enabled: false
       query: '{
    "size": 0,
    "query": {
@@ -337,7 +344,7 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update discovered",
                      "slop": 10
                   }
@@ -370,14 +377,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to down"
                   }
                }
@@ -409,14 +416,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to unknown"
                   }
                }
@@ -448,14 +455,14 @@
          "must": [
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "service status update"
                   }
                }
             },
             {
                "match_phrase": {
-                  "message": {
+                  "full_message": {
                      "query": "to up"
                   }
                }
@@ -471,3 +478,156 @@
         name: service status UP
         description: 'one or more services have changed status to UP'
         search: de730aab-e0f9-40c7-81c0-4289ddb67e96
+
+  - model: core.AlertDefinition
+    pk: f053951a-2834-43e1-a5dc-a6faf36260ed
+    fields:
+        name: service status UP
+        description: 'one or more services have changed status to UP'
+        search: de730aab-e0f9-40c7-81c0-4289ddb67e96
+
+  - model: core.SavedSearch
+    pk: 836717be-a1ac-4ab7-92ed-46923abcc383
+    fields:
+        name: canary elapsed time query
+        description: 'Goldstone Canary elapsed times exceeding a maximum.'
+        owner: core
+        index_prefix: internal-*
+        doc_type: canary
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "range": {
+                  "elapsed": {
+                     "gte": 60
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: adceb329-6760-4e2b-a34e-1d4a49c5b53e
+    fields:
+        name: elapsed time exceeds limit
+        description: 'a canary test has exceeded the elapsed time limit'
+        search: 836717be-a1ac-4ab7-92ed-46923abcc383
+
+  - model: core.SavedSearch
+    pk: b233986f-ebd5-4815-8c89-0b3f2a81445e
+    fields:
+        name: canary result query
+        description: 'Goldstone Canary test that returns false.'
+        owner: core
+        index_prefix: internal-*
+        doc_type: canary
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "term": {
+                  "result": false
+               }
+            }
+         ]
+      }
+   }
+}'
+
+  - model: core.AlertDefinition
+    pk: d5663d34-46fa-4302-bd76-3a8942525c93
+    fields:
+        name: canary test returns false
+        description: 'a canary test has returned false'
+        search: b233986f-ebd5-4815-8c89-0b3f2a81445e
+
+  - model: core.SavedSearch
+    pk: 139851f2-1329-4826-9c70-c154a6c102f2
+    fields:
+        name: canary metric
+        description: 'Goldstone Canary metrics.'
+        owner: core
+        index_prefix: internal-*
+        doc_type: canary
+        timestamp_field: 'ingest_time'
+        protected: true
+        query: '{
+   "query": {
+      "bool": {
+         "must": [
+            {
+               "term": {
+                  "short_message": "testflight"
+               }
+            }
+         ]
+      }
+   },
+   "aggs": {
+      "all_results": {
+         "terms": {
+	    "field": "result",
+	       "size": "0"
+	 }
+      },
+      "per_interval": {
+         "date_histogram": {
+            "field": "ingest_time",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "statistics": {
+               "stats": {
+                  "field": "elapsed"
+               }
+            }
+         }
+      }
+   }
+}'
+
+  - model: core.SavedSearch
+    pk: 21f5c6db-5a2e-41d4-9462-c3cdc03a837b
+    fields:
+      name: nova spawns
+      owner: core
+      index_prefix: goldstone-*
+      doc_type: nova_spawns
+      timestamp_field: '@timestamp'
+      protected: true
+      query: '{
+   "query": {
+      "term": {
+         "event": "finish"
+      }
+   },
+   "aggs": {
+      "per_interval": {
+         "date_histogram": {
+            "field": "@timestamp",
+            "interval": "1d",
+            "min_doc_count": 0
+         },
+         "aggs": {
+            "success": {
+               "terms": {
+                  "field": "success.raw",
+                  "shard_min_doc_count": 0,
+                  "min_doc_count": 0,
+                  "size": 0
+               }
+            }
+         }
+      }
+   }
+}'

@@ -15,10 +15,8 @@
 from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
-from .views import ResourceTypeList, ResourceTypeRetrieve, ResourcesList, \
-    ResourcesRetrieve, TopologyView, SavedSearchViewSet, \
-    AlertDefinitionViewSet, AlertViewSet, ProducerViewSet, EmailProducerViewSet, \
-    MonitoredServiceViewSet
+from .views import SavedSearchViewSet, AlertDefinitionViewSet, AlertViewSet, \
+    ProducerViewSet, EmailProducerViewSet, MonitoredServiceViewSet
 
 router = DefaultRouter()
 
@@ -44,12 +42,6 @@ router.register(r'monitored_service',
 urlpatterns = router.urls
 urlpatterns += patterns(
     '',
-    url(r'^topology/', TopologyView.as_view()),
-    url(r'^resource_types/$', ResourceTypeList.as_view()),
-    url(r'^resource_types/(?P<unique_id>.+)/$',
-        ResourceTypeRetrieve.as_view()),
-    url(r'^resources/$', ResourcesList.as_view()),
-    url(r'^resources/(?P<uuid>.+)/$', ResourcesRetrieve.as_view()),
     url(r'^logs/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': '55b19303-4fd2-4216-95cb-75a4f39b763c'}),
     url(r'^api-calls/', SavedSearchViewSet.as_view(
@@ -58,4 +50,8 @@ urlpatterns += patterns(
         {'get': 'results'}), {'uuid': '7906893c-16dc-4ab3-96e0-8f0054bd4cc1'}),
     url(r'^metrics/', SavedSearchViewSet.as_view(
         {'get': 'results'}), {'uuid': 'a3f34f00-967b-40a2-913e-ba10afdd611b'}),
+    url(r'^canary/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '139851f2-1329-4826-9c70-c154a6c102f2'}),
+    url(r'^hypervisor/spawns/', SavedSearchViewSet.as_view(
+        {'get': 'results'}), {'uuid': '21f5c6db-5a2e-41d4-9462-c3cdc03a837b'})
 )
