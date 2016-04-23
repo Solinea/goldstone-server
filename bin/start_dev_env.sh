@@ -152,7 +152,7 @@ if [[ ${APP_LOCATION} == "local" ]] ; then
         # wait for postgres to come up
         status="DOWN"
         while [ "$status" == "DOWN" ] ; do
-            RC=`docker ps | grep _gsdb_`
+            docker ps | grep _gsdb_ > /dev/null 2>&1 ; RC=$?
             if [[ $RC -eq 0 ]] ; then
                 status=UP
             else
@@ -162,7 +162,7 @@ if [[ ${APP_LOCATION} == "local" ]] ; then
             sleep 5
         done
 
-        DB_HOST=`docker port $(docker ps | grep gsdb | awk '{print $1}') 5432 | cut -f1 -d:`
+        DB_HOST=`docker port $(docker ps | grep _gsdb_ | awk '{print $1}') 5432 | cut -f1 -d:`
         export GS_DOCKER_HOST=$DB_HOST
         echo "DB_HOST = $DB_HOST"
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-base:1.1.1-SNAPSHOT.154.g2cec752.start_dev_env_improvments
+FROM solinea/goldstone-base:1.1.1-SNAPSHOT.163.g977bfc2.develop
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
