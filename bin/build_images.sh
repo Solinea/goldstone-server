@@ -84,7 +84,7 @@ else
    echo "Building tag: $TAG"
 fi
 
-if [[ ${DOCKER_VM} != "false" ]] ; then
+if [[ ${DOCKER_VM} != "none" ]] ; then
     docker-machine start ${DOCKER_VM}
     eval "$(docker-machine env ${DOCKER_VM})"
 fi

@@ -40,7 +40,7 @@ for arg in "$@" ; do
     esac
 done
 
-if [[ ${DOCKER_VM} != "false" ]] ; then
+if [[ ${DOCKER_VM} != "none" ]] ; then
     docker-machine start ${DOCKER_VM}
     eval "$(docker-machine env ${DOCKER_VM})"
 fi

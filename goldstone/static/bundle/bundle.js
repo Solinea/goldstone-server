@@ -4074,12 +4074,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.component",
                     "targets": 7,
                     "sortable": true
-                }, {
-                    "data": "_source.type",
-                    "targets": 8,
-                    "sortable": true
                 }
-
             ],
             "serverSide": true,
             "ajax": {
@@ -4121,7 +4116,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         5: 'response_time',
                         6: 'response_length',
                         7: 'component',
-                        8: 'type',
                     };
                     var ascDec = {
                         asc: '',
@@ -4192,7 +4186,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });
