@@ -1271,8 +1271,8 @@ msgstr "Swiftリージョン"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
-msgid "Swift URL"
-msgstr "Swift URL"
+msgid "Swift Auth URL"
+msgstr "Swift認証URL"
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
