@@ -13079,6 +13079,10 @@ goldstone.init = function() {
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
 
+    // set default error behavior of dataTables to throw
+    // a console error instead of raising a browser alert
+    $.fn.dataTable.ext.errMode = 'throw';
+
     goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 
     goldstone.authLogoutIcon = new LogoutIcon();
