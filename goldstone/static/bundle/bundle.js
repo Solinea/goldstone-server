@@ -11379,6 +11379,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         // hidden timestamp_field
         '<input name="timestamp_field" id="timestamp_field" hidden type="text" value="<%= this.form_timestamp_field %>">' +
 
+        // hidden viewer_enabled field
+        // client must submit 'true' otherwise server will default to false
+        '<input name="viewer_enabled" id="viewer_enabled" hidden type="text" value="true">' +
+
         // submit button
         '<button id="submit-create-button" type="submit"' +
         ' class="btn btn-default"><%=goldstone.contextTranslate(\'Submit Search\', \'savedsearch\')%></button> ' +
