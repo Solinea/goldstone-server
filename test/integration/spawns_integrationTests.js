@@ -218,29 +218,6 @@ describe('spawnsView.js spec', function() {
             expect(this.update_spy.callCount).to.equal(2);
             this.update_spy.restore();
         });
-        it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
-            this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            expect($('#noDataReturned').text()).to.equal('');
-            this.testView.dataErrorMessage(null, {
-                status: '999',
-                responseText: 'naughty - coal for you!'
-            });
-            expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
-            this.testView.dataErrorMessage(null, {
-                status: '123',
-                responseText: 'nice - bourbon for you!'
-            });
-            expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
-            this.testView.dataErrorMessage('butterfly - spread your wings again');
-            expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
-            this.testCollection.add({
-                url: '/blah'
-            });
-            this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.dataErrorMessage_spy.callCount).to.equal(3);
-            this.dataErrorMessage_spy.restore();
-        });
         it('listens for changes to the global lookback/refresh selectors', function() {
             this.urlGenerator_spy = sinon.spy(this.testCollection, "urlGenerator");
             this.testView.trigger('lookbackSelectorChanged');

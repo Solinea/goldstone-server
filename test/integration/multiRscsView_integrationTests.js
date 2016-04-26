@@ -42,10 +42,8 @@ describe('MultiRscsView.js spec', function() {
     });
     describe('basic test for chart triggering', function() {
         it('errorTrigger appends an error message', function() {
-            this.testView.trigger('errorTrigger', []);
-            expect($(this.testView.el).text()).to.not.contain('happy flowers');
             this.testView.trigger('errorTrigger', [{
-                responseText: 'happy flowers'
+                statusText: 'happy flowers'
             }]);
             expect($(this.testView.el).text()).to.contain('happy flowers');
         });

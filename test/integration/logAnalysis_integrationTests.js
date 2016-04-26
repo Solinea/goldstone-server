@@ -279,36 +279,6 @@ describe('logAnalysis.js spec', function() {
             expect($('svg').find('text').text()).to.equal('Log Events');
             this.update_spy.restore();
         });
-        it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
-            this.server.respond();
-            this.testView.update();
-
-            this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
-            this.testView.dataErrorMessage(null, {
-                responseJSON: {
-                    status_code: 246,
-                    message: 'responseJSON message all up in your tests.',
-                    detail: 'and some extra details, just for fun'
-                }
-            });
-            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
-            this.testView.dataErrorMessage(null, {
-                status: '999',
-                responseText: 'naughty - coal for you!'
-            });
-            expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
-            this.testView.dataErrorMessage(null, {
-                status: '123',
-                responseText: 'nice - bourbon for you!'
-            });
-            expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
-            this.testView.dataErrorMessage("butterfly - spread your wings again");
-            expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
-            this.testView.clearDataErrorMessage();
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.dataErrorMessage_spy.callCount).to.equal(4);
-            this.dataErrorMessage_spy.restore();
-        });
         it('should set a new url based on global lookback params coming from parent view', function() {
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
