@@ -29,7 +29,7 @@ for arg in "$@" ; do
             DELETE_OVA=Y
         ;;
         --no-configure-vbox)
-            CONFIGURE_VBOX-N
+            CONFIGURE_VBOX=N
         ;;
         --help)
             echo "Usage: $0 [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
@@ -50,12 +50,13 @@ export GS_PROJ_TOP_DIR=${SRC_HOME}/goldstone-server
 echo "$(tput setaf 2)Installing prerequisites$(tput sgr 0)"
 brew install python > /dev/null 2>&1 
 brew install git > /dev/null 2>&1
+brew install postgresql > /dev/null 2>&1
 brew install pyenv-virtualenvwrapper > /dev/null 2>&1
 
 # 
 # make the environment changes stick
 #
-echo "$(tput setaf 2)Adding some environment to ${SHELL_PROFILE}$(tput sgr 0)"
+echo "$(tput setaf 2)Adding environment to ${SHELL_PROFILE}.  Review and adjust as necessary.$(tput sgr 0)"
 echo >> $SHELL_PROFILE
 echo "##### Begin Goldstone Server Environment #####" >> $SHELL_PROFILE
 echo "export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python" >> $SHELL_PROFILE
@@ -63,6 +64,10 @@ echo "export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv" >> $SHELL_P
 echo "export WORKON_HOME=${HOME}/.virtualenvs" >> $SHELL_PROFILE
 echo "export PROJECT_HOME=${SRC_HOME}" >> $SHELL_PROFILE
 echo "export GS_PROJ_TOP_DIR=${SRC_HOME}/goldstone-server" >> $SHELL_PROFILE
+export STACK_VM="RDO-kilo"        # set to the name of your OpenStack VM
+export DOCKER_VM=none             # if you run docker in a VM, set to the name of the VM
+export GS_APP_LOCATION=container  # set to 'local' if you want to run the app server locally
+export GS_APP_EDITION=oss         # set to 'gse' if you have access to the enterprise repositories
 echo "source /usr/local/bin/virtualenvwrapper.sh" >> $SHELL_PROFILE
 echo "##### End Goldstone Server Environment #####" >> $SHELL_PROFILE
 
@@ -97,10 +102,14 @@ if [[ $DELETE_OVA == 'Y' ]] ; then
     rm -f $OVA_DOWNLOAD_DIR/RDO-kilo-20160204.ova
 fi 
 
-if [[ $CONFIGURE_VBOX == 'Y' ]] ; then
+if [[ $CONFIGURE_VBOX == 'Y']] ; then
     cd ${GS_PROJ_TOP_DIR}
     echo "$(tput setaf 2)Configuring VirtualBox networking $(tput sgr 0)"
-    bin/configure_vbox.sh
+    if [[ $DOCKER_VM != "none" ]] ; then
+        bin/configure_vbox.sh
+    else
+        bin/configure_vbox.sh --no-docker
+    fi
 fi
 echo 
 echo "$(tput setaf 3)Remember to source $SHELL_PROFILE before running 'workon goldstone-server'$(tput sgr 0)"

@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export DJANGO_SETTINGS_MODULE=goldstone.settings.docker_dev
-STACK_VM="RDO-kilo"
-DOCKER_VM="default"
-APP_LOCATION="container"
-APP_EDITION="oss"
-
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-goldstone.settings.docker_dev}
+STACK_VM=${STACK_VM:-"RDO-kilo"}
+DOCKER_VM=${DOCKER_VM:-default}
+APP_LOCATION=${GS_APP_LOCATION:-container}
+APP_EDITION=${GS_APP_EDITION:-oss}
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
-
 GS_APP_DIR=${TOP_DIR}/docker/goldstone-app
 
 # trap ctrl-c and call ctrl_c()
@@ -176,7 +174,7 @@ if [[ ${APP_LOCATION} == "local" ]] ; then
        echo -e "Database connection status: $status"
        sleep 5
     done
-   
+
     # allow a little time for the initial DB setup to happen
     sleep 15
 
