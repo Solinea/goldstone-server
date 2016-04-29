@@ -9,7 +9,7 @@ CONFIGURE_VBOX=Y
 DOCKER_VM=
 
 function usage {
-    echo "Usage: $0 docker-vm=name|none [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
+    echo "Usage: $0 --docker-vm=name|none [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
 }
 
 for arg in "$@" ; do
@@ -60,11 +60,23 @@ export GS_PROJ_TOP_DIR=${SRC_HOME}/goldstone-server
 # 
 # install brew prerequisites
 #  (todo) this is very mac specific.  generalize for other platforms
-echo "$(tput setaf 2)Installing prerequisites$(tput sgr 0)"
-brew install python > /dev/null 2>&1 
-brew install git > /dev/null 2>&1
-brew install postgresql > /dev/null 2>&1
-brew install pyenv-virtualenvwrapper > /dev/null 2>&1
+OS_VARIANT=`uname -s`
+BREW_INSTALLED=`which brew`
+echo "OS_VARIANT = $OS_VARIANT"
+echo "BREW_INSTALLED = $BREW_INSTALLED"
+if [[ $OS_VARIANT == "Darwin" && $BREW_INSTALLED == /* ]] ; then
+    echo "$(tput setaf 2)Installing prerequisites$(tput sgr 0)"
+    brew install python > /dev/null 2>&1 
+    brew install git > /dev/null 2>&1
+    brew install postgresql > /dev/null 2>&1
+    brew install pyenv-virtualenvwrapper > /dev/null 2>&1
+else
+    echo "$(tput setaf 3)This does not appear to be OSX.  Please install these manually when this script finishes:$(tput sgr 0)"
+    echo "$(tput setaf 3)    - git$(tput sgr 0)"
+    echo "$(tput setaf 3)    - python$(tput sgr 0)"
+    echo "$(tput setaf 3)    - postgres$(tput sgr 0)"
+    echo "$(tput setaf 3)    - pyenv-virtualenvwrapper$(tput sgr 0)"
+fi
 
 # 
 # make the environment changes stick
