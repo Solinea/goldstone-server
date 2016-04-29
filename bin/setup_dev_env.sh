@@ -6,7 +6,11 @@ DOWNLOAD_OVA=Y
 DELETE_OVA=N
 OVA_DOWNLOAD_DIR=/tmp
 CONFIGURE_VBOX=Y
+DOCKER_VM=
 
+function usage {
+    echo "Usage: $0 docker-vm=name|none [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
+}
 
 for arg in "$@" ; do
     case $arg in
@@ -17,6 +21,9 @@ for arg in "$@" ; do
         --src-home=*)
             SRC_HOME="${arg#*=}"
             shift
+        ;;
+        --docker-vm=*)
+            DOCKER_VM="${arg#*=}"
         ;;
         --ova-download-dir=*)
             OVA_DOWNLOAD_DIR="${arg#*=}"
@@ -32,21 +39,27 @@ for arg in "$@" ; do
             CONFIGURE_VBOX=N
         ;;
         --help)
-            echo "Usage: $0 [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
+            usage
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--shell-profile=filename] [--src-home=dirname] [--ova-download-dir=dirname] [--no-download-ova] [--delete-ova] [--no-configure-vbox]"
+            usage
             exit 1
         ;;
     esac
 done
+
+if [[ "X$DOCKER_VM" == "X" ]] ; then
+    usage
+    exit 1
+fi
+
 export GS_PROJ_TOP_DIR=${SRC_HOME}/goldstone-server
 
 # 
 # install brew prerequisites
-# 
+#  (todo) this is very mac specific.  generalize for other platforms
 echo "$(tput setaf 2)Installing prerequisites$(tput sgr 0)"
 brew install python > /dev/null 2>&1 
 brew install git > /dev/null 2>&1
@@ -64,10 +77,10 @@ echo "export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv" >> $SHELL_P
 echo "export WORKON_HOME=${HOME}/.virtualenvs" >> $SHELL_PROFILE
 echo "export PROJECT_HOME=${SRC_HOME}" >> $SHELL_PROFILE
 echo "export GS_PROJ_TOP_DIR=${SRC_HOME}/goldstone-server" >> $SHELL_PROFILE
-export STACK_VM="RDO-kilo"        # set to the name of your OpenStack VM
-export DOCKER_VM=none             # if you run docker in a VM, set to the name of the VM
-export GS_APP_LOCATION=container  # set to 'local' if you want to run the app server locally
-export GS_APP_EDITION=oss         # set to 'gse' if you have access to the enterprise repositories
+echo "export STACK_VM='RDO-kilo'" >> $SHELL_PROFILE  # set to the name of your OpenStack VM
+echo "export DOCKER_VM=$DOCKER_VM" >> $SHELL_PROFILE             # if you run docker in a VM, set to the name of the VM
+echo "export GS_APP_LOCATION=container" >> $SHELL_PROFILE  # set to 'local' if you want to run the app server locally
+echo "export GS_APP_EDITION=oss" >> $SHELL_PROFILE         # set to 'gse' if you have access to the enterprise repositories
 echo "source /usr/local/bin/virtualenvwrapper.sh" >> $SHELL_PROFILE
 echo "##### End Goldstone Server Environment #####" >> $SHELL_PROFILE
 
@@ -102,7 +115,7 @@ if [[ $DELETE_OVA == 'Y' ]] ; then
     rm -f $OVA_DOWNLOAD_DIR/RDO-kilo-20160204.ova
 fi 
 
-if [[ $CONFIGURE_VBOX == 'Y']] ; then
+if [[ $CONFIGURE_VBOX == 'Y' ]] ; then
     cd ${GS_PROJ_TOP_DIR}
     echo "$(tput setaf 2)Configuring VirtualBox networking $(tput sgr 0)"
     if [[ $DOCKER_VM != "none" ]] ; then
@@ -113,4 +126,8 @@ if [[ $CONFIGURE_VBOX == 'Y']] ; then
 fi
 echo 
 echo "$(tput setaf 3)Remember to source $SHELL_PROFILE before running 'workon goldstone-server'$(tput sgr 0)"
+echo "$(tput setaf 3)If you will be building docker images, you should also execute:$(tput sgr 0)"
+echo "$(tput setaf 3)    $ pip install -r docker/goldstone-base/config/requirements.txt$(tput sgr 0)"
+echo "$(tput setaf 3)    $ pip install -r docker/goldstone-base/config/test-requirements.txt$(tput sgr 0)"
+
 echo
