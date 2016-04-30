@@ -17,7 +17,7 @@
 # spawning.  
 #
 filter {
-    if [type] == "nova_spawns_resub" {
+    if [type] == "nova_spawns" {
         if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
             mutate {
                     remove_tag => ["_grokparsefailure"]
@@ -67,7 +67,6 @@ filter {
                 drop { }
             } else {
                 mutate {
-                    replace => [ "type", "nova_spawns" ]
                     remove_field => [
                           syslog5424_pri, syslog_ts, log_message, pid, loglevel,
                           syslog_severity_code, syslog_facility_code,
