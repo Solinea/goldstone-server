@@ -18,7 +18,8 @@
 #
 filter {
     if [type] == "nova_spawns" {
-        if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
+        if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver", 
+                         "nova.scheduler.utils", "nova.api.openstack.wsgi"] {
             mutate {
                     remove_tag => ["_grokparsefailure"]
             }
@@ -54,10 +55,21 @@ filter {
             }
             grok {
                 patterns_dir => "/opt/logstash/patterns"
-                match => { "message" => "%{NOVA_SPAWN_FAIL}" }
+                match => { "message" => "%{NOVA_SPAWN_MISC_FAIL}" }
                 add_field => ["event", "finish"]
                 add_field => ["success", false]
                 add_field => ["failure_mode", "ERROR"]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_QUOTA_FAIL}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", false]
+                add_field => ["failure_mode", "QUOTA"]
                 add_tag => ["nova_spawn_finish"]
             }
             mutate {
@@ -70,9 +82,8 @@ filter {
                     remove_field => [
                           syslog5424_pri, syslog_ts, log_message, pid, loglevel,
                           syslog_severity_code, syslog_facility_code,
-                          syslog_severity, syslog_facility, program, component,
-                          openstack_message, request_id, instance_id, timestamp,
-                          request_id_list, message, tags ]
+                          syslog_severity, syslog_facility, component,
+                          timestamp, tags, message ]
                 }
             }
         } else {

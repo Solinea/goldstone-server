@@ -123,7 +123,7 @@ services:
   # Canary Container
   #
   gscanary:
-    image: gs-docker-ent.bintray.io/goldstone-svc-canary:latest
+    image: gs-docker-ent.bintray.io/goldstone-svc-canary:stable
     env_file: ./config/goldstone-prod.env
     links:
       - gslog
