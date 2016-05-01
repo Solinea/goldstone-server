@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-base:1.1.1-SNAPSHOT.180.g9435e36.logstash.bugs
+FROM solinea/goldstone-base:1.1.1-SNAPSHOT.185.g3787d39.logstash.bugs
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
