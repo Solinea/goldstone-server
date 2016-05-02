@@ -1271,7 +1271,7 @@ msgstr ""
 
 #: openTrailDataTableView.js
 msgctxt "opentrail"
-msgid "Swift URL"
+msgid "Swift Auth URL"
 msgstr ""
 
 #: openTrailDataTableView.js

@@ -13,10 +13,11 @@
 # limitations under the License.
 
 
-filter {
+# agent 1.0 data arrives via syslog. we want to pull out the JSON payload
+# into the agent_data field, and retype the message based as either
+# core_metric or core_report.
 
-    # clone all syslog messages to be handled by the host_stream and
-    # event_stream outputs.
+filter {
 
     if [type] == "syslog" {
         grok {
@@ -31,15 +32,18 @@ filter {
                match => [ "timestamp", "UNIX_MS" ]
             }
             mutate {
-                add_tag => ["filter_16_pass", "agent_data"]
-                # need to prefix type with core_ to help ElasticUtils with mapping
-                replace => ["type", "core_%{agent_data_type}"]
+                add_tag => ["agent_data"]
                 rename => ["syslog5424_host", "node"]
                 remove_field => ["message", "agent_data", "agent_data_type", "syslog5424_pri", "syslog_ts", "pid"]
             }
+            # we don't need to filter this message as type = syslog anymore, so clone it and drop it.
+            clone {
+                # need to prefix type with core_ to help ElasticUtils with mapping
+                clones => ["core_%{agent_data_type}"]
+            }
+            drop {}
         } else {
             mutate {
-                add_tag => ["filter_16_fail"]
                 remove_tag => ["_grokparsefailure"]
             }
         }

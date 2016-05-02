@@ -19,4 +19,5 @@ prune docker
 prune rpm_packaging
 prune test
 prune goldstone/compliance
+prune goldstone/topology
 prune desktop

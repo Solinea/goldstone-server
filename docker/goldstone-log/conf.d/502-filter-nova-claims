@@ -13,7 +13,7 @@
 # limitations under the License.
 
 filter {
-    if [type] == "nova_claims_resub" {
+    if [type] == "nova_claims" {
         if [program] == "nova.compute.claims" {
             mutate {
                 remove_tag => ["_grokparsefailure"]
@@ -48,7 +48,6 @@ filter {
                 drop { }
             } else {
                 mutate {
-                    replace => [ "type", "nova_claims" ]
                     remove_field => [
                         syslog5424_pri, syslog_ts, log_message, pid, loglevel,
                         syslog_severity_code, syslog_facility_code,
