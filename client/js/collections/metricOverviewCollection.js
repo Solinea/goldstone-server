@@ -66,7 +66,7 @@ api
                 finalResult.eventData = r2[0];
                 finalResult.apiData = r3[0];
 
-                // append start/end of timestamp__range 
+                // append start/end of timestamp__range
                 finalResult.startTime = self.gte;
                 finalResult.endTime = self.epochNow;
 
@@ -77,7 +77,7 @@ api
                 self.trigger('sync');
             })
             .fail(function(err) {
-                self.trigger('error', [err.status, err.statusText]);
+                self.trigger('error', err);
             });
     },
 

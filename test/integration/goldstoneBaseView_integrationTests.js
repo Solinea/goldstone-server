@@ -104,63 +104,45 @@ describe('goldstoneBaseView.js spec', function() {
             expect($('.popup-message').text()).to.include('this is a test');
             this.testView.dataErrorMessage('number two test');
             expect($('.popup-message').text()).to.include('number two test');
-            this.testView.dataErrorMessage('should not be here', {
+            this.testView.dataErrorMessage(undefined, {
                 responseJSON: {
-                    status_code: 999,
-                    message: 'messageInReponseJSON'
-                }
+                    randomMessageKey: ['messageInReponseJSON']
+                },
+                status: 999
             });
             expect($('.popup-message').text()).to.include('messageInReponseJSON');
-            expect($('.popup-message').text()).to.not.include('should not be here');
             expect($('.popup-message').text()).to.include('999');
-            this.testView.dataErrorMessage('should not be here', {
+            this.testView.dataErrorMessage('should also be here', {
                 responseJSON: {
-                    status_code: 123,
-                    message: 'newResponseMessage'
-                }
+                    message: ['newResponseMessage']
+                },
+                status: 123
             });
-            expect($('.popup-message').text()).to.not.include('messageInReponseJSON');
             expect($('.popup-message').text()).to.include('newResponseMessage');
-            expect($('.popup-message').text()).to.not.include('should not be here');
+            expect($('.popup-message').text()).to.include('should also be here');
             expect($('.popup-message').text()).to.include('123');
         });
         it('can handle extra arguments that might exist from the server error', function() {
-            this.testView.dataErrorMessage('should not be here', {
+            this.testView.dataErrorMessage('should be here', {
                 responseJSON: {
-                    status_code: 234,
-                    message: 'newResponseMessageCheck'
-                }
+                    message: ['newResponseMessageCheck']
+                },
+                status: 234
             }, 'nothing', 'to', 'worry', 'about');
-            expect($(this.testView.el).find('.popup-message').text()).to.not.include('messageInReponseJSON');
             expect($(this.testView.el).find('.popup-message').text()).to.include('newResponseMessageCheck');
-            expect($(this.testView.el).find('.popup-message').text()).to.not.include('should not be here');
+            expect($(this.testView.el).find('.popup-message').text()).to.include('should be here');
             expect($(this.testView.el).find('.popup-message').text()).to.include('234');
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
-                    status_code: 246,
-                    message: 'responseJSON message all up in your tests.',
-                    detail: 'and some extra details, just for fun'
-                }
+                    message: ['responseJSON message all up in your tests.']
+                },
+                statusText: '246',
             });
-            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
-            this.testView.dataErrorMessage(null, {
-                status: '999',
-                responseText: 'naughty - coal for you!'
-            });
-            expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
-            this.testView.dataErrorMessage(null, {
-                status: '123',
-                responseText: 'nice - bourbon for you!'
-            });
-            expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
-            this.testView.dataErrorMessage("butterfly - spread your wings again");
-            expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
-            this.testView.clearDataErrorMessage();
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.dataErrorMessage_spy.callCount).to.equal(4);
+            expect($('.popup-message').text()).to.equal(' 246. responseJSON message all up in your tests.');
+            expect(this.dataErrorMessage_spy.callCount).to.equal(1);
             this.dataErrorMessage_spy.restore();
         });
     });
