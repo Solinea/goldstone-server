@@ -54,8 +54,8 @@ def validate(arg_list, context):
             # timedelta.total_seconds not available in py26
             delta_secs = \
                 (time_delta.microseconds +
-                 (time_delta.seconds + time_delta.days * 24 * 3600)
-                 * 10 ** 6) / 10 ** 6
+                 (time_delta.seconds + time_delta.days * 24 * 3600) *
+                 10 ** 6) / 10 ** 6
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
         elif context['interval'][-1] != 's':
