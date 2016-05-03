@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DOCKER_VM=default
+DOCKER_VM=${DOCKER_VM:-default}
 
 for arg in "$@" ; do
     case $arg in
@@ -33,7 +33,7 @@ for arg in "$@" ; do
     esac
 done
 
-if [[ ${DOCKER_VM} != "false" ]] ; then
+if [[ ${DOCKER_VM} != "none" ]] ; then
     docker-machine start ${DOCKER_VM}
     eval "$(docker-machine env ${DOCKER_VM})"
 fi
