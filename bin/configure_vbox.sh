@@ -26,8 +26,8 @@
 
 STACK=true
 DOCKER=true
-DOCKER_VM="default"
-OPENSTACK_VM="RDO-kilo"
+DOCKER_VM=${DOCKER_VM:-default}
+OPENSTACK_VM=${OPENSTACK_VM:-"RDO-kilo"}
 
 for arg in "$@" ; do
     case $arg in
@@ -158,7 +158,7 @@ else
 fi
 
 
-if [[ $DOCKER == "true" ]] ; then
+if [[ $DOCKER == "true" && $DOCKER_VM != "none" ]] ; then
     # Ensure the docker image is stopped
     docker-machine stop ${DOCKER_VM}
     # Restore the original ssh NAT rule if it has been deleted.  Ignore errors.
