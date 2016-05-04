@@ -48,11 +48,16 @@ def es_indices(prefix="", conn=None):
     """
 
     if prefix is not "":
+        if prefix.endswith("*"):
+            prefix = prefix.replace("*", "")
         if conn is None:
             conn = es_conn()
 
         all_indices = conn.indices.status()['indices'].keys()
-        return [i for i in all_indices if i.startswith(prefix)]
+        for index in all_indices:
+            if index.startswith(prefix):
+                return index
+        return None
     else:
         return "_all"
 
