@@ -166,12 +166,12 @@ class ElasticSearchTests(SimpleTestCase):
         self.assertEqual(es_indices(), "_all")
 
         # test with no conn
-        result = es_indices(prefix='index')
+        result = es_indices(prefix='index1*')
         self.assertTrue(m_es.indices.status.called)
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
 
         # test with prefix
-        result = es_indices('index', es_conn())
+        result = es_indices('index1*', es_conn())
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
