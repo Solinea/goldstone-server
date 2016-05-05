@@ -201,6 +201,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.core.tasks.service_status_check',
         'schedule': EVERY_5_MINUTES
     },
+    'nova-hypervisors-stats': {
+        'task': 'goldstone.core.tasks.nova_hypervisors_stats',
+        'schedule': EVERY_MINUTE,
+    },
 }
 
 
