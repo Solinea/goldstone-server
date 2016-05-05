@@ -118,27 +118,26 @@ var SpawnsView = GoldstoneBaseView.extend({
 
         // Spawns Resources chart data prep
 
-
         /*
         "aggregations": {
             "per_interval": {
                 "buckets": [{
-                    {
-                        "success": {
-                            "buckets": [{
-                                "key": "true",
-                                "doc_count": 3
-                            }],
-                            "sum_other_doc_count": 0,
-                            "doc_count_error_upper_bound": 0
-                        },
-                        "key_as_string": "2016-02-09T18:30:00.000Z",
-                        "key": 1455042600000,
-                        "doc_count": 3
-                    }]
-                }
-            }
-        }
+                    "success": {
+                        "buckets": [{
+                            "key": "false",
+                            "doc_count": 1
+                        }, {
+                            "key": "true",
+                            "doc_count": 0
+                        }],
+                        "sum_other_doc_count": 0,
+                        "doc_count_error_upper_bound": 0
+                    },
+                    "key_as_string": "2016-05-05T16:15:00.000Z",
+                    "key": 1462464900000,
+                    "doc_count": 1
+                },
+                ...
         */
 
         _.each(data, function(timeStamp) {
@@ -148,22 +147,23 @@ var SpawnsView = GoldstoneBaseView.extend({
             var logTime = timeStamp.key;
             if (timeStamp.success === undefined || timeStamp.success.buckets === undefined) {
                 success = 0;
+                failure = 0;
             } else {
                 success = _.filter(timeStamp.success.buckets, function(bucket) {
                     return bucket.key === "true";
                 }).map(function(item) {
                     return item.doc_count;
                 });
-            }
 
-            if (timeStamp.failure === undefined || timeStamp.failure.buckets === undefined) {
-                failure = 0;
-            } else {
-                failure = _.filter(timeStamp.failure.buckets, function(bucket) {
-                    return bucket.key === "true";
+                // important: spawn failures are under
+                // success.buckets.key === "false"
+                // not under a separate 'failure' key.
+                failure = _.filter(timeStamp.success.buckets, function(bucket) {
+                    return bucket.key === "false";
                 }).map(function(item) {
                     return item.doc_count;
                 });
+
             }
 
             result.push({
