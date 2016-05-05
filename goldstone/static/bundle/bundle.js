@@ -445,57 +445,48 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
     },
 
-    dataErrorMessage: function(message, errorMessage) {
+    processErrorMessage: function(message, errorMessage) {
 
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
+        // XHR errors will be passed through as second argument.
+        // simple error messages will be sent through as first argument.
+        // in case XHR error makes it through as first argument,
+        // if second argument is empty, it will be handled properly:
         if (errorMessage === undefined && (_.isObject(message))) {
             errorMessage = message;
+            message = null;
         }
 
         if (errorMessage !== undefined) {
-            message = '';
+
+            // if message and errorMessage are both objects,
+            // favor errorMessage:
+            if (!message || (_.isObject(message) && (_.isObject(errorMessage)))) {
+                message = '';
+            } else {
+                message = message + ' ';
+            }
+
+            if (errorMessage.status) {
+                message += errorMessage.status + ' error:';
+            }
+            if (errorMessage.statusText) {
+                message += ' ' + errorMessage.statusText + '. ';
+            }
 
             if (errorMessage.responseJSON) {
-                if (errorMessage.responseJSON.status_code) {
-                    message += errorMessage.responseJSON.status_code + ' error: ';
-                }
-                if (errorMessage.responseJSON.message) {
-                    message += errorMessage.responseJSON.message + ' ';
-                }
-                if (errorMessage.responseJSON.detail) {
-                    message += errorMessage.responseJSON.detail;
-                }
-                if (errorMessage.responseJSON.non_field_errors) {
-                    message += errorMessage.responseJSON.non_field_errors;
-                }
-                if (errorMessage.responseJSON.resource_type && Array.isArray(errorMessage.responseJSON.resource_type)) {
-                    message += errorMessage.responseJSON.resource_type[0];
-                }
-
-            } else {
-                if (errorMessage.status) {
-                    message += errorMessage.status + ' error:';
-                }
-                if (errorMessage.statusText) {
-                    message += ' ' + errorMessage.statusText + '.';
-                }
-                if (errorMessage.responseText) {
-                    message += ' ' + errorMessage.responseText + '.';
-                }
-                if (errorMessage.message) {
-                    message += ' ' + errorMessage.message + '.';
-                }
-                if (errorMessage.detail) {
-                    message += ' ' + errorMessage.detail + '.';
+                if (Object.keys(errorMessage.responseJSON).length === 1) {
+                    message += _.values(errorMessage.responseJSON)[0][0];
                 }
             }
         }
+        // if just a simple message without XHR, above will be bypassed
+        return message;
+    },
 
+    dataErrorMessage: function(message, errorMessage) {
         // calling raiseAlert with the 3rd param of "true" will supress the
         // auto-hiding of the element as defined in goldstone.raiseAlert
+        message = this.processErrorMessage(message, errorMessage);
         goldstone.raiseAlert($(this.el).find('.popup-message'), message);
 
         // hide spinner, as appending errorMessage is usually the end of
@@ -3218,7 +3209,7 @@ api
                 finalResult.eventData = r2[0];
                 finalResult.apiData = r3[0];
 
-                // append start/end of timestamp__range 
+                // append start/end of timestamp__range
                 finalResult.startTime = self.gte;
                 finalResult.endTime = self.epochNow;
 
@@ -3229,7 +3220,7 @@ api
                 self.trigger('sync');
             })
             .fail(function(err) {
-                self.trigger('error', [err.status, err.statusText]);
+                self.trigger('error', err);
             });
     },
 
@@ -4190,12 +4181,7 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                     "data": "_source.component",
                     "targets": 7,
                     "sortable": true
-                }, {
-                    "data": "_source.type",
-                    "targets": 8,
-                    "sortable": true
                 }
-
             ],
             "serverSide": true,
             "ajax": {
@@ -4237,7 +4223,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
                         5: 'response_time',
                         6: 'response_length',
                         7: 'component',
-                        8: 'type',
                     };
                     var ascDec = {
                         asc: '',
@@ -4308,7 +4293,6 @@ var ApiBrowserDataTableView = DataTableBaseView.extend({
         '<th><%=goldstone.contextTranslate(\'response time\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'length\', \'apibrowserdata\')%></th>' +
         '<th><%=goldstone.contextTranslate(\'component\', \'apibrowserdata\')%></th>' +
-        '<th><%=goldstone.contextTranslate(\'type\', \'apibrowserdata\')%></th>' +
         '</tr>'
     )
 });
@@ -9525,7 +9509,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
 
             // params is passed in as an array from the "trigger" function
             // in topologyTreeView, and is specified with index[0]
-            this.dataErrorMessage(null, params[0]);
+            this.dataErrorMessage(params[0]);
         });
     },
 
@@ -11505,6 +11489,10 @@ SavedSearchDataTableView = DataTableBaseView.extend({
         // hidden timestamp_field
         '<input name="timestamp_field" id="timestamp_field" hidden type="text" value="<%= this.form_timestamp_field %>">' +
 
+        // hidden viewer_enabled field
+        // client must submit 'true' otherwise server will default to false
+        '<input name="viewer_enabled" id="viewer_enabled" hidden type="text" value="true">' +
+
         // submit button
         '<button id="submit-create-button" type="submit"' +
         ' class="btn btn-default"><%=goldstone.contextTranslate(\'Submit Search\', \'savedsearch\')%></button> ' +
@@ -13204,6 +13192,10 @@ goldstone.init = function() {
     init.js.
     finally, authLogoutIcon prunes old unused keys in localStorage
     */
+
+    // set default error behavior of dataTables to throw
+    // a console error instead of raising a browser alert
+    $.fn.dataTable.ext.errMode = 'throw';
 
     goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
 

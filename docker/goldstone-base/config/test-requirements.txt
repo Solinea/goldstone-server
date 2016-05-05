@@ -13,11 +13,11 @@
 # limitations under the License.
 
 coverage==3.7.1
-django-nose
+django-nose==1.4.3
 flower==0.8.2
-mkdocs
+mkdocs==0.15.3
 mock==1.0.1
-pep8==1.5.7
+pep8==1.7.0
 pyflakes==0.7.3
 pylint==1.5.0
 selenium==2.40.0

@@ -47,7 +47,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
 
             // params is passed in as an array from the "trigger" function
             // in topologyTreeView, and is specified with index[0]
-            this.dataErrorMessage(null, params[0]);
+            this.dataErrorMessage(params[0]);
         });
     },
 

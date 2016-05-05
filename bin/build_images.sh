@@ -17,7 +17,7 @@
 # goldstone-server docker container context for build. Once copied, it
 # performs a build of the docker container, and pushes it to the repo.
 
-DOCKER_VM=default
+DOCKER_VM=${DOCKER_VM:-default}
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 DIST_DIR=${TOP_DIR}/dist
 

@@ -1,0 +1,81 @@
+# Copyright 2015 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+filter {
+    if "agent_data" not in [tags] {
+        if [type] == "syslog" {
+            grok { 
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "log_message" => ["%{OPENSTACK_MESSAGE}", "%{OPENSTACK_RFC5424_MESSAGE}"] }
+            }
+            if ("_grokparsefailure" not in [tags]) {
+                # if the component field exists, this is a RFC5424 message, otherwise
+                # we need to use the facility to figure out which project sent it
+                if !("" in [component]) {
+                    translate {
+                        field => "syslog_facility"
+                        dictionary => [ 
+                            "local0", "nova",
+                            "local1", "glance",
+                            "local2", "neutron",
+                            "local3", "ceilometer",
+                            "local4", "swift",
+                            "local5", "cinder",
+                            "local6", "keystone"
+                        ]
+                        fallback => "unknown"
+                        destination => "component"
+                    }
+                    # cinder (and possibly others) send some messages outside of the intended
+                    # facility in addition to the expected messages.  let's drop them.
+                    if ([component] == "unknown" and [program] == "cinder.volume.manager") {
+                        drop {}
+                    }
+                } else {
+                    mutate {
+                        add_tag => ["openstack_syslog_rfc5424"]
+                    }
+                    if [component] in ["object", "account", "container", "proxy"] {
+                        mutate {
+                           replace => { "subcomponent" => "%{component}-%{subcomponent}" }
+                           replace => { "component" => "swift" }
+                       }
+                    }
+                }
+                if ([syslog_severity] == "NOTICE") {
+                    mutate {
+                        add_field => {"loglevel" => "AUDIT"}
+                    }
+                }
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        replace => ["event_type", "OpenStackSyslogError"]
+                    }
+                }
+                mutate {
+                    replace => [ "host", "%{syslog5424_host}" ]
+                    add_tag => ["openstack_syslog", "filter_34_pass"]
+                }
+
+                clone {
+                    clones => ["nova_claims", "nova_spawns", "api_stats"]
+                }
+            } else {
+                mutate {
+                    remove_tag => ["_grokparsefailure"]
+                }
+            }
+        }
+    }
+}

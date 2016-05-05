@@ -22,7 +22,8 @@ TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
 STATIC_ROOT = os.path.join(os.getcwd(), 'static')
 
 DATABASES['default']['HOST'] = os.environ.get('GS_DOCKER_HOST', '127.0.0.1')
-LOGGING['handlers']['graypy']['host'] = os.environ.get('GS_DOCKER_HOST', '127.0.0.1')
+LOGGING['handlers']['graypy']['host'] = os.environ.get(
+    'GS_DOCKER_HOST', '127.0.0.1')
 
 STATIC_ROOT = os.path.join(os.getcwd(),
                            'docker/goldstone-web/static')

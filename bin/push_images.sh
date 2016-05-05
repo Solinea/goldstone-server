@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DOCKER_VM=default
+DOCKER_VM=${DOCKER_VM:-default}
 TOP_DIR=${GS_PROJ_TOP_DIR:-${PROJECT_HOME}/goldstone-server}
 
 
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD| sed -e 's/-/./g')
 TAG=$(${TOP_DIR}/bin/semver.sh full)
 
-REGISTRY_ORG=solinea
+function usage {
+    echo "Usage: $0 [--tag=tagname] [--docker-vm=vmname]"
+}
 
 for arg in "$@" ; do
     case $arg in
@@ -28,13 +30,17 @@ for arg in "$@" ; do
             DOCKER_VM="${arg#*=}"
             shift
         ;;
+        --tag=*)
+            TAG="${arg#*=}"
+            shift
+        ;;
         --help)
-            echo "Usage: $0 [--docker-vm=vmname]"
+            usage
             exit 0
         ;;
         *)
             # unknown option
-            echo "Usage: $0 [--docker-vm=vmname]"
+            usage
             exit 1
         ;;
     esac
@@ -48,11 +54,6 @@ fi
 # 
 # push images
 #
-
-if [[ $TAG == "" ]] ; then
-    echo "Usage: $0 [--docker-vm=vmname]"
-    exit 1
-fi 
 
 OPEN_REGISTRY_ORG=solinea
 PRIV_REGISTRY_ORG=gs-docker-ent.bintray.io

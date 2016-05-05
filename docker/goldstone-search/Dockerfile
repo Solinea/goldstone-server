@@ -21,8 +21,8 @@ MAINTAINER Luke Heidecke <luke@solinea.com>
 RUN plugin install mobz/elasticsearch-head \
   && plugin -install royrusso/elasticsearch-HQ
 
-ENV ES_CLUSTERNAME goldstone \
-    ES_HEAP_SIZE 256M
+ENV ES_CLUSTERNAME="goldstone" \
+    ES_HEAP_SIZE="1g"
 
 ENV ES_JAVA_OPTS="\
       -Des.cluster.name=goldstone \
