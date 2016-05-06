@@ -326,7 +326,7 @@ var SpawnsView = GoldstoneBaseView.extend({
 
                 // compute array equal to hi/lo
                 var timeRange = d3.extent(data, function(d) {
-                    return d.eventTime;
+                    return +d.eventTime;
                 });
 
                 // pad time range forward equal to one chart slice
