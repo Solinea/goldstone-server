@@ -314,10 +314,30 @@ var SpawnsView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        this.x.domain(d3.extent(data, function(d) {
-            return d.eventTime;
-        }));
+        // the setting of the x domain is based
+        // on the min / max of the timescale
+        // of the returned data set
 
+        this.x.domain([d3.min(data, function(d) {
+                return d.eventTime;
+            }),
+
+            // function must be immediately invoked with data passed in
+            // to set the high end of the domain without a
+            // d3 method
+            function(data) {
+
+                // compute array equal to hi/lo
+                var timeRange = d3.extent(data, function(d) {
+                    return d.eventTime;
+                });
+
+                // pad time range forward equal to one chart slice
+                // to keep bars contained within x axis
+                var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                return [timeRange[1] + chartPad];
+            }(data)
+        ]);
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
         this.y.domain([0, d3.max(data, function(d) {
