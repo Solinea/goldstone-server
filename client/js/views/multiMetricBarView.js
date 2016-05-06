@@ -499,7 +499,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 // pad time range forward equal to one chart slice
                 // to keep bars contained within x axis
                 var chartPad = (timeRange[1] - timeRange[0]) / data.length;
-                console.log([timeRange[1] + chartPad]);
                 return [timeRange[1] + chartPad];
             }(data)
         ]);
