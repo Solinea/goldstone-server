@@ -119,6 +119,6 @@ goldstone.init = function() {
     // debounce will activate after a cluster of resizing activity finishes
     // and there is a 400 millisecond gap.
     $(window).on('resize', _.debounce(function() {
-        goldstone.gsRouter.switchView(goldstone.currentRawViewObject);
+        goldstone.gsRouter.refreshViewAfterResize();
     }, 400));
 };

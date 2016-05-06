@@ -1356,12 +1356,19 @@ var GoldstoneRouter = Backbone.Router.extend({
         });
         return options;
     },
+    refreshViewAfterResize: function(){
+
+        // listener instantiated in init.js
+        if(!this.currentRawViewObject) {
+            return;
+        }
+        this.switchView(this.currentRawViewObject);
+    },
     switchView: function(view) {
 
         // keep this in case browser is resized
         // it will be used to redraw view
-        // listener instantiated in init.js
-        goldstone.currentRawViewObject = view;
+        this.currentRawViewObject = view;
 
         // Capture any extra params that are passed in via the
         // router functions below, such as {node_uuid: nodeId} in
@@ -13170,6 +13177,6 @@ goldstone.init = function() {
     // debounce will activate after a cluster of resizing activity finishes
     // and there is a 400 millisecond gap.
     $(window).on('resize', _.debounce(function() {
-        goldstone.gsRouter.switchView(goldstone.currentRawViewObject);
+        goldstone.gsRouter.refreshViewAfterResize();
     }, 400));
 };
