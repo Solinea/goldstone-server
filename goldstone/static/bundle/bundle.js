@@ -1597,12 +1597,44 @@ var ChartSet = GoldstoneBaseView.extend({
         var param = this.xParam || 'time';
         var self = this;
         this.x = d3.time.scale()
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
-        .domain(self.data.length ? d3.extent(this.data, function(d) {
-            return d[param];
-        }) : [1, 1])
-            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+        if (self.data.length) {
+
+            // this.x.domain(d3.extent(this.data, function(d) {
+            //     return d[param];
+            // }));
+
+            this.x.domain([d3.min(this.data, function(d) {
+                    return d[param];
+                }),
+
+                // function must be immediately invoked with data passed in
+                // to set the high end of the domain without a
+                // d3 method
+                function(data) {
+
+                    // compute array equal to hi/lo
+                    var timeRange = d3.extent(data, function(d) {
+                        return +d[param];
+                    });
+
+                    // pad time range forward equal to one chart slice
+                    // to keep bars contained within x axis
+                    var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                    return [timeRange[1] + chartPad];
+                }(this.data)
+            ]);
+
+        } else {
+            this.x.domain([1, 1]);
+        }
+        // this.x.domain(self.data.length ? d3.extent(this.data, function(d) {
+        //     return d[param];
+        // }) : [1, 1]);
+
     },
 
     setYDomain: function() {
@@ -1658,7 +1690,7 @@ var ChartSet = GoldstoneBaseView.extend({
             .attr('height', function(d) {
                 return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
             })
-            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length);
+            .attr('width', ((this.width - this.marginLeft - this.marginRight) / this.data.length) * 0.93);
     },
 
     shapeEnter: function(shape) {
@@ -1681,7 +1713,7 @@ var ChartSet = GoldstoneBaseView.extend({
             .attr('height', function(d) {
                 return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
             })
-            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length)
+            .attr('width', ((this.width - this.marginLeft - this.marginRight) / this.data.length) * 0.93)
             .attr('cx', function(d) {
                 return self.x(d[xParam]);
             })
@@ -1765,8 +1797,8 @@ var ChartSet = GoldstoneBaseView.extend({
         this.xAxis = d3.svg.axis()
             .scale(this.x)
             .ticks(4)
-        // format: day month H:M:S
-        .tickFormat(d3.time.format("%e %b %X"))
+            // format: day month H:M:S
+            .tickFormat(d3.time.format("%e %b %X"))
             .orient("bottom");
     },
 
