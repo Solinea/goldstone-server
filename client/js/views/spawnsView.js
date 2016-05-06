@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  */
 
 /*
-View is currently directly implemented as Nova VM Spawns Viz
-and extended into Nova CPU/Memory/Disk Resource Charts
-
-instantiated on novaReportView similar to:
+instantiated on discoverPageView as:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlBase: '/nova/hypervisor/spawns/'
+    urlBase: '/core/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
@@ -29,8 +26,8 @@ this.vmSpawnChartView = new SpawnsView({
     collection: this.vmSpawnChart,
     height: 350,
     infoText: 'novaSpawns',
-    el: '#nova-report-r1-c2',
-    width: $('#nova-report-r1-c2').width(),
+    el: '#discover-view-r3-c2',
+    width: $('#discover-view-r3-c2').width(),
     yAxisLabel: goldstone.translate('Spawn Events')
 });
 */
