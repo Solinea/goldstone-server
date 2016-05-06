@@ -12170,6 +12170,11 @@ var SpawnsView = GoldstoneBaseView.extend({
                     return item.doc_count;
                 });
 
+                // a lack of successes is just returned as an empty array
+                if (success.length === 0) {
+                    success = [0];
+                }
+
                 // important: spawn failures are under
                 // success.buckets.key === "false"
                 // not under a separate 'failure' key.
@@ -12179,6 +12184,10 @@ var SpawnsView = GoldstoneBaseView.extend({
                     return item.doc_count;
                 });
 
+                // a lack of failures is just returned as an empty array
+                if (failure.length === 0) {
+                    failure = [0];
+                }
             }
 
             result.push({
