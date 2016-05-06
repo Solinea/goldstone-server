@@ -57,6 +57,11 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     switchView: function(view) {
 
+        // keep this in case browser is resized
+        // it will be used to redraw view
+        // listener instantiated in init.js
+        goldstone.currentRawViewObject = view;
+
         // Capture any extra params that are passed in via the
         // router functions below, such as {node_uuid: nodeId} in
         // nodeReport.
