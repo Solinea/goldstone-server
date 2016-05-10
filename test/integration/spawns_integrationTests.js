@@ -224,6 +224,124 @@ describe('spawnsView.js spec', function() {
             expect(this.urlGenerator_spy.callCount).to.equal(1);
             this.urlGenerator_spy.restore();
         });
+        it('properly parses success and failure events', function() {
+
+            var test = this.testView.dataPrep([{
+                "key": 1462468350000
+            }]);
+            expect(test).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": 0,
+                "Failure": 0
+            }]);
+
+            var test0 = this.testView.dataPrep([{
+                "success": {
+                },
+                "key": 1462468350000
+            }]);
+            expect(test0).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": 0,
+                "Failure": 0
+            }]);
+
+            var test1 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": [{
+                        "key": "false",
+                        "doc_count": 2
+                    }, {
+                        "key": "true",
+                        "doc_count": 2
+                    }]
+                },
+                "key": 1462468350000
+            }]);
+            expect(test1).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [2],
+                "Failure": [2]
+            }]);
+
+            var test2 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": [{
+                        "key": "false",
+                        "doc_count": 0
+                    }, {
+                        "key": "true",
+                        "doc_count": 2
+                    }]
+                },
+                "key": 1462468350000
+            }]);
+            expect(test2).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [2],
+                "Failure": [0]
+            }]);
+
+            var test3 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": [{
+                        "key": "false",
+                        "doc_count": 3
+                    }, {
+                        "key": "true",
+                        "doc_count": 0
+                    }]
+                },
+                "key": 1462468350000
+            }]);
+            expect(test3).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [0],
+                "Failure": [3]
+            }]);
+
+            var test4 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": [{
+                        "key": "true",
+                        "doc_count": 5
+                    }]
+                },
+                "key": 1462468350000
+            }]);
+            expect(test4).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [5],
+                "Failure": [0]
+            }]);
+
+            var test5 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": [{
+                        "key": "false",
+                        "doc_count": 5
+                    }]
+                },
+                "key": 1462468350000
+            }]);
+            expect(test5).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [0],
+                "Failure": [5]
+            }]);
+
+            var test6 = this.testView.dataPrep([{
+                "success": {
+                    "buckets": []
+                },
+                "key": 1462468350000
+            }]);
+            expect(test6).to.deep.equal([{
+                "eventTime": 1462468350000,
+                "Success": [0],
+                "Failure": [0]
+            }]);
+        });
         it('properly prepares popovers', function() {
             var test1 = this.testView.computeHiddenBarText({
                 eventTime: '1425071850093',

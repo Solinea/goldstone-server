@@ -154,9 +154,12 @@ class ElasticSearchTests(SimpleTestCase):
         m_es.indices.status.return_value = {
             'indices': {
                 'index1': 'value1',
-                'not_index1': 'value3'
+                'not_index1': 'value1',
+                'index2-': 'value2',
+                'not_index2-': 'value2'
             }
         }
+
         m_conn.return_value = m_es
 
         # test with no prefix provided
@@ -165,13 +168,46 @@ class ElasticSearchTests(SimpleTestCase):
         # test with no params
         self.assertEqual(es_indices(), "_all")
 
-        # test with no conn
-        result = es_indices(prefix='index')
+        # test with no conn, prefix has neither dash nor wildcard
+        result = es_indices(prefix='index1')
         self.assertTrue(m_es.indices.status.called)
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
 
-        # test with prefix
-        result = es_indices('index', es_conn())
+        # test with prefix which has neither dash nor wildcard
+        result = es_indices('index1', es_conn())
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
+
+        # test with no conn, prefix has wildcard but no dash
+        result = es_indices(prefix='index1*')
+        self.assertTrue(m_es.indices.status.called)
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
+
+        # test with prefix which has wildcard but no dash
+        result = es_indices('index1*', es_conn())
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
+
+        # test with no conn, prefix has dash but no wildcard
+        result = es_indices(prefix='index2-')
+        self.assertTrue(m_es.indices.status.called)
+        self.assertIn('index2-', result)
+        self.assertNotIn('not_index2-', result)
+
+        # test with prefix which has dash but no wildcard
+        result = es_indices('index2-', es_conn())
+        self.assertIn('index2-', result)
+        self.assertNotIn('not_index2-', result)
+
+        # test with no conn, prefix has dash and wildcard
+        result = es_indices(prefix='index2-*')
+        self.assertTrue(m_es.indices.status.called)
+        self.assertIn('index2-', result)
+        self.assertNotIn('not_index2-', result)
+
+        # test with prefix which has dash and wildcard
+        result = es_indices('index2-*', es_conn())
+        self.assertIn('index2-', result)
+        self.assertNotIn('not_index2-', result)

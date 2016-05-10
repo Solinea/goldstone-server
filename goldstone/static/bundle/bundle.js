@@ -1360,7 +1360,19 @@ var GoldstoneRouter = Backbone.Router.extend({
         });
         return options;
     },
+    refreshViewAfterResize: function(){
+
+        // listener instantiated in init.js
+        if(!this.currentRawViewObject) {
+            return;
+        }
+        this.switchView(this.currentRawViewObject);
+    },
     switchView: function(view) {
+
+        // keep this in case browser is resized
+        // it will be used to redraw view
+        this.currentRawViewObject = view;
 
         // Capture any extra params that are passed in via the
         // router functions below, such as {node_uuid: nodeId} in
@@ -1604,12 +1616,44 @@ var ChartSet = GoldstoneBaseView.extend({
         var param = this.xParam || 'time';
         var self = this;
         this.x = d3.time.scale()
+            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+
         // protect against invalid data and NaN for initial
         // setting of domain with unary conditional
-        .domain(self.data.length ? d3.extent(this.data, function(d) {
-            return d[param];
-        }) : [1, 1])
-            .range([0, (this.width - this.marginLeft - this.marginRight)]);
+        if (self.data.length) {
+
+            // this.x.domain(d3.extent(this.data, function(d) {
+            //     return d[param];
+            // }));
+
+            this.x.domain([d3.min(this.data, function(d) {
+                    return d[param];
+                }),
+
+                // function must be immediately invoked with data passed in
+                // to set the high end of the domain without a
+                // d3 method
+                function(data) {
+
+                    // compute array equal to hi/lo
+                    var timeRange = d3.extent(data, function(d) {
+                        return +d[param];
+                    });
+
+                    // pad time range forward equal to one chart slice
+                    // to keep bars contained within x axis
+                    var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                    return [timeRange[1] + chartPad];
+                }(this.data)
+            ]);
+
+        } else {
+            this.x.domain([1, 1]);
+        }
+        // this.x.domain(self.data.length ? d3.extent(this.data, function(d) {
+        //     return d[param];
+        // }) : [1, 1]);
+
     },
 
     setYDomain: function() {
@@ -1665,7 +1709,7 @@ var ChartSet = GoldstoneBaseView.extend({
             .attr('height', function(d) {
                 return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
             })
-            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length);
+            .attr('width', ((this.width - this.marginLeft - this.marginRight) / this.data.length) * 0.93);
     },
 
     shapeEnter: function(shape) {
@@ -1688,7 +1732,7 @@ var ChartSet = GoldstoneBaseView.extend({
             .attr('height', function(d) {
                 return self.height - self.marginTop - self.marginBottom - self.y(d[yParam]);
             })
-            .attr('width', (this.width - this.marginLeft - this.marginRight) / this.data.length)
+            .attr('width', ((this.width - this.marginLeft - this.marginRight) / this.data.length) * 0.93)
             .attr('cx', function(d) {
                 return self.x(d[xParam]);
             })
@@ -1772,8 +1816,8 @@ var ChartSet = GoldstoneBaseView.extend({
         this.xAxis = d3.svg.axis()
             .scale(this.x)
             .ticks(4)
-        // format: day month H:M:S
-        .tickFormat(d3.time.format("%e %b %X"))
+            // format: day month H:M:S
+            .tickFormat(d3.time.format("%e %b %X"))
             .orient("bottom");
     },
 
@@ -3652,8 +3696,7 @@ per_interval: [{
 var SpawnsCollection = GoldstoneBaseCollection.extend({
 
     // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
+    // the additional pages. 
     checkForAdditionalPages: function() {
         return true;
     },
@@ -8694,7 +8737,7 @@ var MetricOverviewView = ChartSet.extend({
 });
 ;
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8710,7 +8753,8 @@ var MetricOverviewView = ChartSet.extend({
  */
 
 /*
-View is currently implemented for Nova CPU/Memory/Disk Resource Charts
+View is currently implemented on DiscoverPageView for CPU/Memory/Disk Resource Charts
+and differentiated via the featureSet key.
 
 instantiated similar to:
 
@@ -8873,18 +8917,18 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var finalData = [];
 
         // in case of empty set
-        if(!data[0].aggregations) {
-          return finalData;
+        if (!data[0].aggregations) {
+            return finalData;
         }
 
         if (self.featureSet === 'cpu') {
-        // data morphed through collectionPrep into:
-        // {
-        //     "eventTime": "1424586240000",
-        //     "Used": 6,
-        //     "Physical": 16,
-        //     "Virtual": 256
-        // });
+            // data morphed through collectionPrep into:
+            // {
+            //     "eventTime": "1424586240000",
+            //     "Used": 6,
+            //     "Physical": 16,
+            //     "Virtual": 256
+            // });
 
             _.each(data, function(collection) {
                 // within each collection, tag the data points
@@ -8918,7 +8962,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
                 newData[key][metric] = item.value;
             });
-
 
             finalData = [];
 
@@ -8968,7 +9011,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
                 newData[key][metric] = item.value;
             });
-
 
             finalData = [];
 
@@ -9020,7 +9062,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 newData[key][metric] = item.value;
 
             });
-
 
             finalData = [];
 
@@ -9180,9 +9221,25 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        self.x.domain(d3.extent(data, function(d) {
-            return d.eventTime;
-        }));
+        self.x.domain([d3.min(data, function(d) {
+                return d.eventTime;
+            }),
+
+            // function must be immediately invoked with data passed in
+            // to set the high end of the domain without a
+            // d3 method
+            function(data) {
+
+                // compute array equal to hi/lo
+                var timeRange = d3.extent(data, function(d) {
+                    return +d.eventTime;
+                });
+                // pad time range forward equal to one chart slice
+                // to keep bars contained within x axis
+                var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                return [timeRange[1] + chartPad];
+            }(data)
+        ]);
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
@@ -9398,7 +9455,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             dashedPathGenerator('Physical');
         }
 
-
         // appends chart legends
         var legendSpecs = {
             metric: [
@@ -9441,7 +9497,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
-
 
         _.each(legendSpecs, function(item) {
             self.chart.append('path')
@@ -12134,7 +12189,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12150,13 +12205,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
  */
 
 /*
-View is currently directly implemented as Nova VM Spawns Viz
-and extended into Nova CPU/Memory/Disk Resource Charts
-
-instantiated on novaReportView similar to:
+instantiated on discoverPageView as:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlBase: '/nova/hypervisor/spawns/'
+    urlBase: '/core/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
@@ -12164,8 +12216,8 @@ this.vmSpawnChartView = new SpawnsView({
     collection: this.vmSpawnChart,
     height: 350,
     infoText: 'novaSpawns',
-    el: '#nova-report-r1-c2',
-    width: $('#nova-report-r1-c2').width(),
+    el: '#discover-view-r3-c2',
+    width: $('#discover-view-r3-c2').width(),
     yAxisLabel: goldstone.translate('Spawn Events')
 });
 */
@@ -12253,27 +12305,26 @@ var SpawnsView = GoldstoneBaseView.extend({
 
         // Spawns Resources chart data prep
 
-
         /*
         "aggregations": {
             "per_interval": {
                 "buckets": [{
-                    {
-                        "success": {
-                            "buckets": [{
-                                "key": "true",
-                                "doc_count": 3
-                            }],
-                            "sum_other_doc_count": 0,
-                            "doc_count_error_upper_bound": 0
-                        },
-                        "key_as_string": "2016-02-09T18:30:00.000Z",
-                        "key": 1455042600000,
-                        "doc_count": 3
-                    }]
-                }
-            }
-        }
+                    "success": {
+                        "buckets": [{
+                            "key": "false",
+                            "doc_count": 1
+                        }, {
+                            "key": "true",
+                            "doc_count": 0
+                        }],
+                        "sum_other_doc_count": 0,
+                        "doc_count_error_upper_bound": 0
+                    },
+                    "key_as_string": "2016-05-05T16:15:00.000Z",
+                    "key": 1462464900000,
+                    "doc_count": 1
+                },
+                ...
         */
 
         _.each(data, function(timeStamp) {
@@ -12283,22 +12334,32 @@ var SpawnsView = GoldstoneBaseView.extend({
             var logTime = timeStamp.key;
             if (timeStamp.success === undefined || timeStamp.success.buckets === undefined) {
                 success = 0;
+                failure = 0;
             } else {
                 success = _.filter(timeStamp.success.buckets, function(bucket) {
                     return bucket.key === "true";
                 }).map(function(item) {
                     return item.doc_count;
                 });
-            }
 
-            if (timeStamp.failure === undefined || timeStamp.failure.buckets === undefined) {
-                failure = 0;
-            } else {
-                failure = _.filter(timeStamp.failure.buckets, function(bucket) {
-                    return bucket.key === "true";
+                // a lack of successes is just returned as an empty array
+                if (success.length === 0) {
+                    success = [0];
+                }
+
+                // important: spawn failures are under
+                // success.buckets.key === "false"
+                // not under a separate 'failure' key.
+                failure = _.filter(timeStamp.success.buckets, function(bucket) {
+                    return bucket.key === "false";
                 }).map(function(item) {
                     return item.doc_count;
                 });
+
+                // a lack of failures is just returned as an empty array
+                if (failure.length === 0) {
+                    failure = [0];
+                }
             }
 
             result.push({
@@ -12440,10 +12501,30 @@ var SpawnsView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        this.x.domain(d3.extent(data, function(d) {
-            return d.eventTime;
-        }));
+        // the setting of the x domain is based
+        // on the min / max of the timescale
+        // of the returned data set
 
+        this.x.domain([d3.min(data, function(d) {
+                return d.eventTime;
+            }),
+
+            // function must be immediately invoked with data passed in
+            // to set the high end of the domain without a
+            // d3 method
+            function(data) {
+
+                // compute array equal to hi/lo
+                var timeRange = d3.extent(data, function(d) {
+                    return +d.eventTime;
+                });
+
+                // pad time range forward equal to one chart slice
+                // to keep bars contained within x axis
+                var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                return [timeRange[1] + chartPad];
+            }(data)
+        ]);
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
         this.y.domain([0, d3.max(data, function(d) {
@@ -13282,4 +13363,9 @@ goldstone.init = function() {
     // start the backbone router that will handle /# calls
     Backbone.history.start();
 
+    // debounce will activate after a cluster of resizing activity finishes
+    // and there is a 400 millisecond gap.
+    $(window).on('resize', _.debounce(function() {
+        goldstone.gsRouter.refreshViewAfterResize();
+    }, 400));
 };

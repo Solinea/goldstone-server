@@ -44,8 +44,7 @@ per_interval: [{
 var SpawnsCollection = GoldstoneBaseCollection.extend({
 
     // overwrite this, as the aggregation for this chart is idential on
-    // the additional pages. The additional pages are only relevant to the
-    // server-side paginated fetching for the log browser below the viz
+    // the additional pages. 
     checkForAdditionalPages: function() {
         return true;
     },
