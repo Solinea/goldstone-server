@@ -291,9 +291,9 @@ h3.popover-title { margin: 0 0 5px; }
 .service-status-table li { padding: 1.56em 15px; overflow: hidden; border-bottom: 1px solid #f3f3f3; }
 .service-status-table li:last-child { border-bottom: 0; }
 .service-status-table .table-header { font-size: 16px; color: #ffffff; background: #424242; }
-.service-status-table .host { width: 35%; float: left; }
-.service-status-table .service { width: 33%; float: left; }
-.service-status-table .service-status { width: auto; float: left; margin-left: 6%; }
+.service-status-table .host { width: 66%; float: left; }
+.service-status-table .service { width: 20%; float: left; }
+.service-status-table .service-status { width: auto; float: left; }
 
 .online { background: url(../../../images/icon-online@2x.png) no-repeat left top; }
 
@@ -468,7 +468,7 @@ naturally respect vertical placement for Japanese text.
 :-ms-input-placeholder { color: rgba(255, 255, 255, 0.7); }
 
 /* Table Of Contents 1.) Media Query for Handheld Devices 2.) Media Query for Tablet 3.) Media Query for mobile ===============================================*/
-/* 1.) Media Query for Handheld Devices ===============================*/
+/*h 1.) Media Query for Handheld Devices ===============================*/
 @media only screen and (max-width: 1348px) { .dashboard .content.open .col-md-3 { width: 35%; }
   .dashboard .content.open .col-md-9 { width: 65%; } }
 @media only screen and (max-width: 1230px) { .service-status-table .table-header { font-size: 13px; }
