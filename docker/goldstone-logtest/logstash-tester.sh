@@ -56,7 +56,7 @@ run_docker() {
 ##### main #####
 
 BUILD_ARGS=
-RUN_ARGS="-v `pwd`/../goldstone-log/logstash/conf.d:/test/spec/filter_config/conf.d:ro -v `pwd`/../goldstone-log/logstash/patterns:/logstash/patterns:ro"
+RUN_ARGS="-v `pwd`/../goldstone-log/logstash/conf.d:/test/spec/filter_config:ro -v `pwd`/../goldstone-log/logstash/patterns:/logstash/patterns:ro"
 
 while getopts "d:e:p:h" opt; do
     case $opt in
