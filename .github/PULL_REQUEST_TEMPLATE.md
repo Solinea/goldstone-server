@@ -37,19 +37,18 @@ closes #
 - [ ] Bug fix (non-breaking change which fixes an issue).o
 - [ ] New feature (non-breaking change which adds functionality).
 - [ ] Breaking change (fix or feature that would cause existing functionality to change).
-- [ ] My change requires new model migrations.
-- [ ] My change requires new docker images for development.
 
 ## Checklist:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 
+- [ ] My change requires new model migrations.
 - [ ] I have executed makemigrations (if necessary).
+- [ ] My change requires new docker images for development.
 - [ ] I have created and pushed new docker images (if necessary).
-- [ ] My code follows the code style of this project.
 - [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
+- [ ] I have updated the documentation accordingly (if necessary).
 - [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
+- [ ] All new and existing tests passed locally.
 - [ ] Test coverage percentage has improved.
-- [ ] PEP8 passes.
-- [ ] Pylint score has improved.
+- [ ] PEP8 passes (for python code).
+- [ ] Pylint score has improved (for python code).
