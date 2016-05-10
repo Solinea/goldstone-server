@@ -14,10 +14,12 @@
 <!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
 <!--- Please link to the issue here: -->
 
-## Closes
-<!--- You can use "closes #42" to automatically -->
+
+<!--- You can use "closes #xxx" to automatically -->
 <!--- close an issue ticket when the -->
 <!--- pull request is merged -->
+
+closes #
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -45,6 +47,6 @@
 - [ ] I have read the **CONTRIBUTING** document.
 - [ ] I have added tests to cover my changes.
 - [ ] All new and existing tests passed.
-- [ ] Test coverage percentage has improved
-- [ ] PEP8 passes
-- [ ] Pylint score has improved
+- [ ] Test coverage percentage has improved.
+- [ ] PEP8 passes.
+- [ ] Pylint score has improved.
