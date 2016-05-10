@@ -79,8 +79,7 @@ test:
     - pylint goldstone | tee $CIRCLE_TEST_REPORTS/django/pylint-goldstone.txt
     - pep8 | tee $CIRCLE_TEST_REPORTS/django/pep8.txt
     - grunt lint
-    # pending fix of test runner
-    # - grunt karma
+    - grunt karma
   post:
     - docker-compose -f $COMPOSE_CONF --project-name gs stop
     - pip install codecov && codecov -f ${DJANGO_DIR}/coverage.xml
