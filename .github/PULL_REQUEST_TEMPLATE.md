@@ -17,7 +17,7 @@
 ## Closes
 <!--- You can use "closes #42" to automatically -->
 <!--- close an issue ticket when the -->
-
+<!--- pull request is merged -->
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
