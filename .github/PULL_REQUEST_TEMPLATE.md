@@ -1,5 +1,10 @@
 <!--- Provide a general summary of your changes in the Title above -->
 
+## Reviewers
+<!--- Call out additional reviewers -->
+<!--- in addition to the assigned reviewer -->
+<!--- example: @heyYou -->
+
 ## Description
 <!--- Describe your changes in detail -->
 
@@ -8,6 +13,11 @@
 <!--- If suggesting a new feature or change, please discuss it in an issue first -->
 <!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
 <!--- Please link to the issue here: -->
+
+## Closes
+<!--- You can use "closes #42" to automatically -->
+<!--- close an issue ticket when the -->
+
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -35,3 +45,6 @@
 - [ ] I have read the **CONTRIBUTING** document.
 - [ ] I have added tests to cover my changes.
 - [ ] All new and existing tests passed.
+- [ ] Test coverage percentage has improved
+- [ ] PEP8 passes
+- [ ] Pylint score has improved
