@@ -18,7 +18,7 @@ filter {
             gsub => ["openstack_message", '\"', '"']
         }
         grok { 
-            patterns_dir => "/opt/logstash/patterns"
+            patterns_dir => "/logstash/patterns"
             match => { "openstack_message" => "%{OPENSTACK_API_CALL}" }
         }
         if ("_grokparsefailure" in [tags]) {

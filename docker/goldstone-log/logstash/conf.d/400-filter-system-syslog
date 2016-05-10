@@ -16,7 +16,7 @@
 filter {
    if [type] == "syslog" {
        grok {
-           patterns_dir => "/opt/logstash/patterns"
+           patterns_dir => "/logstash/patterns"
            match => { "message" => "%{GENERIC_SYSLOGLINE}" }
            # TODO (jxstanford) received_at appears to only be used in client tests. remove?
            add_field => { "received_at" => "%{@timestamp}" }
@@ -36,7 +36,7 @@ filter {
            }
            mutate {
                replace => [ "host", "%{syslog5424_host}" ]
-               add_tag => ["filter_20_pass"]
+               add_tag => ["host_syslog"]
            }
        } else {
            mutate {

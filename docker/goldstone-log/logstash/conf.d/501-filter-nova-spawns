@@ -24,7 +24,7 @@ filter {
                     remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_START}" }
                 add_field => ["event", "start"]
                 add_tag => ["nova_spawn_start"]
@@ -33,7 +33,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_SUCCESS}" }
                 add_field => ["event", "finish"]
                 add_field => ["success", true]
@@ -43,7 +43,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_ABORT}" }
                 add_field => ["event", "finish"]
                 add_field => ["success", false]
@@ -54,7 +54,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_MISC_FAIL}" }
                 add_field => ["event", "finish"]
                 add_field => ["success", false]
@@ -65,7 +65,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "message" => "%{NOVA_SPAWN_QUOTA_FAIL}" }
                 add_field => ["event", "finish"]
                 add_field => ["success", false]

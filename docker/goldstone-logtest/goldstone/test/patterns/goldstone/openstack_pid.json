@@ -1,0 +1,34 @@
+{
+  "name": "OpenStack PID variations",
+  "pattern": "OPENSTACK_PID",
+  "cases": [
+    {
+      "in": " 12345 ",
+      "out": { "pid": 12345 }
+    },
+    {
+      "in": " 1 ",
+      "out": { "pid": 1 }
+    },
+    {
+      "in": " 0 ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " -1 ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " abc ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " 1",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": "1 ",
+      "out": { "tags": ["_grokparsefailure"] }
+    }
+  ]
+}
