@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import logging
+
+import arrow
 from django.conf import settings
 import curator
 from goldstone.celery import app as celery_app
@@ -23,7 +25,12 @@ from django.db.models import Q
 from goldstone.models import es_conn
 
 # do not user get_task_logger here as it does not honor the Django settings
+from goldstone.utils import get_nova_client, get_keystone_region
+
 logger = logging.getLogger(__name__)
+
+METRIC_INDEX_PREFIX = 'goldstone_metrics-'
+METRIC_DOCTYPE = 'core_metric'
 
 
 @celery_app.task()
@@ -278,3 +285,38 @@ def service_status_check():
     # if we got here, let's update the search time range
     ss.update_recent_search_window(start, end)
     logger.info("Finished service status check")
+
+
+@celery_app.task()
+def nova_hypervisors_stats():
+    """Get stats from the nova API and add them as Goldstone metrics."""
+    from goldstone.models import es_conn, daily_index
+
+    novaclient = get_nova_client()
+    response = novaclient.hypervisors.statistics()._info
+    region = get_keystone_region()
+    metric_prefix = 'nova.hypervisor.'
+    now = arrow.utcnow()
+    conn = es_conn()
+    es_index = daily_index(METRIC_INDEX_PREFIX)
+    es_doc_type = METRIC_DOCTYPE
+
+    for key, value in response.items():
+        doc = {
+            'type': es_doc_type,
+            'name': metric_prefix + key,
+            'value': value,
+            'metric_type': 'gauge',
+            '@timestamp': now.isoformat(),
+            'region': region
+        }
+
+        if key in ['disk_available_least', 'free_disk_gb', 'local_gb',
+                   'local_gb_used']:
+            doc['unit'] = 'GB'
+        elif key in ['free_ram_mb', 'memory_mb', 'memory_mb_used']:
+            doc['unit'] = 'MB'
+        else:
+            doc['unit'] = 'count'
+
+        conn.create(es_index, es_doc_type, doc)

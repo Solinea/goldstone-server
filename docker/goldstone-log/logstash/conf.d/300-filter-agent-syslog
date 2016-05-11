@@ -21,7 +21,7 @@ filter {
 
     if [type] == "syslog" {
         grok {
-            patterns_dir => "/opt/logstash/patterns"
+            patterns_dir => "/logstash/patterns"
             match => { "message" => "%{GOLDSTONE_AGENT_DATA}" }
         }
         if ("_grokparsefailure" not in [tags]) {

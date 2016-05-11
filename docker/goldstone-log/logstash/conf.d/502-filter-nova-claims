@@ -19,7 +19,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
                 add_tag => ["nova_phys_claim"]
                 add_field => ["state", "physical"]
@@ -28,7 +28,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_VIRT}" }
                 add_tag => ["nova_virt_claim"]
                 add_field => ["state", "virtual"]
@@ -37,7 +37,7 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             grok {
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_INSTANCE_REQUEST}" }
                 add_tag => ["nova_claim_request"]
             }

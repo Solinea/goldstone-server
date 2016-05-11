@@ -37,8 +37,8 @@ services:
   gslog:
     build: ./docker/goldstone-log
     volumes:
-      - ./docker/goldstone-log/conf.d:/logstash/conf.d
-      - ./docker/goldstone-log/patterns:/opt/logstash/patterns
+      - ./docker/goldstone-log/logstash/conf.d:/logstash/conf.d
+      - ./docker/goldstone-log/logstash/patterns:/opt/logstash/patterns
     ports:
       - "5514:5514"
       - "5515:5515"

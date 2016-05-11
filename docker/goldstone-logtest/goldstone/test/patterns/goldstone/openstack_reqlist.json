@@ -1,0 +1,42 @@
+{
+  "name": "OpenStack source variations",
+  "pattern": "OPENSTACK_REQ_LIST",
+  "cases": [
+    {
+      "in": " [req-da38d1b3-e4a0-4d0f-9cdd-48463f94b8ee] ",
+      "out": { }
+    },
+    {
+      "in": " [da38d1b3-e4a0-4d0f-9cdd-48463f94b8ee] ",
+      "out": { }
+    },
+    {
+      "in": " [da38d1b3e4a04d0f9cdd48463f94b8ee] ",
+      "out": { }
+    },
+    {
+      "in": " [-] ",
+      "out": { }
+    },
+    {
+      "in": " [- -] ",
+      "out": { }
+    },
+    {
+      "in": " [da38d1b3e4a04d0f9cdd48463f94b8ee -] ",
+      "out": { }
+    },
+    {
+      "in": " [da38d1b3e4a04d0f9cdd48463f94b8ee - ] ",
+      "out": { }
+    },
+    {
+      "in": " [None - ] ",
+      "out": { }
+    },
+    {
+      "in": " [xa38d1b3e4a04d0f9cdd48463f94b8ee - ] ",
+      "out": { "tags": ["_grokparsefailure"] }
+    }
+  ]
+}
