@@ -16,7 +16,7 @@ filter {
     if "agent_data" not in [tags] {
         if [type] == "syslog" {
             grok { 
-                patterns_dir => "/opt/logstash/patterns"
+                patterns_dir => "/logstash/patterns"
                 match => { "log_message" => ["%{OPENSTACK_MESSAGE}", "%{OPENSTACK_RFC5424_MESSAGE}"] }
             }
             if ("_grokparsefailure" not in [tags]) {
@@ -65,7 +65,8 @@ filter {
                 }
                 mutate {
                     replace => [ "host", "%{syslog5424_host}" ]
-                    add_tag => ["openstack_syslog", "filter_34_pass"]
+                    remove_tag => ["host_syslog"]
+                    add_tag => ["openstack_syslog"]
                 }
 
                 clone {

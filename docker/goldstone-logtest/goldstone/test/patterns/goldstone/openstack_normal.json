@@ -1,0 +1,17 @@
+{
+  "name": "OpenStack non-RFC5424 variations",
+  "pattern": "OPENSTACK_NORMAL",
+  "cases": [
+    {
+      "in": "2016-05-05 17:09:01.027 3070 DEBUG neutron.plugins.openvswitch.agent.ovs_neutron_agent [req-e2cb5240-640c-41ab-b4a1-d04adea962ab ] Agent rpc_loop - iteration:44 completed. Processed ports statistics: {'ancillary': {'removed': 0, 'added': 0}, 'regular': {'updated': 0, 'added': 0, 'removed': 0}}. Elapsed:120.674 loop_count_and_wait /usr/lib/python2.7/site-packages/neutron/plugins/openvswitch/agent/ovs_neutron_agent.py:1511",
+      "out": {
+        "timestamp": "2016-05-05 17:09:01.027",
+        "pid": 3070,
+        "loglevel": "DEBUG",
+        "program": "neutron.plugins.openvswitch.agent.ovs_neutron_agent", 
+        "request_id_list": "[req-e2cb5240-640c-41ab-b4a1-d04adea962ab ]", 
+        "openstack_message": "Agent rpc_loop - iteration:44 completed. Processed ports statistics: {'ancillary': {'removed': 0, 'added': 0}, 'regular': {'updated': 0, 'added': 0, 'removed': 0}}. Elapsed:120.674 loop_count_and_wait /usr/lib/python2.7/site-packages/neutron/plugins/openvswitch/agent/ovs_neutron_agent.py:1511"
+      }
+    }
+  ]
+}

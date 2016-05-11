@@ -1,0 +1,32 @@
+{
+  "name": "OpenStack source variations",
+  "pattern": "OPENSTACK_SOURCE",
+  "cases": [
+    {
+      "in": " simple_prog ",
+      "out": {
+        "program": "simple_prog"
+      }
+    },
+    {
+      "in": " simple-prog ",
+      "out": {
+        "program": "simple-prog"
+      }
+    },
+    {
+      "in": " nova.compute.manager ",
+      "out": {
+        "program": "nova.compute.manager"
+      }
+    },
+    {
+      "in": "****",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": "not*properly(dotted",
+      "out": { "tags": ["_grokparsefailure"] }
+    }
+  ]
+}

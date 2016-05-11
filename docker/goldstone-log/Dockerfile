@@ -16,8 +16,7 @@
 FROM logstash:2.1
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
-COPY conf.d /logstash/conf.d
-COPY patterns /opt/logstash/patterns
+COPY logstash /logstash
 
 RUN /opt/logstash/bin/plugin install logstash-filter-translate
 RUN /opt/logstash/bin/plugin install logstash-input-http

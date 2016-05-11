@@ -1,0 +1,194 @@
+{
+  "name": "OpenStack source variations",
+  "pattern": "OPENSTACK_LOGLEVEL",
+  "cases": [
+    {
+      "in": " DEBUG ",
+      "out": { }
+    },
+    {
+      "in": " Debug ",
+      "out": { }
+    },
+    {
+      "in": " debug ",
+      "out": { }
+    },
+    {
+      "in": " Debugger ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " NOTICE ",
+      "out": { }
+    },
+    {
+      "in": " Notice ",
+      "out": { }
+    },
+    {
+      "in": " notice ",
+      "out": { }
+    },
+    {
+      "in": " notices ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " INFO ",
+      "out": { }
+    },
+    {
+      "in": " Info ",
+      "out": { }
+    },
+    {
+      "in": " info ",
+      "out": { }
+    },
+    {
+      "in": " INFORMATION ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " WARN ",
+      "out": { }
+    },
+    {
+      "in": " WARNING ",
+      "out": { }
+    },
+    {
+      "in": " warn ",
+      "out": { }
+    },
+    {
+      "in": " warning ",
+      "out": { }
+    },
+    {
+      "in": " Warn ",
+      "out": { }
+    },
+    {
+      "in": " Warning ",
+      "out": { }
+    },
+    {
+      "in": " DireWarning ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " ERR ",
+      "out": { }
+    },
+    {
+      "in": " ERROR ",
+      "out": { }
+    },
+    {
+      "in": " err ",
+      "out": { }
+    },
+    {
+      "in": " error ",
+      "out": { }
+    },
+    {
+      "in": " Err ",
+      "out": { }
+    },
+    {
+      "in": " Error ",
+      "out": { }
+    },
+    {
+      "in": " BeepBoopError ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " CRIT ",
+      "out": { }
+    },
+    {
+      "in": " CRITICAL ",
+      "out": { }
+    },
+    {
+      "in": " crit ",
+      "out": { }
+    },
+    {
+      "in": " critical ",
+      "out": { }
+    },
+    {
+      "in": " Crit ",
+      "out": { }
+    },
+    {
+      "in": " Critical ",
+      "out": { }
+    },
+    {
+      "in": " MissionCritical ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " FATAL ",
+      "out": { }
+    },
+    {
+      "in": " Fatal ",
+      "out": { }
+    },
+    {
+      "in": " fatal ",
+      "out": { }
+    },
+    {
+      "in": " SEVERE ",
+      "out": { }
+    },
+    {
+      "in": " Severe ",
+      "out": { }
+    },
+    {
+      "in": " severe ",
+      "out": { }
+    },
+    {
+      "in": " AUDIT ",
+      "out": { }
+    },
+    {
+      "in": " Audit ",
+      "out": { }
+    },
+    {
+      "in": " audit ",
+      "out": { }
+    },
+    {
+      "in": " auditSevereFATAL ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " xyz ",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": "debug",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " debug",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": "debug ",
+      "out": { "tags": ["_grokparsefailure"] }
+    }
+  ]
+}
