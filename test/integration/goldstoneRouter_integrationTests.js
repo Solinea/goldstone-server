@@ -76,5 +76,19 @@ describe('goldstoneRouter.js spec', function() {
             expect(tranlateSpy.callCount).to.equal(11);
             tranlateSpy.restore();
         });
+        it('responds properly to window resize events and re-renders the current view', function() {
+            var switchViewSpy = sinon.spy(this.testRouter, "refreshViewAfterResize");
+            expect(switchViewSpy.callCount).to.equal(0);
+            var originalView = this.testRouter.currentRawViewObject;
+            this.testRouter.apiBrowser();
+            expect(switchViewSpy.callCount).to.equal(0);
+            var currentView = this.testRouter.currentRawViewObject;
+            this.testRouter.refreshViewAfterResize();
+            var refreshedView = this.testRouter.currentRawViewObject;
+            expect(switchViewSpy.callCount).to.equal(1);
+            expect(refreshedView).to.equal(currentView);
+            expect(refreshedView).to.not.equal(originalView);
+            switchViewSpy.restore();
+        });
     });
 });

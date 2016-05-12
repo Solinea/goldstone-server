@@ -312,7 +312,7 @@ describe('spawnsView.js spec', function() {
             expect(test4).to.deep.equal([{
                 "eventTime": 1462468350000,
                 "Success": [5],
-                "Failure": []
+                "Failure": [0]
             }]);
 
             var test5 = this.testView.dataPrep([{
@@ -326,7 +326,7 @@ describe('spawnsView.js spec', function() {
             }]);
             expect(test5).to.deep.equal([{
                 "eventTime": 1462468350000,
-                "Success": [],
+                "Success": [0],
                 "Failure": [5]
             }]);
 
@@ -338,8 +338,8 @@ describe('spawnsView.js spec', function() {
             }]);
             expect(test6).to.deep.equal([{
                 "eventTime": 1462468350000,
-                "Success": [],
-                "Failure": []
+                "Success": [0],
+                "Failure": [0]
             }]);
         });
         it('properly prepares popovers', function() {
