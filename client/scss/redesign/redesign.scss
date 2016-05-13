@@ -447,11 +447,13 @@ a.logo-header {
     cursor: pointer;
     .btn-txt {
         opacity: 0;
+        visibility: hidden; // contracted span messes up clicking accuracy
     }
 }
 
 .sidebar.expand-menu .btn-grp li .btn-txt {
     opacity: 1;
+    visibility: visible; // show span when expanded
     transition:opacity 300ms;
     transition-delay: 300ms;
 }
