@@ -1,0 +1,15 @@
+{
+  "name": "Generic syslog messages from CentOS 7 server",
+  "pattern": "GENERIC_SYSLOGLINE",
+  "cases": [
+    {
+      "in": "<30>2016-05-16T00:00:21.710769+00:00 rdo-kilo systemd: Starting Virtual Machine qemu-instance-00000008.",
+      "out": {
+        "syslog5424_pri": "30",
+        "syslog_ts": "2016-05-16T00:00:21.710769+00:00",
+        "syslog5424_host": "rdo-kilo",
+        "log_message": "systemd: Starting Virtual Machine qemu-instance-00000008."
+      }
+    }
+  ]
+}

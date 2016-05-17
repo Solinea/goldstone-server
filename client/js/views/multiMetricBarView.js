@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 
 /*
-View is currently implemented for Nova CPU/Memory/Disk Resource Charts
+View is currently implemented on DiscoverPageView for CPU/Memory/Disk Resource Charts
+and differentiated via the featureSet key.
 
 instantiated similar to:
 
@@ -178,18 +179,18 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var finalData = [];
 
         // in case of empty set
-        if(!data[0].aggregations) {
-          return finalData;
+        if (!data[0].aggregations) {
+            return finalData;
         }
 
         if (self.featureSet === 'cpu') {
-        // data morphed through collectionPrep into:
-        // {
-        //     "eventTime": "1424586240000",
-        //     "Used": 6,
-        //     "Physical": 16,
-        //     "Virtual": 256
-        // });
+            // data morphed through collectionPrep into:
+            // {
+            //     "eventTime": "1424586240000",
+            //     "Used": 6,
+            //     "Physical": 16,
+            //     "Virtual": 256
+            // });
 
             _.each(data, function(collection) {
                 // within each collection, tag the data points
@@ -223,7 +224,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
                 newData[key][metric] = item.value;
             });
-
 
             finalData = [];
 
@@ -273,7 +273,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
                 newData[key][metric] = item.value;
             });
-
 
             finalData = [];
 
@@ -325,7 +324,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 newData[key][metric] = item.value;
 
             });
-
 
             finalData = [];
 
@@ -485,9 +483,25 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        self.x.domain(d3.extent(data, function(d) {
-            return d.eventTime;
-        }));
+        self.x.domain([d3.min(data, function(d) {
+                return d.eventTime;
+            }),
+
+            // function must be immediately invoked with data passed in
+            // to set the high end of the domain without a
+            // d3 method
+            function(data) {
+
+                // compute array equal to hi/lo
+                var timeRange = d3.extent(data, function(d) {
+                    return +d.eventTime;
+                });
+                // pad time range forward equal to one chart slice
+                // to keep bars contained within x axis
+                var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                return [timeRange[1] + chartPad];
+            }(data)
+        ]);
 
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
@@ -703,7 +717,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             dashedPathGenerator('Physical');
         }
 
-
         // appends chart legends
         var legendSpecs = {
             metric: [
@@ -746,7 +759,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
         // abstracts the appending of chart legends based on the
         // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
-
 
         _.each(legendSpecs, function(item) {
             self.chart.append('path')

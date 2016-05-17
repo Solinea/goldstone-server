@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  */
 
 /*
-View is currently directly implemented as Nova VM Spawns Viz
-and extended into Nova CPU/Memory/Disk Resource Charts
-
-instantiated on novaReportView similar to:
+instantiated on discoverPageView as:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlBase: '/nova/hypervisor/spawns/'
+    urlBase: '/core/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
@@ -29,8 +26,8 @@ this.vmSpawnChartView = new SpawnsView({
     collection: this.vmSpawnChart,
     height: 350,
     infoText: 'novaSpawns',
-    el: '#nova-report-r1-c2',
-    width: $('#nova-report-r1-c2').width(),
+    el: '#discover-view-r3-c2',
+    width: $('#discover-view-r3-c2').width(),
     yAxisLabel: goldstone.translate('Spawn Events')
 });
 */
@@ -155,6 +152,11 @@ var SpawnsView = GoldstoneBaseView.extend({
                     return item.doc_count;
                 });
 
+                // a lack of successes is just returned as an empty array
+                if (success.length === 0) {
+                    success = [0];
+                }
+
                 // important: spawn failures are under
                 // success.buckets.key === "false"
                 // not under a separate 'failure' key.
@@ -164,6 +166,10 @@ var SpawnsView = GoldstoneBaseView.extend({
                     return item.doc_count;
                 });
 
+                // a lack of failures is just returned as an empty array
+                if (failure.length === 0) {
+                    failure = [0];
+                }
             }
 
             result.push({
@@ -305,10 +311,30 @@ var SpawnsView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        this.x.domain(d3.extent(data, function(d) {
-            return d.eventTime;
-        }));
+        // the setting of the x domain is based
+        // on the min / max of the timescale
+        // of the returned data set
 
+        this.x.domain([d3.min(data, function(d) {
+                return d.eventTime;
+            }),
+
+            // function must be immediately invoked with data passed in
+            // to set the high end of the domain without a
+            // d3 method
+            function(data) {
+
+                // compute array equal to hi/lo
+                var timeRange = d3.extent(data, function(d) {
+                    return +d.eventTime;
+                });
+
+                // pad time range forward equal to one chart slice
+                // to keep bars contained within x axis
+                var chartPad = (timeRange[1] - timeRange[0]) / data.length;
+                return [timeRange[1] + chartPad];
+            }(data)
+        ]);
         // IMPORTANT: see data.forEach above to make sure total is properly
         // calculated if additional data paramas are introduced to this viz
         this.y.domain([0, d3.max(data, function(d) {
