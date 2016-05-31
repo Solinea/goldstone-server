@@ -925,20 +925,6 @@ def _configure_ceilometer(backup_postfix, goldstone_addr, restart='yes',
     single_value_edits = {
         "/etc/ceilometer/ceilometer.conf": [
             {
-                "section": "DEFAULT",
-                "parameter": "syslog_log_facility",
-                "value": "LOG_LOCAL3"},
-            {
-                "section": "DEFAULT",
-                "parameter": "use_syslog",
-                "value": str(True)
-            },
-            {
-                "section": "DEFAULT",
-                "parameter": "verbose",
-                "value": str(True)
-            },
-            {
                 "section": "event",
                 "parameter": "definitions_cfg_file",
                 "value": "event_definitions.yaml"
