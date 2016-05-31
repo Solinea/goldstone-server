@@ -49,7 +49,7 @@ RAW_TRACE (?:^[^0-9].*$|^$)
 # treat errors separately to account for trace following
 # todo(jxstanford) review for appropriateness when working on issue-537
 OPENSTACK_ERROR %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid:int} ERROR %{OPENSTACK_SOURCE:program} %{GREEDYDATA:openstack_error_message}
-OPENSTACK_TRACE %{TIMESTAMP_ISO8601} %{POSINT} TRACE %{OPENSTACK_SOURCE} %{GREEDYDATA:openstack_trace_message}
+OPENSTACK_TRACE ^%{TIMESTAMP_ISO8601} %{POSINT} TRACE %{OPENSTACK_SOURCE} %{GREEDYDATA:openstack_trace_message}
 
 # another special case
 # todo(jxstanford) confirm that this doesn't change with rfc5424
