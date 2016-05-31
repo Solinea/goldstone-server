@@ -1,0 +1,38 @@
+{
+  "name": "OpenStack component variations",
+  "pattern": "OPENSTACK_COMPONENTS",
+  "cases": [
+    {
+      "in": " nova-",
+      "out": { }
+    },
+    {
+      "in": " neutron-",
+      "out": { }
+    },
+    {
+      "in": " cinder-",
+      "out": { }
+    },
+    {
+      "in": " glance-",
+      "out": { }
+    },
+    {
+      "in": " keystone-",
+      "out": { }
+    },
+    {
+      "in": " journal:",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " rsyslog-",
+      "out": { "tags": ["_grokparsefailure"] }
+    },
+    {
+      "in": " supernova ",
+      "out": { "tags": ["_grokparsefailure"] }
+    }
+  ]
+}
