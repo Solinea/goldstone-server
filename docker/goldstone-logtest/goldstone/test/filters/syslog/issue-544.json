@@ -1,0 +1,27 @@
+{
+  "name": "fix for github issue-544",
+  "description": "addresses miscategorization of components when a non-openstack componenent contains a '-' character",
+  "fields": {
+    "type": "syslog"
+  },
+  "ignore": ["@version", "@timestamp", "received_at"],
+  "cases": [{
+    "in": "<43>2016-05-31T21:10:30.672539+00:00 rdo-kilo rsyslogd-2040: fatal error on disk queue 'action 1 queue[DA]', emergency switch to direct mode [try http://www.rsyslog.com/e/2040 ]",
+    "out": {
+        "type":"syslog", 
+        "message":"<43>2016-05-31T21:10:30.672539+00:00 rdo-kilo rsyslogd-2040: fatal error on disk queue 'action 1 queue[DA]', emergency switch to direct mode [try http://www.rsyslog.com/e/2040 ]",
+        "tags":["host_syslog"],
+        "syslog5424_pri":"43",
+        "syslog_ts":"2016-05-31T21:10:30.672539+00:00",
+        "syslog5424_host":"rdo-kilo",
+        "log_message":"rsyslogd-2040: fatal error on disk queue 'action 1 queue[DA]', emergency switch to direct mode [try http://www.rsyslog.com/e/2040 ]",
+        "syslog_severity_code":3,
+        "syslog_facility_code":5,
+        "syslog_facility":"syslogd",
+        "syslog_severity":"ERROR",
+        "host":"rdo-kilo",
+        "event_type": "GenericSyslogError"
+    }
+  }]
+}
+
