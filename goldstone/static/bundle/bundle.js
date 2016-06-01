@@ -4014,7 +4014,8 @@ AlertsMenuView = GoldstoneBaseView.extend({
             $('.alerts-all').append(self.alertTemplate(alert));
         });
     }
-});;
+}); 
+;
 /**
  * Copyright 2015 Solinea, Inc.
  *

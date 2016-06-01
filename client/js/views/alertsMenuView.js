@@ -132,4 +132,4 @@ AlertsMenuView = GoldstoneBaseView.extend({
             $('.alerts-all').append(self.alertTemplate(alert));
         });
     }
-});
+}); 
