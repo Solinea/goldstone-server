@@ -86,24 +86,25 @@ describe('alertsMenuView.js spec', function() {
         );
 
         this.now_date = moment();
-        this.old_date = moment().subtract(1, 'days');
+        // have the old alert fall outside of the 1 day cut off
+        this.old_date = moment().subtract(25, 'hours');
 
         this.alert_recent = {
             "uuid": "d22c04ef-72e1-4c3d-ab5c-755dad279480",
-            "short_message": "Alert: 'service status DOWN' triggered at " + this.now_date.format('YYYY-MM-DD HH:mm:ssZ'),
-            "long_message": "There were 1 instances of 'service status DOWN' from " + this.now_date.format('YYYY-MM-DD HH:mm:ssZ') + " to " + this.now_date.format('YYYY-MM-DD HH:mm:ssZ') + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
-            "created": this.now_date.format('YYYY-MM-DDTHH:mm:ss') + ".000000Z",
-            "created_ts": this.now_date.format("x"),
-            "updated": this.now_date.format('YYYY-MM-DDTHH:mm:ss') + ".000000Z",
+            "short_message": "Alert: 'service status DOWN' triggered at " + this.now_date.format(),
+            "long_message": "There were 1 instances of 'service status DOWN' from " + this.now_date.format() + " to " + this.now_date.format() + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
+            "created": this.now_date.format(),
+            "created_ts": this.now_date.format(),
+            "updated": this.now_date.format(),
             "alert_def": "1cd6a68c-48bc-443f-b5ff-887b03f43334"
         };
         this.alert_old = {
             "uuid": "d22c04ef-72e1-4c3d-ab5c-755dad279480",
-            "short_message": "Alert: 'service status DOWN' triggered at " + this.old_date.format('YYYY-MM-DD HH:mm:ssZ'),
-            "long_message": "There were 1 instances of 'service status DOWN' from " + this.old_date.format('YYYY-MM-DD HH:mm:ssZ') + " to " + this.old_date.format('YYYY-MM-DD HH:mm:ssZ') + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
-            "created": this.old_date.format('YYYY-MM-DDTHH:mm:ss') + ".000000Z",
-            "created_ts": this.old_date.format("x"),
-            "updated": this.old_date.format('YYYY-MM-DDTHH:mm:ss') + ".000000Z",
+            "short_message": "Alert: 'service status DOWN' triggered at " + this.old_date.format(),
+            "long_message": "There were 1 instances of 'service status DOWN' from " + this.old_date.format() + " to " + this.old_date.format() + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
+            "created": this.old_date.format(),
+            "created_ts": this.old_date.format(),
+            "updated": this.old_date.format(),
             "alert_def": "1cd6a68c-48bc-443f-b5ff-887b03f43334"
         };
         var serverResult = {
@@ -134,19 +135,18 @@ describe('alertsMenuView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.testCollection.reset();
-        // this.server.respond();
         this.server.restore();
     });
     describe('view tests', function() {
         it('renders alerts accordingly', function() {
             expect($('.alerts-all').html()).to.equal('');
             this.server.respond();
-            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format('YYYY-MM-DD HH:mm:ssZ') + '</span></div></li><li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.old_date.format('YYYY-MM-DD HH:mm:ssZ') + '</span></div></li>');
+            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li><li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.old_date.format() + '</span></div></li>');
         });
         it('renders recent alerts accordingly', function() {
             expect($('.alerts-recent').html()).to.equal('');
             this.server.respond();
-            expect($('.alerts-recent').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format('YYYY-MM-DD HH:mm:ssZ') + '</span></div></li>');
+            expect($('.alerts-recent').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li>');
         });
         it('sets an empty model to register changes against', function() {
             this.testView.setModel();
@@ -288,4 +288,4 @@ describe('alertsMenuView.js spec', function() {
         });
 
     });
-}); 
+});

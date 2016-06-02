@@ -104,9 +104,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         '<li>' +
         '<div class="msg-block">' +
         '<span class="msg"><%= short_message %></span>' +
-        // '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
         '</div>' +
-        // '<i class="remove-btn">&nbsp;</i>' +
         '</li>'
     ),
 
@@ -132,4 +130,4 @@ AlertsMenuView = GoldstoneBaseView.extend({
             $('.alerts-all').append(self.alertTemplate(alert));
         });
     }
-}); 
+});
