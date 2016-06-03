@@ -19,6 +19,7 @@ if [[ $GS_LOCAL_DEV != "true" ]] ; then
 fi
 
 GS_DEV_ENV=${GS_DEV_ENV:-false}
+GS_INSTALL_TESTLIBS=${GS_INSTALL_TESTLIBS:-false}
 GS_DEV_DJANGO_PORT=${GS_DEV_DJANGO_PORT:-8000}
 GS_DB_HOST=${GS_DB_HOST:-gsdb}
 GS_START_RUNSERVER=${GS_START_RUNSERVER:-${GS_DEV_ENV}}
@@ -43,6 +44,11 @@ done
 if [[ $status == "DOWN" ]] ; then
     echo "PostgreSQL not available.  Exiting."
     exit 1
+fi
+
+if [ ! -f /var/tmp/goldstone-testlibs ] ; then
+    pip install -r ${APPDIR}/config/test-requirements.txt
+    touch /var/tmp/goldstone-testlibs
 fi
 
 if [ ! -f /var/tmp/goldstone-migrated ] ; then

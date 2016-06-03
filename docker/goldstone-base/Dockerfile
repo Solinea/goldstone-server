@@ -68,7 +68,6 @@ USER root
 
 # purposely creating a new layer for the requirements.
 RUN su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/requirements.txt" \
-  && su - ${APPUSER} -c ". /venv/bin/activate && pip install -r ${APPDIR}/config/test-requirements.txt" \
   && apt-get remove -y $buildReqs \
   && apt-get autoremove -y \
   && apt-get clean \
