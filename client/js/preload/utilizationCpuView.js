@@ -156,7 +156,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
+        ns.colorArray = goldstone.colorPalette;
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)

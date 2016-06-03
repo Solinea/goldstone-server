@@ -112,7 +112,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
             .scale(self.y)
             .orient("left");
 
-        self.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = goldstone.colorPalette;
     },
 
     processListeners: function() {
