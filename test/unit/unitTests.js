@@ -31,7 +31,7 @@ describe('Testing The Backbone Objects', function() {
     });
     describe('the Model objects', function() {
         it('should exist', function() {
-            expect(GoldstoneColors).to.be.a('function');
+            expect(goldstone.colorPalette).to.be.an('object');
             expect(I18nModel).to.be.a('function');
             expect(InfoButtonText).to.be.a('function');
         });

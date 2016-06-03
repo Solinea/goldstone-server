@@ -17,8 +17,9 @@
 /*
 nb: GREY, not GRAY
 
-goldstone.colorPalette.colorSets.distinct[3] (Range of 3 distinct colors)
-goldstone.colorPalette.colorSets.distinct[5] (Range of 5 distinct colors)
+goldstone.colorPalette.distinct[3] (Range of 3 distinct colors)
+goldstone.colorPalette.distinct[5] (Range of 5 distinct colors)
+goldstone.colorPalette.single.redPurple // => '#AA4499'
 etc...
 
 OPENSTACK SEVERITY LEVELS
@@ -37,92 +38,63 @@ var goldstone = goldstone || {};
 
 goldstone.colorPalette = (function() {
 
+    var c = {};
+
     // legacy chart color palette
-    var blue1 = '#1560B7';
-    var lightBlue = '#88CCEE';
-    var turquoise = '#5AC6DA';
-    var orange1 = '#EB6F26';
-    var green1 = '#6BA757';
-    var green2 = '#117733';
-    var yellow1 = '#DDCC77';
-    var ochre = '#E5AD1E';
-    var purple1 = '#5C4591';
-    var purpleDark = '#332288';
-    var redPurple = '#AA4499';
-    var salmon = '#CC6677';
-    var salmonDark = '#AA4466';
-    var splitPea = '#999933';
-    var maroon = '#882255';
-    var brown = '#661100';
+    c.blue1 = '#1560B7';
+    c.lightBlue = '#88CCEE';
+    c.turquoise = '#5AC6DA';
+    c.orange1 = '#EB6F26';
+    c.green1 = '#6BA757';
+    c.green2 = '#117733';
+    c.yellow1 = '#DDCC77';
+    c.ochre = '#E5AD1E';
+    c.purple1 = '#5C4591';
+    c.purpleDark = '#332288';
+    c.redPurple = '#AA4499';
+    c.salmon = '#CC6677';
+    c.salmonDark = '#AA4466';
+    c.splitPea = '#999933';
+    c.maroon = '#882255';
+    c.brown = '#661100';
 
     // updated color palette
-    var dark_grey = '#3C3C3C';
-    var solinea_grey = '#666666';
-    var medium_grey = '#999999';
-    var light_grey = '#CCCCCC';
-    var extra_light_grey = '#f2f2f2';
-    var hover_blue = '#0095D3';
-    var solinea_blue = '#23ADE1';
-    var highlight_blue = '#E2F7FF';
-    var solinea_green = '#57BE1B';
-    var solinea_red = '#FF0000';
-    var solinea_teal = '#0095D3';
-    var solinea_orange = '#23ADE1';
-    var solinea_purple = '#B55AFF';
+    c.dark_grey = '#3C3C3C';
+    c.solinea_grey = '#666666';
+    c.medium_grey = '#999999';
+    c.light_grey = '#CCCCCC';
+    c.extra_light_grey = '#f2f2f2';
+    c.hover_blue = '#0095D3';
+    c.solinea_blue = '#23ADE1';
+    c.highlight_blue = '#E2F7FF';
+    c.solinea_green = '#57BE1B';
+    c.solinea_red = '#FF0000';
+    c.solinea_teal = '#0095D3';
+    c.solinea_orange = '#23ADE1';
+    c.solinea_purple = '#B55AFF';
 
     return {
         distinct: {
-            1: [blue1],
-            2: [orange1, blue1],
-            '2R': [blue1, orange1],
-            3: [green1, blue1, orange1],
-            '3R': [orange1, blue1, green1],
-            4: [blue1, green2, yellow1, ochre],
-            5: [green1, orange1, blue1, ochre, purple1],
-            6: [purple1, turquoise, green2, yellow1, salmon, redPurple],
-            7: [purple1, turquoise, green1, green2, yellow1, salmon, redPurple],
-            8: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, redPurple],
-            9: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, maroon, redPurple],
-            10: [purple1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
-            11: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
-            12: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, salmonDark, maroon, redPurple],
-            0: [purple1, green1, turquoise, yellow1, salmonDark, green2, blue1, brown, splitPea, salmon, maroon, redPurple],
-            openStackSeverity8: [redPurple, purpleDark, splitPea, salmon, yellow1, lightBlue, green1, green2]
+            1: [c.blue1],
+            2: [c.orange1, c.blue1],
+            '2R': [c.blue1, c.orange1],
+            3: [c.green1, c.blue1, c.orange1],
+            '3R': [c.orange1, c.blue1, c.green1],
+            4: [c.blue1, c.green2, c.yellow1, c.ochre],
+            5: [c.green1, c.orange1, c.blue1, c.ochre, c.purple1],
+            6: [c.purple1, c.turquoise, c.green2, c.yellow1, c.salmon, c.redPurple],
+            7: [c.purple1, c.turquoise, c.green1, c.green2, c.yellow1, c.salmon, c.redPurple],
+            8: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.salmon, c.redPurple],
+            9: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.salmon, c.maroon, c.redPurple],
+            10: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.maroon, c.redPurple],
+            11: [c.purple1, c.blue1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.maroon, c.redPurple],
+            12: [c.purple1, c.blue1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.salmonDark, c.maroon, c.redPurple],
+            0: [c.purple1, c.green1, c.turquoise, c.yellow1, c.salmonDark, c.green2, c.blue1, c.brown, c.splitPea, c.salmon, c.maroon, c.redPurple],
+            openStackSeverity8: [c.redPurple, c.purpleDark, c.splitPea, c.salmon, c.yellow1, c.lightBlue, c.green1, c.green2]
         },
         grey: {
             0: ['#bdbdbd']
         },
-        individual: {
-            blue1: blue1,
-            lightBlue: lightBlue,
-            turquoise: turquoise,
-            orange1: orange1,
-            green1: green1,
-            green2: green2,
-            yellow1: yellow1,
-            ochre: ochre,
-            purple1: purple1,
-            purpleDark: purpleDark,
-            redPurple: redPurple,
-            salmon: salmon,
-            salmonDark: salmonDark,
-            splitPea: splitPea,
-            maroon: maroon,
-            brown: brown,
-            // new
-            dark_grey: dark_grey,
-            solinea_grey: solinea_grey,
-            medium_grey: medium_grey,
-            light_grey: light_grey,
-            extra_light_grey: extra_light_grey,
-            hover_blue: hover_blue,
-            solinea_blue: solinea_blue,
-            highlight_blue: highlight_blue,
-            solinea_green: solinea_green,
-            solinea_red: solinea_red,
-            solinea_teal: solinea_teal,
-            solinea_orange: solinea_orange,
-            solinea_purple: solinea_purple,
-        }
+        single: c
     };
 })();
