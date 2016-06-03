@@ -3895,7 +3895,6 @@ var AddonMenuView = GoldstoneBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 AlertsMenuView = GoldstoneBaseView.extend({
 
     setModel: function() {
@@ -3929,7 +3928,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
         }
 
         this.listenTo(this.model, 'change', function() {
-            self.iconAddHighlight();
             self.renderAlerts();
         });
 
@@ -3988,9 +3986,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
         '<li>' +
         '<div class="msg-block">' +
         '<span class="msg"><%= short_message %></span>' +
-        // '<span class="time"><%= moment(created).calendar() %> (<%= moment(created).format() %>)</span>' +
         '</div>' +
-        // '<i class="remove-btn">&nbsp;</i>' +
         '</li>'
     ),
 
@@ -4001,6 +3997,11 @@ AlertsMenuView = GoldstoneBaseView.extend({
         _.each(results, function(alert) {
             $('.alerts-recent').append(self.alertTemplate(alert));
         });
+        if (results.length) {
+            self.iconAddHighlight();
+        } else {
+            self.iconRemoveHighlight();
+        }
     },
 
     populateAllAlertDiv: function() {

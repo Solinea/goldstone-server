@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
-
 describe('alertsMenuView.js spec', function() {
     beforeEach(function() {
 
@@ -87,19 +85,33 @@ describe('alertsMenuView.js spec', function() {
             '</div>'
         );
 
+        this.now_date = moment();
+        // have the old alert fall outside of the 1 day cut off
+        this.old_date = moment().subtract(25, 'hours');
+
+        this.alert_recent = {
+            "uuid": "d22c04ef-72e1-4c3d-ab5c-755dad279480",
+            "short_message": "Alert: 'service status DOWN' triggered at " + this.now_date.format(),
+            "long_message": "There were 1 instances of 'service status DOWN' from " + this.now_date.format() + " to " + this.now_date.format() + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
+            "created": this.now_date.format(),
+            "created_ts": this.now_date.format(),
+            "updated": this.now_date.format(),
+            "alert_def": "1cd6a68c-48bc-443f-b5ff-887b03f43334"
+        };
+        this.alert_old = {
+            "uuid": "d22c04ef-72e1-4c3d-ab5c-755dad279480",
+            "short_message": "Alert: 'service status DOWN' triggered at " + this.old_date.format(),
+            "long_message": "There were 1 instances of 'service status DOWN' from " + this.old_date.format() + " to " + this.old_date.format() + ".\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
+            "created": this.old_date.format(),
+            "created_ts": this.old_date.format(),
+            "updated": this.old_date.format(),
+            "alert_def": "1cd6a68c-48bc-443f-b5ff-887b03f43334"
+        };
         var serverResult = {
-            "count": 58,
+            "count": 2,
             "next": null,
             "previous": null,
-            "results": [{
-                "uuid": "d22c04ef-72e1-4c3d-ab5c-755dad279480",
-                "short_message": "Alert: 'service status DOWN' triggered at 2016-03-10 00:28:00+00:00",
-                "long_message": "There were 1 instances of 'service status DOWN' from 2016-03-15 00:27:00+00:00 to 2016-03-15 00:28:00+00:00.\nAlert Definition: 1cd6a68c-48bc-443f-b5ff-887b03f43334",
-                "created": "2016-03-10T00:28:00.410758Z",
-                "created_ts": "1457569680000",
-                "updated": "2016-03-15T00:28:00.410875Z",
-                "alert_def": "1cd6a68c-48bc-443f-b5ff-887b03f43334"
-            }]
+            "results": [this.alert_recent, this.alert_old]
         };
 
         // to answer GET requests
@@ -123,19 +135,18 @@ describe('alertsMenuView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.testCollection.reset();
-        // this.server.respond();
         this.server.restore();
     });
     describe('view tests', function() {
         it('renders alerts accordingly', function() {
+            expect($('.alerts-all').html()).to.equal('');
             this.server.respond();
-            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at 2016-03-10 00:28:00+00:00</span></div></li>');
+            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li><li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.old_date.format() + '</span></div></li>');
         });
         it('renders recent alerts accordingly', function() {
             expect($('.alerts-recent').html()).to.equal('');
             this.server.respond();
-            // greater than a day
-            expect($('.alerts-recent').html()).to.equal('');
+            expect($('.alerts-recent').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li>');
         });
         it('sets an empty model to register changes against', function() {
             this.testView.setModel();
@@ -143,9 +154,10 @@ describe('alertsMenuView.js spec', function() {
             this.server.respond();
             expect(this.testView.model.get('alerts')).to.not.deep.equal([]);
         });
-        it('highlights the alert icon when the model changes', function() {
+        it('highlights the alert icon when the model changes and includes recent alerts', function() {
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
             this.server.respond();
+            //Results includes a recent alert so highlights
             expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
         });
         it('unhighlights the alert icon based on UI', function() {
@@ -155,6 +167,7 @@ describe('alertsMenuView.js spec', function() {
             this.testView.$el.click();
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
 
+            //on change renders alerts and there is one recent alert
             this.testView.model.trigger('change');
             expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
             // clicking the first tab heading unhighlights
@@ -175,8 +188,7 @@ describe('alertsMenuView.js spec', function() {
             $('.subtab').click();
             expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
         });
-        it('toggles highlighting based on collection changes', function() {
-
+        it('toggles highlighting based on collection changes and includes or not recent alerts', function() {
             this.server.respond();
             $(this.testView.el).removeClass('alert-active');
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
@@ -184,30 +196,43 @@ describe('alertsMenuView.js spec', function() {
             this.server.respond();
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
 
+            this.testCollection.reset();
+            this.testCollection.add({
+                results: [this.alert_recent]
+            });
+            // change with recent alert, then highlight
+            this.testView.update();
+            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
+
+            this.testCollection.reset();
+            this.testCollection.add({
+                results: [this.alert_old]
+            });
+            // change with old alert, then no highlight
+            this.testView.update();
+            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
+
+            $(this.testView.el).removeClass('alert-active');
+            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
+            this.testCollection.reset();
+            this.testCollection.add({
+                results: [this.alert_recent, this.alert_old]
+            });
+            // change with recent alert and old alert, then highlight
+            this.testView.update();
+            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
+
+            $(this.testView.el).removeClass('alert-active');
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
             this.testCollection.reset();
             this.testCollection.add({
                 results: []
             });
-            // change, then highlight
+            // change without alerts, then no highlight
             this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-
-            // if change, then highlight
-            $(this.testView.el).removeClass('alert-active');
             expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-            this.testCollection.reset();
-            this.testCollection.add({
-                results: [{
-                    short_message: 'test message',
-                    created: '2016-03-09T18:22:00.392260Z'
-                }]
-            });
-            this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
         });
         it('filters alerts older than a day from the "recent" column', function() {
-
             // less than one day, add it
             this.testCollection.reset();
             this.testCollection.add({
