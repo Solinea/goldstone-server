@@ -47,7 +47,7 @@ if [[ $status == "DOWN" ]] ; then
 fi
 
 if [ ! -f /var/tmp/goldstone-testlibs ] ; then
-    pip install -r ${APPDIR}/config/requirements.txt
+    pip install -r ${APPDIR}/config/test-requirements.txt
     touch /var/tmp/goldstone-testlibs
 fi
 
