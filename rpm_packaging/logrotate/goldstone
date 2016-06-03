@@ -1,0 +1,9 @@
+/var/log/goldstone/goldstone.log {
+    rotate 8
+    missingok
+    notifempty
+    compress
+    size 100k
+    daily
+    create 0600 root root
+}
