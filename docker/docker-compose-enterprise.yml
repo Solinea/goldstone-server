@@ -19,7 +19,7 @@ services:
 
   # Goldstone Proxy & Static
   gsweb:
-    image: solinea/goldstone-web:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: solinea/goldstone-web:1.1.1-SNAPSHOT.297.g9e172a5.develop
     ports:
       - "8443:8443"
     links:
@@ -32,7 +32,7 @@ services:
 
   # Goldstone Server Container
   gsapp:
-    image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: gs-docker-ent.bintray.io/goldstone-app-e:1.1.1-SNAPSHOT.297.g9e172a5.develop
     env_file: ./config/goldstone-prod.env
     ports:
       - "8000:8000"
@@ -49,7 +49,7 @@ services:
 
   # Database Container
   gsdb:
-    image: solinea/goldstone-db:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: solinea/goldstone-db:1.1.1-SNAPSHOT.297.g9e172a5.develop
     env_file: ./config/goldstone-prod.env
     volumes:
       - /var/lib/goldstone/sql_data:/var/lib/postgresql/data
@@ -63,7 +63,7 @@ services:
 
   # Logstash Container
   gslog:
-    image: solinea/goldstone-log:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: solinea/goldstone-log:1.1.1-SNAPSHOT.297.g9e172a5.develop
     ports:
       - "5514:5514"
       - "5515:5515"
@@ -79,7 +79,7 @@ services:
 
   # Elasticsearch Container
   gssearch:
-    image: solinea/goldstone-search:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: solinea/goldstone-search:1.1.1-SNAPSHOT.297.g9e172a5.develop
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -93,7 +93,7 @@ services:
 
   # Celery Task Queue Container
   gstaskq:
-    image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: solinea/goldstone-task-queue:1.1.1-SNAPSHOT.297.g9e172a5.develop
     ports:
       - "6379:6379"
     logging:
@@ -106,7 +106,7 @@ services:
   # Celery container
   #
   gstask:
-    image: gs-docker-ent.bintray.io/goldstone-task-e:1.1.1-SNAPSHOT.296.g81e0d6a.develop
+    image: gs-docker-ent.bintray.io/goldstone-task-e:1.1.1-SNAPSHOT.297.g9e172a5.develop
     env_file: ./config/goldstone-prod.env
     links:
       - gsdb
