@@ -1,0 +1,70 @@
+$navigation_padding: 60px;
+.top-bar {
+    height: $navigation_padding;
+    background-color: $dark-grey;
+    li {
+        display: inline-block;
+        list-style-type: none;
+        padding-top: 20px;
+    }
+}
+// fixed navigation bar will cover all other content
+body {
+    padding-top: $navigation_padding;
+}
+.shape {
+    width: 23px;
+    height: 21.5px;
+}
+.g-o-l-d-s-t-o-n-e {
+    margin-left: 51px;
+    font-size: 14px;
+    color: #909090;
+    font-weight: bold;
+}
+.d-a-s-h-b-o-a-r-d {
+    margin-left: 20px;
+    font-size: 13px;
+    color: $light-grey;
+    &::before {
+        color: $solinea_green;
+        font-family: FontAwesome;
+        content: "\f111";
+        margin-right: 4px;
+    }
+}
+.m-e-t-r-i-c-s {
+    font-size: 13px;
+    margin-left: 29px;
+    color: $light-grey;
+    &::before {
+        font-family: FontAwesome;
+        content: "\f1fe";
+        margin-right: 4px;
+    }
+}
+.t-o-p-o-l-o-g-y {
+    font-size: 13px;
+    margin-left: 29px;
+    color: $light-grey;
+    &::before {
+        font-family: FontAwesome;
+        content: "\f0e8";
+        margin-right: 4px;
+    }
+}
+.a-u-d-i-t {
+    font-size: 13px;
+    margin-left: 29px;
+    color: $light-grey;
+    &::before {
+        font-family: FontAwesome;
+        content: "\f0ea";
+        margin-right: 4px;
+    }
+    &::after {
+        font-family: FontAwesome;
+        content: "\f0d7";
+        margin-left: 4px;
+    }
+}

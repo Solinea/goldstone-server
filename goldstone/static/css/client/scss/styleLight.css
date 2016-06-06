@@ -67,8 +67,6 @@ text:not(.zoomable), .axis.label { font: 12px sans-serif; }
 
 .dropdown-submenu.pull-left > .dropdown-menu { left: -100%; margin-left: 10px; -webkit-border-radius: 6px 0 6px 6px; -moz-border-radius: 6px 0 6px 6px; border-radius: 6px 0 6px 6px; }
 
-.navbar .fa, #global-lookback-range .fa, #global-refresh-range .fa { color: #777; }
-
 .panel-body { background-color: #fff; }
 
 .panel-primary > .panel-heading { background-color: #777777; }
@@ -488,5 +486,26 @@ naturally respect vertical placement for Japanese text.
   .btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1@2x.png); }
   .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
   .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
+.top-bar { height: 60px; background-color: #3C3C3C; }
+.top-bar li { display: inline-block; list-style-type: none; padding-top: 20px; }
+
+body { padding-top: 60px; }
+
+.shape { width: 23px; height: 21.5px; }
+
+.g-o-l-d-s-t-o-n-e { margin-left: 51px; font-size: 14px; color: #909090; font-weight: bold; }
+
+.d-a-s-h-b-o-a-r-d { margin-left: 20px; font-size: 13px; color: #CCCCCC; }
+.d-a-s-h-b-o-a-r-d::before { color: #57BE1B; font-family: FontAwesome; content: "\f111"; margin-right: 4px; }
+
+.m-e-t-r-i-c-s { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.m-e-t-r-i-c-s::before { font-family: FontAwesome; content: "\f1fe"; margin-right: 4px; }
+
+.t-o-p-o-l-o-g-y { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.t-o-p-o-l-o-g-y::before { font-family: FontAwesome; content: "\f0e8"; margin-right: 4px; }
+
+.a-u-d-i-t { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.a-u-d-i-t::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; }
+.a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
 
 /*# sourceMappingURL=styleLight.css.map */

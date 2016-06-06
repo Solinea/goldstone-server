@@ -37,7 +37,7 @@
         color: if($theme==dark, $dark_chart_text, null);
     }
     .fa {
-        color: if($theme==dark, $dark_chart_text, #777);
+        color: if($theme==dark, $dark_chart_text, null);
     }
 }
 
