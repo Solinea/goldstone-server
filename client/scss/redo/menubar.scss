@@ -1,5 +1,6 @@
 $navigation-top: 60px;
 $navigation-bottom: 40px;
+$navigation_hover: #fff;
 
 .top-bar {
     height: $navigation-top;
@@ -44,17 +45,34 @@ body {
     margin-left: 20px;
     font-size: 13px;
     color: $light-grey;
+    &:hover {
+        color: $navigation_hover;
+    }
     &::before {
-        color: $solinea-green;
         font-family: FontAwesome;
         content: "\f111";
         margin-right: 4px;
+    }
+    // color will be applied to status dot
+    // when the following 3 statuses are applied
+    // to d-a-s-h-b-o-a-r-d
+    &.status-red::before {
+        color: $solinea-red;
+    }
+    &.status-yellow::before {
+        color: $solinea-yellow;
+    }
+    &.status-green::before {
+        color: $solinea-green;
     }
 }
 .m-e-t-r-i-c-s {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
+    &:hover {
+        color: $navigation_hover;
+    }
     &::before {
         font-family: FontAwesome;
         content: "\f1fe";
@@ -65,6 +83,9 @@ body {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
+    &:hover {
+        color: $navigation_hover;
+    }
     &::before {
         font-family: FontAwesome;
         content: "\f0e8";
@@ -75,6 +96,9 @@ body {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
+    &:hover {
+        color: $navigation_hover;
+    }
     &::before {
         font-family: FontAwesome;
         content: "\f0ea";

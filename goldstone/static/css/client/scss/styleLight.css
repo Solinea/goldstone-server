@@ -499,15 +499,22 @@ body { padding-top: 100px; }
 .navigate-line { height: 60px; position: relative; top: -23px; background-color: #000; margin-left: 8px; width: 1px; }
 
 .d-a-s-h-b-o-a-r-d { margin-left: 20px; font-size: 13px; color: #CCCCCC; }
-.d-a-s-h-b-o-a-r-d::before { color: #57BE1B; font-family: FontAwesome; content: "\f111"; margin-right: 4px; }
+.d-a-s-h-b-o-a-r-d:hover { color: #fff; }
+.d-a-s-h-b-o-a-r-d::before { font-family: FontAwesome; content: "\f111"; margin-right: 4px; }
+.d-a-s-h-b-o-a-r-d.status-red::before { color: #FF0000; }
+.d-a-s-h-b-o-a-r-d.status-yellow::before { color: #F1CA10; }
+.d-a-s-h-b-o-a-r-d.status-green::before { color: #57BE1B; }
 
 .m-e-t-r-i-c-s { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.m-e-t-r-i-c-s:hover { color: #fff; }
 .m-e-t-r-i-c-s::before { font-family: FontAwesome; content: "\f1fe"; margin-right: 4px; }
 
 .t-o-p-o-l-o-g-y { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.t-o-p-o-l-o-g-y:hover { color: #fff; }
 .t-o-p-o-l-o-g-y::before { font-family: FontAwesome; content: "\f0e8"; margin-right: 4px; }
 
 .a-u-d-i-t { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
+.a-u-d-i-t:hover { color: #fff; }
 .a-u-d-i-t::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; }
 .a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
 

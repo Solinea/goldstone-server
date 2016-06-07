@@ -69,6 +69,7 @@ goldstone.colorPalette = (function() {
     c.highlight_blue = '#E2F7FF';
     c.solinea_green = '#57BE1B';
     c.solinea_red = '#FF0000';
+    c.solinea_yellow = '#F1CA10';
     c.solinea_teal = '#0095D3';
     c.solinea_orange = '#23ADE1';
     c.solinea_purple = '#B55AFF';
