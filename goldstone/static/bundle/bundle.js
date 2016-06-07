@@ -3973,6 +3973,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     extractRecentAlerts: function(alerts, now) {
+        var self = this;
         var result = [];
         var oneDay = (1000 * 60 * 60 * 24);
         _.each(alerts, function(alert) {
@@ -3980,7 +3981,13 @@ AlertsMenuView = GoldstoneBaseView.extend({
                 result.push(alert);
             }
         });
+        self.updateAlertIcon(result.length);
         return result;
+    },
+
+    updateAlertIcon: function(count) {
+        if(count === 0) count="";
+        $('#badge-count').text(count);
     },
 
     alertTemplate: _.template('' +

@@ -1,17 +1,17 @@
 /* goldstone ui color palette */
-$dark_grey: #3C3C3C;
-$solinea_grey: #666666;
-$medium_grey: #999999;
-$light_grey: #CCCCCC;
-$extra_light_grey: #f2f2f2;
-$hover_blue: #0095D3;
-$solinea_blue: #23ADE1;
-$highlight_blue: #E2F7FF;
-$solinea_green: #57BE1B;
-$solinea_red: #FF0000;
-$solinea_teal: #0095D3;
-$solinea_orange: #23ADE1;
-$solinea_purple: #B55AFF;
+$dark-grey: #3C3C3C;
+$solinea-grey: #666666;
+$medium-grey: #999999;
+$light-grey: #CCCCCC;
+$extra-light-grey: #f2f2f2;
+$hover-blue: #0095D3;
+$solinea-blue: #23ADE1;
+$highlight-blue: #E2F7FF;
+$solinea-green: #57BE1B;
+$solinea-red: #FF0000;
+$solinea-teal: #0095D3;
+$solinea-orange: #23ADE1;
+$solinea-purple: #B55AFF;
 
 /* dark theme color variables */
 $dark_background: rgb(37, 37, 37);
@@ -39,7 +39,7 @@ $dark_datatable_text: #eee;
 
 /* every font-awesome icon everywhere unless excluded */
 
-.fa:not(.fa-check):not(.fa-clock-o) {
+.fa:not(.fa-check):not(.fa-clock-o):not(.dashboard-bullet) {
     cursor: pointer;
 }
 

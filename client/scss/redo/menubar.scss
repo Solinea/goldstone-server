@@ -1,33 +1,38 @@
-$navigation_padding: 60px;
+$navigation-padding: 60px;
 .top-bar {
-    height: $navigation_padding;
+    height: $navigation-padding;
     background-color: $dark-grey;
-    li {
+    overflow: hidden;
+    div {
         display: inline-block;
         list-style-type: none;
-        padding-top: 20px;
+        margin-top: 20px;
     }
 }
 // fixed navigation bar will cover all other content
 body {
-    padding-top: $navigation_padding;
-}
-.shape {
-    width: 23px;
-    height: 21.5px;
+    padding-top: $navigation-padding;
 }
 .g-o-l-d-s-t-o-n-e {
-    margin-left: 51px;
+    margin-left: 54px;
     font-size: 14px;
     color: #909090;
     font-weight: bold;
+}
+.navigate-line {
+    height: 60px;
+    position: relative;
+    top: -23px;
+    background-color: #000;
+    margin-left: 8px;
+    width: 1px;
 }
 .d-a-s-h-b-o-a-r-d {
     margin-left: 20px;
     font-size: 13px;
     color: $light-grey;
     &::before {
-        color: $solinea_green;
+        color: $solinea-green;
         font-family: FontAwesome;
         content: "\f111";
         margin-right: 4px;
@@ -67,4 +72,34 @@ body {
         content: "\f0d7";
         margin-left: 4px;
     }
+}
+.alert-container {
+    .icon-alerts {
+        position: relative;
+        color: $light-grey;
+        right: 18px;
+        &::before {
+            font-size: 16px;
+            font-family: FontAwesome;
+            content: "\f0f3";
+            color: $light-grey;
+        }
+    }
+    .badge {
+        position: relative;
+        margin-top: -20px;
+        right: 5px;
+        background-color: $solinea-red;
+        z-index: 1;
+    }
+}
+.u-p-g-r-a-d-e {
+    font-size: 13px;
+    margin: 0 18px;
+    color: $solinea-blue;
+}
+.active-user {
+    font-size: 13px;
+    margin: 0 19px;
+    color: $light-grey;
 }

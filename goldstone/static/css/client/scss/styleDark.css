@@ -17,7 +17,7 @@ css stylesheets prior to redesign
 #global-lookback-range, #global-refresh-range { margin-top: -12px; top: 12px; }
 
 /* every font-awesome icon everywhere unless excluded */
-.fa:not(.fa-check):not(.fa-clock-o) { cursor: pointer; }
+.fa:not(.fa-check):not(.fa-clock-o):not(.dashboard-bullet) { cursor: pointer; }
 
 /* cursor over logViz to suggest double-clickability*/
 #log-viewer-visualization svg { cursor: zoom-in; }

@@ -17,7 +17,7 @@ css stylesheets prior to redesign
 #global-lookback-range, #global-refresh-range { margin-top: -12px; top: 12px; }
 
 /* every font-awesome icon everywhere unless excluded */
-.fa:not(.fa-check):not(.fa-clock-o) { cursor: pointer; }
+.fa:not(.fa-check):not(.fa-clock-o):not(.dashboard-bullet) { cursor: pointer; }
 
 /* cursor over logViz to suggest double-clickability*/
 #log-viewer-visualization svg { cursor: zoom-in; }
@@ -486,14 +486,14 @@ naturally respect vertical placement for Japanese text.
   .btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1@2x.png); }
   .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
   .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
-.top-bar { height: 60px; background-color: #3C3C3C; }
-.top-bar li { display: inline-block; list-style-type: none; padding-top: 20px; }
+.top-bar { height: 60px; background-color: #3C3C3C; overflow: hidden; }
+.top-bar div { display: inline-block; list-style-type: none; margin-top: 20px; }
 
 body { padding-top: 60px; }
 
-.shape { width: 23px; height: 21.5px; }
+.g-o-l-d-s-t-o-n-e { margin-left: 54px; font-size: 14px; color: #909090; font-weight: bold; }
 
-.g-o-l-d-s-t-o-n-e { margin-left: 51px; font-size: 14px; color: #909090; font-weight: bold; }
+.navigate-line { height: 60px; position: relative; top: -23px; background-color: #000; margin-left: 8px; width: 1px; }
 
 .d-a-s-h-b-o-a-r-d { margin-left: 20px; font-size: 13px; color: #CCCCCC; }
 .d-a-s-h-b-o-a-r-d::before { color: #57BE1B; font-family: FontAwesome; content: "\f111"; margin-right: 4px; }
@@ -507,5 +507,13 @@ body { padding-top: 60px; }
 .a-u-d-i-t { font-size: 13px; margin-left: 29px; color: #CCCCCC; }
 .a-u-d-i-t::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; }
 .a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
+
+.alert-container .icon-alerts { position: relative; color: #CCCCCC; right: 18px; }
+.alert-container .icon-alerts::before { font-size: 16px; font-family: FontAwesome; content: "\f0f3"; color: #CCCCCC; }
+.alert-container .badge { position: relative; margin-top: -20px; right: 5px; background-color: #FF0000; z-index: 1; }
+
+.u-p-g-r-a-d-e { font-size: 13px; margin: 0 18px; color: #23ADE1; }
+
+.active-user { font-size: 13px; margin: 0 19px; color: #CCCCCC; }
 
 /*# sourceMappingURL=styleLight.css.map */
