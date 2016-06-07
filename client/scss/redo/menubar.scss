@@ -1,17 +1,30 @@
-$navigation-padding: 60px;
+$navigation-top: 60px;
+$navigation-bottom: 40px;
+
 .top-bar {
-    height: $navigation-padding;
+    height: $navigation-top;
     background-color: $dark-grey;
     overflow: hidden;
+    border: 0;
     div {
         display: inline-block;
-        list-style-type: none;
+        margin-top: 20px;
+    }
+}
+.bottom-bar {
+    margin-top: $navigation-top;
+    height: $navigation-bottom;
+    background-color: $hover-blue;
+    overflow: hidden;
+    border: 0;
+    div {
+        display: inline-block;
         margin-top: 20px;
     }
 }
 // fixed navigation bar will cover all other content
 body {
-    padding-top: $navigation-padding;
+    padding-top: ($navigation-top + $navigation-bottom);
 }
 .g-o-l-d-s-t-o-n-e {
     margin-left: 54px;
