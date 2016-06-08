@@ -66,7 +66,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.height = this.options.height || 400;
         this.width = this.options.width || 300;
         this.yAxisLabel = this.options.yAxisLabel || 'Set this.yAxisLabel';
-        this.colorArray = new GoldstoneColors().get('colorSets');
+        this.colorArray = goldstone.colorPalette;
     },
 
     processListeners: function() {

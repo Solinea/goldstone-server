@@ -1952,6 +1952,10 @@ msgid "Tenant Settings update successful"
 msgstr ""
 
 #: tenantSettingsPageView.js
+msgid "Tenant Settings"
+msgstr ""
+
+#: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Must select tenant from list above"
 msgstr ""

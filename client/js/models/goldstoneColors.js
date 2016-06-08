@@ -15,13 +15,11 @@
  */
 
 /*
-to invoke:
-1. include goldstoneColors.js in the template script tags
-2. assign the palatte as a variable: var colorArray = new GoldstoneColors().get('colorSets');
-3. invoke via colorArray, a subset, and an index corresponding to the size of the array desired
+nb: GREY, not GRAY
 
-colorArray.distinct[3] (Range of 3 colorBlindFriendly colors)
-colorArray.distinct[5] (Range of 5 colorBlindFriendly colors)
+goldstone.colorPalette.distinct[3] (Range of 3 distinct colors)
+goldstone.colorPalette.distinct[5] (Range of 5 distinct colors)
+goldstone.colorPalette.single.redPurple // => '#AA4499'
 etc...
 
 OPENSTACK SEVERITY LEVELS
@@ -36,64 +34,67 @@ INFO: informational messages
 DEBUG: debug-level messages
 */
 
-var blue1 = '#1560B7';
-var lightBlue = '#88CCEE';
-var turquoise = '#5AC6DA';
-var orange1 = '#EB6F26';
-var green1 = '#6BA757';
-var green2 = '#117733';
-var yellow1 = '#DDCC77';
-var ochre = '#E5AD1E';
-var purple1 = '#5C4591';
-var purpleDark = '#332288';
-var redPurple = '#AA4499';
-var salmon = '#CC6677';
-var salmonDark = '#AA4466';
-var splitPea = '#999933';
-var maroon = '#882255';
-var brown = '#661100';
+var goldstone = goldstone || {};
 
-var GoldstoneColors = GoldstoneBaseModel.extend({
-    defaults: {
-        colorSets: {
-            distinct: {
-                1: [blue1],
-                2: [orange1, blue1],
-                '2R': [blue1, orange1],
-                3: [green1, blue1, orange1],
-                '3R': [orange1, blue1, green1],
-                4: [blue1, green2, yellow1, ochre],
-                5: [green1, orange1, blue1, ochre, purple1],
-                6: [purple1, turquoise, green2, yellow1, salmon, redPurple],
-                7: [purple1, turquoise, green1, green2, yellow1, salmon, redPurple],
-                8: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, redPurple],
-                9: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, maroon, redPurple],
-                10: [purple1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
-                11: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
-                12: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, salmonDark, maroon, redPurple],
-                0: [purple1, green1, turquoise, yellow1, salmonDark, green2, blue1, brown, splitPea, salmon, maroon, redPurple],
-                openStackSeverity8: [redPurple, purpleDark, splitPea, salmon, yellow1, lightBlue, green1, green2]
-            },
-            grey: {
-                0: ['#bdbdbd']
-            },
-            oldDistinct: {
-                // archives original 'color blind' palette
-                1: ['#1560B7'],
-                2: ['#1560B7', '#CC6677'],
-                3: ['#1560B7', '#DDCC77', '#CC6677'],
-                4: ['#1560B7', '#117733', '#DDCC77', '#CC6677'],
-                5: ['#332288', '#88CCEE', '#117733', '#DDCC77', '#CC6677'],
-                6: ['#332288', '#88CCEE', '#117733', '#DDCC77', '#CC6677', '#AA4499'],
-                7: ['#332288', '#88CCEE', '#44AA99', '#117733', '#DDCC77', '#CC6677', '#AA4499'],
-                8: ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#AA4499'],
-                9: ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'],
-                10: ['#332288', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#882255', '#AA4499'],
-                11: ['#332288', '#6699CC', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#882255', '#AA4499'],
-                12: ['#332288', '#6699CC', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#AA4466', '#882255', '#AA4499'],
-                0: ['#332288', '#44AA99', '#88CCEE', '#DDCC77', '#AA4466', '#117733', '#6699CC', '#661100', '#999933', '#CC6677', '#882255', '#AA4499'],
-                openStackSeverity8: ['#AA4499', '#332288', '#999933', '#CC6677', '#DDCC77', '#88CCEE', '#44AA99', '#117733']
-            }
-        }
-    }
-});
+goldstone.colorPalette = (function() {
+
+    var c = {};
+
+    // legacy chart color palette
+    c.blue1 = '#1560B7';
+    c.lightBlue = '#88CCEE';
+    c.turquoise = '#5AC6DA';
+    c.orange1 = '#EB6F26';
+    c.green1 = '#6BA757';
+    c.green2 = '#117733';
+    c.yellow1 = '#DDCC77';
+    c.ochre = '#E5AD1E';
+    c.purple1 = '#5C4591';
+    c.purpleDark = '#332288';
+    c.redPurple = '#AA4499';
+    c.salmon = '#CC6677';
+    c.salmonDark = '#AA4466';
+    c.splitPea = '#999933';
+    c.maroon = '#882255';
+    c.brown = '#661100';
+
+    // updated color palette
+    c.dark_grey = '#3C3C3C';
+    c.solinea_grey = '#666666';
+    c.medium_grey = '#999999';
+    c.light_grey = '#CCCCCC';
+    c.extra_light_grey = '#f2f2f2';
+    c.hover_blue = '#0095D3';
+    c.solinea_blue = '#23ADE1';
+    c.highlight_blue = '#E2F7FF';
+    c.solinea_green = '#57BE1B';
+    c.solinea_red = '#FF0000';
+    c.solinea_teal = '#0095D3';
+    c.solinea_orange = '#23ADE1';
+    c.solinea_purple = '#B55AFF';
+
+    return {
+        distinct: {
+            1: [c.blue1],
+            2: [c.orange1, c.blue1],
+            '2R': [c.blue1, c.orange1],
+            3: [c.green1, c.blue1, c.orange1],
+            '3R': [c.orange1, c.blue1, c.green1],
+            4: [c.blue1, c.green2, c.yellow1, c.ochre],
+            5: [c.green1, c.orange1, c.blue1, c.ochre, c.purple1],
+            6: [c.purple1, c.turquoise, c.green2, c.yellow1, c.salmon, c.redPurple],
+            7: [c.purple1, c.turquoise, c.green1, c.green2, c.yellow1, c.salmon, c.redPurple],
+            8: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.salmon, c.redPurple],
+            9: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.salmon, c.maroon, c.redPurple],
+            10: [c.purple1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.maroon, c.redPurple],
+            11: [c.purple1, c.blue1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.maroon, c.redPurple],
+            12: [c.purple1, c.blue1, c.turquoise, c.green1, c.green2, c.splitPea, c.yellow1, c.brown, c.salmon, c.salmonDark, c.maroon, c.redPurple],
+            0: [c.purple1, c.green1, c.turquoise, c.yellow1, c.salmonDark, c.green2, c.blue1, c.brown, c.splitPea, c.salmon, c.maroon, c.redPurple],
+            openStackSeverity8: [c.redPurple, c.purpleDark, c.splitPea, c.salmon, c.yellow1, c.lightBlue, c.green1, c.green2]
+        },
+        grey: {
+            0: ['#bdbdbd']
+        },
+        single: c
+    };
+})();

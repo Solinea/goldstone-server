@@ -1952,6 +1952,10 @@ msgid "Tenant Settings update successful"
 msgstr "テナント設定の更新に成功しました"
 
 #: tenantSettingsPageView.js
+msgid "Tenant Settings"
+msgstr "テナント設定"
+
+#: tenantSettingsPageView.js
 msgctxt "tenantsettings"
 msgid "Must select tenant from list above"
 msgstr "上記リストからテナントを選択してください"

@@ -51,7 +51,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        var colorArray = new GoldstoneColors().get('colorSets');
+        var colorArray = goldstone.colorPalette;
         ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
 
         ns.xAxis = d3.svg.axis()

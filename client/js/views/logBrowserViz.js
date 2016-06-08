@@ -178,7 +178,7 @@ var LogBrowserViz = GoldstoneBaseView.extend({
         self.y = d3.scale.linear()
             .range([self.mh, 0]);
 
-        self.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = goldstone.colorPalette;
 
         self.yAxis = d3.svg.axis()
             .scale(self.y)

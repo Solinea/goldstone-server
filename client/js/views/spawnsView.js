@@ -103,7 +103,7 @@ var SpawnsView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("d"));
 
-        self.colorArray = new GoldstoneColors().get('colorSets');
+        self.colorArray = goldstone.colorPalette;
 
         self.color = d3.scale.ordinal()
             .range(self.colorArray.distinct['2R']);
