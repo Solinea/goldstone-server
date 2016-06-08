@@ -88,24 +88,24 @@ goldstone.setBaseTemplateListeners = function() {
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
     var addMenuIconHighlighting = function(selector) {
-        $('.btn-grp li').removeClass('active active-page');
-        $(selector).addClass('active active-page');
+        $('.top-bar.navbar > div').removeClass('active');
+        $(selector).addClass('active');
+
     };
 
     var routeNameToIconClassHash = {
-        discover: '.dashboard-tab',
-        apiPerfReport: '.metrics-tab',
-        topology: '.topology-tab',
-        "nodeReport": '',
-        "logSearch": '.reports-tab',
-        "savedSearchLog": '.reports-tab',
-        "eventsBrowser": '.reports-tab',
-        "savedSearchEvent": '.reports-tab',
-        "apiBrowser": '.reports-tab',
-        "savedSearchApi": '.reports-tab',
+        discover: '.d-a-s-h-b-o-a-r-d',
+        apiPerfReport: '.m-e-t-r-i-c-s',
+        topology: '.t-o-p-o-l-o-g-y',
+        "logSearch": '.m-e-t-r-i-c-s',
+        "savedSearchLog": '.m-e-t-r-i-c-s',
+        "eventsBrowser": '.m-e-t-r-i-c-s',
+        "savedSearchEvent": '.m-e-t-r-i-c-s',
+        "apiBrowser": '.m-e-t-r-i-c-s',
+        "savedSearchApi": '.m-e-t-r-i-c-s',
         "settings": '',
         "tenant": '',
-        compliance: '.compliance-tab'
+        compliance: '.a-u-d-i-t'
     };
 
     var updateLicenseLink = function(name) {

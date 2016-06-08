@@ -65,7 +65,6 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.discover();
             this.testRouter.eventsBrowser();
             this.testRouter.logSearch();
-            this.testRouter.nodeReport('control-01');
             this.testRouter.redirect();
             this.testRouter.savedSearchApi();
             this.testRouter.savedSearchEvent();
@@ -73,7 +72,7 @@ describe('goldstoneRouter.js spec', function() {
             this.testRouter.settings();
             this.testRouter.tenant();
 
-            expect(tranlateSpy.callCount).to.equal(11);
+            expect(tranlateSpy.callCount).to.equal(10);
             tranlateSpy.restore();
         });
         it('responds properly to window resize events and re-renders the current view', function() {

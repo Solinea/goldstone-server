@@ -38,15 +38,6 @@ describe('MultiMetricComboCollection.js spec', function() {
             nodeName: 'marvin'
         });
 
-
-
-        this.testView = new UtilizationMemView({
-            collection: this.testCollection,
-            el: '.testContainer',
-            width: $('.testContainer').width(),
-            featureSet: 'memUsage'
-        });
-
         this.testCollection.reset();
 
         this.testData = [
@@ -255,57 +246,6 @@ describe('MultiMetricComboCollection.js spec', function() {
                 results: [1, 2, 3],
                 metricSource: undefined
             });
-        });
-    });
-    describe('collectionPrep test', function() {
-        it('should exist', function() {
-            assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
-            var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal(
-                [{
-                    used: 0,
-                    free: 0,
-                    total: 0.1,
-                    date: '1431532800000'
-                }, {
-                    used: 0,
-                    free: 0,
-                    total: 0.1,
-                    date: '1431536400000'
-                }]
-            );
-        });
-    });
-
-    describe('view is constructed', function() {
-        it('should exist', function() {
-            assert.isDefined(this.testView, 'this.testView has been defined');
-            expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('.testContainer');
-        });
-        it('view update appends svg and border elements', function() {
-            expect(this.testView.update).to.be.a('function');
-            this.testView.update();
-            expect($('svg').length).to.equal(1);
-            expect($('g.x axis').find('text').text()).to.equal('');
-            expect($('.y axis').text().trim()).to.equal('');
-            expect($('svg').text()).to.not.include('Response was empty');
-        });
-        it('can handle a null server payload and append appropriate response', function() {
-            this.update_spy = sinon.spy(this.testView, "update");
-            this.testCollection.reset();
-            this.testView.update();
-            this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('');
-            this.testCollection.add(this.testData);
-            this.testCollection.urlCollectionCount = 0;
-            this.testView.update();
-            this.testCollection.trigger('sync');
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.include('usedTotal: 0GB');
-            expect($('g').find('text').text()).to.include('0.000000000.000000010.000000020.000000030.000000040.000000050.000000060.000000070.00000008');
-            this.update_spy.restore();
         });
     });
 });

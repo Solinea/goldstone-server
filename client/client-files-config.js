@@ -34,7 +34,6 @@ module.exports = {
         'client/js/preload/dataTableBaseView.js',
         'client/js/preload/goldstoneRouter.js',
         'client/js/preload/chartSet.js',
-        'client/js/preload/utilizationCpuView.js',
         'client/js/models/*.js',
         'client/js/collections/*.js',
         'client/js/views/*.js',

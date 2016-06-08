@@ -45,7 +45,9 @@ body {
     margin-left: 20px;
     font-size: 13px;
     color: $light-grey;
-    &:hover {
+    // will be applied on however as well as
+    // when the 'active' class is applied
+    &:hover, &.active {
         color: $navigation_hover;
     }
     &::before {
@@ -70,7 +72,9 @@ body {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
-    &:hover {
+    // will be applied on however as well as
+    // when the 'active' class is applied
+    &:hover, &.active {
         color: $navigation_hover;
     }
     &::before {
@@ -83,7 +87,9 @@ body {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
-    &:hover {
+    // will be applied on however as well as
+    // when the 'active' class is applied
+    &:hover, &.active {
         color: $navigation_hover;
     }
     &::before {
@@ -96,7 +102,9 @@ body {
     font-size: 13px;
     margin-left: 29px;
     color: $light-grey;
-    &:hover {
+    // will be applied on however as well as
+    // when the 'active' class is applied
+    &:hover, &.active {
         color: $navigation_hover;
     }
     &::before {
