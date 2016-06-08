@@ -37,8 +37,12 @@ goldstone.init = function() {
 
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
-        var userInfo = item.email;
-        $('.username').text(userInfo);
+
+        // username must be defined, first_name is optional
+        // also see settingsPageView:submitRequest()
+        // for a function that updates this on change.
+        var userInfo = item.first_name || item.username;
+        $('.active-user').text(userInfo);
 
         // redirect to tenant settings page if os_* fields
         // not already populated

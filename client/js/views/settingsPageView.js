@@ -55,7 +55,11 @@ var SettingsPageView = GoldstoneBaseView.extend({
             url: url,
             data: data
         }).done(function(success) {
-            $('.username').text($('#inputEmail').val());
+
+            // initially set in init.js
+            var updateUsername = $('#inputFirstname').val() || $('#inputUsername').val() || "";
+
+            $('.active-user').text(updateUsername);
             self.dataErrorMessage(message);
         })
             .fail(function(fail) {
