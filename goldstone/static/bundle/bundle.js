@@ -114,7 +114,7 @@ var extendingGoldstone = {
 _.extend(goldstone, extendingGoldstone);
 ;
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,9 +203,8 @@ goldstone.setBaseTemplateListeners = function() {
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
     var addMenuIconHighlighting = function(selector) {
-        $('.top-bar.navbar > div').removeClass('active');
+        $('.top-bar.navbar div').removeClass('active');
         $(selector).addClass('active');
-
     };
 
     var routeNameToIconClassHash = {
