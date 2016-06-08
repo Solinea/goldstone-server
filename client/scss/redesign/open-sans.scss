@@ -1,0 +1,26 @@
+/*default version*/
+@font-face {
+	font-family: 'OpenSans';
+	src:
+        local('Open Sans'),
+        local('OpenSans'),
+        local('Open-Sans'),
+        local('open sans'),
+        local('open-sans'),
+        url('../../fonts/Open_Sans/OpenSans-Regular.ttf')
+        format('truetype');
+	}
+
+/*bold version*/
+@font-face {
+	font-family: 'OpenSans';
+	src:
+        local('Open Sans'),
+        local('OpenSans'),
+        local('Open-Sans'),
+        local('open sans'),
+        local('open-sans'),
+        url('../../fonts/Open_Sans/OpenSans-Semibold.ttf')
+        format('truetype');
+        font-weight: bold;
+	}

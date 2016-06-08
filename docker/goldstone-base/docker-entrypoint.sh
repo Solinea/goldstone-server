@@ -46,9 +46,11 @@ if [[ $status == "DOWN" ]] ; then
     exit 1
 fi
 
-if [ ! -f /var/tmp/goldstone-testlibs ] ; then
-    pip install -r ${APPDIR}/config/test-requirements.txt
-    touch /var/tmp/goldstone-testlibs
+if [[ $GS_INSTALL_TESTLIBS == 'true' ]] ; then
+    if [ ! -f /var/tmp/goldstone-testlibs ] ; then
+        pip install -r ${APPDIR}/config/test-requirements.txt
+        touch /var/tmp/goldstone-testlibs
+    fi
 fi
 
 if [ ! -f /var/tmp/goldstone-migrated ] ; then

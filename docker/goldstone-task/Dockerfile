@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM solinea/goldstone-base:1.1.1-SNAPSHOT.286.gb2546eb.prepkg.cleanup
+FROM solinea/goldstone-base:1.1.2
 
 MAINTAINER Luke Heidecke <luke@solinea.com>
 
