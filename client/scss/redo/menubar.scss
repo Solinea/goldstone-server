@@ -9,18 +9,22 @@ $navigation_hover: #fff;
     border: 0;
     div {
         display: inline-block;
-        margin-top: 20px;
+        text-align: center;
+        vertical-align: middle;
+        line-height: $navigation-top;
     }
 }
 .bottom-bar {
     margin-top: $navigation-top;
     height: $navigation-bottom;
+    min-height: $navigation-bottom;
     background-color: $hover-blue;
-    overflow: hidden;
     border: 0;
     div {
-        display: inline-block;
-        margin-top: 20px;
+        text-align: left;
+        padding-left: 14px;
+        vertical-align: middle;
+        line-height: $navigation-bottom;
     }
 }
 // fixed navigation bar will cover all other content
@@ -36,7 +40,6 @@ body {
 .navigate-line {
     height: 60px;
     position: relative;
-    top: -23px;
     background-color: #000;
     margin-left: 8px;
     width: 1px;
@@ -147,4 +150,73 @@ body {
     font-size: 13px;
     margin: 0 19px;
     color: $light-grey;
+}
+
+.nav-bottom-active-user {
+    float: right;
+    width: 240px;
+    height: $navigation-bottom;
+    margin: 0;
+    display: none;
+    &.active {
+        display: inline-block;
+    }
+    & > .active-user {
+        margin: 0;
+        width: 240px;
+        font-size: 12px;
+        background-color: $solinea-grey;
+        color: $white;
+    }
+    & > .user-settings {
+        margin: 0;
+        width: 240px;
+        font-size: 12px;
+        background-color: $white;
+        color: $solinea-grey;
+        cursor: pointer;
+        &:hover {
+            background-color: $highlight-blue;
+        }
+        &::before {
+            font-family: FontAwesome;
+            color: $solinea-blue;
+            margin-right: 14px;
+            content: '\f013'
+        }
+    }
+    & > .user-help {
+        margin: 0;
+        width: 240px;
+        font-size: 12px;
+        background-color: $white;
+        color: $solinea-grey;
+        cursor: pointer;
+        &:hover {
+            background-color: $highlight-blue;
+        }
+        &::before {
+            font-family: FontAwesome;
+            color: $solinea-blue;
+            margin-right: 14px;
+            content: '\f059'
+        }
+    }
+    & > .user-logout {
+        margin: 0;
+        width: 240px;
+        font-size: 12px;
+        background-color: $white;
+        color: $solinea-grey;
+        cursor: pointer;
+        &:hover {
+            background-color: $highlight-blue;
+        }
+        &::before {
+            font-family: FontAwesome;
+            color: $solinea-blue;
+            margin-right: 14px;
+            content: '\f08b'
+        }
+    }
 }

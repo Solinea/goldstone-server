@@ -137,6 +137,14 @@ govern the expanding menu actions.
 
 goldstone.setBaseTemplateListeners = function() {
 
+    // set href targets of menubar drop-down items
+    $('.user-settings').click(function() {
+        location.href="/#settings";
+    });
+    $('.user-help').click(function() {
+        location.href="https://solinea.freshdesk.com/support/home";
+    });
+
     // tooltips for side-menu bar icons
     // trigger: 'hover' will dismiss when mousing-out
     $('[data-toggle="tooltip"]').tooltip({
@@ -206,6 +214,13 @@ goldstone.setBaseTemplateListeners = function() {
         $('.top-bar.navbar div').removeClass('active');
         $(selector).addClass('active');
     };
+
+    // show elements in bottom nav bar when hovering
+    // on related menu items at top
+
+    $('.user-hover').hover(function() {
+        $('.nav-bottom-active-user').toggleClass('active');
+    });
 
     var routeNameToIconClassHash = {
         discover: '.d-a-s-h-b-o-a-r-d',

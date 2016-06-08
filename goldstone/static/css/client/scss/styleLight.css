@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /** Copyright 2015 Solinea, Inc.  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 /*
 styleDark.scss and styleLight.scss exist as targets for a Grunt watch task
@@ -487,16 +488,16 @@ naturally respect vertical placement for Japanese text.
   .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
   .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
 .top-bar { height: 60px; background-color: #3C3C3C; overflow: hidden; border: 0; }
-.top-bar div { display: inline-block; margin-top: 20px; }
+.top-bar div { display: inline-block; text-align: center; vertical-align: middle; line-height: 60px; }
 
-.bottom-bar { margin-top: 60px; height: 40px; background-color: #0095D3; overflow: hidden; border: 0; }
-.bottom-bar div { display: inline-block; margin-top: 20px; }
+.bottom-bar { margin-top: 60px; height: 40px; min-height: 40px; background-color: #0095D3; border: 0; }
+.bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: 40px; }
 
 body { padding-top: 100px; }
 
 .g-o-l-d-s-t-o-n-e { margin-left: 54px; font-size: 14px; color: #909090; font-weight: bold; }
 
-.navigate-line { height: 60px; position: relative; top: -23px; background-color: #000; margin-left: 8px; width: 1px; }
+.navigate-line { height: 60px; position: relative; background-color: #000; margin-left: 8px; width: 1px; }
 
 .d-a-s-h-b-o-a-r-d { margin-left: 20px; font-size: 13px; color: #CCCCCC; }
 .d-a-s-h-b-o-a-r-d:hover, .d-a-s-h-b-o-a-r-d.active { color: #fff; }
@@ -525,5 +526,18 @@ body { padding-top: 100px; }
 .u-p-g-r-a-d-e { font-size: 13px; margin: 0 18px; color: #23ADE1; }
 
 .active-user { font-size: 13px; margin: 0 19px; color: #CCCCCC; }
+
+.nav-bottom-active-user { float: right; width: 240px; height: 40px; margin: 0; display: none; }
+.nav-bottom-active-user.active { display: inline-block; }
+.nav-bottom-active-user > .active-user { margin: 0; width: 240px; font-size: 12px; background-color: #666666; color: #fff; }
+.nav-bottom-active-user > .user-settings { margin: 0; width: 240px; font-size: 12px; background-color: #fff; color: #666666; cursor: pointer; }
+.nav-bottom-active-user > .user-settings:hover { background-color: #E2F7FF; }
+.nav-bottom-active-user > .user-settings::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; content: ""; }
+.nav-bottom-active-user > .user-help { margin: 0; width: 240px; font-size: 12px; background-color: #fff; color: #666666; cursor: pointer; }
+.nav-bottom-active-user > .user-help:hover { background-color: #E2F7FF; }
+.nav-bottom-active-user > .user-help::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; content: ""; }
+.nav-bottom-active-user > .user-logout { margin: 0; width: 240px; font-size: 12px; background-color: #fff; color: #666666; cursor: pointer; }
+.nav-bottom-active-user > .user-logout:hover { background-color: #E2F7FF; }
+.nav-bottom-active-user > .user-logout::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; content: ""; }
 
 /*# sourceMappingURL=styleLight.css.map */
