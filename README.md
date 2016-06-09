@@ -10,6 +10,16 @@ Future plans including adding the ability to:
 * Analyze and diagnose common issues
 * Automate common cloud management and maintenance tasks
 
+__Install__
+
+```
+yum localinstall -y https://github.com/Solinea/goldstone-server/releases/latest
+Edit /opt/goldstone/docker/config/goldstone-prod.env, and set values appropriate for your environment.
+Follow the post-install steps as directed in the RPM installer output
+```
+
+Additional details can be found in our [install docs](http://goldstone-server.readthedocs.io/en/latest/INSTALL/).
+
 Goldstone Server is licensed under the Apached 2.0 license (see LICENSE file)
 
 Goldstone Server Enterprise components are licensed under the Solinea Software License Agreement v1 (see GSE_LICENSE.pdf)
