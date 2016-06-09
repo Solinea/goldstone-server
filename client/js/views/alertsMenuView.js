@@ -28,10 +28,16 @@ AlertsMenuView = GoldstoneBaseView.extend({
         this.setInterval();
     },
 
+    clearInterval: function() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+    },
+
     setInterval: function() {
         var self = this;
         var thirtySeconds = (1000 * 30);
-        setInterval(function() {
+        this.refreshInterval = setInterval(function() {
             self.collection.urlGenerator();
         }, thirtySeconds);
     },

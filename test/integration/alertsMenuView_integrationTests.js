@@ -135,6 +135,7 @@ describe('alertsMenuView.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.testCollection.reset();
+        this.testView.clearInterval();
         this.server.restore();
     });
     describe('view tests', function() {
