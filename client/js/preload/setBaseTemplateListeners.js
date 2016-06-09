@@ -105,6 +105,9 @@ goldstone.setBaseTemplateListeners = function() {
     $('.user-hover').hover(function() {
         $('.nav-bottom-active-user').toggleClass('active');
     });
+    $('.metrics-hover').hover(function() {
+        $('.nav-bottom-active-metricsmetrics').toggleClass('active');
+    });
 
     var routeNameToIconClassHash = {
         discover: '.d-a-s-h-b-o-a-r-d',

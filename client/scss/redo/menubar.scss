@@ -2,142 +2,133 @@ $navigation-top: 60px;
 $navigation-bottom: 40px;
 $navigation_hover: #fff;
 
+// fixed navigation bars will cover all other content
+body {
+    padding-top: ($navigation-top + $navigation-bottom);
+}
+
 .top-bar {
     height: $navigation-top;
     background-color: $dark-grey;
     overflow: hidden;
     border: 0;
+    // generic settings for all divs contained in top-bar
     div {
         display: inline-block;
         text-align: center;
         vertical-align: middle;
         line-height: $navigation-top;
-    }
-}
-
-// fixed navigation bar will cover all other content
-body {
-    padding-top: ($navigation-top + $navigation-bottom);
-}
-.g-o-l-d-s-t-o-n-e {
-    margin-left: 54px;
-    font-size: 14px;
-    color: #909090;
-    font-weight: bold;
-}
-.navigate-line {
-    height: 60px;
-    position: relative;
-    background-color: #000;
-    margin-left: 8px;
-    width: 1px;
-}
-.d-a-s-h-b-o-a-r-d {
-    margin-left: 20px;
-    font-size: 13px;
-    color: $light-grey;
-    // will be applied on however as well as
-    // when the 'active' class is applied
-    &:hover, &.active {
-        color: $navigation_hover;
-    }
-    &::before {
-        font-family: FontAwesome;
-        content: "\f111";
-        margin-right: 4px;
-    }
-    // color will be applied to status dot
-    // when the following 3 statuses are applied
-    // to d-a-s-h-b-o-a-r-d
-    &.status-red::before {
-        color: $solinea-red;
-    }
-    &.status-yellow::before {
-        color: $solinea-yellow;
-    }
-    &.status-green::before {
-        color: $solinea-green;
-    }
-}
-.m-e-t-r-i-c-s {
-    font-size: 13px;
-    margin-left: 29px;
-    color: $light-grey;
-    // will be applied on however as well as
-    // when the 'active' class is applied
-    &:hover, &.active {
-        color: $navigation_hover;
-    }
-    &::before {
-        font-family: FontAwesome;
-        content: "\f1fe";
-        margin-right: 4px;
-    }
-}
-.t-o-p-o-l-o-g-y {
-    font-size: 13px;
-    margin-left: 29px;
-    color: $light-grey;
-    // will be applied on however as well as
-    // when the 'active' class is applied
-    &:hover, &.active {
-        color: $navigation_hover;
-    }
-    &::before {
-        font-family: FontAwesome;
-        content: "\f0e8";
-        margin-right: 4px;
-    }
-}
-.a-u-d-i-t {
-    font-size: 13px;
-    margin-left: 29px;
-    color: $light-grey;
-    // will be applied on however as well as
-    // when the 'active' class is applied
-    &:hover, &.active {
-        color: $navigation_hover;
-    }
-    &::before {
-        font-family: FontAwesome;
-        content: "\f0ea";
-        margin-right: 4px;
-    }
-    &::after {
-        font-family: FontAwesome;
-        content: "\f0d7";
-        margin-left: 4px;
-    }
-}
-.alert-container {
-    .icon-alerts {
-        position: relative;
+        font-size: 13px;
         color: $light-grey;
-        right: 18px;
+    }
+    // specific settings for individual divs
+    & > a .g-o-l-d-s-t-o-n-e {
+        color: #909090;
+        margin-left: 54px;
+        font-weight: bold;
+    }
+    & > .navigate-line {
+        height: 60px;
+        position: relative;
+        background-color: #000;
+        margin-left: 8px;
+        width: 1px;
+    }
+    & > a .d-a-s-h-b-o-a-r-d {
+        margin-left: 20px;
+        // will be applied on hover as well as
+        // when the 'active' class is applied
+        &:hover, &.active {
+            color: $navigation_hover;
+        }
         &::before {
-            font-size: 16px;
             font-family: FontAwesome;
-            content: "\f0f3";
-            color: $light-grey;
+            content: "\f111";
+            margin-right: 4px;
+        }
+        // color will be applied to status dot
+        // when the following 3 statuses are applied
+        // to d-a-s-h-b-o-a-r-d
+        &.status-red::before {
+            color: $solinea-red;
+        }
+        &.status-yellow::before {
+            color: $solinea-yellow;
+        }
+        &.status-green::before {
+            color: $solinea-green;
         }
     }
-    .badge {
-        position: relative;
-        margin-top: -20px;
-        right: 5px;
-        background-color: $solinea-red;
-        z-index: 1;
+    & > .m-e-t-r-i-c-s {
+        margin-left: 29px;
+        // will be applied on hover as well as
+        // when the 'active' class is applied
+        &:hover, &.active {
+            color: $navigation_hover;
+        }
+        &::before {
+            font-family: FontAwesome;
+            content: "\f1fe";
+            margin-right: 4px;
+        }
     }
-}
-.u-p-g-r-a-d-e {
-    font-size: 13px;
-    padding: 0 18px;
-    color: $solinea-blue;
-}
-.active-user {
-    font-size: 13px;
-    padding: 0 19px;
-    color: $light-grey;
+    & > a .t-o-p-o-l-o-g-y {
+        margin-left: 29px;
+        // will be applied on hover as well as
+        // when the 'active' class is applied
+        &:hover, &.active {
+            color: $navigation_hover;
+        }
+        &::before {
+            font-family: FontAwesome;
+            content: "\f0e8";
+            margin-right: 4px;
+        }
+    }
+    & > .a-u-d-i-t {
+        margin-left: 29px;
+        // will be applied on hover as well as
+        // when the 'active' class is applied
+        &:hover, &.active {
+            color: $navigation_hover;
+        }
+        &::before {
+            font-family: FontAwesome;
+            content: "\f0ea";
+            margin-right: 4px;
+        }
+        &::after {
+            font-family: FontAwesome;
+            content: "\f0d7";
+            margin-left: 4px;
+        }
+    }
+    & > .alert-container {
+        .icon-alerts {
+            position: relative;
+            right: 18px;
+            &::before {
+                font-size: 16px;
+                font-family: FontAwesome;
+                content: "\f0f3";
+                color: $light-grey;
+            }
+        }
+        .badge {
+            position: relative;
+            margin-top: -20px;
+            right: 5px;
+            background-color: $solinea-red;
+            z-index: 1;
+        }
+    }
+    & > .u-p-g-r-a-d-e {
+        padding: 0 18px;
+        color: $solinea-blue;
+    }
+    & > .active-user {
+        padding: 0 19px;
+    }
 }
 
 .bottom-bar {
@@ -146,102 +137,79 @@ body {
     min-height: $navigation-bottom;
     background-color: $hover-blue;
     border: 0;
+    // generic settings for all divs contained in bottom-bar
     div {
         text-align: left;
         padding-left: 14px;
         vertical-align: middle;
         line-height: $navigation-bottom;
     }
-}
-
-// container element for user related drop-down menu
-// initially hidden
-.nav-bottom-active-user {
-    float: right;
-    width: 240px;
-    height: $navigation-bottom;
-    margin-right: 30px;
-    display: none;
-    &.active {
-        // triggered via listener in setBaseTemplateListeners
-        display: inline-block;
-    }
-    // first square in drop-down
-    & > .active-user {
-        margin: 0;
+    // container element for user related drop-down menu
+    // initially hidden
+    & > .nav-bottom-active-user {
+        float: right;
         width: 240px;
-        font-size: 12px;
-        background-color: $solinea-grey;
-        color: $white;
-        position: relative;
-
-        // css triangle
-        &::after {
-        	bottom: 100%;
-        	left: 89%;
-        	border: solid transparent;
-        	content: " ";
-        	height: 0;
-        	width: 0;
-        	position: absolute;
-        	pointer-events: none;
-        	border-bottom-color: $solinea-grey;
-        	border-width: 9px;
+        height: $navigation-bottom;
+        margin-right: 30px;
+        display: none;
+        // applies to all divs inside container element
+        div {
+            width: 240px;
+            font-size: 12px;
+            background-color: $white;
+            color: $solinea-grey;
+            cursor: pointer;
+            &::before {
+                font-family: FontAwesome;
+                color: $solinea-blue;
+                margin-right: 14px;
+            }
+            &:hover:not(.active-user){
+                background-color: $highlight-blue;
+            }
         }
-    }
-    // second square in drop-down
-    & > .user-settings {
-        margin: 0;
-        width: 240px;
-        font-size: 12px;
-        background-color: $white;
-        color: $solinea-grey;
-        cursor: pointer;
-        &:hover {
-            background-color: $highlight-blue;
+        &.active {
+            // triggered via listener in setBaseTemplateListeners
+            display: inline-block;
         }
-        &::before {
-            font-family: FontAwesome;
-            color: $solinea-blue;
-            margin-right: 14px;
-            content: '\f013'
+        // first square in drop-down
+        & > .active-user {
+            background-color: $solinea-grey;
+            color: $white;
+            position: relative;
+            cursor: default;
+            // css triangle
+            &::after {
+            	bottom: 100%;
+            	left: 89%;
+            	border: solid transparent;
+            	content: " ";
+            	height: 0;
+            	width: 0;
+            	position: absolute;
+            	pointer-events: none;
+            	border-bottom-color: $solinea-grey;
+            	border-width: 9px;
+            }
         }
-    }
-    // third square in drop-down
-    & > .user-help {
-        margin: 0;
-        width: 240px;
-        font-size: 12px;
-        background-color: $white;
-        color: $solinea-grey;
-        cursor: pointer;
-        &:hover {
-            background-color: $highlight-blue;
+        // second square in drop-down
+        & > .user-settings {
+            &::before {
+                content: '\f013'
+            }
         }
-        &::before {
-            font-family: FontAwesome;
-            color: $solinea-blue;
-            margin-right: 14px;
-            content: '\f059'
+        // third square in drop-down
+        & > .user-help {
+            &::before {
+                content: '\f059'
+            }
         }
-    }
-    // fourth square in drop-down
-    // logout listener set in authLogoutView
-    & > .user-logout {
-        margin: 0;
-        width: 240px;
-        font-size: 12px;
-        background-color: $white;
-        color: $solinea-grey;
-        cursor: pointer;
-        &:hover {
-            background-color: $highlight-blue;
-        }
-        &::before {
-            font-family: FontAwesome;
-            color: $solinea-blue;
-            margin-right: 14px;
-            content: '\f08b'
+        // fourth square in drop-down
+        // logout listener set in authLogoutView
+        & > .user-logout {
+            &::before {
+                content: '\f08b'
+            }
         }
     }
 }
