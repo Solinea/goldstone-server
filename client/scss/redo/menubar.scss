@@ -14,19 +14,7 @@ $navigation_hover: #fff;
         line-height: $navigation-top;
     }
 }
-.bottom-bar {
-    margin-top: $navigation-top;
-    height: $navigation-bottom;
-    min-height: $navigation-bottom;
-    background-color: $hover-blue;
-    border: 0;
-    div {
-        text-align: left;
-        padding-left: 14px;
-        vertical-align: middle;
-        line-height: $navigation-bottom;
-    }
-}
+
 // fixed navigation bar will cover all other content
 body {
     padding-top: ($navigation-top + $navigation-bottom);
@@ -143,31 +131,65 @@ body {
 }
 .u-p-g-r-a-d-e {
     font-size: 13px;
-    margin: 0 18px;
+    padding: 0 18px;
     color: $solinea-blue;
 }
 .active-user {
     font-size: 13px;
-    margin: 0 19px;
+    padding: 0 19px;
     color: $light-grey;
 }
 
+.bottom-bar {
+    margin-top: $navigation-top;
+    height: $navigation-bottom;
+    min-height: $navigation-bottom;
+    background-color: $hover-blue;
+    border: 0;
+    div {
+        text-align: left;
+        padding-left: 14px;
+        vertical-align: middle;
+        line-height: $navigation-bottom;
+    }
+}
+
+// container element for user related drop-down menu
+// initially hidden
 .nav-bottom-active-user {
     float: right;
     width: 240px;
     height: $navigation-bottom;
-    margin: 0;
+    margin-right: 30px;
     display: none;
     &.active {
+        // triggered via listener in setBaseTemplateListeners
         display: inline-block;
     }
+    // first square in drop-down
     & > .active-user {
         margin: 0;
         width: 240px;
         font-size: 12px;
         background-color: $solinea-grey;
         color: $white;
+        position: relative;
+
+        // css triangle
+        &::after {
+        	bottom: 100%;
+        	left: 89%;
+        	border: solid transparent;
+        	content: " ";
+        	height: 0;
+        	width: 0;
+        	position: absolute;
+        	pointer-events: none;
+        	border-bottom-color: $solinea-grey;
+        	border-width: 9px;
+        }
     }
+    // second square in drop-down
     & > .user-settings {
         margin: 0;
         width: 240px;
@@ -185,6 +207,7 @@ body {
             content: '\f013'
         }
     }
+    // third square in drop-down
     & > .user-help {
         margin: 0;
         width: 240px;
@@ -202,6 +225,8 @@ body {
             content: '\f059'
         }
     }
+    // fourth square in drop-down
+    // logout listener set in authLogoutView
     & > .user-logout {
         margin: 0;
         width: 240px;

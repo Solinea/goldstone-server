@@ -102,7 +102,6 @@ goldstone.setBaseTemplateListeners = function() {
 
     // show elements in bottom nav bar when hovering
     // on related menu items at top
-
     $('.user-hover').hover(function() {
         $('.nav-bottom-active-user').toggleClass('active');
     });
