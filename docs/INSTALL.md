@@ -47,7 +47,7 @@ This procedure will modify the configuration of your OpenStack server(s).  All c
 With Goldstone installed, the only task left is to configure OpenStack servers to send logs and events to the Goldstone server. Execute the following command to perform the configuration, substituting appropriate values for names and addresses:
 
 ```bash
-root# docker exec -i -t docker_gsapp_1 bash
+root# docker exec -i -t goldstone_gsapp_1 bash
 (venv)app@2f31cd23f422:~$ fab -f post_install.py -H {OpenStack_controller_IP,OpenStack_compute_IP,...} configure_stack:{goldstone_addr}
 
 Executing task 'configure_stack'
