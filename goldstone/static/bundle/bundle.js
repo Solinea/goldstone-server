@@ -153,6 +153,15 @@ goldstone.setBaseTemplateListeners = function() {
     $('.user-help').click(function() {
         location.href="https://solinea.freshdesk.com/support/home";
     });
+    $('.audit-trail').click(function() {
+        location.href="/#compliance/opentrail/manager/";
+    });
+    $('.audit-lease').click(function() {
+        location.href="/#compliance/leases/manager/";
+    });
+    $('.audit-vulnerability').click(function() {
+        location.href="/#compliance/vulnerability/advisor/";
+    });
 
     // tooltips for side-menu bar icons
     // trigger: 'hover' will dismiss when mousing-out
@@ -231,6 +240,9 @@ goldstone.setBaseTemplateListeners = function() {
     });
     $('.metrics-hover').hover(function() {
         $('.nav-bottom-active-metrics').toggleClass('active');
+    });
+    $('.audit-hover').hover(function() {
+        $('.nav-bottom-active-audit').toggleClass('active');
     });
 
     var routeNameToIconClassHash = {

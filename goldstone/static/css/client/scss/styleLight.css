@@ -517,12 +517,17 @@ body { padding-top: 100px; }
 
 .bottom-bar { margin-top: 60px; height: 40px; min-height: 40px; background-color: #0095D3; border: 0; }
 .bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: 40px; font-size: 13px; }
-.bottom-bar > .nav-bottom-active-metrics { float: left; width: 148px; margin-left: 257px; display: none; }
+.bottom-bar > .nav-bottom-active-metrics { width: 148px; left: 257px; position: absolute; display: none; }
 .bottom-bar > .nav-bottom-active-metrics div { background-color: #fff; color: #666666; cursor: pointer; padding-left: 20px; }
 .bottom-bar > .nav-bottom-active-metrics div:hover { background-color: #E2F7FF; }
-.bottom-bar > .nav-bottom-active-metrics div::after { bottom: 100%; left: 25.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
+.bottom-bar > .nav-bottom-active-metrics div::after { bottom: 100%; left: 6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
 .bottom-bar > .nav-bottom-active-metrics.active { display: inline-block; }
-.bottom-bar > .nav-bottom-active-user { float: right; width: 240px; margin-right: 20px; display: none; }
+.bottom-bar > .nav-bottom-active-audit { width: 148px; left: 480px; position: absolute; display: none; }
+.bottom-bar > .nav-bottom-active-audit div { background-color: #fff; color: #666666; cursor: pointer; padding-left: 20px; }
+.bottom-bar > .nav-bottom-active-audit div:hover { background-color: #E2F7FF; }
+.bottom-bar > .nav-bottom-active-audit div::after { bottom: 100%; left: 5.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
+.bottom-bar > .nav-bottom-active-audit.active { display: inline-block; }
+.bottom-bar > .nav-bottom-active-user { width: 240px; position: absolute; right: 0; border-right: solid 1em transparent; display: none; }
 .bottom-bar > .nav-bottom-active-user div { background-color: #fff; color: #666666; cursor: pointer; }
 .bottom-bar > .nav-bottom-active-user div::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; }
 .bottom-bar > .nav-bottom-active-user div:hover:not(.active-user) { background-color: #E2F7FF; }
