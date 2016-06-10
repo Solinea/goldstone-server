@@ -26,6 +26,7 @@ body {
         color: #909090;
         margin-left: 54px;
         font-weight: bold;
+        font-size: 14px;
     }
     & > .navigate-line {
         height: 60px;
@@ -60,7 +61,7 @@ body {
         }
     }
     & > .m-e-t-r-i-c-s {
-        margin-left: 29px;
+        padding: 0 15px 0 29px;
         // will be applied on hover as well as
         // when the 'active' class is applied
         &:hover, &.active {
@@ -73,7 +74,7 @@ body {
         }
     }
     & > a .t-o-p-o-l-o-g-y {
-        margin-left: 29px;
+        padding: 0  15px 0 15px;
         // will be applied on hover as well as
         // when the 'active' class is applied
         &:hover, &.active {
@@ -86,7 +87,7 @@ body {
         }
     }
     & > .a-u-d-i-t {
-        margin-left: 29px;
+        padding: 0 15 0 15px;
         // will be applied on hover as well as
         // when the 'active' class is applied
         &:hover, &.active {
@@ -143,19 +144,50 @@ body {
         padding-left: 14px;
         vertical-align: middle;
         line-height: $navigation-bottom;
+        font-size: 13px;
+    }
+    & > .nav-bottom-active-metrics {
+        float: left;
+        width: 148px;
+        margin-left: 257px;
+        display: none;
+        // applies to all divs inside container element
+        div {
+            background-color: $white;
+            color: $solinea-grey;
+            cursor: pointer;
+            padding-left: 20px;
+            &:hover {
+                background-color: $highlight-blue;
+            }
+            // css triangle
+            &::after {
+            	bottom: 100%;
+            	left: 25.6em;
+            	border: solid transparent;
+            	content: " ";
+            	height: 0;
+            	width: 0;
+            	position: absolute;
+            	pointer-events: none;
+            	border-bottom-color: $white;
+            	border-width: 9px;
+            }
+        }
+        &.active {
+            // triggered via listener in setBaseTemplateListeners
+            display: inline-block;
+        }
     }
     // container element for user related drop-down menu
     // initially hidden
     & > .nav-bottom-active-user {
         float: right;
         width: 240px;
-        height: $navigation-bottom;
-        margin-right: 30px;
+        margin-right: 20px;
         display: none;
         // applies to all divs inside container element
         div {
-            width: 240px;
-            font-size: 12px;
             background-color: $white;
             color: $solinea-grey;
             cursor: pointer;
@@ -181,7 +213,7 @@ body {
             // css triangle
             &::after {
             	bottom: 100%;
-            	left: 89%;
+            	right: 0.6em;
             	border: solid transparent;
             	content: " ";
             	height: 0;

@@ -491,7 +491,7 @@ body { padding-top: 100px; }
 
 .top-bar { height: 60px; background-color: #3C3C3C; overflow: hidden; border: 0; }
 .top-bar div { display: inline-block; text-align: center; vertical-align: middle; line-height: 60px; font-size: 13px; color: #CCCCCC; }
-.top-bar > a .g-o-l-d-s-t-o-n-e { color: #909090; margin-left: 54px; font-weight: bold; }
+.top-bar > a .g-o-l-d-s-t-o-n-e { color: #909090; margin-left: 54px; font-weight: bold; font-size: 14px; }
 .top-bar > .navigate-line { height: 60px; position: relative; background-color: #000; margin-left: 8px; width: 1px; }
 .top-bar > a .d-a-s-h-b-o-a-r-d { margin-left: 20px; }
 .top-bar > a .d-a-s-h-b-o-a-r-d:hover, .top-bar > a .d-a-s-h-b-o-a-r-d.active { color: #fff; }
@@ -499,13 +499,13 @@ body { padding-top: 100px; }
 .top-bar > a .d-a-s-h-b-o-a-r-d.status-red::before { color: #FF0000; }
 .top-bar > a .d-a-s-h-b-o-a-r-d.status-yellow::before { color: #F1CA10; }
 .top-bar > a .d-a-s-h-b-o-a-r-d.status-green::before { color: #57BE1B; }
-.top-bar > .m-e-t-r-i-c-s { margin-left: 29px; }
+.top-bar > .m-e-t-r-i-c-s { padding: 0 15px 0 29px; }
 .top-bar > .m-e-t-r-i-c-s:hover, .top-bar > .m-e-t-r-i-c-s.active { color: #fff; }
 .top-bar > .m-e-t-r-i-c-s::before { font-family: FontAwesome; content: "\f1fe"; margin-right: 4px; }
-.top-bar > a .t-o-p-o-l-o-g-y { margin-left: 29px; }
+.top-bar > a .t-o-p-o-l-o-g-y { padding: 0  15px 0 15px; }
 .top-bar > a .t-o-p-o-l-o-g-y:hover, .top-bar > a .t-o-p-o-l-o-g-y.active { color: #fff; }
 .top-bar > a .t-o-p-o-l-o-g-y::before { font-family: FontAwesome; content: "\f0e8"; margin-right: 4px; }
-.top-bar > .a-u-d-i-t { margin-left: 29px; }
+.top-bar > .a-u-d-i-t { padding: 0 15 0 15px; }
 .top-bar > .a-u-d-i-t:hover, .top-bar > .a-u-d-i-t.active { color: #fff; }
 .top-bar > .a-u-d-i-t::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; }
 .top-bar > .a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
@@ -516,14 +516,19 @@ body { padding-top: 100px; }
 .top-bar > .active-user { padding: 0 19px; }
 
 .bottom-bar { margin-top: 60px; height: 40px; min-height: 40px; background-color: #0095D3; border: 0; }
-.bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: 40px; }
-.bottom-bar > .nav-bottom-active-user { float: right; width: 240px; height: 40px; margin-right: 30px; display: none; }
-.bottom-bar > .nav-bottom-active-user div { width: 240px; font-size: 12px; background-color: #fff; color: #666666; cursor: pointer; }
+.bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: 40px; font-size: 13px; }
+.bottom-bar > .nav-bottom-active-metrics { float: left; width: 148px; margin-left: 257px; display: none; }
+.bottom-bar > .nav-bottom-active-metrics div { background-color: #fff; color: #666666; cursor: pointer; padding-left: 20px; }
+.bottom-bar > .nav-bottom-active-metrics div:hover { background-color: #E2F7FF; }
+.bottom-bar > .nav-bottom-active-metrics div::after { bottom: 100%; left: 25.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
+.bottom-bar > .nav-bottom-active-metrics.active { display: inline-block; }
+.bottom-bar > .nav-bottom-active-user { float: right; width: 240px; margin-right: 20px; display: none; }
+.bottom-bar > .nav-bottom-active-user div { background-color: #fff; color: #666666; cursor: pointer; }
 .bottom-bar > .nav-bottom-active-user div::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; }
 .bottom-bar > .nav-bottom-active-user div:hover:not(.active-user) { background-color: #E2F7FF; }
 .bottom-bar > .nav-bottom-active-user.active { display: inline-block; }
 .bottom-bar > .nav-bottom-active-user > .active-user { background-color: #666666; color: #fff; position: relative; cursor: default; }
-.bottom-bar > .nav-bottom-active-user > .active-user::after { bottom: 100%; left: 89%; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #666666; border-width: 9px; }
+.bottom-bar > .nav-bottom-active-user > .active-user::after { bottom: 100%; right: 0.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #666666; border-width: 9px; }
 .bottom-bar > .nav-bottom-active-user > .user-settings::before { content: ""; }
 .bottom-bar > .nav-bottom-active-user > .user-help::before { content: ""; }
 .bottom-bar > .nav-bottom-active-user > .user-logout::before { content: ""; }

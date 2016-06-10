@@ -23,6 +23,15 @@ govern the expanding menu actions.
 goldstone.setBaseTemplateListeners = function() {
 
     // set href targets of menubar drop-down items
+    $('.metrics-log').click(function() {
+        location.href="/#reports/logbrowser";
+    });
+    $('.metrics-event').click(function() {
+        location.href="/#reports/eventbrowser";
+    });
+    $('.metrics-api').click(function() {
+        location.href="/#reports/apibrowser";
+    });
     $('.user-settings').click(function() {
         location.href="/#settings";
     });
@@ -106,7 +115,7 @@ goldstone.setBaseTemplateListeners = function() {
         $('.nav-bottom-active-user').toggleClass('active');
     });
     $('.metrics-hover').hover(function() {
-        $('.nav-bottom-active-metricsmetrics').toggleClass('active');
+        $('.nav-bottom-active-metrics').toggleClass('active');
     });
 
     var routeNameToIconClassHash = {
