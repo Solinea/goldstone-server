@@ -13,7 +13,7 @@ limitations under the License.
 
 {% load staticfiles %}
 {% load custom_filters %}
-<html>
+<!DOCTYPE html>
 
 <head>
 
@@ -52,59 +52,93 @@ limitations under the License.
 <body class="dashboard">
     <!--Page Wrapper Start-->
     <div class="wrapper">
-        <nav class="top-bar navbar navbar-default navbar-fixed-top">
 
-            <a href="/#discover">
-            <div class="g-o-l-d-s-t-o-n-e">GOLDSTONE</div>
-            </a>
+<nav id="top-bar">
+<ul>
+  <li class="g-o-l-d-s-t-o-n-e"><a href="/#discover"><span class="i18n" data-i18n="GOLDSTONE">GOLDSTONE</span></a></li>
+  <li class="navigate-line"></li>
+  <li class="d-a-s-h-b-o-a-r-d"><a href="/#discover"><span class="i18n" data-i18n="DASHBOARD">DASHBOARD</span></a></li>
+  <li class="m-e-t-r-i-c-s"><span class="i18n" data-i18n="METRICS">METRICS</span>
+      <ul>
+          <li class="metrics-log"><a href="/#reports/logbrowser"><span class="i18n" data-i18n="Logs">Logs</span></a></li>
+          <li class="metrics-event"><a href="#/reports/eventbrowser"><span class="i18n" data-i18n="Events">Events</span></a></li>
+          <li class="metrics-api"><a href="#/reports/apibrowser"><span class="i18n" data-i18n="Api">Api</span></a></li>
+      </ul>
+  </li>
+  <li class="t-o-p-o-l-o-g-y"><a href="/#topology"><span class="i18n" data-i18n="TOPOLOGY">TOPOLOGY</span></a></li>
+  <li class="a-u-d-i-t"><span class="i18n" data-i18n="AUDIT">AUDIT</span>
+      <ul>
+          <li class="audit-trail"><a href="/#compliance/opentrail/manager/"><span class="i18n" data-i18n="OpenTrail">OpenTrail</span></a></li>
+          <li class="audit-lease"><a href="/#compliance/leases/manager/"><span class="i18n" data-i18n="Leases">Leases</span></a></li>
+          <li class="audit-vulnerability"><a href="/#compliance/vulnerability/advisor/"><span class="i18n" data-i18n="Vulnerabilities">Vulnerabilities</span></a></li>
+      </ul>
+  </li>
+  <li class="active-user"><span class="user-b-g"></span>
+      <ul>
+          <li class="active-username"></li>
+          <li class="user-settings"><a href="/#settings"><span class="i18n" data-i18n="Settings">Settings</span></a></li>
+          <li class="user-help"><a href="https://solinea.freshdesk.com/support/home"><span class="i18n" data-i18n="Help">Help</span></a></li>
+          <li class="user-logout logout-btn"><a href="#"><span class="i18n" data-i18n="Sign Out">Sign Out</span></a></li>
+      </ul>
+  </li>
+  <li class="u-p-g-r-a-d-e"><span class="i18n" data-i18n="UPGRADE">UPGRADE</span><span class="upgrade-b-g"></span></li>
+  <li class="alert-container">
+      <span class="badge" id="badge-count"></span>
+      <span class="icon-alerts"></span>
+  </li>
+</ul>
+</nav>
+<nav id="bottom-bar"></nav>
 
-            <div class="navigate-line">&nbsp;</div>
+        <!--
+        <nav class="top-bar">
+        <ul>
 
-            <a href="/#discover">
-            <div class="d-a-s-h-b-o-a-r-d">DASHBOARD</div>
-            </a>
+            <li class="g-o-l-d-s-t-o-n-e"><a href="/#discover">GOLDSTONE</a></li>
 
-            <div class="m-e-t-r-i-c-s metrics-hover">METRICS</div>
+            <li class="navigate-line">&nbsp;</li>
 
-            <a href="/#topology">
-            <div class="t-o-p-o-l-o-g-y">TOPOLOGY</div>
-            </a>
+            <li class="d-a-s-h-b-o-a-r-d"><a href="/#discover">DASHBOARD</a></li>
 
-            <div class="a-u-d-i-t audit-hover">AUDIT</div>
-            <div style="float:right;" class="active-user user-hover"></div>
-            <div style="float:right;" class="navigate-line">&nbsp;</div>
-            <div style="float:right;" class="u-p-g-r-a-d-e">UPGRADE</div>
-            <div style="float:right;" class="navigate-line">&nbsp;</div>
-            <div class="alert-container" style="float:right;">
+            <li class="m-e-t-r-i-c-s metrics-hover">METRICS
+                <ul>
+                    <li class="metrics-log">Logs</li>
+                    <li class="metrics-event">Events</li>
+                    <li class="metrics-api">Api</li>
+                </ul>
+            </li>
+
+            <li class="t-o-p-o-l-o-g-y"><a href="/#topology">TOPOLOGY</a></li>
+
+            <li class="a-u-d-i-t audit-hover">AUDIT
+                <ul>
+                    <li class="audit-trail">OpenTrail</li>
+                    <li class="audit-lease">Leases</li>
+                    <li class="audit-vulnerability">Vulnerabilities</li>
+                </ul>
+            </li>
+
+            <li class="alert-container">
                 <span style="padding: 3px 5px;" class="badge" id="badge-count"></span>
                 <span class="icon-alerts"></span>
-            </div>
-        </nav>
+            </li>
+            <li class="navigate-line">&nbsp;</li>
+            <li class="u-p-g-r-a-d-e">UPGRADE</li>
+            <li class="navigate-line">&nbsp;</li>
 
-        <nav class="bottom-bar navbar navbar-default navbar-fixed-top">
+            <li class="active-user user-hover">
+                <ul>
+                    <li class="active-user"></li>
+                    <li class="user-settings">Settings</li>
+                    <li class="user-help">Help</li>
+                    <li class="user-logout logout-btn">Sign Out</li>
+                </ul>
+            </li>
 
-            <div class="nav-bottom-active-metrics metrics-hover">
-                <div class="metrics-log">Logs</div>
-                <div class="metrics-event">Events</div>
-                <div class="metrics-api">Api</div>
-            </div>
-
-            <div class="nav-bottom-active-audit audit-hover">
-                <div class="audit-trail">OpenTrail</div>
-                <div class="audit-lease">Leases</div>
-                <div class="audit-vulnerability">Vulnerabilities</div>
-            </div>
-
-            <div class="nav-bottom-active-user user-hover">
-                <div class="active-user"></div>
-                <div class="user-settings">Settings</div>
-                <div class="user-help">Help</div>
-                <div class="user-logout logout-btn">Sign Out</div>
-            </div>
-
-        </nav>
-
-        <!--Header Start-->
+        </ul>
+    </nav>
+    <nav class="bottom-bar">&nbsp;</nav>
+-->
         <header class="main-header clearfix">
             <a class="logo-header" href="/#discover">&nbsp;</a>
 

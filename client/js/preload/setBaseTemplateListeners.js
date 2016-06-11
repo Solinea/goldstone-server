@@ -22,31 +22,8 @@ govern the expanding menu actions.
 
 goldstone.setBaseTemplateListeners = function() {
 
-    // set href targets of menubar drop-down items
-    $('.metrics-log').click(function() {
-        location.href="/#reports/logbrowser";
-    });
-    $('.metrics-event').click(function() {
-        location.href="/#reports/eventbrowser";
-    });
-    $('.metrics-api').click(function() {
-        location.href="/#reports/apibrowser";
-    });
-    $('.user-settings').click(function() {
-        location.href="/#settings";
-    });
-    $('.user-help').click(function() {
-        location.href="https://solinea.freshdesk.com/support/home";
-    });
-    $('.audit-trail').click(function() {
-        location.href="/#compliance/opentrail/manager/";
-    });
-    $('.audit-lease').click(function() {
-        location.href="/#compliance/leases/manager/";
-    });
-    $('.audit-vulnerability').click(function() {
-        location.href="/#compliance/vulnerability/advisor/";
-    });
+    // set dashboard status initially to green
+    $('.d-a-s-h-b-o-a-r-d').addClass('status-green');
 
     // tooltips for side-menu bar icons
     // trigger: 'hover' will dismiss when mousing-out
@@ -118,18 +95,6 @@ goldstone.setBaseTemplateListeners = function() {
         $(selector).addClass('active');
     };
 
-    // show elements in bottom nav bar when hovering
-    // on related menu items at top
-    $('.user-hover').hover(function() {
-        $('.nav-bottom-active-user').toggleClass('active');
-    });
-    $('.metrics-hover').hover(function() {
-        $('.nav-bottom-active-metrics').toggleClass('active');
-    });
-    $('.audit-hover').hover(function() {
-        $('.nav-bottom-active-audit').toggleClass('active');
-    });
-
     var routeNameToIconClassHash = {
         discover: '.d-a-s-h-b-o-a-r-d',
         apiPerfReport: '.m-e-t-r-i-c-s',
@@ -160,7 +125,7 @@ goldstone.setBaseTemplateListeners = function() {
     // and first argument is route name. Match to hash
     // to highlight the appropriate side menu nav icon
     goldstone.gsRouter.on('route', function(name) {
-        addMenuIconHighlighting(routeNameToIconClassHash[name]);
+        // addMenuIconHighlighting(routeNameToIconClassHash[name]);
         updateLicenseLink(name);
     });
 };

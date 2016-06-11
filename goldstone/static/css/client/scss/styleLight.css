@@ -1,4 +1,3 @@
-@charset "UTF-8";
 /** Copyright 2015 Solinea, Inc.  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 /*
 styleDark.scss and styleLight.scss exist as targets for a Grunt watch task
@@ -487,55 +486,53 @@ naturally respect vertical placement for Japanese text.
   .btn-grp li.active .topology { background-image: url(../../../images/icon-topology-active1@2x.png); }
   .expand { background: url(../../../images/icon-expand@2x.png) no-repeat center center; background-size: 14px 14px; }
   .expand.open { background: url(../../../images/icon-collapse@2x.png) no-repeat center center; background-size: 14px 14px; } }
-body { padding-top: 100px; }
+body { padding-top: 102px; }
 
-.top-bar { height: 60px; background-color: #3C3C3C; overflow: hidden; border: 0; }
-.top-bar div { display: inline-block; text-align: center; vertical-align: middle; line-height: 60px; font-size: 13px; color: #CCCCCC; }
-.top-bar > a .g-o-l-d-s-t-o-n-e { color: #909090; margin-left: 54px; font-weight: bold; font-size: 14px; }
-.top-bar > .navigate-line { height: 60px; position: relative; background-color: #000; margin-left: 8px; width: 1px; }
-.top-bar > a .d-a-s-h-b-o-a-r-d { margin-left: 20px; }
-.top-bar > a .d-a-s-h-b-o-a-r-d:hover, .top-bar > a .d-a-s-h-b-o-a-r-d.active { color: #fff; }
-.top-bar > a .d-a-s-h-b-o-a-r-d::before { font-family: FontAwesome; content: "\f111"; margin-right: 4px; }
-.top-bar > a .d-a-s-h-b-o-a-r-d.status-red::before { color: #FF0000; }
-.top-bar > a .d-a-s-h-b-o-a-r-d.status-yellow::before { color: #F1CA10; }
-.top-bar > a .d-a-s-h-b-o-a-r-d.status-green::before { color: #57BE1B; }
-.top-bar > .m-e-t-r-i-c-s { padding: 0 15px 0 29px; }
-.top-bar > .m-e-t-r-i-c-s:hover, .top-bar > .m-e-t-r-i-c-s.active { color: #fff; }
-.top-bar > .m-e-t-r-i-c-s::before { font-family: FontAwesome; content: "\f1fe"; margin-right: 4px; }
-.top-bar > a .t-o-p-o-l-o-g-y { padding: 0  15px 0 15px; }
-.top-bar > a .t-o-p-o-l-o-g-y:hover, .top-bar > a .t-o-p-o-l-o-g-y.active { color: #fff; }
-.top-bar > a .t-o-p-o-l-o-g-y::before { font-family: FontAwesome; content: "\f0e8"; margin-right: 4px; }
-.top-bar > .a-u-d-i-t { padding: 0 15 0 15px; }
-.top-bar > .a-u-d-i-t:hover, .top-bar > .a-u-d-i-t.active { color: #fff; }
-.top-bar > .a-u-d-i-t::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; }
-.top-bar > .a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
-.top-bar > .alert-container .icon-alerts { position: relative; right: 18px; }
-.top-bar > .alert-container .icon-alerts::before { font-size: 16px; font-family: FontAwesome; content: "\f0f3"; color: #CCCCCC; }
-.top-bar > .alert-container .badge { position: relative; margin-top: -20px; right: 5px; background-color: #FF0000; z-index: 1; }
-.top-bar > .u-p-g-r-a-d-e { padding: 0 18px; color: #23ADE1; }
-.top-bar > .active-user { padding: 0 19px; }
+#bottom-bar { position: fixed; width: 100%; top: 60px; height: 42px; background-color: #fff; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3); z-index: 9; }
 
-.bottom-bar { margin-top: 60px; height: 40px; min-height: 40px; background-color: #0095D3; border: 0; }
-.bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: 40px; font-size: 13px; }
-.bottom-bar > .nav-bottom-active-metrics { width: 148px; left: 257px; position: absolute; display: none; }
-.bottom-bar > .nav-bottom-active-metrics div { background-color: #fff; color: #666666; cursor: pointer; padding-left: 20px; }
-.bottom-bar > .nav-bottom-active-metrics div:hover { background-color: #E2F7FF; }
-.bottom-bar > .nav-bottom-active-metrics div::after { bottom: 100%; left: 6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
-.bottom-bar > .nav-bottom-active-metrics.active { display: inline-block; }
-.bottom-bar > .nav-bottom-active-audit { width: 148px; left: 480px; position: absolute; display: none; }
-.bottom-bar > .nav-bottom-active-audit div { background-color: #fff; color: #666666; cursor: pointer; padding-left: 20px; }
-.bottom-bar > .nav-bottom-active-audit div:hover { background-color: #E2F7FF; }
-.bottom-bar > .nav-bottom-active-audit div::after { bottom: 100%; left: 5.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
-.bottom-bar > .nav-bottom-active-audit.active { display: inline-block; }
-.bottom-bar > .nav-bottom-active-user { width: 240px; position: absolute; right: 0; border-right: solid 1em transparent; display: none; }
-.bottom-bar > .nav-bottom-active-user div { background-color: #fff; color: #666666; cursor: pointer; }
-.bottom-bar > .nav-bottom-active-user div::before { font-family: FontAwesome; color: #23ADE1; margin-right: 14px; }
-.bottom-bar > .nav-bottom-active-user div:hover:not(.active-user) { background-color: #E2F7FF; }
-.bottom-bar > .nav-bottom-active-user.active { display: inline-block; }
-.bottom-bar > .nav-bottom-active-user > .active-user { background-color: #666666; color: #fff; position: relative; cursor: default; }
-.bottom-bar > .nav-bottom-active-user > .active-user::after { bottom: 100%; right: 0.6em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #666666; border-width: 9px; }
-.bottom-bar > .nav-bottom-active-user > .user-settings::before { content: ""; }
-.bottom-bar > .nav-bottom-active-user > .user-help::before { content: ""; }
-.bottom-bar > .nav-bottom-active-user > .user-logout::before { content: ""; }
+#top-bar { position: fixed; width: 100%; top: 0; height: 60px; background-image: linear-gradient(to left, #47b5ef, #007ad0); z-index: 10; }
+#top-bar ul { list-style: none; position: relative; margin: 0; padding: 0; }
+#top-bar ul li { position: relative; float: left; margin: 0; color: #dbeff7; display: block; line-height: 60px; padding: 0 15px; }
+#top-bar ul li a { text-decoration: none; color: #dbeff7; display: block; }
+#top-bar ul li:hover > ul { display: block; }
+#top-bar ul li.navigate-line { top: 0; height: 60px; width: 1px; background-color: #5eaccc; padding: 0; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d { margin-left: 20px; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d::before { font-family: FontAwesome; content: "\f111"; margin-right: 4px; position: absolute; left: -1px; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d.status-red::before { color: #FF0000; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d.status-yellow::before { color: #F1CA10; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d.status-green::before { color: #57BE1B; }
+#top-bar ul li.m-e-t-r-i-c-s::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
+#top-bar ul li.m-e-t-r-i-c-s ul { width: 110px; }
+#top-bar ul li.a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
+#top-bar ul li.a-u-d-i-t ul { width: 122px; }
+#top-bar ul li.u-p-g-r-a-d-e { float: right; margin-right: 26px; font-size: 12px; font-weight: bold; }
+#top-bar ul li.u-p-g-r-a-d-e span.upgrade-b-g { width: 78px; height: 26px; border-radius: 4px; display: inline-block; position: absolute; right: 0.37em; z-index: -1; border: solid 1px #fff; top: 1.4em; }
+#top-bar ul li.alert-container { float: right; margin-right: 21px; }
+#top-bar ul li.alert-container .icon-alerts { position: relative; right: 18px; }
+#top-bar ul li.alert-container .icon-alerts::before { font-size: 20px; font-family: FontAwesome; content: "\f0f3"; color: #dbeff7; }
+#top-bar ul li.alert-container .badge { position: relative; margin-top: -26px; right: 5px; background-color: #ff3629; z-index: 1; font-size: 11px; padding: 3px 5px; }
+#top-bar ul li.active-user { float: right; }
+#top-bar ul li.active-user::before { font-family: FontAwesome; content: "\f007"; font-size: 20px; color: #fff; }
+#top-bar ul li.active-user ul { left: -82px; width: 146px; border-top: 0; }
+#top-bar ul li.active-user ul li { padding-left: 46px; }
+#top-bar ul li.active-user ul li.active-username { background-color: #3C3C3C; color: #fff; text-transform: uppercase; padding-left: 15px; }
+#top-bar ul li.active-user ul li.user-settings::before { font-family: FontAwesome; position: absolute; left: 20px; content: '\f013'; }
+#top-bar ul li.active-user ul li.user-help::before { font-family: FontAwesome; position: absolute; left: 20px; content: '\f059'; }
+#top-bar ul li.active-user ul li.user-logout::before { font-family: FontAwesome; position: absolute; left: 20px; content: '\f08b'; }
+#top-bar ul li.active-user ul::after { left: 6.9em; border-bottom-color: #3C3C3C; }
+#top-bar ul li.active-user span.user-b-g { background-color: #417399; width: 34px; height: 34px; border-radius: 50%; display: inline-block; position: relative; right: 25px; z-index: -1; top: 10px; }
+#top-bar ul ul { display: none; position: absolute; top: 60px; left: 0; background: #fff; padding: 0; box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2); border: solid 1px #CCCCCC; }
+#top-bar ul ul li { line-height: 50px; color: #666666; width: 100%; background-color: #fff; padding: 0 0 0 15px; }
+#top-bar ul ul li:hover { background-color: #e5f5ff; }
+#top-bar ul ul a { color: #666666; display: block; }
+#top-bar ul ul a:hover { color: #068fe0; }
+#top-bar ul ul::after { bottom: 100%; left: 2.2em; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none; border-bottom-color: #fff; border-width: 9px; }
+
+/* & li > a .g-o-l-d-s-t-o-n-e { color: #909090; margin-left: 54px; font-weight: bold; font-size: 14px; } & > .navigate-line { height: 60px; position: relative; background-color: #000; margin-left: 8px; width: 1px; } & > a .d-a-s-h-b-o-a-r-d { margin-left: 20px; // will be applied on hover as well as // when the 'active' class is applied &:hover, &.active { color: $navigation_hover; } &::before { font-family: FontAwesome; content: "\f111"; margin-right: 4px; } // color will be applied to status dot // when the following 3 statuses are applied // to d-a-s-h-b-o-a-r-d &.status-red::before { color: $solinea-red; } &.status-yellow::before { color: $solinea-yellow; } &.status-green::before { color: $solinea-green; } } & > .m-e-t-r-i-c-s { padding: 0 15px 0 29px; // will be applied on hover as well as // when the 'active' class is applied &:hover, &.active { color: $navigation_hover; } &::before { font-family: FontAwesome; content: "\f1fe"; margin-right: 4px; } } & > a .t-o-p-o-l-o-g-y { padding: 0  15px 0 15px; // will be applied on hover as well as // when the 'active' class is applied &:hover, &.active { color: $navigation_hover; } &::before { font-family: FontAwesome; content: "\f0e8"; margin-right: 4px; } } & > .a-u-d-i-t { padding: 0 15 0 15px; // will be applied on hover as well as // when the 'active' class is applied &:hover, &.active { color: $navigation_hover; } &::before { font-family: FontAwesome; content: "\f0ea"; margin-right: 4px; } &::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; } } & > .alert-container { .icon-alerts { position: relative; right: 18px; &::before { font-size: 16px; font-family: FontAwesome; content: "\f0f3"; color: $light-grey; } } .badge { position: relative; margin-top: -20px; right: 5px; background-color: $solinea-red; z-index: 1; } } & > .u-p-g-r-a-d-e { padding: 0 18px; color: $solinea-blue; } & > .active-user { padding: 0 19px; }
+}
+
+.bottom-bar { position: fixed; top: 60px; left: 0; height: 40px; background-color: #0095DD; border: 0; z-index: 998; width: 100%; // generic settings for all divs contained in bottom-bar div { text-align: left; padding-left: 14px; vertical-align: middle; line-height: $navigation-bottom; font-size: 13px; } & > .nav-bottom-active-metrics { width: 148px; left: 257px; position: absolute; display: none; // applies to all divs inside container element div { background-color: $white; color: $solinea-grey; cursor: pointer; padding-left: 20px; &:hover { background-color: $highlight-blue; } // css triangle &::after { 	bottom: 100%; 	left: 6em; 	border: solid transparent; 	content: " "; 	height: 0; 	width: 0; 	position: absolute; 	pointer-events: none; 	border-bottom-color: $white; 	border-width: 9px; } } &.active { // triggered via listener in setBaseTemplateListeners display: inline-block; } } & > .nav-bottom-active-audit { width: 148px; left: 480px; position: absolute; display: none; // applies to all divs inside container element div { background-color: $white; color: $solinea-grey; cursor: pointer; padding-left: 20px; &:hover { background-color: $highlight-blue; } // css triangle &::after { 	bottom: 100%; 	left: 5.6em; 	border: solid transparent; 	content: " "; 	height: 0; 	width: 0; 	position: absolute; 	pointer-events: none; 	border-bottom-color: $white; 	border-width: 9px; } } &.active { // triggered via listener in setBaseTemplateListeners display: inline-block; } } // container element for user related drop-down menu // initially hidden & > .nav-bottom-active-user { width: 240px; position: absolute; right: 0; border-right: solid 1em transparent; display: none; // applies to all divs inside container element div { background-color: $white; color: $solinea-grey; cursor: pointer; &::before { font-family: FontAwesome; color: $solinea-blue; margin-right: 14px; } &:hover:not(.active-user){ background-color: $highlight-blue; } } &.active { // triggered via listener in setBaseTemplateListeners display: inline-block; } // first square in drop-down & > .active-user { background-color: $solinea-grey; color: $white; position: relative; cursor: default; // css triangle &::after { 	bottom: 100%; 	right: 0.6em; 	border: solid transparent; 	content: " "; 	height: 0; 	width: 0; 	position: absolute; 	pointer-events: none; 	border-bottom-color: $solinea-grey; 	border-width: 9px; } } // second square in drop-down & > .user-settings { &::before { content: '\f013' } } // third square in drop-down & > .user-help { &::before { content: '\f059' } } // fourth square in drop-down // logout listener set in authLogoutView & > .user-logout { &::before { content: '\f08b' } } }
+}
+*/
 
 /*# sourceMappingURL=styleLight.css.map */

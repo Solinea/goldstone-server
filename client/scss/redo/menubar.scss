@@ -1,28 +1,290 @@
 $navigation-top: 60px;
-$navigation-bottom: 40px;
+$navigation-bottom: 42px;
 $navigation_hover: #fff;
-
-// fixed navigation bars will cover all other content
+$navigation_text_normal: #dbeff7;
+$navigation_dividing_line: #5eaccc;
+$navigation_menu_highlight: #e5f5ff;
+$navigation_menu_highlight_text: #068fe0; // fixed navigation bars will cover all other content
+$navigation_user_background: #417399;
 body {
     padding-top: ($navigation-top + $navigation-bottom);
 }
-
-.top-bar {
+#bottom-bar {
+    position: fixed;
+    width: 100%;
+    top: $navigation-top;
+    height: $navigation-bottom;
+    background-color: $white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    z-index: 9;
+}
+#top-bar {
+    position: fixed;
+    width: 100%;
+    top: 0;
     height: $navigation-top;
-    background-color: $dark-grey;
-    overflow: hidden;
-    border: 0;
-    // generic settings for all divs contained in top-bar
-    div {
-        display: inline-block;
-        text-align: center;
-        vertical-align: middle;
-        line-height: $navigation-top;
-        font-size: 13px;
-        color: $light-grey;
+    background-image: linear-gradient(to left, #47b5ef, #007ad0);
+    z-index: 10;
+    ul {
+        list-style: none;
+        position: relative;
+        margin: 0;
+        padding: 0;
+        li {
+            position: relative;
+            float: left;
+            margin: 0;
+            color: $navigation_text_normal;
+            display: block;
+            line-height: $navigation-top;
+            padding: 0 15px;
+            a {
+                text-decoration: none;
+                color: $navigation_text_normal;
+                display: block;
+            }
+            // show hidden elements when hovering
+            &:hover {
+                & > ul {
+                    display: block;
+                }
+            }
+            // vertical dividing line
+            &.navigate-line {
+                top: 0;
+                height: $navigation-top;
+                width: 1px;
+                background-color: $navigation_dividing_line;
+                padding: 0;
+            }
+            &.d-a-s-h-b-o-a-r-d {
+                margin-left: 20px;
+                &::before {
+                    font-family: FontAwesome;
+                    content: "\f111";
+                    margin-right: 4px;
+                    position: absolute;
+                    left: -1px;
+                }
+                // color will be applied to status dot
+                // when the following 3 statuses are applied
+                // to d-a-s-h-b-o-a-r-d
+                &.status-red::before {
+                    color: $solinea-red;
+                }
+                &.status-yellow::before {
+                    color: $solinea-yellow;
+                }
+                &.status-green::before {
+                    color: $solinea-green;
+                }
+            }
+            &.m-e-t-r-i-c-s {
+                &::after {
+                    font-family: FontAwesome;
+                    content: "\f0d7";
+                    margin-left: 4px;
+                }
+                ul {
+                    width: 110px;
+                }
+            }
+            &.a-u-d-i-t {
+                &::after {
+                    font-family: FontAwesome;
+                    content: "\f0d7";
+                    margin-left: 4px;
+                }
+                ul {
+                    width: 122px;
+                }
+            }
+            &.u-p-g-r-a-d-e {
+                float: right;
+                margin-right: 26px;
+                font-size: 12px;
+                font-weight: bold;
+                & span.upgrade-b-g {
+                    width: 78px;
+                    height: 26px;
+                    border-radius: 4px;
+                    display: inline-block;
+                    position: absolute;
+                    right: 0.37em;
+                    z-index: -1;
+                    border: solid 1px $white;
+                    top: 1.4em;
+                }
+            }
+            &.alert-container {
+                float: right;
+                margin-right: 21px;
+                .icon-alerts {
+                    position: relative;
+                    right: 18px;
+                    &::before {
+                        font-size: 20px;
+                        font-family: FontAwesome;
+                        content: "\f0f3";
+                        color: #dbeff7;
+                    }
+                }
+                .badge {
+                    position: relative;
+                    margin-top: -26px;
+                    right: 5px;
+                    background-color: #ff3629;
+                    z-index: 1;
+                    font-size: 11px;
+                    padding: 3px 5px;
+                }
+            }
+            &.active-user {
+                float: right;
+                &::before {
+                    font-family: FontAwesome;
+                    content: "\f007";
+                    font-size: 20px;
+                    color: $white;
+                }
+                & ul {
+                    left: -82px;
+                    width: 146px;
+                    border-top: 0;
+                    & li {
+                        padding-left: 46px;
+                    }
+                    & li.active-username {
+                        background-color: $dark-grey;
+                        color: $white;
+                        text-transform: uppercase;
+                        padding-left: 15px;
+                    }
+                    & li.user-settings::before {
+                        font-family: FontAwesome;
+                        position: absolute;
+                        left: 20px;
+                        content: '\f013';
+                    }
+                    & li.user-help::before {
+                        font-family: FontAwesome;
+                        position: absolute;
+                        left: 20px;
+                        content: '\f059';
+                    }
+                    & li.user-logout::before {
+                        font-family: FontAwesome;
+                        position: absolute;
+                        left: 20px;
+                        content: '\f08b';
+                    }
+                    // css triangle adjust dark background
+                    &::after {
+                        left: 6.9em;
+                        border-bottom-color: $dark-grey;
+                    }
+                }
+                & span.user-b-g {
+                    background-color: $navigation-user-background;
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
+                    display: inline-block;
+                    position: relative;
+                    right: 25px;
+                    z-index: -1;
+                    top: 10px;
+                }
+            }
+        }
+        // drop down containers, initially hidden
+        ul {
+            display:none;
+            position: absolute;
+            top: $navigation-top;
+            left: 0;
+            background: #fff;
+            padding: 0;
+            box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+            border: solid 1px $light-grey;
+            // drop-down individual items
+            li {
+                line-height: 50px;
+                color: $solinea-grey;
+                width: 100%;
+                background-color: $white;
+                padding: 0 0 0 15px;
+                &:hover {
+                    background-color: $navigation_menu_highlight;
+                }
+            }
+            a {
+                color: $solinea-grey;
+                display: block;
+                &:hover {
+                    color: $navigation_menu_highlight_text;
+                }
+            }
+            // generic css triangle definition
+            &::after {
+                bottom: 100%;
+                left: 2.2em;
+                border: solid transparent;
+                content: " ";
+                height: 0;
+                width: 0;
+                position: absolute;
+                pointer-events: none;
+                border-bottom-color: $white;
+                border-width: 9px;
+            }
+        }
     }
-    // specific settings for individual divs
-    & > a .g-o-l-d-s-t-o-n-e {
+}
+// .top-bar {
+//     position: fixed;
+//     top: 0;
+//     width: 100%;
+//     height: $navigation-top;
+//     background-color: $hover-blue;
+//     overflow: hidden;
+//     border: 0;
+//     z-index: 1000;
+//
+//     ul {
+//         padding: 0;
+//         margin: 0;
+//         list-style: none;
+//         overflow: visible;
+//     }
+//     li {
+//         float: left;
+//         width: 7em;
+//         position: relative;
+//         color: $light-grey;
+//     }
+//     li ul {
+//         display: none;
+//         position: absolute;
+//         top: 1em;
+//         left: 0;
+//     }
+//     li:hover ul {
+//         display: block;
+//     }
+//
+//     div {
+//         display: inline-block;
+//         text-align: center;
+//         vertical-align: middle;
+//         line-height: $navigation-top;
+//         font-size: 13px;
+//         color: $light-grey;
+//     }
+// }
+// specific settings for individual divs
+/*
+    & li > a .g-o-l-d-s-t-o-n-e {
         color: #909090;
         margin-left: 54px;
         font-weight: bold;
@@ -133,11 +395,14 @@ body {
 }
 
 .bottom-bar {
-    margin-top: $navigation-top;
-    height: $navigation-bottom;
-    min-height: $navigation-bottom;
-    background-color: $hover-blue;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: 40px;
+    background-color: #0095DD;
     border: 0;
+    z-index: 998;
+    width: 100%;
     // generic settings for all divs contained in bottom-bar
     div {
         text-align: left;
@@ -279,3 +544,4 @@ body {
         }
     }
 }
+*/

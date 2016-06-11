@@ -42,7 +42,7 @@ goldstone.init = function() {
         // also see settingsPageView:submitRequest()
         // for a function that updates this on change.
         var userInfo = item.first_name || item.username;
-        $('.active-user').text(userInfo);
+        $('.active-username').text(userInfo);
 
         // redirect to tenant settings page if os_* fields
         // not already populated
