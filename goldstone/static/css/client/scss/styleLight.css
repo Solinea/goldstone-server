@@ -506,15 +506,24 @@ body { padding-top: 102px; }
 #top-bar ul li.a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
 #top-bar ul li.a-u-d-i-t ul { width: 122px; }
 #top-bar ul li.u-p-g-r-a-d-e { float: right; margin-right: 26px; font-size: 12px; font-weight: bold; }
+#top-bar ul li.u-p-g-r-a-d-e:hover { color: #fff; }
+#top-bar ul li.u-p-g-r-a-d-e:hover span { background-color: #0369b2; }
 #top-bar ul li.u-p-g-r-a-d-e span.upgrade-b-g { width: 78px; height: 26px; border-radius: 4px; display: inline-block; position: absolute; right: 0.37em; z-index: -1; border: solid 1px #fff; top: 1.4em; }
+#top-bar ul li.u-p-g-r-a-d-e ul { width: 250px; left: -185px; border-top: 0; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.banner { background-color: #3C3C3C; color: #fff; padding-left: 15px; font-size: 13px; font-weight: normal; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.action { text-align: center; border-top: solid 1px #CCCCCC; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.action a { font-weight: bold; color: #068fe0; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.initial { min-height: 123px; padding: 90px 0 40px 0; text-align: center; line-height: 1.4em; color: #666666; font-size: 13px; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.initial::after { font-family: FontAwesome; padding: 20px 0 0 0; position: absolute; left: 55px; content: '\f206  \f178  \f1b9'; color: #129ecd; font-size: 34px; top: 19px; }
+#top-bar ul li.u-p-g-r-a-d-e ul li.initial:hover { background-color: inherit; }
+#top-bar ul li.u-p-g-r-a-d-e ul::after { left: 18.3em; border-bottom-color: #3C3C3C; }
 #top-bar ul li.alert-container { float: right; margin-right: 21px; }
 #top-bar ul li.alert-container .icon-alerts { position: relative; right: 18px; }
 #top-bar ul li.alert-container .icon-alerts::before { font-size: 20px; font-family: FontAwesome; content: "\f0f3"; color: #dbeff7; }
 #top-bar ul li.alert-container .badge { position: relative; margin-top: -26px; right: 5px; background-color: #ff3629; z-index: 1; font-size: 11px; padding: 3px 5px; }
-#top-bar ul li.alert-container { float: right; }
 #top-bar ul li.alert-container ul { width: 250px; left: -185px; border-top: 0; }
-#top-bar ul li.alert-container ul li.banner { background-color: #3C3C3C; color: #fff; padding-left: 15px; }
-#top-bar ul li.alert-container ul li.view-all { text-align: center; border-top: solid 1px #CCCCCC; }
+#top-bar ul li.alert-container ul li.banner { background-color: #3C3C3C; color: #fff; padding-left: 15px; font-size: 13px; }
+#top-bar ul li.alert-container ul li.action { text-align: center; border-top: solid 1px #CCCCCC; }
 #top-bar ul li.alert-container ul li.initial { min-height: 123px; padding-top: 58px; }
 #top-bar ul li.alert-container ul li.initial::after { font-family: FontAwesome; position: absolute; left: 108px; content: '\f0f3'; color: #666666; font-size: 36px; top: 19px; }
 #top-bar ul li.alert-container ul li.initial:hover { background-color: inherit; }

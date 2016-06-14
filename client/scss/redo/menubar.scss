@@ -104,6 +104,12 @@ body {
                 margin-right: 26px;
                 font-size: 12px;
                 font-weight: bold;
+                &:hover {
+                    color: $white;
+                    & span {
+                        background-color: #0369b2;
+                    }
+                }
                 & span.upgrade-b-g {
                     width: 78px;
                     height: 26px;
@@ -114,6 +120,52 @@ body {
                     z-index: -1;
                     border: solid 1px $white;
                     top: 1.4em;
+                }
+                & ul {
+                    width: 250px;
+                    left: -185px;
+                    border-top: 0;
+                    & li.banner {
+                        background-color: $dark-grey;
+                        color: $white;
+                        padding-left: 15px;
+                        font-size: 13px;
+                        font-weight: normal;
+                    }
+                    & li.action {
+                        text-align: center;
+                        border-top: solid 1px $light-grey;
+                        a {
+                            font-weight: bold;
+                            color: #068fe0;
+                        }
+                    }
+                    & li.initial {
+                        min-height: 123px;
+                        padding: 90px 0 40px 0;
+                        text-align: center;
+                        line-height: 1.4em;
+                        color: $solinea-grey;
+                        font-size: 13px;
+                        &::after {
+                            font-family: FontAwesome;
+                            padding: 20px 0 0 0;
+                            position: absolute;
+                            left: 55px;
+                            content: '\f206  \f178  \f1b9';
+                            color: #129ecd;
+                            font-size: 34px;
+                            top: 19px;
+                        }
+                        &:hover {
+                            background-color: inherit;
+                        }
+                    }
+                    // css triangle adjust dark background
+                    &::after {
+                        left: 18.3em;
+                        border-bottom-color: $dark-grey;
+                    }
                 }
             }
             &.alert-container {
@@ -138,9 +190,6 @@ body {
                     font-size: 11px;
                     padding: 3px 5px;
                 }
-            }
-            &.alert-container {
-                float: right;
                 & ul {
                     width: 250px;
                     left: -185px;
@@ -149,8 +198,9 @@ body {
                         background-color: $dark-grey;
                         color: $white;
                         padding-left: 15px;
+                        font-size: 13px;
                     }
-                    & li.view-all {
+                    & li.action {
                         text-align: center;
                         border-top: solid 1px $light-grey;
                     }
