@@ -2894,14 +2894,14 @@ var AddonMenuView = GoldstoneBaseView.extend({
         if (compliance) {
 
             // render the compliance icon and set the routes
-            $(".compliance-icon-container").html(this.complianceTemplate());
+            $(".compliance-icon-container").replaceWith(this.complianceTemplate());
             this.generateRoutesPerAddon(compliance[0]);
         }
 
         if (topology) {
 
             // render the topology icon and set the routes
-            $(".topology-icon-container").html(this.topologyTemplate());
+            $(".topology-icon-container").replaceWith(this.topologyTemplate());
             this.generateRoutesPerAddon(topology[0]);
         }
 
@@ -2953,23 +2953,38 @@ var AddonMenuView = GoldstoneBaseView.extend({
     },
 
     topologyTemplate: _.template('' +
-        '<a href="#topology">' +
-        '<li class="topology-tab" data-toggle="tooltip" data-i18n-tooltip="Topology" data-placement="right" title="Topology">' +
-        '<span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>' +
-        '<span data-i18n="Topology" class="btn-txt i18n">Topology</span>' +
-        '</li>' +
-        '</a>'
+        '<li class="t-o-p-o-l-o-g-y">' +
+        '<a href="/#topology">' +
+        '<span class="i18n" data-i18n="TOPOLOGY">' +
+        'TOPOLOGY' +
+        '</span>' +
+        '</a>' +
+        '</li>'
     ),
 
     complianceTemplate: _.template('' +
-        '<a href="#compliance/opentrail/manager/">' +
-        '<li class="compliance-tab" data-toggle="tooltip" data-i18n-tooltip="Compliance" data-placement="right" title="Compliance">' +
-        '<span class="btn-icon-block"><i class="icon compliance">&nbsp;</i></span>' +
-        '<span class="btn-txt i18n" data-i18n="Compliance">Compliance</span>' +
+        '<li class="a-u-d-i-t">' +
+        '<span class="i18n" data-i18n="AUDIT">' +
+        'AUDIT' +
+        '</span>' +
+        '<ul>' +
+        '<li class="audit-trail">' +
+        '<a href="/#compliance/opentrail/manager/">' +
+        '<span class="i18n" data-i18n="OpenTrail">OpenTrail</span>' +
+        '</a>' +
         '</li>' +
-        '</a>'
+        '<li class="audit-lease"><a href="/#compliance/leases/manager/">' +
+        '<span class="i18n" data-i18n="Leases">Leases</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="audit-vulnerability">' +
+        '<a href="/#compliance/vulnerability/advisor/">' +
+        '<span class="i18n" data-i18n="Vulnerabilities">Vulnerabilities</span>' +
+        '</a>' +
+        '</li>' +
+        '</ul>' +
+        '</li>'
     )
-
 });
 ;
 /**

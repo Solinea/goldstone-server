@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-{% load staticfiles %}
-{% load custom_filters %}
+{% load staticfiles %} {% load custom_filters %}
 <!DOCTYPE html>
 
 <head>
@@ -53,92 +52,37 @@ limitations under the License.
     <!--Page Wrapper Start-->
     <div class="wrapper">
 
-<nav id="top-bar">
-<ul>
-  <li class="g-o-l-d-s-t-o-n-e"><a href="/#discover"><span class="i18n" data-i18n="GOLDSTONE">GOLDSTONE</span></a></li>
-  <li class="navigate-line"></li>
-  <li class="d-a-s-h-b-o-a-r-d"><a href="/#discover"><span class="i18n" data-i18n="DASHBOARD">DASHBOARD</span></a></li>
-  <li class="m-e-t-r-i-c-s"><span class="i18n" data-i18n="METRICS">METRICS</span>
-      <ul>
-          <li class="metrics-log"><a href="/#reports/logbrowser"><span class="i18n" data-i18n="Logs">Logs</span></a></li>
-          <li class="metrics-event"><a href="#/reports/eventbrowser"><span class="i18n" data-i18n="Events">Events</span></a></li>
-          <li class="metrics-api"><a href="#/reports/apibrowser"><span class="i18n" data-i18n="Api">Api</span></a></li>
-      </ul>
-  </li>
-  <li class="t-o-p-o-l-o-g-y"><a href="/#topology"><span class="i18n" data-i18n="TOPOLOGY">TOPOLOGY</span></a></li>
-  <li class="a-u-d-i-t"><span class="i18n" data-i18n="AUDIT">AUDIT</span>
-      <ul>
-          <li class="audit-trail"><a href="/#compliance/opentrail/manager/"><span class="i18n" data-i18n="OpenTrail">OpenTrail</span></a></li>
-          <li class="audit-lease"><a href="/#compliance/leases/manager/"><span class="i18n" data-i18n="Leases">Leases</span></a></li>
-          <li class="audit-vulnerability"><a href="/#compliance/vulnerability/advisor/"><span class="i18n" data-i18n="Vulnerabilities">Vulnerabilities</span></a></li>
-      </ul>
-  </li>
-  <li class="active-user"><span class="user-b-g"></span>
-      <ul>
-          <li class="active-username"></li>
-          <li class="user-settings"><a href="/#settings"><span class="i18n" data-i18n="Settings">Settings</span></a></li>
-          <li class="user-help"><a href="https://solinea.freshdesk.com/support/home"><span class="i18n" data-i18n="Help">Help</span></a></li>
-          <li class="user-logout logout-btn"><a href="#"><span class="i18n" data-i18n="Sign Out">Sign Out</span></a></li>
-      </ul>
-  </li>
-  <li class="u-p-g-r-a-d-e"><span class="i18n" data-i18n="UPGRADE">UPGRADE</span><span class="upgrade-b-g"></span></li>
-  <li class="alert-container">
-      <span class="badge" id="badge-count"></span>
-      <span class="icon-alerts"></span>
-  </li>
-</ul>
-</nav>
-<nav id="bottom-bar"></nav>
+        <nav id="top-bar">
+            <ul>
+                <li class="g-o-l-d-s-t-o-n-e"><a href="/#discover"><span class="i18n" data-i18n="GOLDSTONE">GOLDSTONE</span></a></li>
+                <li class="navigate-line"></li>
+                <li class="d-a-s-h-b-o-a-r-d"><a href="/#discover"><span class="i18n" data-i18n="DASHBOARD">DASHBOARD</span></a></li>
+                <li class="m-e-t-r-i-c-s"><span class="i18n" data-i18n="METRICS">METRICS</span>
+                    <ul>
+                        <li class="metrics-log"><a href="/#reports/logbrowser"><span class="i18n" data-i18n="Logs">Logs</span></a></li>
+                        <li class="metrics-event"><a href="#/reports/eventbrowser"><span class="i18n" data-i18n="Events">Events</span></a></li>
+                        <li class="metrics-api"><a href="#/reports/apibrowser"><span class="i18n" data-i18n="Api">Api</span></a></li>
+                    </ul>
+                </li>
+                <div class="topology-icon-container"></div>
+                <div class="compliance-icon-container"></div>
+                <li class="active-user"><span class="user-b-g"></span>
+                    <ul>
+                        <li class="active-username"></li>
+                        <li class="user-settings"><a href="/#settings"><span class="i18n" data-i18n="Settings">Settings</span></a></li>
+                        <li class="user-help"><a href="https://solinea.freshdesk.com/support/home"><span class="i18n" data-i18n="Help">Help</span></a></li>
+                        <li class="user-logout logout-btn"><a href="#"><span class="i18n" data-i18n="Sign Out">Sign Out</span></a></li>
+                    </ul>
+                </li>
+                <li class="u-p-g-r-a-d-e"><span class="i18n" data-i18n="UPGRADE">UPGRADE</span><span class="upgrade-b-g"></span></li>
+                <li class="alert-container">
+                    <span class="badge" id="badge-count"></span>
+                    <span class="icon-alerts"></span>
+                </li>
+            </ul>
+        </nav>
+        <nav id="bottom-bar"></nav>
 
-        <!--
-        <nav class="top-bar">
-        <ul>
-
-            <li class="g-o-l-d-s-t-o-n-e"><a href="/#discover">GOLDSTONE</a></li>
-
-            <li class="navigate-line">&nbsp;</li>
-
-            <li class="d-a-s-h-b-o-a-r-d"><a href="/#discover">DASHBOARD</a></li>
-
-            <li class="m-e-t-r-i-c-s metrics-hover">METRICS
-                <ul>
-                    <li class="metrics-log">Logs</li>
-                    <li class="metrics-event">Events</li>
-                    <li class="metrics-api">Api</li>
-                </ul>
-            </li>
-
-            <li class="t-o-p-o-l-o-g-y"><a href="/#topology">TOPOLOGY</a></li>
-
-            <li class="a-u-d-i-t audit-hover">AUDIT
-                <ul>
-                    <li class="audit-trail">OpenTrail</li>
-                    <li class="audit-lease">Leases</li>
-                    <li class="audit-vulnerability">Vulnerabilities</li>
-                </ul>
-            </li>
-
-            <li class="alert-container">
-                <span style="padding: 3px 5px;" class="badge" id="badge-count"></span>
-                <span class="icon-alerts"></span>
-            </li>
-            <li class="navigate-line">&nbsp;</li>
-            <li class="u-p-g-r-a-d-e">UPGRADE</li>
-            <li class="navigate-line">&nbsp;</li>
-
-            <li class="active-user user-hover">
-                <ul>
-                    <li class="active-user"></li>
-                    <li class="user-settings">Settings</li>
-                    <li class="user-help">Help</li>
-                    <li class="user-logout logout-btn">Sign Out</li>
-                </ul>
-            </li>
-
-        </ul>
-    </nav>
-    <nav class="bottom-bar">&nbsp;</nav>
--->
         <header class="main-header clearfix">
             <a class="logo-header" href="/#discover">&nbsp;</a>
 
@@ -200,10 +144,10 @@ limitations under the License.
                         <span data-i18n="Reports" class="btn-txt i18n">Reports</span>
                     </li>
                 </a>
-                <span class="topology-icon-container">
+                <!-- <span class="topology-icon-container"> -->
                     <!-- dynamically inserted by addonMenuView -->
                     </span>
-                <span class="compliance-icon-container">
+                <!-- <span class="compliance-icon-container"> -->
                    <!-- dynamically inserted by addonMenuView -->
                     </span>
                 <li class="menu-toggle" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Expand" title="Expand">
@@ -324,7 +268,7 @@ limitations under the License.
             // assign json object from /static/i18n/po_json/
             // this is transformed into a Jed.js compatible initialization
             // object in I18nModel
-            goldstone.i18nJSON = {{i18n_po_json_i18n_combined_json | to_js}};
+            goldstone.i18nJSON = {{ i18n_po_json_i18n_combined_json | to_js }};
 
             // defined on init.js
             goldstone.init();
