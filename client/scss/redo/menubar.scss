@@ -1,11 +1,10 @@
 $navigation-top: 60px;
 $navigation-bottom: 42px;
-$navigation_hover: #fff;
 $navigation_text_normal: #dbeff7;
 $navigation_dividing_line: #5eaccc;
 $navigation_menu_highlight: #e5f5ff;
-$navigation_menu_highlight_text: #068fe0; // fixed navigation bars will cover all other content
 $navigation_user_background: #417399;
+$navigation_menu_highlight_text: #068fe0;
 body {
     padding-top: ($navigation-top + $navigation-bottom);
 }
@@ -109,7 +108,12 @@ body {
                     & span {
                         background-color: #0369b2;
                     }
+                    // remove white border around upgrade button upon hover
+                    & > span.upgrade-b-g {
+                        border: 0;
+                    }
                 }
+                // white border around upgrade button
                 & span.upgrade-b-g {
                     width: 78px;
                     height: 26px;
@@ -132,14 +136,6 @@ body {
                         font-size: 13px;
                         font-weight: normal;
                     }
-                    & li.action {
-                        text-align: center;
-                        border-top: solid 1px $light-grey;
-                        a {
-                            font-weight: bold;
-                            color: #068fe0;
-                        }
-                    }
                     & li.initial {
                         min-height: 123px;
                         padding: 90px 0 40px 0;
@@ -161,6 +157,14 @@ body {
                             background-color: inherit;
                         }
                     }
+                    & li.action {
+                        text-align: center;
+                        border-top: solid 1px $light-grey;
+                        a {
+                            font-weight: bold;
+                            color: $navigation_menu_highlight_text;
+                        }
+                    }
                     // css triangle adjust dark background
                     &::after {
                         left: 18.3em;
@@ -178,7 +182,7 @@ body {
                         font-size: 20px;
                         font-family: FontAwesome;
                         content: "\f0f3";
-                        color: #dbeff7;
+                        color: $navigation_text_normal;
                     }
                 }
                 .badge {
@@ -200,10 +204,6 @@ body {
                         padding-left: 15px;
                         font-size: 13px;
                     }
-                    & li.action {
-                        text-align: center;
-                        border-top: solid 1px $light-grey;
-                    }
                     & li.initial {
                         min-height: 123px;
                         padding-top: 58px;
@@ -219,6 +219,10 @@ body {
                         &:hover {
                             background-color: inherit;
                         }
+                    }
+                    & li.action {
+                        text-align: center;
+                        border-top: solid 1px $light-grey;
                     }
                     // css triangle adjust dark background
                     &::after {
@@ -273,7 +277,7 @@ body {
                     }
                 }
                 & span.user-b-g {
-                    background-color: $navigation-user-background;
+                    background-color: $navigation_user_background;
                     width: 34px;
                     height: 34px;
                     border-radius: 50%;

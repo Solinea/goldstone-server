@@ -45,6 +45,9 @@ describe('AddonMenuView.js spec', function() {
     describe('view is constructed', function() {
 
         it('does render additional drop-downs with addons installed', function() {
+            expect($('li.t-o-p-o-l-o-g-y').length).to.equal(0);
+            expect($('li.a-u-d-i-t').length).to.equal(0);
+
             localStorage.setItem('compliance', JSON.stringify([{
                 "url_root": "compliance",
             }]));
@@ -52,8 +55,8 @@ describe('AddonMenuView.js spec', function() {
                 "url_root": "topology",
             }]));
             this.testView.instanceSpecificInit();
-            expect($('.topology-icon-container').length).to.equal(1);
-            expect($('.compliance-icon-container').length).to.equal(1);
+            expect($('li.t-o-p-o-l-o-g-y').length).to.equal(1);
+            expect($('li.a-u-d-i-t').length).to.equal(1);
             // expect($('.dropdown-submenu').length).to.equal(2);
             localStorage.removeItem('addons');
         });
