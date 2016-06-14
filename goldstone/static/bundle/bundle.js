@@ -2325,7 +2325,16 @@ var AlertsMenuCollection = GoldstoneBaseCollection.extend({
     addPageSize: function(n) {
         n = n || 1000;
         return '?page_size=' + n;
-    }
+    },
+
+    // preProcessData: function(data) {
+    //     var test = Math.random();
+    //     if (test < 0.5) {
+    //         data.results = [];
+    //     }
+    //     return data;
+    // },
+
 
 });
 ;
@@ -3025,9 +3034,10 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
     setInterval: function() {
         var self = this;
-        var thirtySeconds = (1000 * 30);
+        var thirtySeconds = (1000 * 5);
         this.refreshInterval = setInterval(function() {
             self.collection.urlGenerator();
+            self.renderAlerts(); // TODO: remove
         }, thirtySeconds);
     },
 
@@ -3098,9 +3108,40 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     updateAlertIcon: function(count) {
-        if(count === 0) count="";
+        if (count === 0) count = "";
+        // update number on alert icon bell
         $('#badge-count').text(count);
     },
+
+    updateTotalAlertCount: function(count) {
+        // update number in drop-down count
+        $('span.notification-count').text('(' + count + ')');
+
+    },
+
+    alertBannerTemplate: _.template('' +
+        '<li class="banner">ALERTS AND NOTIFICATIONS</li>'
+    ),
+
+    noRecentAlerts: _.template('' +
+        '<li class="alert-content initial">You don\'t have any new alerts</li>'
+    ),
+
+    recentAlertTemplate: _.template('' +
+        '<li class="individual-alert">' +
+        '<span class="alert-title">' +
+        // truncated client-side
+        '<% print(short_message.split("triggered")[0] + "<br>") %>' +
+        '</span>' +
+        '<% print(moment(created).format("MMM D, YYYY")) %>' +
+        '<% print(" at ") %>' +
+        '<% print(moment(created).format("hh:mm:ssa")) %>' +
+        '</li>'
+    ),
+
+    alertFooterTemplate: _.template('' +
+        '<li class="action"><a href="#">View All <span class="notification-count"></span></a></li>'
+    ),
 
     alertTemplate: _.template('' +
         '<li>' +
@@ -3113,10 +3154,39 @@ AlertsMenuView = GoldstoneBaseView.extend({
     populateRecentAlertDiv: function() {
         var self = this;
         var results = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
+        results = _.first(results, 5);
+
+        // original side menu
         $('.alerts-recent').html('');
+
+        // initially always populate alerts with "empty" banner
+        // $('.alert-container ul.alert-content-parent li.alert-content').replaceWith(self.noRecentAlerts());
+
+        // clear out alert container
+        $('.alert-content-parent').html('');
+
+        // append header
+        $('.alert-content-parent').append(this.alertBannerTemplate());
+
+
+        if (!results.length) {
+
+            // no recent alert message
+            $('.alert-content-parent').append(this.noRecentAlerts());
+        }
         _.each(results, function(alert) {
+            // original side menu
             $('.alerts-recent').append(self.alertTemplate(alert));
+
+            // alert icon drop-downs
+            $('.alert-content-parent').append(self.recentAlertTemplate(alert));
         });
+
+        // append "view all" footer
+        $('.alert-content-parent').append(this.alertFooterTemplate());
+
+        this.updateTotalAlertCount(this.model.get('alerts').length);
+
         if (results.length) {
             self.iconAddHighlight();
         } else {

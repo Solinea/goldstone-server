@@ -519,10 +519,12 @@ body { padding-top: 102px; }
 #top-bar ul li.u-p-g-r-a-d-e ul li.action a { font-weight: bold; color: #068fe0; }
 #top-bar ul li.u-p-g-r-a-d-e ul::after { left: 18.3em; border-bottom-color: #3C3C3C; }
 #top-bar ul li.alert-container { float: right; margin-right: 21px; }
-#top-bar ul li.alert-container .icon-alerts { position: relative; right: 18px; }
+#top-bar ul li.alert-container .icon-alerts { position: absolute; right: 18px; }
 #top-bar ul li.alert-container .icon-alerts::before { font-size: 20px; font-family: FontAwesome; content: "\f0f3"; color: #dbeff7; }
-#top-bar ul li.alert-container .badge { position: relative; margin-top: -26px; right: 5px; background-color: #ff3629; z-index: 1; font-size: 11px; padding: 3px 5px; }
-#top-bar ul li.alert-container ul { width: 250px; left: -185px; border-top: 0; }
+#top-bar ul li.alert-container ul.alert-content-parent li.individual-alert { line-height: 1.4em; padding: 7px 20px; }
+#top-bar ul li.alert-container ul.alert-content-parent li.individual-alert span.alert-title { font-weight: bold; }
+#top-bar ul li.alert-container .badge { position: absolute; top: 12px; right: 27px; background-color: #ff3629; z-index: 1; font-size: 11px; padding: 3px 5px; }
+#top-bar ul li.alert-container ul { width: 250px; left: -222px; border-top: 0; }
 #top-bar ul li.alert-container ul li.banner { background-color: #3C3C3C; color: #fff; padding-left: 15px; font-size: 13px; }
 #top-bar ul li.alert-container ul li.initial { min-height: 123px; padding-top: 58px; }
 #top-bar ul li.alert-container ul li.initial::after { font-family: FontAwesome; position: absolute; left: 108px; content: '\f0f3'; color: #666666; font-size: 36px; top: 19px; }

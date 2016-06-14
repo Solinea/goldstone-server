@@ -176,7 +176,7 @@ body {
                 float: right;
                 margin-right: 21px;
                 .icon-alerts {
-                    position: relative;
+                    position: absolute;
                     right: 18px;
                     &::before {
                         font-size: 20px;
@@ -185,10 +185,19 @@ body {
                         color: $navigation_text_normal;
                     }
                 }
+                // individual alerts inside icon drop-down menu
+                & ul.alert-content-parent li.individual-alert {
+                    line-height: 1.4em;
+                    padding: 7px 20px;
+                    // first part of alert
+                    & span.alert-title {
+                        font-weight: bold;
+                    }
+                }
                 .badge {
-                    position: relative;
-                    margin-top: -26px;
-                    right: 5px;
+                    position: absolute;
+                    top: 12px;
+                    right: 27px;
                     background-color: #ff3629;
                     z-index: 1;
                     font-size: 11px;
@@ -196,7 +205,7 @@ body {
                 }
                 & ul {
                     width: 250px;
-                    left: -185px;
+                    left: -222px;
                     border-top: 0;
                     & li.banner {
                         background-color: $dark-grey;

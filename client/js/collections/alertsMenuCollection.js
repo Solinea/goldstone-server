@@ -26,6 +26,15 @@ var AlertsMenuCollection = GoldstoneBaseCollection.extend({
     addPageSize: function(n) {
         n = n || 1000;
         return '?page_size=' + n;
-    }
+    },
+
+    // preProcessData: function(data) {
+    //     var test = Math.random();
+    //     if (test < 0.5) {
+    //         data.results = [];
+    //     }
+    //     return data;
+    // },
+
 
 });
