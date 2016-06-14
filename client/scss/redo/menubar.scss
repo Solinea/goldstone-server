@@ -139,6 +139,44 @@ body {
                     padding: 3px 5px;
                 }
             }
+            &.alert-container {
+                float: right;
+                & ul {
+                    width: 250px;
+                    left: -185px;
+                    border-top: 0;
+                    & li.banner {
+                        background-color: $dark-grey;
+                        color: $white;
+                        padding-left: 15px;
+                    }
+                    & li.view-all {
+                        text-align: center;
+                        border-top: solid 1px $light-grey;
+                    }
+                    & li.initial {
+                        min-height: 123px;
+                        padding-top: 58px;
+                        &::after {
+                            font-family: FontAwesome;
+                            position: absolute;
+                            left: 108px;
+                            content: '\f0f3';
+                            color: $solinea-grey;
+                            font-size: 36px;
+                            top: 19px;
+                        }
+                        &:hover {
+                            background-color: inherit;
+                        }
+                    }
+                    // css triangle adjust dark background
+                    &::after {
+                        left: 15.3em;
+                        border-bottom-color: $dark-grey;
+                    }
+                }
+            }
             &.active-user {
                 float: right;
                 &::before {
