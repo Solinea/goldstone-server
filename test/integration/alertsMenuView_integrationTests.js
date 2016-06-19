@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,69 +20,45 @@ describe('alertsMenuView.js spec', function() {
 
         $('body').html('<div class="test-container"></div>' +
 
-            '<div class="sidebar clearfix">' +
-            '<ul class="btn-grp">' +
-            '<a href="#discover">' +
-            '<li class="dashboard-tab" data-toggle="tooltip" data-i18n-tooltip="Dashboard" data-placement="right" title="Dashboard">' +
-            '<span class="btn-icon-block"><i class="icon dashboard-icon">&nbsp;</i></span>' +
-            '<span data-i18n="Dashboard" class="btn-txt i18n">Dashboard</span>' +
+            '<nav id="top-bar">' +
+            '<ul>' +
+            '<li class="g-o-l-d-s-t-o-n-e"><a href="/#discover"><span class="i18n" data-i18n="GOLDSTONE">GOLDSTONE</span></a></li>' +
+            '<li class="navigate-line"></li>' +
+            '<li class="d-a-s-h-b-o-a-r-d"><a href="/#discover"><span class="i18n" data-i18n="DASHBOARD">DASHBOARD</span></a></li>' +
+            '<li class="m-e-t-r-i-c-s"><span class="i18n" data-i18n="METRICS">METRICS</span>' +
+            '<ul>' +
+            '<li class="metrics-log"><a href="/#reports/logbrowser"><span class="i18n" data-i18n="Logs">Logs</span></a></li>' +
+            '<li class="metrics-event"><a href="#/reports/eventbrowser"><span class="i18n" data-i18n="Events">Events</span></a></li>' +
+            '<li class="metrics-api"><a href="#/reports/apibrowser"><span class="i18n" data-i18n="Api">Api</span></a></li>' +
+            '</ul>' +
             '</li>' +
-            '</a>' +
-            '<li class="alerts-tab alert-icon-placeholder" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Alerts" title="Alerts">' +
-            '<span class="btn-icon-block"><i class="icon alerts">&nbsp;</i></span>' +
-            '<span data-i18n="Alerts" class="btn-txt i18n">Alerts</span>' +
+            '<div class="topology-icon-container"></div>' +
+            '<div class="compliance-icon-container"></div>' +
+            '<li class="active-user"><span class="user-b-g"></span>' +
+            '<ul>' +
+            '<li class="active-username"></li>' +
+            '<li class="user-settings"><a href="/#settings"><span class="i18n" data-i18n="Settings">Settings</span></a></li>' +
+            '<li class="user-help"><a href="https://solinea.freshdesk.com/support/home"><span class="i18n" data-i18n="Help">Help</span></a></li>' +
+            '<li class="user-logout logout-btn"><a href="#"><span class="i18n" data-i18n="Sign Out">Sign Out</span></a></li>' +
+            '</ul>' +
             '</li>' +
-            '<a href="#metrics/api_perf">' +
-            '<li class="metrics-tab" data-toggle="tooltip" data-i18n-tooltip="Metrics" data-placement="right" title="Metrics">' +
-            '<span class="btn-icon-block"><i class="icon metrics">&nbsp;</i></span>' +
-            '<span data-i18n="Metrics" class="btn-txt i18n">Metrics</span>' +
+            '<li class="u-p-g-r-a-d-e">' +
+            '<span class="i18n" data-i18n="UPGRADE">UPGRADE</span>' +
+            '<span class="upgrade-b-g"></span>' +
+            '<ul>' +
+            '<li class="banner">UPGRADE</li>' +
+            '<li class="initial">Upgrade your plan to unlock<br>new features</li>' +
+            '<li class="action"><a href="#">UPGRADE NOW!</a></li>' +
+            '</ul>' +
             '</li>' +
-            '</a>' +
-            '<a href="#reports/logbrowser">' +
-            '<li class="reports-tab" data-toggle="tooltip" data-i18n-tooltip="Reports" data-placement="right" title="Reports">' +
-            '<span class="btn-icon-block"><i class="icon reports">&nbsp;</i></span>' +
-            '<span data-i18n="Reports" class="btn-txt i18n">Reports</span>' +
-            '</li>' +
-            '</a>' +
-            '<a href="#topology">' +
-            '<li class="topology-tab" data-toggle="tooltip" data-i18n-tooltip="Topology" data-placement="right" title="Topology">' +
-            '<span class="btn-icon-block"><i class="icon topology">&nbsp;</i></span>' +
-            '<span data-i18n="Topology" class="btn-txt i18n">Topology</span>' +
-            '</li>' +
-            '</a>' +
-            '<span class="addon-menu-view-container">' +
-            '</span>' +
-            '<li class="menu-toggle" data-toggle="tooltip" data-placement="right" data-i18n-tooltip="Expand" title="Expand">' +
-            '<span class="btn-icon-block"><i class="icon expand">&nbsp;</i></span>' +
-            '<span data-i18n="Icons Only" class="btn-txt i18n">Icons Only</span>' +
+            '<li class="alert-container">' +
+            '<span class="badge" id="badge-count"></span>' +
+            '<span class="icon-alerts"></span>' +
+            '<ul class="alert-content-parent">' +
+            '</ul>' +
             '</li>' +
             '</ul>' +
-            '<div class="tab-content">' +
-            '<div class="tab alert-tab">' +
-            '<h4 class="header-block i18n" data-i18n="Alerts">Alerts</h4>' +
-            '<div class="subtab">' +
-            '<ul class="tab-links">' +
-            '<li class="active i18n" data-i18n="Recent">Recent</li>' +
-            '<li class="i18n" data-i18n="All">All</li>' +
-            '</ul>' +
-            '<div class="sub-tab-content">' +
-            '<div class="tabs">' +
-            '<ul class="list-content alerts-recent">' +
-            '</ul>' +
-            '</div>' +
-            '<div class="tabs"></div>' +
-            '</div>' +
-            '<div class="all-tab-content">' +
-            '<div class="tabs">' +
-            '<ul class="list-content alerts-all">' +
-            '</ul>' +
-            '</div>' +
-            '<div class="tabs"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>'
+            '</nav>'
         );
 
         this.now_date = moment();
@@ -139,15 +115,13 @@ describe('alertsMenuView.js spec', function() {
         this.server.restore();
     });
     describe('view tests', function() {
-        it('renders alerts accordingly', function() {
-            expect($('.alerts-all').html()).to.equal('');
-            this.server.respond();
-            expect($('.alerts-all').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li><li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.old_date.format() + '</span></div></li>');
-        });
         it('renders recent alerts accordingly', function() {
-            expect($('.alerts-recent').html()).to.equal('');
+            // initially render no new alert message
+            expect($('.alert-content-parent').html()).to.equal('' +
+                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+            );
             this.server.respond();
-            expect($('.alerts-recent').html()).to.equal('<li><div class="msg-block"><span class="msg">Alert: \'service status DOWN\' triggered at ' + this.now_date.format() + '</span></div></li>');
+            expect($('.alert-content-parent').html()).to.equal('<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="individual-alert"><span class="alert-title">Alert: \'service status DOWN\' <br></span>' + this.now_date.format("MMM D, YYYY") + ' at ' + this.now_date.format("hh:mm:ssa") + '</li><li class="action"><a href="#">View All <span class="notification-count">(2)</span></a></li>');
         });
         it('sets an empty model to register changes against', function() {
             this.testView.setModel();
@@ -155,92 +129,30 @@ describe('alertsMenuView.js spec', function() {
             this.server.respond();
             expect(this.testView.model.get('alerts')).to.not.deep.equal([]);
         });
-        it('highlights the alert icon when the model changes and includes recent alerts', function() {
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
+        it('adds no recent messages notification when appropriate', function() {
+            // initially render no new alert message
+            expect($('.alert-content-parent').html()).to.equal('' +
+                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+            );
             this.server.respond();
-            //Results includes a recent alert so highlights
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
+            expect($('.alert-content-parent').html()).to.not.equal('' +
+                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+            );
         });
-        it('unhighlights the alert icon based on UI', function() {
+        it('properly formats alert badge', function() {
             this.server.respond();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-            // clicking the icon unhighlights
-            this.testView.$el.click();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-
-            //on change renders alerts and there is one recent alert
-            this.testView.model.trigger('change');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-            // clicking the first tab heading unhighlights
-            $('.tab-links > li').eq(0).click();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-
-            this.testView.model.trigger('change');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-            // clicking the second tab heading unhighlights
-            $('.tab-links > li').eq(1).click();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-
-            this.testView.model.trigger('change');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-            // clicking the alerts heading does not unhighlight
-            $('.header-block').click();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-            $('.subtab').click();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
+            expect($('#badge-count').text()).to.equal("1");
         });
-        it('toggles highlighting based on collection changes and includes or not recent alerts', function() {
+        it('properly formats total alert count', function() {
             this.server.respond();
-            $(this.testView.el).removeClass('alert-active');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-            // no change, no highlight
-            this.server.respond();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-
-            this.testCollection.reset();
-            this.testCollection.add({
-                results: [this.alert_recent]
-            });
-            // change with recent alert, then highlight
-            this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-
-            this.testCollection.reset();
-            this.testCollection.add({
-                results: [this.alert_old]
-            });
-            // change with old alert, then no highlight
-            this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-
-            $(this.testView.el).removeClass('alert-active');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-            this.testCollection.reset();
-            this.testCollection.add({
-                results: [this.alert_recent, this.alert_old]
-            });
-            // change with recent alert and old alert, then highlight
-            this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(true);
-
-            $(this.testView.el).removeClass('alert-active');
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
-            this.testCollection.reset();
-            this.testCollection.add({
-                results: []
-            });
-            // change without alerts, then no highlight
-            this.testView.update();
-            expect($(this.testView.el).hasClass('alert-active')).to.equal(false);
+            expect($('.notification-count').text()).to.equal("(2)");
         });
         it('filters alerts older than a day from the "recent" column', function() {
             // less than one day, add it
             this.testCollection.reset();
             this.testCollection.add({
-                results: [{
-                    short_message: 'test message',
-                    created: '2016-03-09T18:22:00.392260Z'
-                }]
+                short_message: 'test message',
+                created: '2016-03-09T18:22:00.392260Z'
             });
             this.testView.update();
             var test1 = this.testView.extractRecentAlerts(this.testView.model.get('alerts'), 1457548107731);
@@ -252,10 +164,8 @@ describe('alertsMenuView.js spec', function() {
             // greater than one day, don't add it
             this.testCollection.reset();
             this.testCollection.add({
-                results: [{
-                    short_message: 'test message',
-                    created: '2016-03-07T18:22:00.392260Z'
-                }]
+                short_message: 'test message',
+                created: '2016-03-07T18:22:00.392260Z'
             });
             this.testView.update();
             var test2 = this.testView.extractRecentAlerts(this.testView.model.get('alerts'), 1457548107731);
@@ -268,25 +178,20 @@ describe('alertsMenuView.js spec', function() {
                 cruft: 'crust'
             };
             var answer1 = '' +
-                '<li>' +
-                '<div class="msg-block">' +
-                '<span class="msg"></span>' +
-                '</div>' +
-                '</li>';
+                '<li class="individual-alert"><span class="alert-title"><br></span>' +
+                moment(test1.created).format("MMM D, YYYY") +
+                ' at ' + moment(test1.created).format("hh:mm:ssa") + '</li>';
             var test2 = {
                 short_message: 'Your refrigerator is running',
                 created: 0,
                 cruft: 'You\'d better catch it.'
             };
             var answer2 = '' +
-                '<li>' +
-                '<div class="msg-block">' +
-                '<span class="msg">Your refrigerator is running</span>' +
-                '</div>' +
-                '</li>';
-            expect(this.testView.alertTemplate(test2)).to.equal(answer2);
-            expect(this.testView.alertTemplate(test1)).to.equal(answer1);
+                '<li class="individual-alert"><span class="alert-title">Your refrigerator is running<br></span>' +
+                moment(test1.created).format("MMM D, YYYY") +
+                ' at ' + moment(test1.created).format("hh:mm:ssa") + '</li>';
+            expect(this.testView.recentAlertTemplate(test1)).to.equal(answer1);
+            expect(this.testView.recentAlertTemplate(test2)).to.equal(answer2);
         });
-
     });
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-AlertsMenuView = GoldstoneBaseView.extend({
+var AlertsMenuView = GoldstoneBaseView.extend({
 
     setModel: function() {
         this.model = new Backbone.Model({
@@ -22,10 +22,13 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     instanceSpecificInit: function() {
+        this.REFRESH_INTERVAL_SECONDS = 30;
+        this.RECENT_ALERT_MINUTES = (24 * 60);
         this.setModel();
         this.processOptions();
         this.processListeners();
         this.setInterval();
+        this.populateRecentAlertDiv();
     },
 
     clearInterval: function() {
@@ -36,7 +39,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
     setInterval: function() {
         var self = this;
-        var thirtySeconds = (1000 * 30);
+        var thirtySeconds = (1000 * this.REFRESH_INTERVAL_SECONDS);
         this.refreshInterval = setInterval(function() {
             self.collection.urlGenerator();
         }, thirtySeconds);
@@ -54,14 +57,6 @@ AlertsMenuView = GoldstoneBaseView.extend({
         this.listenTo(this.model, 'change', function() {
             self.renderAlerts();
         });
-
-        $('.tab-links').on('click', 'li', function() {
-            self.iconRemoveHighlight();
-        });
-
-        this.$el.on('click', function() {
-            self.iconRemoveHighlight();
-        });
     },
 
     update: function() {
@@ -69,10 +64,8 @@ AlertsMenuView = GoldstoneBaseView.extend({
 
         // grab data from collection
         var data = this.collection.toJSON();
-        if (data) {
-            // set model attributes based on hash of statuses
-            this.model.set('alerts', data);
-        }
+        // set model attributes based on hash of statuses
+        this.model.set('alerts', data);
     },
 
     timeNow: function() {
@@ -87,7 +80,7 @@ AlertsMenuView = GoldstoneBaseView.extend({
     extractRecentAlerts: function(alerts, now) {
         var self = this;
         var result = [];
-        var oneDay = (1000 * 60 * 60 * 24);
+        var oneDay = (1000 * 60 * this.RECENT_ALERT_MINUTES);
         _.each(alerts, function(alert) {
             if (moment(now).diff(alert.created) <= oneDay) {
                 result.push(alert);
@@ -98,28 +91,35 @@ AlertsMenuView = GoldstoneBaseView.extend({
     },
 
     updateAlertIcon: function(count) {
+
+        // empty string will remove counter badge
         if (count === 0) count = "";
+
         // update number on alert icon bell
         $('#badge-count').text(count);
     },
 
     updateTotalAlertCount: function(count) {
+
         // update number in drop-down count
         $('span.notification-count').text('(' + count + ')');
-
     },
 
+    // first section of hover drop-down
     alertBannerTemplate: _.template('' +
         '<li class="banner">ALERTS AND NOTIFICATIONS</li>'
     ),
 
+    // render if no recent alerts
     noRecentAlerts: _.template('' +
         '<li class="alert-content initial">You don\'t have any new alerts</li>'
     ),
 
+    // standard alert template
     recentAlertTemplate: _.template('' +
         '<li class="individual-alert">' +
         '<span class="alert-title">' +
+
         // truncated client-side
         '<% print(short_message.split("triggered")[0] + "<br>") %>' +
         '</span>' +
@@ -129,21 +129,16 @@ AlertsMenuView = GoldstoneBaseView.extend({
         '</li>'
     ),
 
+    // bottom of alert hover drop-down
     alertFooterTemplate: _.template('' +
         '<li class="action"><a href="#">View All <span class="notification-count"></span></a></li>'
-    ),
-
-    alertTemplate: _.template('' +
-        '<li>' +
-        '<div class="msg-block">' +
-        '<span class="msg"><%= short_message %></span>' +
-        '</div>' +
-        '</li>'
     ),
 
     populateRecentAlertDiv: function() {
         var self = this;
         var results = this.extractRecentAlerts(this.model.get('alerts'), this.timeNow());
+
+        // return the first 5 results to drop-down icon
         results = _.first(results, 5);
 
         // clear out alert container

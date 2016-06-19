@@ -189,6 +189,7 @@ body {
                 & ul.alert-content-parent li.individual-alert {
                     line-height: 1.4em;
                     padding: 7px 20px;
+                    height: 58px;
                     // first part of alert
                     & span.alert-title {
                         font-weight: bold;
@@ -232,6 +233,7 @@ body {
                     & li.action {
                         text-align: center;
                         border-top: solid 1px $light-grey;
+                        padding: 0;
                     }
                     // css triangle adjust dark background
                     &::after {
