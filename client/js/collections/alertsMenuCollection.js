@@ -28,13 +28,9 @@ var AlertsMenuCollection = GoldstoneBaseCollection.extend({
         return '?page_size=' + n;
     },
 
-    // preProcessData: function(data) {
-    //     var test = Math.random();
-    //     if (test < 0.5) {
-    //         data.results = [];
-    //     }
-    //     return data;
-    // },
-
-
+    parse: function(data) {
+        this.checkForAdditionalPages(data);
+        var result = this.preProcessData(data);
+        return result.results;
+    }
 });
