@@ -139,7 +139,7 @@ describe('logAnalysis.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", '/core/logs/?@timestamp__range={"gte":0,"lte":900000}&interval=45s&syslog_severity__terms=["emergency","alert","critical","error","warning","notice","info","debug"]&page_size=10&page=1&ordering=-@timestamp', [200, {
+        this.server.respondWith("GET", '', [200, {
             "Content-Type": "application/json"
         }, JSON.stringify(serverResponse)]);
 

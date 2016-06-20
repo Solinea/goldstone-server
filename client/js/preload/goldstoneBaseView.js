@@ -95,7 +95,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.epochNow = +new Date();
 
         // in minutes
-        var globalLookback = $('#global-lookback-range').val() || 15;
+        var globalLookback = $('#global-lookback-range').val() || 60;
         this.globalLookback = parseInt(globalLookback, 10); // to integer
 
         // in seconds
