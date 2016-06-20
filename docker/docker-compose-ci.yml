@@ -18,14 +18,14 @@ version: '2'
 services:
   # Database Container
   gsdb:
-    image: solinea/goldstone-db:1.1.2
+    image: solinea/goldstone-db:1.1.3
     env_file: ./config/goldstone-test.env
     ports:
       - "5432:5432"
 
   # Logstash Container
   gslog:
-    image: solinea/goldstone-log:1.1.2
+    image: solinea/goldstone-log:1.1.3
     ports:
       - "5514:5514"
       - "5515:5515"
@@ -36,14 +36,14 @@ services:
 
   # Elasticsearch Container
   gssearch:
-    image: solinea/goldstone-search:1.1.2
+    image: solinea/goldstone-search:1.1.3
     ports:
       - "9200:9200"
       - "9300:9300"
 
   # Celery Task Queue Container
   gstaskq:
-    image: solinea/goldstone-task-queue:1.1.2
+    image: solinea/goldstone-task-queue:1.1.3
     ports:
       - "6379:6379"
 
@@ -51,7 +51,7 @@ services:
   # Celery container
   #
   gstask:
-    image: solinea/goldstone-task:1.1.2
+    image: solinea/goldstone-task:1.1.3
     env_file: ./config/goldstone-test.env
     links:
       - gsdb

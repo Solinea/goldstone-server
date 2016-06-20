@@ -24,7 +24,7 @@ from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 # this version should be managed by the bump_version.sh script
-GOLDSTONE_VERSION = '1.1.2'
+GOLDSTONE_VERSION = '1.1.3'
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
@@ -199,7 +199,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'service_status_check': {
         'task': 'goldstone.core.tasks.service_status_check',
-        'schedule': EVERY_5_MINUTES
+        'schedule': EVERY_MINUTE
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.core.tasks.nova_hypervisors_stats',

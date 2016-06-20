@@ -20,5 +20,3 @@ DEBUG = bool(os.environ.get('GS_DEBUG', True))
 TEMPLATE_DEBUG = bool(os.environ.get('GS_TEMPLATE_DEBUG', True))
 
 STATIC_ROOT = os.path.join(os.getcwd(), 'static')
-
-CELERYBEAT_SCHEDULE['service_status_check']['schedule'] = EVERY_MINUTE
