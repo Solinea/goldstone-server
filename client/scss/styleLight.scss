@@ -29,7 +29,6 @@ css stylesheets prior to redesign
 */
 
 @import "main";
-@import "bootstrap-submenu-shim";
 @import "bootstrap_dark_override";
 @import "popover-and-tip";
 @import "data-tables";
@@ -41,6 +40,4 @@ css stylesheets supporting redesign
 @import "redesign/open-sans";
 @import "redesign/redesign-global";
 @import "redesign/redesign";
-@import "redesign/redesign-responsive";
-
-@import "redo/menubar";
+@import "redesign/menubar";

@@ -249,7 +249,7 @@ msgstr "GitHubリポジトリ"
 
 #: base.html
 #. logout of site
-msgid "Logout"
+msgid "Sign Out"
 msgstr "ログアウト"
 
 #: base.html
@@ -460,7 +460,7 @@ msgstr "更新なし"
 #: helpView.js
 
 #: helpView.js
-msgid "Getting Help"
+msgid "Help"
 msgstr "ヘルプアクセス"
 
 #: helpView.js

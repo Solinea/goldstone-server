@@ -267,8 +267,8 @@ body {
                     color: $white;
                 }
                 & ul {
-                    left: -82px;
-                    width: 146px;
+                    left: -108px;
+                    width: 174px;
                     border-top: 0;
                     & li {
                         padding-left: 46px;
@@ -299,7 +299,7 @@ body {
                     }
                     // css triangle adjust dark background
                     &::after {
-                        left: 6.9em;
+                        left: 8.5em;
                         border-bottom-color: $dark-grey;
                     }
                 }

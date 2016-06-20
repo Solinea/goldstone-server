@@ -118,10 +118,10 @@ describe('alertsMenuView.js spec', function() {
         it('renders recent alerts accordingly', function() {
             // initially render no new alert message
             expect($('.alert-content-parent').html()).to.equal('' +
-                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+                '<li class="banner">Alerts and notifications</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
             );
             this.server.respond();
-            expect($('.alert-content-parent').html()).to.equal('<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="individual-alert"><span class="alert-title">Alert: \'service status DOWN\' <br></span>' + this.now_date.format("MMM D, YYYY") + ' at ' + this.now_date.format("hh:mm:ssa") + '</li><li class="action"><a href="#">View All <span class="notification-count">(2)</span></a></li>');
+            expect($('.alert-content-parent').html()).to.equal('<li class="banner">Alerts and notifications</li><li class="individual-alert"><span class="alert-title">Alert: \'service status DOWN\' <br></span>' + this.now_date.format("MMM D, YYYY") + ' at ' + this.now_date.format("hh:mm:ssa") + '</li><li class="action"><a href="#">View All <span class="notification-count">(2)</span></a></li>');
         });
         it('sets an empty model to register changes against', function() {
             this.testView.setModel();
@@ -132,11 +132,11 @@ describe('alertsMenuView.js spec', function() {
         it('adds no recent messages notification when appropriate', function() {
             // initially render no new alert message
             expect($('.alert-content-parent').html()).to.equal('' +
-                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+                '<li class="banner">Alerts and notifications</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
             );
             this.server.respond();
             expect($('.alert-content-parent').html()).to.not.equal('' +
-                '<li class="banner">ALERTS AND NOTIFICATIONS</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
+                '<li class="banner">Alerts and notifications</li><li class="alert-content initial">You don\'t have any new alerts</li><li class="action"><a href="#">View All <span class="notification-count">(0)</span></a></li>'
             );
         });
         it('properly formats alert badge', function() {
