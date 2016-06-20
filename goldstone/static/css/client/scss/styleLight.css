@@ -496,16 +496,21 @@ body { padding-top: 102px; }
 #top-bar ul li a { text-decoration: none; color: #dbeff7; display: block; }
 #top-bar ul li:hover > ul { display: block; }
 #top-bar ul li.navigate-line { top: 0; height: 60px; width: 1px; background-color: #5eaccc; padding: 0; }
-#top-bar ul li.d-a-s-h-b-o-a-r-d { margin-left: 20px; }
+#top-bar ul li.g-o-l-d-s-t-o-n-e { text-transform: uppercase; }
+#top-bar ul li.d-a-s-h-b-o-a-r-d { margin-left: 20px; text-transform: uppercase; }
 #top-bar ul li.d-a-s-h-b-o-a-r-d::before { font-family: FontAwesome; content: "\f111"; margin-right: 4px; position: absolute; left: -1px; }
 #top-bar ul li.d-a-s-h-b-o-a-r-d.status-red::before { color: #FF0000; }
 #top-bar ul li.d-a-s-h-b-o-a-r-d.status-yellow::before { color: #F1CA10; }
 #top-bar ul li.d-a-s-h-b-o-a-r-d.status-green::before { color: #57BE1B; }
+#top-bar ul li.m-e-t-r-i-c-s { text-transform: uppercase; }
 #top-bar ul li.m-e-t-r-i-c-s::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
 #top-bar ul li.m-e-t-r-i-c-s ul { width: 110px; }
+#top-bar ul li.t-o-p-o-l-o-g-y { text-transform: uppercase; }
+#top-bar ul li.a-u-d-i-t { text-transform: uppercase; }
 #top-bar ul li.a-u-d-i-t::after { font-family: FontAwesome; content: "\f0d7"; margin-left: 4px; }
-#top-bar ul li.a-u-d-i-t ul { width: 122px; }
-#top-bar ul li.u-p-g-r-a-d-e { float: right; margin-right: 26px; font-size: 12px; font-weight: bold; }
+#top-bar ul li.a-u-d-i-t ul { width: 146px; }
+#top-bar ul li.u-p-g-r-a-d-e { float: right; margin-right: 26px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+#top-bar ul li.u-p-g-r-a-d-e li.initial { text-transform: none; }
 #top-bar ul li.u-p-g-r-a-d-e:hover { color: #fff; }
 #top-bar ul li.u-p-g-r-a-d-e:hover span { background-color: #0369b2; }
 #top-bar ul li.u-p-g-r-a-d-e:hover > span.upgrade-b-g { border: 0; }
@@ -521,6 +526,7 @@ body { padding-top: 102px; }
 #top-bar ul li.alert-container { float: right; margin-right: 21px; }
 #top-bar ul li.alert-container .icon-alerts { position: absolute; right: 18px; }
 #top-bar ul li.alert-container .icon-alerts::before { font-size: 20px; font-family: FontAwesome; content: "\f0f3"; color: #dbeff7; }
+#top-bar ul li.alert-container .banner { text-transform: uppercase; }
 #top-bar ul li.alert-container ul.alert-content-parent li.individual-alert { line-height: 1.4em; padding: 7px 20px; height: 58px; }
 #top-bar ul li.alert-container ul.alert-content-parent li.individual-alert span.alert-title { font-weight: bold; }
 #top-bar ul li.alert-container .badge { position: absolute; top: 12px; right: 27px; background-color: #ff3629; z-index: 1; font-size: 11px; padding: 3px 5px; }

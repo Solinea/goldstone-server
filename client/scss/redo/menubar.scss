@@ -56,8 +56,12 @@ body {
                 background-color: $navigation_dividing_line;
                 padding: 0;
             }
+            &.g-o-l-d-s-t-o-n-e {
+                text-transform: uppercase;
+            }
             &.d-a-s-h-b-o-a-r-d {
                 margin-left: 20px;
+                text-transform: uppercase;
                 &::before {
                     font-family: FontAwesome;
                     content: "\f111";
@@ -79,6 +83,7 @@ body {
                 }
             }
             &.m-e-t-r-i-c-s {
+                text-transform: uppercase;
                 &::after {
                     font-family: FontAwesome;
                     content: "\f0d7";
@@ -88,14 +93,18 @@ body {
                     width: 110px;
                 }
             }
+            &.t-o-p-o-l-o-g-y {
+                text-transform: uppercase;
+            }
             &.a-u-d-i-t {
+                text-transform: uppercase;
                 &::after {
                     font-family: FontAwesome;
                     content: "\f0d7";
                     margin-left: 4px;
                 }
                 ul {
-                    width: 122px;
+                    width: 146px;
                 }
             }
             &.u-p-g-r-a-d-e {
@@ -103,6 +112,10 @@ body {
                 margin-right: 26px;
                 font-size: 12px;
                 font-weight: bold;
+                text-transform: uppercase;
+                & li.initial {
+                    text-transform: none;
+                }
                 &:hover {
                     color: $white;
                     & span {
@@ -186,6 +199,9 @@ body {
                     }
                 }
                 // individual alerts inside icon drop-down menu
+                .banner {
+                    text-transform: uppercase;
+                }
                 & ul.alert-content-parent li.individual-alert {
                     line-height: 1.4em;
                     padding: 7px 20px;

@@ -107,7 +107,7 @@ var AlertsMenuView = GoldstoneBaseView.extend({
 
     // first section of hover drop-down
     alertBannerTemplate: _.template('' +
-        '<li class="banner">ALERTS AND NOTIFICATIONS</li>'
+        '<li class="banner">Alerts and notifications</li>'
     ),
 
     // render if no recent alerts

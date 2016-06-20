@@ -103,8 +103,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
     topologyTemplate: _.template('' +
         '<li class="t-o-p-o-l-o-g-y">' +
         '<a href="/#topology">' +
-        '<span class="i18n" data-i18n="TOPOLOGY">' +
-        'TOPOLOGY' +
+        '<span class="i18n" data-i18n="Topology">' +
+        'Topology' +
         '</span>' +
         '</a>' +
         '</li>'
@@ -112,8 +112,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     complianceTemplate: _.template('' +
         '<li class="a-u-d-i-t">' +
-        '<span class="i18n" data-i18n="AUDIT">' +
-        'AUDIT' +
+        '<span class="i18n" data-i18n="Audit">' +
+        'Audit' +
         '</span>' +
         '<ul>' +
         '<li class="audit-trail">' +

@@ -93,7 +93,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="mainContainer shadow-block panel-body">' +
-        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>px;margin-top:240px;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
         '</div>' +
 
         // modal

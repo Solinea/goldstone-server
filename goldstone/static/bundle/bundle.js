@@ -2967,8 +2967,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
     topologyTemplate: _.template('' +
         '<li class="t-o-p-o-l-o-g-y">' +
         '<a href="/#topology">' +
-        '<span class="i18n" data-i18n="TOPOLOGY">' +
-        'TOPOLOGY' +
+        '<span class="i18n" data-i18n="Topology">' +
+        'Topology' +
         '</span>' +
         '</a>' +
         '</li>'
@@ -2976,8 +2976,8 @@ var AddonMenuView = GoldstoneBaseView.extend({
 
     complianceTemplate: _.template('' +
         '<li class="a-u-d-i-t">' +
-        '<span class="i18n" data-i18n="AUDIT">' +
-        'AUDIT' +
+        '<span class="i18n" data-i18n="Audit">' +
+        'Audit' +
         '</span>' +
         '<ul>' +
         '<li class="audit-trail">' +
@@ -3108,7 +3108,7 @@ var AlertsMenuView = GoldstoneBaseView.extend({
 
     // first section of hover drop-down
     alertBannerTemplate: _.template('' +
-        '<li class="banner">ALERTS AND NOTIFICATIONS</li>'
+        '<li class="banner">Alerts and notifications</li>'
     ),
 
     // render if no recent alerts
@@ -7702,7 +7702,7 @@ var MultiRscsView = GoldstoneBaseView.extend({
         '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="mainContainer shadow-block panel-body">' +
-        '<div style="text-align:center;height:<%= (this.height - 270) %>;margin-top:240;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
+        '<div style="text-align:center;height:<%= (this.height - 270) %>px;margin-top:240px;margin-left:20%;width:60%"><%=goldstone.translate(\'This is the OpenStack topology map.  You can use leaf nodes to navigate to specific types of resources.\')%></div>' +
         '</div>' +
 
         // modal
