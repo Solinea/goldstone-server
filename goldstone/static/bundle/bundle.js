@@ -137,14 +137,99 @@ govern the expanding menu actions.
 
 goldstone.setBaseTemplateListeners = function() {
 
+    // backbone router emits 'route' event on route change
+    // and first argument is route name. Match to hash
+    // to highlight the appropriate side menu nav icon
+    goldstone.gsRouter.on('route', function(name) {
+        addBreadcrumb(name);
+        updateLicenseLink(name);
+    });
+
     // set dashboard status initially to green
     $('.d-a-s-h-b-o-a-r-d').addClass('status-green');
 
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
-    var addMenuIconHighlighting = function(selector) {
-        $('.top-bar.navbar div').removeClass('active');
-        $(selector).addClass('active');
+    var addBreadcrumb = function(location) {
+        goldstone.breadcrumbManager.trigger('updateBreadcrumb', routeNameBreadcrumbHash(location));
+    };
+
+    var routeNameBreadcrumbHash = function(location) {
+        var breadcrumbCombo = breadcrumbComboHash[location] || breadcrumbComboHash.missingComboHash;
+        console.clear();
+        console.log(location);
+        console.log(breadcrumbCombo);
+
+        var result = _.map(breadcrumbCombo, function(route) {
+            return routeNameDetails[route] || routeNameDetails.missing;
+        });
+        console.log(result);
+        return result;
+    };
+
+    var breadcrumbComboHash = {
+        apiBrowser: ['discover', 'apiBrowser'],
+        discover: ['discover'],
+        eventsBrowser: ['discover', 'eventsBrowser'],
+        logSearch: ['discover', 'logSearch'],
+        savedSearchLog: ['discover', 'logSearch', 'savedSearchLog'],
+        savedSearchEvent: ['discover', 'eventsBrowser', 'savedSearchEvent'],
+        savedSearchApi: ['discover', 'apiBrowser', 'savedSearchApi'],
+        settings: ['discover', 'settings'],
+        tenant: ['discover', 'settings', 'tenant'],
+        topology: ['discover', 'topology'],
+        missingComboHash: ['missingComboHash']
+    };
+
+    var routeNameDetails = {
+        missing: {
+            title: 'Missing Breadcrumb Name Details',
+            location: '#'
+        },
+        missingComboHash: {
+            title: 'Missing Breadcrumb Combo Hash',
+            location: '#'
+        },
+        discover: {
+            title: 'Dashboard',
+            location: '#discover'
+        },
+        apiBrowser: {
+            title: 'Api Viewer',
+            location: '#reports/apibrowser'
+        },
+        savedSearchApi: {
+            title: 'Saved Searches: Api',
+            location: '#reports/apibrowser/search'
+        },
+        eventsBrowser: {
+            title: 'Event Viewer',
+            location: '#reports/eventbrowser'
+        },
+        savedSearchEvent: {
+            title: 'Saved Searches: Events',
+            location: '#reports/eventbrowser/search'
+        },
+        logSearch: {
+            title: 'Log Viewer',
+            location: '#reports/logbrowser'
+        },
+        savedSearchLog: {
+            title: 'Saved Searches: Logs',
+            location: '#reports/logbrowser/search'
+        },
+        settings: {
+            title: 'Settings',
+            location: '#settings'
+        },
+        tenant: {
+            title: 'Tenant Settings',
+            location: '#settings/tenants'
+        },
+        topology: {
+            title: 'Topology',
+            location: '#topology'
+        },
     };
 
     var routeNameToIconClassHash = {
@@ -172,13 +257,6 @@ goldstone.setBaseTemplateListeners = function() {
             $('.dynamic-license').attr("href", "https://www.apache.org/licenses/LICENSE-2.0");
         }
     };
-
-    // backbone router emits 'route' event on route change
-    // and first argument is route name. Match to hash
-    // to highlight the appropriate side menu nav icon
-    goldstone.gsRouter.on('route', function(name) {
-        updateLicenseLink(name);
-    });
 };
 ;
 /**
@@ -1281,6 +1359,9 @@ var LauncherView = Backbone.View.extend({
 });
 
 var GoldstoneRouter = Backbone.Router.extend({
+
+    // if adjusting routes, also adjust breadcrumb generator
+    // in setBaseTemplateListeners.js
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",
@@ -4008,6 +4089,55 @@ var LogoutIcon = GoldstoneBaseView.extend({
         location.href = "login/";
     }
 
+});
+;
+/**
+ * Copyright 2016 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var BreadcrumbManager = GoldstoneBaseView.extend({
+
+    instanceSpecificInit: function() {
+        this.processOptions();
+        this.processListeners();
+    },
+
+    // will iterate over passed-in array of site locations
+    // to create a breadcrumb navigation element
+    breadcrumbTemplate: _.template('' +
+        '<ol class="breadcrumb">' +
+        '<% _.each(path, function(item){ %>' +
+        '<%= "<li>" %>' +
+        '<%= "<a href=" + item.location + ">" %>' +
+        '<%= item.title %>' +
+        '<%= "</a>" %>' +
+        '<%= "</li>" %>' +
+        '<% }) %>' +
+        '</ol>'),
+
+    createBreadcrumb: function(breadcrumb) {
+        this.$el.find('.breadcrumb-path').html(this.breadcrumbTemplate({
+            path: breadcrumb
+        }));
+    },
+
+    processListeners: function() {
+        var self = this;
+        this.listenTo(this, 'updateBreadcrumb', function(breadcrumb) {
+            self.createBreadcrumb(breadcrumb);
+        });
+    }
 });
 ;
 /**
@@ -10097,9 +10227,14 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
-    // start the population of the sidebar alerts menu
+    // start the population of the alerts icon drop-down menu
     var alertsMenuCollection = new AlertsMenuCollection({
         urlBase: '/core/alert/'
+    });
+
+    // start the secondary navigation bar breadcrumb state manager
+    goldstone.breadcrumbManager = new BreadcrumbManager({
+        el: '#bottom-bar'
     });
 
     goldstone.alertsMenu = new AlertsMenuView({

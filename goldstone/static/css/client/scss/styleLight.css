@@ -221,6 +221,10 @@ body { position: relative; min-height: 100%; font-family: 'OpenSans', sans-serif
 body { padding-top: 102px; }
 
 #bottom-bar { position: fixed; width: 100%; top: 60px; height: 42px; background-color: #fff; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3); z-index: 9; }
+#bottom-bar .breadcrumb { padding: 0 21px; line-height: 42px; color: #666666; font-size: 13px; }
+#bottom-bar .breadcrumb li > a { text-decoration: none; color: #666666; }
+#bottom-bar .breadcrumb li > a:hover { color: #23ADE1; }
+#bottom-bar .breadcrumb li + li::before { font-family: FontAwesome; content: "\f105"; color: inherit; }
 
 #top-bar { position: fixed; width: 100%; top: 0; height: 60px; background-image: linear-gradient(to left, #47b5ef, #007ad0); z-index: 10; }
 #top-bar ul { list-style: none; position: relative; margin: 0; padding: 0; }

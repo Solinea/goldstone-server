@@ -16,6 +16,24 @@ body {
     background-color: $white;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     z-index: 9;
+    & .breadcrumb {
+        padding: 0 21px;
+        line-height: $navigation-bottom;
+        color: $solinea-grey;
+        font-size: 13px;
+        & li > a {
+            text-decoration: none;
+            color: $solinea-grey;
+            &:hover {
+                color: $solinea-blue;
+            }
+        }
+        & li + li::before {
+            font-family: FontAwesome;
+            content: "\f105";
+            color: inherit;
+        }
+    }
 }
 #top-bar {
     position: fixed;

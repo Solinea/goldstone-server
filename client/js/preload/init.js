@@ -102,9 +102,14 @@ goldstone.init = function() {
     });
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
-    // start the population of the sidebar alerts menu
+    // start the population of the alerts icon drop-down menu
     var alertsMenuCollection = new AlertsMenuCollection({
         urlBase: '/core/alert/'
+    });
+
+    // start the secondary navigation bar breadcrumb state manager
+    goldstone.breadcrumbManager = new BreadcrumbManager({
+        el: '#bottom-bar'
     });
 
     goldstone.alertsMenu = new AlertsMenuView({

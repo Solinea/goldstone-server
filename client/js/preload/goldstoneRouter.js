@@ -35,6 +35,9 @@ var LauncherView = Backbone.View.extend({
 });
 
 var GoldstoneRouter = Backbone.Router.extend({
+
+    // if adjusting routes, also adjust breadcrumb generator
+    // in setBaseTemplateListeners.js
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",

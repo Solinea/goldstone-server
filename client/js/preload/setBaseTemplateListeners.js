@@ -22,14 +22,99 @@ govern the expanding menu actions.
 
 goldstone.setBaseTemplateListeners = function() {
 
+    // backbone router emits 'route' event on route change
+    // and first argument is route name. Match to hash
+    // to highlight the appropriate side menu nav icon
+    goldstone.gsRouter.on('route', function(name) {
+        addBreadcrumb(name);
+        updateLicenseLink(name);
+    });
+
     // set dashboard status initially to green
     $('.d-a-s-h-b-o-a-r-d').addClass('status-green');
 
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
-    var addMenuIconHighlighting = function(selector) {
-        $('.top-bar.navbar div').removeClass('active');
-        $(selector).addClass('active');
+    var addBreadcrumb = function(location) {
+        goldstone.breadcrumbManager.trigger('updateBreadcrumb', routeNameBreadcrumbHash(location));
+    };
+
+    var routeNameBreadcrumbHash = function(location) {
+        var breadcrumbCombo = breadcrumbComboHash[location] || breadcrumbComboHash.missingComboHash;
+        console.clear();
+        console.log(location);
+        console.log(breadcrumbCombo);
+
+        var result = _.map(breadcrumbCombo, function(route) {
+            return routeNameDetails[route] || routeNameDetails.missing;
+        });
+        console.log(result);
+        return result;
+    };
+
+    var breadcrumbComboHash = {
+        apiBrowser: ['discover', 'apiBrowser'],
+        discover: ['discover'],
+        eventsBrowser: ['discover', 'eventsBrowser'],
+        logSearch: ['discover', 'logSearch'],
+        savedSearchLog: ['discover', 'logSearch', 'savedSearchLog'],
+        savedSearchEvent: ['discover', 'eventsBrowser', 'savedSearchEvent'],
+        savedSearchApi: ['discover', 'apiBrowser', 'savedSearchApi'],
+        settings: ['discover', 'settings'],
+        tenant: ['discover', 'settings', 'tenant'],
+        topology: ['discover', 'topology'],
+        missingComboHash: ['missingComboHash']
+    };
+
+    var routeNameDetails = {
+        missing: {
+            title: 'Missing Breadcrumb Name Details',
+            location: '#'
+        },
+        missingComboHash: {
+            title: 'Missing Breadcrumb Combo Hash',
+            location: '#'
+        },
+        discover: {
+            title: 'Dashboard',
+            location: '#discover'
+        },
+        apiBrowser: {
+            title: 'Api Viewer',
+            location: '#reports/apibrowser'
+        },
+        savedSearchApi: {
+            title: 'Saved Searches: Api',
+            location: '#reports/apibrowser/search'
+        },
+        eventsBrowser: {
+            title: 'Event Viewer',
+            location: '#reports/eventbrowser'
+        },
+        savedSearchEvent: {
+            title: 'Saved Searches: Events',
+            location: '#reports/eventbrowser/search'
+        },
+        logSearch: {
+            title: 'Log Viewer',
+            location: '#reports/logbrowser'
+        },
+        savedSearchLog: {
+            title: 'Saved Searches: Logs',
+            location: '#reports/logbrowser/search'
+        },
+        settings: {
+            title: 'Settings',
+            location: '#settings'
+        },
+        tenant: {
+            title: 'Tenant Settings',
+            location: '#settings/tenants'
+        },
+        topology: {
+            title: 'Topology',
+            location: '#topology'
+        },
     };
 
     var routeNameToIconClassHash = {
@@ -57,11 +142,4 @@ goldstone.setBaseTemplateListeners = function() {
             $('.dynamic-license').attr("href", "https://www.apache.org/licenses/LICENSE-2.0");
         }
     };
-
-    // backbone router emits 'route' event on route change
-    // and first argument is route name. Match to hash
-    // to highlight the appropriate side menu nav icon
-    goldstone.gsRouter.on('route', function(name) {
-        updateLicenseLink(name);
-    });
 };
