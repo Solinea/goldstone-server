@@ -42,29 +42,11 @@ var LoginPageView = GoldstoneBaseView.extend({
     checkForInstalledApps: function() {
         var self = this;
 
-        // deferred object that will resolve after all intermediate
-        // deferred objects have resolved, success or failure
-        $.whenAll = function(deferreds) {
-            var lastResolved = 0;
-
-            var wrappedDeferreds = [];
-
-            for (var i = 0; i < deferreds.length; i++) {
-                wrappedDeferreds.push($.Deferred());
-
-                deferreds[i].always(function() { //jshint ignore:line
-                    wrappedDeferreds[lastResolved++].resolve(arguments);
-                });
-            }
-
-            return $.when.apply($, wrappedDeferreds).promise();
-        };
-
         // determine whether the compliance and topology modules are installed
-        $.whenAll([$.get('/compliance/'), $.get('/topology/topology/')])
+        // whenAll defined on baseView
+        this.whenAll([$.get('/compliance/'), $.get('/topology/topology/')])
             .done(
                 function(result1, result2) {
-
                     // localStorage keys for compliance and topology
                     // will be as follows, or null if call fails.
                     localStorage.setItem('compliance', result1[1] === 'success' ? JSON.stringify([{

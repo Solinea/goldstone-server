@@ -311,6 +311,25 @@ var GoldstoneBaseView = Backbone.View.extend({
         });
         result += '</div><br><br>';
         return result;
+    },
+
+    // deferred object that will resolve after all intermediate
+    // deferred objects have resolved, ***success OR failure***
+    // (standard 'when' deferred will exit upon first failure)
+    whenAll: function(deferreds) {
+
+        var lastResolved = 0;
+        var wrappedDeferreds = [];
+
+        for (var i = 0; i < deferreds.length; i++) {
+            wrappedDeferreds.push($.Deferred());
+
+            deferreds[i].always(function() { //jshint ignore:line
+                wrappedDeferreds[lastResolved++].resolve(arguments);
+            });
+        }
+
+        return $.when.apply($, wrappedDeferreds).promise();
     }
 
 });
