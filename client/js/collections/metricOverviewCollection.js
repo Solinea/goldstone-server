@@ -50,7 +50,6 @@ api
         var self = this;
         this.computeLookbackAndInterval(60);
 
-
         var coreUrlVars = ['logs/', 'events/', 'api-calls/'];
         var coreCalls = coreUrlVars.map(function(item) {
             return self.urlBase + item + (item === 'events/' ? self.addRange2() : self.addRange()) +
@@ -66,6 +65,19 @@ api
                 finalResult.eventData = r2[0];
                 finalResult.apiData = r3[0];
 
+                // before server has fully spun up
+                // it omits the following keys
+                // that the visualization looks for
+                var defaultSignature = {
+                    per_interval: {
+                        buckets: []
+                    }
+                };
+
+                _.each(finalResult, function(collection) {
+                    collection.aggregations = collection.aggregations || defaultSignature;
+                });
+
                 // append start/end of timestamp__range
                 finalResult.startTime = self.gte;
                 finalResult.endTime = self.epochNow;
@@ -80,6 +92,5 @@ api
                 self.trigger('error', err);
             });
     },
-
 
 });
