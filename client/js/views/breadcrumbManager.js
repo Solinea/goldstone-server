@@ -39,10 +39,20 @@ var BreadcrumbManager = GoldstoneBaseView.extend({
         }));
     },
 
+    updateColor: function(color) {
+        $('.d-a-s-h-b-o-a-r-d').removeClass('status-green');
+        $('.d-a-s-h-b-o-a-r-d').removeClass('status-yellow');
+        $('.d-a-s-h-b-o-a-r-d').removeClass('status-red');
+        $('.d-a-s-h-b-o-a-r-d').addClass('status-' + color);
+    },
+
     processListeners: function() {
         var self = this;
         this.listenTo(this, 'updateBreadcrumb', function(breadcrumb) {
             self.createBreadcrumb(breadcrumb);
+        });
+        this.listenTo(this, 'updateDashboardStatus', function(color) {
+            self.updateColor(color);
         });
     }
 });

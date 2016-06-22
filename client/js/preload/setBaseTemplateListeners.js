@@ -15,9 +15,10 @@
  */
 
 /*
-jQuery listeners to be instantiated after base.html template load.
-Registering clicks on the menus and handling css changes that
-govern the expanding menu actions.
+This module handles:
+* the updating of the secondary menu breadcrumb
+* the updating of the license link href.
+* initially setting the dashboard status to green
 */
 
 goldstone.setBaseTemplateListeners = function() {
@@ -31,7 +32,7 @@ goldstone.setBaseTemplateListeners = function() {
     });
 
     // set dashboard status initially to green
-    $('.d-a-s-h-b-o-a-r-d').addClass('status-green');
+    goldstone.breadcrumbManager.trigger('updateDashboardStatus', 'green');
 
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
