@@ -1,6 +1,5 @@
-
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +32,7 @@ there is a truthy value present in localStorage.userToken
 var LogoutIcon = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
+        this.processOptions();
 
         // prune old unused localStorage keys
         this.pruneLocalStorage();
@@ -49,17 +49,17 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        // localStorageKeys is defined in init.js
-        if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
+        // localStorageKeys are defined on init.js
+        if (this.localStorageKeys === undefined) {
             return;
         }
 
-        _.each(goldstone.localStorageKeys, function(item) {
+        _.each(this.localStorageKeys, function(item) {
             temp[item] = localStorage.getItem(item);
         });
         localStorage.clear();
-        _.each(goldstone.localStorageKeys, function(item) {
-            if(temp[item] !== null) {
+        _.each(this.localStorageKeys, function(item) {
+            if (temp[item] !== null) {
                 localStorage.setItem(item, temp[item]);
             }
         });

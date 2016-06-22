@@ -66,6 +66,56 @@ goldstone.baseHTMLMock = '<div class="test-container"></div>' +
     '</form>' +
     '</div>';
 
+goldstone.bottomNavigationBarMock = '' +
+'<nav id="bottom-bar">' +
+'<span class="breadcrumb-path"></span>' +
+'</nav>' +
+'<div class="router-content-container">' +
+'</div>';
+
+goldstone.topNavigationBarMock = '' +
+'<nav id="top-bar">' +
+'<ul>' +
+'<li class="g-o-l-d-s-t-o-n-e"><a href="/#discover"><span class="i18n" data-i18n="goldstone">goldstone</span></a></li>' +
+'<li class="navigate-line"></li>' +
+'<li class="d-a-s-h-b-o-a-r-d"><a href="/#discover"><span class="i18n" data-i18n="Dashboard">Dashboard</span></a></li>' +
+'<li class="m-e-t-r-i-c-s"><span class="i18n" data-i18n="Metrics">Metrics</span>' +
+'<ul>' +
+'<li class="metrics-log"><a href="/#reports/logbrowser"><span class="i18n" data-i18n="Logs">Logs</span></a></li>' +
+'<li class="metrics-event"><a href="/#reports/eventbrowser"><span class="i18n" data-i18n="Events">Events</span></a></li>' +
+'<li class="metrics-api"><a href="/#reports/apibrowser"><span class="i18n" data-i18n="Api">Api</span></a></li>' +
+'</ul>' +
+'</li>' +
+'<div class="topology-icon-container"></div>' +
+'<div class="compliance-icon-container"></div>' +
+'<li class="active-user"><span class="user-b-g"></span>' +
+'<ul>' +
+'<li class="active-username"></li>' +
+'<li class="user-settings"><a href="/#settings"><span class="i18n" data-i18n="Settings">Settings</span></a></li>' +
+'<li class="user-help"><a href="https://solinea.freshdesk.com/support/home"><span class="i18n" data-i18n="Help">Help</span></a></li>' +
+'<li class="user-logout logout-btn"><a href="#"><span class="i18n" data-i18n="Sign Out">Sign Out</span></a></li>' +
+'</ul>' +
+'</li>' +
+'<li class="u-p-g-r-a-d-e">' +
+'<span class="i18n" data-i18n="Upgrade">Upgrade</span>' +
+'<span class="upgrade-b-g"></span>' +
+'<ul>' +
+'<li class="banner">Upgrade</li>' +
+'<li class="initial">Upgrade your plan to unlock<br>new features</li>' +
+'<li class="action"><a href="#">Upgrade Now!</a></li>' +
+'</ul>' +
+'</li>' +
+'<li class="alert-container">' +
+'<span class="badge" id="badge-count"></span>' +
+'<span class="icon-alerts"></span>' +
+'<ul class="alert-content-parent">' +
+'</ul>' +
+'</li>' +
+'</ul>' +
+'</nav>' +
+'<div class="router-content-container">' +
+'</div>';
+
 goldstone.sidebarHTMLMock = '<div class="sidebar clearfix">' +
     '<ul class="btn-grp">' +
     '<a href="#discover">' +

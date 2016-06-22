@@ -31,9 +31,10 @@ goldstone.init = function() {
     // a console error instead of raising a browser alert
     $.fn.dataTable.ext.errMode = 'throw';
 
-    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
-
-    goldstone.authLogoutIcon = new LogoutIcon();
+    // handled in authLogoutView.js
+    goldstone.authLogoutIcon = new LogoutIcon({
+        localStorageKeys: ['compliance', 'topology', 'userToken', 'userPrefs', 'rem']
+    });
 
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
@@ -57,20 +58,20 @@ goldstone.init = function() {
         }
     });
 
-    // instantiate object that will manage user prefs
+    // instantiate user prefs object (userPrefsView.js)
     goldstone.userPrefsView = new UserPrefsView();
 
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
-    // set selected language.
+    // set selected language. (i18nModel.js)
     goldstone.i18n = new I18nModel();
 
-    // define the router
+    // define the router (goldstoneRouter.js)
     goldstone.gsRouter = new GoldstoneRouter();
 
     // contains the machinery for appending/maintaining
-    // 'add-ons' dropdown menu
+    // 'add-ons' dropdown menu (addonMenuView.js)
     goldstone.addonMenuView = new AddonMenuView({});
 
     // re-translate the base template when switching pages to make sure
@@ -79,6 +80,8 @@ goldstone.init = function() {
         goldstone.i18n.translateBaseTemplate();
     });
 
+    // deprecated...waiting to see how refresh/lookback
+    // are handled prior to removal
     // append global selectors to page
     goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
         lookbackValues: {
@@ -103,15 +106,20 @@ goldstone.init = function() {
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
     // start the population of the alerts icon drop-down menu
+    // alertsMenuView.js
     var alertsMenuCollection = new AlertsMenuCollection({
         urlBase: '/core/alert/'
     });
 
     // start the secondary navigation bar breadcrumb state manager
+    // breadcrumbManager.js
     goldstone.breadcrumbManager = new BreadcrumbManager({
         el: '#bottom-bar'
     });
+    // set dashboard status initially to green
+    goldstone.breadcrumbManager.trigger('updateDashboardStatus', 'green');
 
+    // alertsMenuView.js
     goldstone.alertsMenu = new AlertsMenuView({
         collection: alertsMenuCollection,
         el: '.alert-icon-placeholder'
@@ -120,6 +128,7 @@ goldstone.init = function() {
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
     // menus, and set highlighting of appropriate menu icons.
+    // setBaseTemplateListeners.js
     goldstone.setBaseTemplateListeners();
 
     // start the backbone router that will handle /# calls

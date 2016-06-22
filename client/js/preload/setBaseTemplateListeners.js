@@ -18,7 +18,6 @@
 This module handles:
 * the updating of the secondary menu breadcrumb
 * the updating of the license link href.
-* initially setting the dashboard status to green
 */
 
 goldstone.setBaseTemplateListeners = function() {
@@ -31,9 +30,6 @@ goldstone.setBaseTemplateListeners = function() {
         updateLicenseLink(name);
     });
 
-    // set dashboard status initially to green
-    goldstone.breadcrumbManager.trigger('updateDashboardStatus', 'green');
-
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
     var addBreadcrumb = function(location) {
@@ -42,14 +38,10 @@ goldstone.setBaseTemplateListeners = function() {
 
     var routeNameBreadcrumbHash = function(location) {
         var breadcrumbCombo = breadcrumbComboHash[location] || breadcrumbComboHash.missingComboHash;
-        // console.clear();
-        console.log(location);
-        console.log(breadcrumbCombo);
 
         var result = _.map(breadcrumbCombo, function(route) {
             return routeNameDetails[route] || routeNameDetails.missing;
         });
-        console.log(result);
         return result;
     };
 

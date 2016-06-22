@@ -25,7 +25,6 @@ var BreadcrumbManager = GoldstoneBaseView.extend({
     breadcrumbTemplate: _.template('' +
         '<ol class="breadcrumb">' +
         '<% _.each(path, function(item){ %>' +
-        '<% console.log(item); %>' +
         '<%= "<li>" %>' +
         '<%= "<a href=" + item.location + ">" %>' +
         '<%= item.title %>' +

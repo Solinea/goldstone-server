@@ -133,7 +133,6 @@ _.extend(goldstone, extendingGoldstone);
 This module handles:
 * the updating of the secondary menu breadcrumb
 * the updating of the license link href.
-* initially setting the dashboard status to green
 */
 
 goldstone.setBaseTemplateListeners = function() {
@@ -146,9 +145,6 @@ goldstone.setBaseTemplateListeners = function() {
         updateLicenseLink(name);
     });
 
-    // set dashboard status initially to green
-    goldstone.breadcrumbManager.trigger('updateDashboardStatus', 'green');
-
     // function to remove existing menu tab highlighting
     // and highlight tab matching selector, if any
     var addBreadcrumb = function(location) {
@@ -157,14 +153,10 @@ goldstone.setBaseTemplateListeners = function() {
 
     var routeNameBreadcrumbHash = function(location) {
         var breadcrumbCombo = breadcrumbComboHash[location] || breadcrumbComboHash.missingComboHash;
-        // console.clear();
-        console.log(location);
-        console.log(breadcrumbCombo);
 
         var result = _.map(breadcrumbCombo, function(route) {
             return routeNameDetails[route] || routeNameDetails.missing;
         });
-        console.log(result);
         return result;
     };
 
@@ -1399,6 +1391,8 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     // if adjusting routes, also adjust breadcrumb generator
     // in setBaseTemplateListeners.js
+    // and check location in init.js / settingsPageView.js
+
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",
@@ -2985,7 +2979,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // for each sub-array in the array of 'routes' in
             // the addon's javascript file, do the following:
             _.each(goldstone[module.url_root].routes, function(route) {
-console.log(route);
+
                 // pass along the route array
                 // and the name of the addon
                 // which is needed for generating
@@ -4005,9 +3999,8 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
 });
 ;
-
 /**
- * Copyright 2015 Solinea, Inc.
+ * Copyright 2016 Solinea, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4040,6 +4033,7 @@ there is a truthy value present in localStorage.userToken
 var LogoutIcon = GoldstoneBaseView.extend({
 
     instanceSpecificInit: function() {
+        this.processOptions();
 
         // prune old unused localStorage keys
         this.pruneLocalStorage();
@@ -4056,17 +4050,17 @@ var LogoutIcon = GoldstoneBaseView.extend({
     pruneLocalStorage: function() {
         var temp = {};
 
-        // localStorageKeys is defined in init.js
-        if(goldstone === undefined || goldstone.localStorageKeys === undefined) {
+        // localStorageKeys are defined on init.js
+        if (this.localStorageKeys === undefined) {
             return;
         }
 
-        _.each(goldstone.localStorageKeys, function(item) {
+        _.each(this.localStorageKeys, function(item) {
             temp[item] = localStorage.getItem(item);
         });
         localStorage.clear();
-        _.each(goldstone.localStorageKeys, function(item) {
-            if(temp[item] !== null) {
+        _.each(this.localStorageKeys, function(item) {
+            if (temp[item] !== null) {
                 localStorage.setItem(item, temp[item]);
             }
         });
@@ -4156,7 +4150,6 @@ var BreadcrumbManager = GoldstoneBaseView.extend({
     breadcrumbTemplate: _.template('' +
         '<ol class="breadcrumb">' +
         '<% _.each(path, function(item){ %>' +
-        '<% console.log(item); %>' +
         '<%= "<li>" %>' +
         '<%= "<a href=" + item.location + ">" %>' +
         '<%= item.title %>' +
@@ -10205,9 +10198,10 @@ goldstone.init = function() {
     // a console error instead of raising a browser alert
     $.fn.dataTable.ext.errMode = 'throw';
 
-    goldstone.localStorageKeys = ['compliance', 'topology', 'userToken', 'userPrefs', 'rem'];
-
-    goldstone.authLogoutIcon = new LogoutIcon();
+    // handled in authLogoutView.js
+    goldstone.authLogoutIcon = new LogoutIcon({
+        localStorageKeys: ['compliance', 'topology', 'userToken', 'userPrefs', 'rem']
+    });
 
     // append username to header
     $.get('/user/', function() {}).done(function(item) {
@@ -10231,20 +10225,20 @@ goldstone.init = function() {
         }
     });
 
-    // instantiate object that will manage user prefs
+    // instantiate user prefs object (userPrefsView.js)
     goldstone.userPrefsView = new UserPrefsView();
 
     // instantiate translation data that can be set on settingsPageView.
     // Settings page drop-downs will trigger userPrefsView
     // to persist preferance, and triggers i18nModel to
-    // set selected language.
+    // set selected language. (i18nModel.js)
     goldstone.i18n = new I18nModel();
 
-    // define the router
+    // define the router (goldstoneRouter.js)
     goldstone.gsRouter = new GoldstoneRouter();
 
     // contains the machinery for appending/maintaining
-    // 'add-ons' dropdown menu
+    // 'add-ons' dropdown menu (addonMenuView.js)
     goldstone.addonMenuView = new AddonMenuView({});
 
     // re-translate the base template when switching pages to make sure
@@ -10253,6 +10247,8 @@ goldstone.init = function() {
         goldstone.i18n.translateBaseTemplate();
     });
 
+    // deprecated...waiting to see how refresh/lookback
+    // are handled prior to removal
     // append global selectors to page
     goldstone.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({
         lookbackValues: {
@@ -10277,15 +10273,20 @@ goldstone.init = function() {
     $('.global-range-refresh-container').append(goldstone.globalLookbackRefreshSelectors.el);
 
     // start the population of the alerts icon drop-down menu
+    // alertsMenuView.js
     var alertsMenuCollection = new AlertsMenuCollection({
         urlBase: '/core/alert/'
     });
 
     // start the secondary navigation bar breadcrumb state manager
+    // breadcrumbManager.js
     goldstone.breadcrumbManager = new BreadcrumbManager({
         el: '#bottom-bar'
     });
+    // set dashboard status initially to green
+    goldstone.breadcrumbManager.trigger('updateDashboardStatus', 'green');
 
+    // alertsMenuView.js
     goldstone.alertsMenu = new AlertsMenuView({
         collection: alertsMenuCollection,
         el: '.alert-icon-placeholder'
@@ -10294,6 +10295,7 @@ goldstone.init = function() {
     // defined in setBaseTemplateListeners.js
     // sets up UI to respond to user interaction with
     // menus, and set highlighting of appropriate menu icons.
+    // setBaseTemplateListeners.js
     goldstone.setBaseTemplateListeners();
 
     // start the backbone router that will handle /# calls

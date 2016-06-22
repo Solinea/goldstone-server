@@ -38,6 +38,8 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     // if adjusting routes, also adjust breadcrumb generator
     // in setBaseTemplateListeners.js
+    // and check location in init.js / settingsPageView.js
+
     routes: {
         "discover": "discover",
         "metrics/api_perf": "apiPerfReport",

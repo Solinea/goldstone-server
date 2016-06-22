@@ -67,7 +67,7 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // for each sub-array in the array of 'routes' in
             // the addon's javascript file, do the following:
             _.each(goldstone[module.url_root].routes, function(route) {
-console.log(route);
+
                 // pass along the route array
                 // and the name of the addon
                 // which is needed for generating
