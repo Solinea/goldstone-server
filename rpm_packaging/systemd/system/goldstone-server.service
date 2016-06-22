@@ -7,8 +7,6 @@ After=docker.service
 Type=simple
 TimeoutStartSec=0
 Restart=always
-User=root
-Group=root
 ExecStartPre=-/sbin/iptables -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS  --clamp-mss-to-pmtu
 ExecStartPre=/sbin/iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS  --clamp-mss-to-pmtu
 ExecStart=/opt/goldstone/bin/docker-compose --verbose -f /opt/goldstone/docker-compose.yml up
@@ -16,4 +14,4 @@ ExecStop=/opt/goldstone/bin/docker-compose --verbose -f /opt/goldstone/docker-co
 RestartSec=
 
 [Install]
-WantedBy=local.target
+WantedBy=multi-user.target
