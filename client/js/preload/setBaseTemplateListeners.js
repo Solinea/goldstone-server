@@ -42,7 +42,7 @@ goldstone.setBaseTemplateListeners = function() {
 
     var routeNameBreadcrumbHash = function(location) {
         var breadcrumbCombo = breadcrumbComboHash[location] || breadcrumbComboHash.missingComboHash;
-        console.clear();
+        // console.clear();
         console.log(location);
         console.log(breadcrumbCombo);
 
@@ -63,18 +63,24 @@ goldstone.setBaseTemplateListeners = function() {
         savedSearchApi: ['discover', 'apiBrowser', 'savedSearchApi'],
         settings: ['discover', 'settings'],
         tenant: ['discover', 'settings', 'tenant'],
-        topology: ['discover', 'topology'],
-        missingComboHash: ['missingComboHash']
+        missingComboHash: ['missingComboHash'],
+
+        // add-on modules
+        Topology: ['discover', 'topology'],
+        "OpenTrail Manager": ['discover', 'openTrail'],
+        "OpenTrail Log List": ['discover', 'openTrail', 'OpenTrailLogList'],
+        "Leases Manager": ['discover', 'leasesManager'],
+        "Vulnerability Advisor": ['discover', 'vulnerabilityAdvisor'],
     };
 
     var routeNameDetails = {
         missing: {
             title: 'Missing Breadcrumb Name Details',
-            location: '#'
+            location: '#discover'
         },
         missingComboHash: {
             title: 'Missing Breadcrumb Combo Hash',
-            location: '#'
+            location: '#discover'
         },
         discover: {
             title: 'Dashboard',
@@ -112,16 +118,40 @@ goldstone.setBaseTemplateListeners = function() {
             title: 'Tenant Settings',
             location: '#settings/tenants'
         },
+
+        // add-on modules
         topology: {
             title: 'Topology',
             location: '#topology'
         },
+        "openTrail": {
+            title: 'OpenTrail Manager',
+            location: '#compliance/opentrail/manager'
+        },
+        "OpenTrailLogList": {
+            title: 'OpenTrail Log History',
+
+            // dynamic
+            location: function() {
+                return window.location.hash;
+            }()
+        },
+        "leasesManager": {
+            title: 'Leases Manager',
+            location: '#compliance/leases/manager'
+        },
+        "vulnerabilityAdvisor": {
+            title: 'Vulnerability Advisor',
+            location: '#compliance/vulnerability/advisor'
+        }
     };
 
+
+    // to be used if menu highlighting is required
+    // based on currently selected route
     var routeNameToIconClassHash = {
         discover: '.d-a-s-h-b-o-a-r-d',
         apiPerfReport: '.m-e-t-r-i-c-s',
-        topology: '.t-o-p-o-l-o-g-y',
         "logSearch": '.m-e-t-r-i-c-s',
         "savedSearchLog": '.m-e-t-r-i-c-s',
         "eventsBrowser": '.m-e-t-r-i-c-s',
@@ -130,7 +160,13 @@ goldstone.setBaseTemplateListeners = function() {
         "savedSearchApi": '.m-e-t-r-i-c-s',
         "settings": '',
         "tenant": '',
-        compliance: '.a-u-d-i-t'
+
+        // add-on modules
+        Topology: '.t-o-p-o-l-o-g-y',
+        "OpenTrail Manager": '.a-u-d-i-t',
+        "OpenTrail Log List": '.a-u-d-i-t',
+        "Leases Manager": '.a-u-d-i-t',
+        "Vulnerability Advisor": '.a-u-d-i-t'
     };
 
     var updateLicenseLink = function(name) {

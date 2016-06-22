@@ -67,11 +67,12 @@ var AddonMenuView = GoldstoneBaseView.extend({
             // for each sub-array in the array of 'routes' in
             // the addon's javascript file, do the following:
             _.each(goldstone[module.url_root].routes, function(route) {
+console.log(route);
                 // pass along the route array
                 // and the name of the addon
-                // which is needed for
-                // proper side-menu highlighting
-                self.addNewRoute(route, module.url_root);
+                // which is needed for generating
+                // proper breadcrumb navigation
+                self.addNewRoute(route, route[1]);
             });
         }
 
@@ -117,16 +118,16 @@ var AddonMenuView = GoldstoneBaseView.extend({
         '</span>' +
         '<ul>' +
         '<li class="audit-trail">' +
-        '<a href="/#compliance/opentrail/manager/">' +
+        '<a href="/#compliance/opentrail/manager">' +
         '<span class="i18n" data-i18n="OpenTrail">OpenTrail</span>' +
         '</a>' +
         '</li>' +
-        '<li class="audit-lease"><a href="/#compliance/leases/manager/">' +
+        '<li class="audit-lease"><a href="/#compliance/leases/manager">' +
         '<span class="i18n" data-i18n="Leases">Leases</span>' +
         '</a>' +
         '</li>' +
         '<li class="audit-vulnerability">' +
-        '<a href="/#compliance/vulnerability/advisor/">' +
+        '<a href="/#compliance/vulnerability/advisor">' +
         '<span class="i18n" data-i18n="Vulnerabilities">Vulnerabilities</span>' +
         '</a>' +
         '</li>' +
