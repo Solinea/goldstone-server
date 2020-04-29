@@ -30,7 +30,7 @@
     "grunt-mocha": "^0.4.15",
     "grunt-notify": "^0.4.5",
     "grunt-po2json": "^0.3.0",
-    "jquery": "^2.2.1",
+    "jquery": "^3.5.0",
     "karma": "^0.13.21",
     "karma-chai": "0.1.0",
     "karma-chrome-launcher": "^0.2.2",
