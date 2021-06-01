@@ -49,5 +49,5 @@ python-keystoneclient==2.0.0
 python-neutronclient==3.1.0
 python-novaclient==2.35.0
 python-swiftclient==2.7.0  # compliance addon
-urllib3==1.8
+urllib3==1.26.5
 wsgiref==0.1.2
