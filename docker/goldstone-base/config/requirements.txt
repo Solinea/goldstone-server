@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-Django==1.8.7
+Django==2.2.24
 Jinja2==2.8
 arrow==0.4.4
 beautifulsoup4==4.4.1  # compliance addon
